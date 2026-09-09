@@ -1,0 +1,20 @@
+{
+  "name": "finansr",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Najprostsza gra w Phaserze — do testowania środowiska uruchomieniowego w Drive",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+      "papaparse": "^5.4.1",
+      "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/papaparse": "^5.3.14",
+    "vite": "^5.4.0"
+  }
+}
