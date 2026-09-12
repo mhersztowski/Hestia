@@ -1,0 +1,62 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+
+  /*
+   * API documentation — only what the packages actually export.
+   *
+   * The entry point of every package is its barrel (`src/index.ts`), so this
+   * run answers one question: what can somebody import from `@hestia/core`?
+   * Internal modules that the barrel does not re-export stay out — they are an
+   * implementation detail, and listing them here would make the public surface
+   * look several times larger than it is.
+   *
+   * For everything, including those internals, see `typedoc.full.json`.
+   */
+  "entryPointStrategy": "packages",
+  "entryPoints": [
+    "packages/core",
+    "packages/node-core",
+    "packages/ui-core",
+    "packages/ui-texteditor",
+    "packages/core-sci",
+    "packages/ui-sci-blocks",
+    "packages/viewers",
+    "packages/ui-ai",
+    "packages/ui-cad",
+    "packages/ui-scene3d",
+    "packages/ui-markdown-editor",
+    "packages/node-devtools",
+    "packages/ui-devtools",
+    "app/backend",
+    "app/finances",
+    "app/iot",
+    "app/drive"
+  ],
+  "packageOptions": {
+    "entryPoints": ["src/index.ts"],
+    "exclude": [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/test-setup.ts",
+      "**/vite-env.d.ts",
+      "**/node_modules/**"
+    ],
+    "excludeExternals": true,
+    "excludePrivate": true,
+    // Types resolve from source, and the packages do not all build before docs
+    // are generated. Without this a missing `dist/` fails the whole run.
+    "skipErrorChecking": true
+  },
+
+  "plugin": ["typedoc-plugin-markdown"],
+  "outputs": [
+    { "name": "markdown", "path": "./docs-site/api/markdown" },
+    { "name": "json", "path": "./docs-site/api/docs.json" }
+  ],
+
+  "name": "Hestia — API",
+  "categorizeByGroup": true,
+  "navigation": { "includeCategories": true, "includeGroups": true },
+  "sort": ["source-order", "alphabetical"],
+  "cleanOutputDir": true
+}

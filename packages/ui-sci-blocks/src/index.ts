@@ -1,0 +1,81 @@
+/**
+ * sci-blocks — bloki dokumentu bazy wiedzy.
+ *
+ * Pakiet mieszka poza `mycastle-web` od pierwszego dnia (raport, 4.2): zna
+ * `sci-core` i React, nie zna edytora. Wpięcie do MdEditora sprowadza się do
+ * rejestracji widoków bloków w jego rejestrze — patrz `registerSciBlocks`.
+ */
+export { SimBlock } from './SimBlock';
+export { FieldBlock } from './FieldBlock';
+export { HeatmapCanvas } from './HeatmapCanvas';
+export { StrokeCanvas } from './StrokeCanvas';
+export { MathField } from './MathField';
+export { ReferenceLink } from './ReferenceLink';
+export { FigureBlock } from './FigureBlock';
+export { PlotFigure } from './PlotFigure';
+export type { FigureBlockProps } from './FigureBlock';
+export { TableBlock } from './TableBlock';
+export type { TableBlockProps } from './TableBlock';
+export { InkCanvas } from './InkCanvas';
+export { SolutionDialog, SolutionHistory } from './SolutionDialog';
+export type { SolutionDialogProps, SolutionHistoryProps, SolutionDraft } from './SolutionDialog';
+export type { InkCanvasProps, InkRecognizer, InkMode } from './InkCanvas';
+export { CalloutBlock } from './CalloutBlock';
+export type { CalloutBlockProps } from './CalloutBlock';
+export { LawBlock } from './LawBlock';
+export type { LawBlockProps } from './LawBlock';
+export { LinAlgStage } from './LinAlgStage';
+export { LinAlgStage3D } from './LinAlgStage3D';
+export { LinAlgBlock } from './LinAlgBlock';
+export { ProcedureBlock } from './ProcedureBlock';
+export type { SimBlockProps } from './SimBlock';
+export { ExerciseBlock } from './ExerciseBlock';
+export { ScriptBlock } from './ScriptBlock';
+export type { ScriptBlockProps } from './ScriptBlock';
+export { Math, symbolToLatex } from './Math';
+export type { MathProps } from './Math';
+export { BlockShell } from './BlockShell';
+export type { BlockShellProps } from './BlockShell';
+export { useModelRunner } from './useModelRunner';
+export type { WorkerFactory, ModelRunnerState } from './useModelRunner';
+export { ModelViews } from './ModelViews';
+export { QualityPanel } from './QualityPanel';
+export type { QualityPanelProps, ErrorEstimate } from './QualityPanel';
+export { KnowledgeCatalog } from './KnowledgeCatalog';
+export type { KnowledgeCatalogProps } from './KnowledgeCatalog';
+export { KnowledgeGraph } from './KnowledgeGraph';
+export type { KnowledgeGraphProps } from './KnowledgeGraph';
+export { Markdown } from './Markdown';
+export { ReaderView, splitDocument } from './ReaderView';
+export type { ReaderViewProps } from './ReaderView';
+export type { ModelViewsProps } from './ModelViews';
+export type { ExerciseBlockProps } from './ExerciseBlock';
+export { FormulaBlockView } from './FormulaBlockView';
+export type { FormulaBlockViewProps } from './FormulaBlockView';
+export { Path3DCanvas } from './Path3DCanvas';
+export type { Path3DCanvasProps } from './Path3DCanvas';
+export { decimate, minOf, maxOf } from './sampling';
+export { PlotCanvas } from './PlotCanvas';
+export type { PlotCanvasProps, PlotSeries } from './PlotCanvas';
+export { AngularStage } from './AngularStage';
+export type { AngularStageProps } from './AngularStage';
+export { XYCanvas } from './XYCanvas';
+export type { XYCanvasProps } from './XYCanvas';
+export { scanFormulas, buildSimSetup } from './documentModel';
+export { CompareBlock } from './CompareBlock';
+export { registerSciBlocks, FORMULA_LANG, SIM_LANG, EXERCISE_LANG, SIMSCRIPT_LANG, COMPARE_LANG, FIGURE_LANG, TABLE_LANG, CALLOUT_LANG, LAW_LANG, setInkRecognizer, setCodeEditor } from './register';
+export type { HostBlockRenderer, HostBlockRendererProps } from './register';
+export type { SimSpec, SimSetup } from './documentModel';
+export { PlotStage, pointerWorld } from './PlotStage';
+export type { PlotStageProps, PlotStageSettings } from './PlotStage';
+export { PlotView } from './PlotView';
+export type { PlotViewProps } from './PlotView';
+export { PlotRowList } from './PlotRowList';
+export type { PlotRowListProps } from './PlotRowList';
+export { SciPlot } from './SciPlot';
+export type { SciPlotProps } from './SciPlot';
+export { useSliderAnimation } from './useSliderAnimation';
+export type { AnimatedSlider } from './useSliderAnimation';
+export { PlotBlock } from './PlotBlock';
+export type { PlotBlockProps } from './PlotBlock';
+export type { CodeEditorPort, CodeEditorProps } from './register';

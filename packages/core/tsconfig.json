@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src"],
+  // Tests are checked by vitest; `tsc` trips over stub types in them (the mock
+  // `fetch` in the copied VFS tests), which have nothing to do with whether the
+  // code is correct. Same convention as MyCastle, where the base comes from.
+  "exclude": ["src/**/*.test.ts"]
+}

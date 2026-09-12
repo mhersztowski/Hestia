@@ -1,0 +1,31 @@
+{
+  /*
+   * Only for generating the complete documentation.
+   *
+   * `entryPointStrategy: "expand"` hands TypeDoc every file under `src/`, and
+   * TypeDoc checks each one against a tsconfig. The per-package configs cover
+   * one package each, and `tsconfig.base.json` has no `include` at all — so
+   * every file came back as "not referenced by the 'files' or 'include' option"
+   * and the run ended with no entry points at all.
+   *
+   * Kept separate from the build configs on purpose: this one spans the whole
+   * repository, which is exactly what no build should do.
+   */
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "vite/client"],
+    // Documentation is generated from sources that are not always built; an
+    // unused local is not a reason to refuse to describe a module.
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/src/**/*.tsx",
+    "app/*/src/**/*.ts",
+    "app/web/*/src/**/*.ts",
+    "app/web/*/src/**/*.tsx"
+  ],
+  "exclude": ["**/node_modules/**", "**/dist/**"]
+}

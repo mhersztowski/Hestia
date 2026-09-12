@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src"],
+  // Tests are checked by vitest — the same convention as in `packages/core`.
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+}

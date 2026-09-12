@@ -1,0 +1,11 @@
+packages:
+  - packages/*
+  - app/*
+  # Web applications live in `app/web/`, so it is visible what is a browser and
+  # what is a server — the `app/*` glob alone would not cover them.
+  - app/web/*
+
+# esbuild unpacks its executable in an install script — without consent `vite`
+# and `tsup` end in "You installed esbuild for another platform".
+onlyBuiltDependencies:
+  - esbuild

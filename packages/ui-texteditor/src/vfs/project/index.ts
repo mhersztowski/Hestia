@@ -1,0 +1,10 @@
+export type { ProjectAction, ProjectActionExecutor, OutputLine } from './types';
+export { classifyLine } from './types';
+export { Project } from './Project';
+export { ArduinoProject } from './ArduinoProject';
+export { UPythonProject } from './UPythonProject';
+export { PygameProject } from './PygameProject';
+export { PicoSdkProject } from './PicoSdkProject';
+export { NotesProject } from './NotesProject';
+export { EditorProject } from './EditorProject';
+export { createProject } from './createProject';

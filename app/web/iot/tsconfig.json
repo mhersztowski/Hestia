@@ -1,0 +1,11 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+    "types": ["vite/client"],
+    "noEmit": true
+  },
+  "include": ["src", "index.html"],
+  "exclude": ["node_modules", "dist"]
+}

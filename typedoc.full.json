@@ -1,0 +1,68 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+
+  /*
+   * Complete documentation — every module, not just the barrels.
+   *
+   * `expand` walks each `src/` directory and treats **every file** as a module,
+   * so internals that `index.ts` does not re-export are documented too. That is
+   * the difference from `typedoc.json`: this run is for somebody working *on*
+   * Hestia, the other for somebody working *with* it.
+   *
+   * The web applications are here and absent from the API run — they have no
+   * `src/index.ts` at all (their entry is `main.tsx`), so a barrel-based run
+   * has nothing to grab. Private members and internals stay in as well.
+   */
+  "entryPointStrategy": "expand",
+  "entryPoints": [
+    "packages/core/src",
+    "packages/node-core/src",
+    "packages/ui-core/src",
+    "packages/ui-texteditor/src",
+    "packages/core-sci/src",
+    "packages/ui-sci-blocks/src",
+    "packages/viewers/src",
+    "packages/ui-ai/src",
+    "packages/ui-cad/src",
+    "packages/ui-scene3d/src",
+    "packages/ui-markdown-editor/src",
+    "packages/node-devtools/src",
+    "packages/ui-devtools/src",
+    "app/backend/src",
+    "app/finances/src",
+    "app/iot/src",
+    "app/drive/src",
+    "app/web/cad/src",
+    "app/web/drive/src",
+    "app/web/finances/src",
+    "app/web/iot/src"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/test-setup.ts",
+    "**/vite-env.d.ts",
+    "**/node_modules/**"
+  ],
+
+  // The point of this run is what the API one leaves out.
+  "excludePrivate": false,
+  "excludeProtected": false,
+  "excludeInternal": false,
+  "excludeExternals": true,
+  "skipErrorChecking": true,
+  // Spans the whole repository — see the file itself for why it has to exist.
+  "tsconfig": "tsconfig.docs.json",
+
+  "plugin": ["typedoc-plugin-markdown"],
+  "outputs": [
+    { "name": "markdown", "path": "./docs-site/full/markdown" },
+    { "name": "json", "path": "./docs-site/full/docs.json" }
+  ],
+
+  "name": "Hestia — complete",
+  "categorizeByGroup": true,
+  "navigation": { "includeCategories": true, "includeGroups": true },
+  "sort": ["source-order", "alphabetical"],
+  "cleanOutputDir": true
+}

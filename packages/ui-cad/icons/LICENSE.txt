@@ -1,0 +1,9 @@
+Ikony w tym katalogu pochodzą z projektu FreeCAD (https://www.freecad.org).
+Licencja: LGPL 2.0+
+Katalogi źródłowe:
+  - src/Mod/PartDesign/Gui/Resources/icons
+  - src/Mod/Sketcher/Gui/Resources/icons
+  - src/Mod/Part/Gui/Resources/icons
+  - src/Mod/Draft/Resources/icons
+
+Copyright © FreeCAD contributors.

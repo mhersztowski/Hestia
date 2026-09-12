@@ -7,14 +7,14 @@ interface Row {
   transationType : string;
   value : number;
   currency : string;
-  balance : number;         // saldo po tranzakcji
+  balance : number;         // the balance after the transaction
   description: number;
 }
 
     const result = Papa.parse<Row>(csvString, {
-      header: true,          // pierwszy wiersz jako klucze obiektów
+      header: true,          // the first row as the objects' keys
         skipEmptyLines: true,
-          dynamicTyping: true,   // auto-konwersja na number/boolean
+          dynamicTyping: true,   // auto-conversion to number/boolean
           });
 
 class PkoCSVData {

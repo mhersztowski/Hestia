@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.env
+.env.local
+data/
+app/finances/public/
+coverage/
+
+# Generated documentation — rebuilt with `pnpm docs`.
+docs-site/
+.DS_Store

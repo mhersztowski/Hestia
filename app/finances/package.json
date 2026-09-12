@@ -1,20 +1,28 @@
 {
-  "name": "finansr",
-  "private": true,
+  "name": "finances-backend",
   "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "description": "Najprostsza gra w Phaserze — do testowania środowiska uruchomieniowego w Drive",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "vite --host",
-    "build": "vite build",
-    "preview": "vite preview --host"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-      "papaparse": "^5.4.1",
-      "date-fns": "^4.1.0"
+    "@hestia/core": "workspace:*",
+    "@hestia/node-core": "workspace:*",
+    "dotenv": "^16.3.1",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@types/papaparse": "^5.3.14",
-    "vite": "^5.4.0"
+    "@types/node": "^20.10.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

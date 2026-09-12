@@ -118,14 +118,14 @@ if (!app) throw new Error('#app not found');
 
 const input = document.createElement('input');
 input.type = 'file';
-input.accept = '.csv,text/csv'; // opcjonalny filtr typów
+input.accept = '.csv,text/csv'; // an optional type filter
 
 input.addEventListener('change', async () => {
   const file = input.files?.[0];
     if (!file) return;
 
       const content: string = await file.text();
-        console.log(content); // cały plik jako string
+        console.log(content); // the whole file as a string
         });
 
         app.append(input);

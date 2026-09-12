@@ -1,0 +1,105 @@
+{
+  "name": "@hestia/ui-markdown-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@hestia/core": "workspace:*",
+    "@hestia/core-sci": "workspace:*",
+    "@hestia/ui-devtools": "workspace:*",
+    "@hestia/ui-scene3d": "workspace:*",
+    "@hestia/ui-sci-blocks": "workspace:*",
+    "react-markdown": "^9.0.1",
+    "rehype-highlight": "^7.0.0",
+    "remark-gfm": "^4.0.0",
+    "showdown": "^2.1.0",
+    "turndown": "^7.2.0"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^6.1.0",
+    "@mui/material": "^6.1.0",
+    "@tiptap/core": "^2.10.0",
+    "@tiptap/extension-link": "^2.10.0",
+    "@tiptap/extension-table-cell": "^2.10.0",
+    "@tiptap/extension-table-header": "^2.10.0",
+    "@tiptap/pm": "^2.10.0",
+    "@tiptap/react": "^2.10.0",
+    "@tiptap/starter-kit": "^2.10.0",
+    "katex": "^0.16.28",
+    "leaflet": "^1.9.0",
+    "mermaid": "^11.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-leaflet": "^4.0.0",
+    "react-router-dom": "^6.28.0"
+  },
+  "peerDependenciesMeta": {
+    "leaflet": {
+      "optional": true
+    },
+    "react-leaflet": {
+      "optional": true
+    },
+    "mermaid": {
+      "optional": true
+    },
+    "katex": {
+      "optional": true
+    },
+    "react-router-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^6.1.0",
+    "@mui/material": "^6.1.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@tiptap/core": "^2.10.0",
+    "@tiptap/extension-link": "^2.10.0",
+    "@tiptap/extension-table-cell": "^2.10.0",
+    "@tiptap/extension-table-header": "^2.10.0",
+    "@tiptap/pm": "^2.10.0",
+    "@tiptap/react": "^2.10.0",
+    "@tiptap/starter-kit": "^2.10.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/showdown": "^2.0.6",
+    "@types/turndown": "^5.0.5",
+    "@vitejs/plugin-react": "^4.7.0",
+    "jsdom": "^28.1.0",
+    "katex": "^0.16.28",
+    "leaflet": "^1.9.4",
+    "mermaid": "^11.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^6.28.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}
