@@ -8,24 +8,12 @@
  * Katalog `data/` jest gitignorowany, więc test uruchamia się warunkowo.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { buildIndex, resolveReference } from '@hestia/core-sci';
+import { collectMarkdown, hasKnowledge, knowledgeDir } from './test/knowledge';
 
-const BAZA = resolve(__dirname, '../../../data/Minis/Users/marcin/drive/knowledge');
+const pliki = collectMarkdown(knowledgeDir('marcin'));
 
-function zbierz(dir: string, prefix = ''): Array<{ path: string; markdown: string }> {
-  const out: Array<{ path: string; markdown: string }> = [];
-  for (const e of readdirSync(dir, { withFileTypes: true })) {
-    const p = prefix ? `${prefix}/${e.name}` : e.name;
-    if (e.isDirectory()) out.push(...zbierz(resolve(dir, e.name), p));
-    else if (e.name.endsWith('.md')) out.push({ path: p, markdown: readFileSync(resolve(dir, e.name), 'utf8') });
-  }
-  return out;
-}
-
-describe.runIf(existsSync(BAZA))('baza wiedzy w całości', () => {
-  const pliki = zbierz(BAZA);
+describe.runIf(hasKnowledge('marcin'))('baza wiedzy w całości', () => {
   const index = buildIndex(pliki);
   const cel = (id: string, skad: string) =>
     resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, skad);

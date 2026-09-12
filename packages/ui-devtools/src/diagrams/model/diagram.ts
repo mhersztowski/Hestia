@@ -223,6 +223,19 @@ export interface UnknownLine {
 
 export interface DiagramDocument {
   kind: DiagramKind;
+  /**
+   * Nagłówek rodzaju diagramu, którego adapter nie obsługuje (np. `mindmap`).
+   *
+   * Obecność tego pola znaczy: **rozumiemy, czym to jest, i nie umiemy tego
+   * edytować**. Dokument jest wtedy pusty, a całe źródło leży w `unknown` —
+   * zapis oddaje je bez zmian, a edytor graficzny odmawia otwarcia.
+   *
+   * Bez tego rozróżnienia parser zakładał flowchart także tam, gdzie autor
+   * jasno napisał, o jaki rodzaj chodzi: gałęzie mindmapy stawały się węzłami,
+   * a pierwsza operacja w edytorze nadpisywała blok zapisem, którego Mermaid
+   * nie renderuje.
+   */
+  unsupported?: string;
   direction: DiagramDirection;
   nodes: DiagramNode[];
   edges: DiagramEdge[];

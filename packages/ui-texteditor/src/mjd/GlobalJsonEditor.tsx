@@ -5,7 +5,6 @@ import {
   Tooltip, Typography,
 } from '@mui/material';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import ExtensionIcon from '@mui/icons-material/Extension';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
 import { MjdVisualEditor } from './MjdVisualEditor';

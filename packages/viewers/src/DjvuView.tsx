@@ -26,11 +26,14 @@ export function loadDjvuDocument(key: string, read: FileBytes): Promise<DjVuDocu
   if (!p) {
     p = (async () => {
       const bytes = await read();
-      const doc = new DjVuDocument();
-      // djvu.js wants an ArrayBuffer of its own: a view into a larger buffer
-      // would carry whatever else is in it.
-      doc.loadDocument(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
-      return doc;
+      // The document is parsed in the constructor, and djvu.js wants an
+      // ArrayBuffer of its own: a view into a larger buffer would carry
+      // whatever else is in it.
+      // The copy also settles the type: `bytes.buffer` is an `ArrayBufferLike`,
+      // which may be shared, and a fresh array's buffer is plainly an ArrayBuffer.
+      const own = new Uint8Array(bytes.byteLength);
+      own.set(bytes);
+      return new DjVuDocument(own.buffer);
     })();
     djvuCache.set(key, p);
     p.catch(() => djvuCache.delete(key));

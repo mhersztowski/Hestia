@@ -8,8 +8,10 @@ import react from '@vitejs/plugin-react';
  * somewhere and its simulation runs. That is a statement about the document
  * pipeline, not about markup, and there is no other way to make it.
  *
- * The fixtures are read with paths relative to the working directory, which for
- * vitest is this package's root — hence `documents/` beside `src/`.
+ * The documents live in `documents/` beside `src/` and are read through
+ * `testDocuments.ts`, which resolves them against the source file: the working
+ * directory is this package only when vitest is started here, and the
+ * repository-wide `pnpm test` starts at the root.
  */
 export default defineConfig({
   plugins: [react()],

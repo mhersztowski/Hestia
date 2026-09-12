@@ -107,7 +107,7 @@ export const SpellCheckExtension = Extension.create<SpellCheckExtensionOptions>(
               0, editorView.state.doc.content.size, '\n', '\n',
             );
             const myId = ++latestRequestId;
-            const checker = this.options.spellChecker;
+            const checker = options.spellChecker;
             if (!checker) return;
             const matches = await checker.checkSpelling(text, language);
             if (myId !== latestRequestId) return; // a newer request took over

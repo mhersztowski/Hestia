@@ -28,7 +28,7 @@ interface FieldFixture {
 }
 
 const FIXTURES = join(__dirname, '..', '..', 'validation', 'fixtures');
-const DOKUMENTY = join(__dirname, '..', '..', '..', 'sci-blocks', 'dokumenty');
+const DOKUMENTY = join(__dirname, '..', '..', '..', 'ui-sci-blocks', 'documents');
 
 /** Blok pola z dokumentu, z siatką (i ewentualnie warunkiem) z odniesienia. */
 function blokPola(dokument: string, id: string, nx: number, ny: number, initial?: string) {

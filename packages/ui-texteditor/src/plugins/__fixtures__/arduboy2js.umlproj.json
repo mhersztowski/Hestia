@@ -1,0 +1,655 @@
+{
+  "type": "uml-project",
+  "version": 2,
+  "name": "arduboy2js",
+  "diagrams": [
+    {
+      "id": "d_2gqqxxm",
+      "name": "arduboy2js",
+      "nodes": [
+        {
+          "id": "cls_1s36x70",
+          "type": "umlClass",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "data": {
+            "kind": "class",
+            "name": "Arduboy2",
+            "members": [
+              {
+                "id": "mem_0ey9qm",
+                "kind": "field",
+                "text": "+ static WIDTH"
+              },
+              {
+                "id": "mem_15s5xv",
+                "kind": "field",
+                "text": "+ static HEIGHT"
+              },
+              {
+                "id": "mem_2756p0",
+                "kind": "field",
+                "text": "+ static BLACK"
+              },
+              {
+                "id": "mem_34v0lo",
+                "kind": "field",
+                "text": "+ static WHITE"
+              },
+              {
+                "id": "mem_48f5qk",
+                "kind": "field",
+                "text": "+ static INVERT"
+              },
+              {
+                "id": "mem_5ui15d",
+                "kind": "field",
+                "text": "+ static LEFT_BUTTON"
+              },
+              {
+                "id": "mem_6nu9x0",
+                "kind": "field",
+                "text": "+ static RIGHT_BUTTON"
+              },
+              {
+                "id": "mem_713dgu",
+                "kind": "field",
+                "text": "+ static UP_BUTTON"
+              },
+              {
+                "id": "mem_8344j8",
+                "kind": "field",
+                "text": "+ static DOWN_BUTTON"
+              },
+              {
+                "id": "mem_9q557t",
+                "kind": "field",
+                "text": "+ static A_BUTTON"
+              },
+              {
+                "id": "mem_a78f8e",
+                "kind": "field",
+                "text": "+ static B_BUTTON"
+              },
+              {
+                "id": "mem_bdljok",
+                "kind": "field",
+                "text": "+ static buffer",
+                "doc": {
+                  "summary": "Bufor ekranu — dostępny, bo część gier rysuje do niego wprost."
+                }
+              },
+              {
+                "id": "mem_cu044j",
+                "kind": "method",
+                "text": "+ static begin(scene: PhaserSceneLike, options?: BeginOptions): void",
+                "doc": {
+                  "params": {
+                    "scene": "scena Phasera — w `create()` po prostu `this`"
+                  },
+                  "summary": "Podłącza ekran do sceny Phasera i podpina klawiaturę."
+                }
+              },
+              {
+                "id": "mem_dvdphe",
+                "kind": "method",
+                "text": "+ static shutdown(): void",
+                "doc": {
+                  "summary": "Zwalnia ekran i klawisze oraz zeruje rytm klatek — wołane, gdy scena Phasera się kończy. Licznik i termin następnej klatki muszą pójść razem z resztą: scena uruchomiona ponownie zaczynałaby od `frameCount()` sprzed restartu, a `everyXFrames` wpadałby w rytm poprzedniej rozgrywki."
+                }
+              },
+              {
+                "id": "mem_egde78",
+                "kind": "method",
+                "text": "+ static setFrameRate(rate: number): void",
+                "doc": {
+                  "summary": "Ustawia docelową liczbę klatek na sekundę."
+                }
+              },
+              {
+                "id": "mem_f5be49",
+                "kind": "method",
+                "text": "+ static nextFrame(now?: number): boolean",
+                "doc": {
+                  "summary": "Czy nadszedł czas na kolejną klatkę. Wołane na początku `update()`: `if (!Arduboy2.nextFrame()) return;`.",
+                  "remarks": "Gra ma iść tak samo szybko niezależnie od tego, ile klatek rysuje przeglądarka — dlatego rytm liczy zegar, a nie licznik wywołań."
+                }
+              },
+              {
+                "id": "mem_gecec9",
+                "kind": "method",
+                "text": "+ static everyXFrames(n: number): boolean",
+                "doc": {
+                  "summary": "Czy bieżąca klatka jest co `n`-tą — do zdarzeń wolniejszych niż gra."
+                }
+              },
+              {
+                "id": "mem_hiilty",
+                "kind": "method",
+                "text": "+ static frameCount(): number",
+                "doc": {
+                  "summary": "Numer bieżącej klatki od `begin`."
+                }
+              },
+              {
+                "id": "mem_iahkr1",
+                "kind": "method",
+                "text": "+ static cpuLoad(): number",
+                "doc": {
+                  "summary": "Ile procent budżetu klatki zajęła ostatnia klatka (0–100+)."
+                }
+              },
+              {
+                "id": "mem_jnr5lh",
+                "kind": "method",
+                "text": "+ static width(): number"
+              },
+              {
+                "id": "mem_khzkhw",
+                "kind": "method",
+                "text": "+ static height(): number"
+              },
+              {
+                "id": "mem_l3q3ls",
+                "kind": "method",
+                "text": "+ static clear(): void",
+                "doc": {
+                  "summary": "Gasi cały bufor. Zwykle pierwsza rzecz w klatce."
+                }
+              },
+              {
+                "id": "mem_mgqage",
+                "kind": "method",
+                "text": "+ static display(clearAfter?): void",
+                "doc": {
+                  "summary": "Przenosi bufor na ekran. Bez tego rysowanie nigdzie nie trafia."
+                }
+              },
+              {
+                "id": "mem_n6mhvo",
+                "kind": "method",
+                "text": "+ static invert(on?): void",
+                "doc": {
+                  "summary": "Zamienia biel z czernią na całym ekranie — bez ruszania bufora."
+                }
+              },
+              {
+                "id": "mem_oi1npl",
+                "kind": "method",
+                "text": "+ static setColors(foreground: string, background: string): void",
+                "doc": {
+                  "summary": "Kolory pikseli zapalonego i zgaszonego (`#rrggbb`)."
+                }
+              },
+              {
+                "id": "mem_p8yxpc",
+                "kind": "method",
+                "text": "+ static pollButtons(): void",
+                "doc": {
+                  "summary": "Zapamiętuje stan przycisków z poprzedniej klatki i czyta bieżący. `nextFrame()` robi to sam — osobno przydaje się w ekranach menu, które nie mają własnej pętli klatek."
+                }
+              },
+              {
+                "id": "mem_qbampr",
+                "kind": "method",
+                "text": "+ static pressed(buttons: ButtonName | number): boolean",
+                "doc": {
+                  "summary": "Czy przycisk (albo dowolny z podanych) jest wciśnięty teraz."
+                }
+              },
+              {
+                "id": "mem_r83vvq",
+                "kind": "method",
+                "text": "+ static notPressed(buttons: ButtonName | number): boolean",
+                "doc": {
+                  "summary": "Czy żaden z podanych przycisków nie jest wciśnięty."
+                }
+              },
+              {
+                "id": "mem_sl6xjl",
+                "kind": "method",
+                "text": "+ static justPressed(button: ButtonName | number): boolean",
+                "doc": {
+                  "summary": "Czy przycisk został wciśnięty **w tej** klatce (zbocze narastające)."
+                }
+              },
+              {
+                "id": "mem_trlq61",
+                "kind": "method",
+                "text": "+ static justReleased(button: ButtonName | number): boolean",
+                "doc": {
+                  "summary": "Czy przycisk został puszczony w tej klatce."
+                }
+              },
+              {
+                "id": "mem_u32sf7",
+                "kind": "method",
+                "text": "+ static buttonsState(): number",
+                "doc": {
+                  "summary": "Surowy stan wszystkich przycisków jako maska bitowa."
+                }
+              },
+              {
+                "id": "mem_vje5o6",
+                "kind": "method",
+                "text": "+ static drawPixel(x: number, y: number, color?: Color): void"
+              },
+              {
+                "id": "mem_w1qt7i",
+                "kind": "method",
+                "text": "+ static getPixel(x: number, y: number): number"
+              },
+              {
+                "id": "mem_x3daje",
+                "kind": "method",
+                "text": "+ static drawFastVLine(x: number, y: number, height: number, color?: Color): void"
+              },
+              {
+                "id": "mem_ywmymn",
+                "kind": "method",
+                "text": "+ static drawFastHLine(x: number, y: number, width: number, color?: Color): void"
+              },
+              {
+                "id": "mem_zzwvp1",
+                "kind": "method",
+                "text": "+ static drawLine(x0: number, y0: number, x1: number, y1: number, color?: Color): void"
+              },
+              {
+                "id": "mem_10vamod",
+                "kind": "method",
+                "text": "+ static drawRect(x: number, y: number, width: number, height: number, color?: Color): void"
+              },
+              {
+                "id": "mem_117ozuw",
+                "kind": "method",
+                "text": "+ static fillRect(x: number, y: number, width: number, height: number, color?: Color): void"
+              },
+              {
+                "id": "mem_12eab8w",
+                "kind": "method",
+                "text": "+ static drawRoundRect(x: number, y: number, width: number, height: number, radius: number, color?: Color): void"
+              },
+              {
+                "id": "mem_1390oel",
+                "kind": "method",
+                "text": "+ static fillRoundRect(x: number, y: number, width: number, height: number, radius: number, color?: Color): void"
+              },
+              {
+                "id": "mem_14qrymk",
+                "kind": "method",
+                "text": "+ static drawCircle(x: number, y: number, radius: number, color?: Color): void"
+              },
+              {
+                "id": "mem_15tkhq8",
+                "kind": "method",
+                "text": "+ static fillCircle(x: number, y: number, radius: number, color?: Color): void"
+              },
+              {
+                "id": "mem_1695a5c",
+                "kind": "method",
+                "text": "+ static drawTriangle(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number, color?: Color): void"
+              },
+              {
+                "id": "mem_17rhh8t",
+                "kind": "method",
+                "text": "+ static fillTriangle(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number, color?: Color): void"
+              },
+              {
+                "id": "mem_18n55x3",
+                "kind": "method",
+                "text": "+ static fillScreen(color?: Color): void"
+              },
+              {
+                "id": "mem_197dlsp",
+                "kind": "method",
+                "text": "+ static drawBitmap(x: number, y: number, bitmap: ArrayLike<number>, width: number, height: number, color?: Color): void",
+                "doc": {
+                  "summary": "Bitmapa w formacie Arduboya (kolumny po 8 pikseli, bit 0 u góry)."
+                }
+              },
+              {
+                "id": "mem_1aqeptb",
+                "kind": "method",
+                "text": "+ static drawSlowXYBitmap(x: number, y: number, bitmap: ArrayLike<number>, width: number, height: number, color?: Color): void",
+                "doc": {
+                  "summary": "Bitmapa wierszowa — bity poziomo, od lewej."
+                }
+              },
+              {
+                "id": "mem_1buw1ed",
+                "kind": "method",
+                "text": "+ static setCursor(x: number, y: number): void"
+              },
+              {
+                "id": "mem_1c3efb8",
+                "kind": "method",
+                "text": "+ static getCursorX(): number"
+              },
+              {
+                "id": "mem_1duf4l7",
+                "kind": "method",
+                "text": "+ static getCursorY(): number"
+              },
+              {
+                "id": "mem_1edhvkc",
+                "kind": "method",
+                "text": "+ static setTextSize(size: number): void",
+                "doc": {
+                  "summary": "Mnożnik wielkości pisma: 1 = 6×8 pikseli na znak."
+                }
+              },
+              {
+                "id": "mem_1fsk790",
+                "kind": "method",
+                "text": "+ static setTextColor(color: Color): void"
+              },
+              {
+                "id": "mem_1gxaqwc",
+                "kind": "method",
+                "text": "+ static setTextBackground(color: Color): void"
+              },
+              {
+                "id": "mem_1h5x50d",
+                "kind": "method",
+                "text": "+ static setTextWrap(on: boolean): void",
+                "doc": {
+                  "summary": "Czy tekst ma się zawijać na krawędzi ekranu."
+                }
+              },
+              {
+                "id": "mem_1igj5eh",
+                "kind": "method",
+                "text": "+ static print(value: unknown): void",
+                "doc": {
+                  "summary": "Pisze tekst od bieżącego kursora. Liczby i wartości logiczne też."
+                }
+              },
+              {
+                "id": "mem_1j5l003",
+                "kind": "method",
+                "text": "+ static println(value?: unknown): void",
+                "doc": {
+                  "summary": "To samo co `print`, ale przenosi kursor do nowej linii."
+                }
+              },
+              {
+                "id": "mem_1kga8y5",
+                "kind": "method",
+                "text": "+ static write(code: number): void",
+                "doc": {
+                  "summary": "Pisze pojedynczy znak po kodzie — `10` przenosi do nowej linii."
+                }
+              },
+              {
+                "id": "mem_1lx1jfb",
+                "kind": "method",
+                "text": "+ static drawChar(x: number, y: number, code: number, color: Color, background: Color, size?): void",
+                "doc": {
+                  "summary": "Rysuje znak w podanym miejscu, nie ruszając kursora."
+                }
+              },
+              {
+                "id": "mem_1m9poba",
+                "kind": "method",
+                "text": "+ static setRGBled(red: number, green: number, blue: number): void",
+                "doc": {
+                  "summary": "Kolor diody RGB (0–255). Na sprzęcie świeci, tutaj jest do odczytania."
+                }
+              },
+              {
+                "id": "mem_1neu2pm",
+                "kind": "method",
+                "text": "+ static getRGBled(): [number, number, number]",
+                "doc": {
+                  "summary": "Bieżący kolor diody — np. do narysowania obwódki wokół ekranu."
+                }
+              },
+              {
+                "id": "mem_1ob73s3",
+                "kind": "method",
+                "text": "+ static digitalWriteRGB(red: number, green: number, blue: number): void",
+                "doc": {
+                  "summary": "Wyłącza diodę."
+                }
+              },
+              {
+                "id": "mem_1p2eyok",
+                "kind": "field",
+                "text": "+ static audio",
+                "doc": {
+                  "summary": "Przełącznik dźwięku — `Arduboy2.audio.on()`, jak `arduboy.audio.on()` w szkicu. Bloczki Blockly wołają tę samą rzecz jako `ArduboyAudio.on()`, bo widzą wyłącznie metody statyczne klas, nie pola."
+                }
+              },
+              {
+                "id": "mem_1qbde3m",
+                "kind": "method",
+                "text": "+ static initRandomSeed(): void",
+                "doc": {
+                  "summary": "Na sprzęcie miesza ziarno szumem z niepodłączonego wejścia. W przeglądarce `Math.random` jest już nieprzewidywalny, więc metoda istnieje po to, żeby przeniesiony szkic się kompilował — i nic nie robi."
+                }
+              },
+              {
+                "id": "mem_1raxq4x",
+                "kind": "method",
+                "text": "+ static random(min: number, max?: number): number",
+                "doc": {
+                  "summary": "Liczba całkowita z zakresu `[min, max)` — jak `random()` z Arduino."
+                }
+              }
+            ],
+            "linkedFile": "packages/core/browser/arduboy2js/arduboy2.ts",
+            "doc": {
+              "summary": "Rdzeń — ekran, klatki, przyciski, rysowanie i tekst.",
+              "remarks": "Wszystko jest statyczne (patrz nagłówek pliku). `begin` podłącza ekran do sceny Phasera; bez niego rysowanie działa dalej, tylko nie ma dokąd trafić — dzięki temu logikę gry da się przetestować bez kanwy."
+            }
+          }
+        },
+        {
+          "id": "cls_20l3i6h",
+          "type": "umlClass",
+          "position": {
+            "x": 360,
+            "y": 0
+          },
+          "data": {
+            "kind": "class",
+            "name": "Sprites",
+            "members": [
+              {
+                "id": "mem_1ty50dp",
+                "kind": "method",
+                "text": "+ static drawSelfMasked(x: number, y: number, sprite: ArrayLike<number>, frame?): void",
+                "doc": {
+                  "summary": "Rysuje sprite, traktując jego własne piksele jako maskę: zapalone bity są rysowane bielą, zgaszone zostawiają tło nietknięte."
+                }
+              },
+              {
+                "id": "mem_1uzlm7s",
+                "kind": "method",
+                "text": "+ static drawOverwrite(x: number, y: number, sprite: ArrayLike<number>, frame?): void",
+                "doc": {
+                  "summary": "Wstawia sprite razem z jego tłem — prostokąt pod nim zostaje wyczyszczony. Szybsze niż maska, ale widać krawędź, jeśli sprite nie jest prostokątny."
+                }
+              },
+              {
+                "id": "mem_1vv8odq",
+                "kind": "method",
+                "text": "+ static drawErase(x: number, y: number, sprite: ArrayLike<number>, frame?): void",
+                "doc": {
+                  "summary": "Wymazuje kształt sprite'a z ekranu (rysuje go czernią)."
+                }
+              },
+              {
+                "id": "mem_1wthzyx",
+                "kind": "method",
+                "text": "+ static drawExternalMask(x: number, y: number, sprite: ArrayLike<number>, mask: ArrayLike<number>, frame?, maskFrame?): void",
+                "doc": {
+                  "summary": "Sprite z maską trzymaną w osobnej tablicy. Maska najpierw wycina tło, potem wchodzi obrazek — dzięki temu sprite ma wyraźny kontur nawet na jasnym tle."
+                }
+              },
+              {
+                "id": "mem_1xm0ekl",
+                "kind": "method",
+                "text": "+ static drawPlusMask(x: number, y: number, sprite: ArrayLike<number>, frame?): void",
+                "doc": {
+                  "summary": "Sprite, w którym obrazek i maska leżą **na przemian** w jednej tablicy (bajt obrazu, bajt maski). Format „plus mask\" z Arduboya — oszczędza pamięć na sprzęcie i tak zapisuje grafikę część gier."
+                }
+              },
+              {
+                "id": "mem_1yp34yj",
+                "kind": "method",
+                "text": "+ static width(sprite: ArrayLike<number>): number",
+                "doc": {
+                  "summary": "Szerokość sprite'a z jego nagłówka."
+                }
+              },
+              {
+                "id": "mem_1zmq6dn",
+                "kind": "method",
+                "text": "+ static height(sprite: ArrayLike<number>): number",
+                "doc": {
+                  "summary": "Wysokość sprite'a z jego nagłówka."
+                }
+              }
+            ],
+            "linkedFile": "packages/core/browser/arduboy2js/sprites.ts"
+          }
+        },
+        {
+          "id": "cls_29dkcpo",
+          "type": "umlClass",
+          "position": {
+            "x": 720,
+            "y": 0
+          },
+          "data": {
+            "kind": "class",
+            "name": "ArduboyTones",
+            "members": [
+              {
+                "id": "mem_211kche",
+                "kind": "method",
+                "text": "+ static setEnabled(on: boolean): void",
+                "doc": {
+                  "summary": "Czy dźwięk jest włączony — sterowane przez `ArduboyAudio`."
+                }
+              },
+              {
+                "id": "mem_22ne602",
+                "kind": "method",
+                "text": "+ static setVolume(value: number): void",
+                "doc": {
+                  "summary": "Głośność 0–1. Domyślnie cicho: fala prostokątna jest przenikliwa."
+                }
+              },
+              {
+                "id": "mem_237kkky",
+                "kind": "method",
+                "text": "+ static tone(frequency: number, duration?): void",
+                "doc": {
+                  "params": {
+                    "frequency": "częstotliwość w hercach",
+                    "duration": "czas w milisekundach; `0` = graj, aż przyjdzie `noTone()`"
+                  },
+                  "summary": "Gra jeden ton."
+                }
+              },
+              {
+                "id": "mem_24cgcei",
+                "kind": "method",
+                "text": "+ static tone2(f1: number, d1: number, f2: number, d2: number): void",
+                "doc": {
+                  "summary": "Dwa tony pod rząd — skrót na sygnały „dzyń-dzyń\"."
+                }
+              },
+              {
+                "id": "mem_25w8ilg",
+                "kind": "method",
+                "text": "+ static tone3(f1: number, d1: number, f2: number, d2: number, f3: number, d3: number): void",
+                "doc": {
+                  "summary": "Trzy tony pod rząd."
+                }
+              },
+              {
+                "id": "mem_26g46s8",
+                "kind": "method",
+                "text": "+ static tones(sequence: Array<[number, number]>): void",
+                "doc": {
+                  "summary": "Sekwencja par `[częstotliwość, czas]`. Częstotliwość `TONE_REST` (0) to pauza — cisza trwająca podany czas."
+                }
+              },
+              {
+                "id": "mem_27yu810",
+                "kind": "method",
+                "text": "+ static noTone(): void",
+                "doc": {
+                  "summary": "Przerywa dźwięk i czyści kolejkę."
+                }
+              },
+              {
+                "id": "mem_28ml2bp",
+                "kind": "method",
+                "text": "+ static playing(): boolean",
+                "doc": {
+                  "summary": "Czy coś właśnie gra."
+                }
+              }
+            ],
+            "linkedFile": "packages/core/browser/arduboy2js/tones.ts"
+          }
+        },
+        {
+          "id": "cls_2fq64o1",
+          "type": "umlClass",
+          "position": {
+            "x": 1080,
+            "y": 0
+          },
+          "data": {
+            "kind": "class",
+            "name": "ArduboyAudio",
+            "members": [
+              {
+                "id": "mem_2a27g6a",
+                "kind": "method",
+                "text": "+ static on(): void"
+              },
+              {
+                "id": "mem_2bfv26r",
+                "kind": "method",
+                "text": "+ static off(): void"
+              },
+              {
+                "id": "mem_2cd231d",
+                "kind": "method",
+                "text": "+ static toggle(): void"
+              },
+              {
+                "id": "mem_2de57fz",
+                "kind": "method",
+                "text": "+ static enabled(): boolean"
+              },
+              {
+                "id": "mem_2ecux7j",
+                "kind": "method",
+                "text": "+ static setVolume(value: number): void",
+                "doc": {
+                  "summary": "Głośność 0–1. Na sprzęcie jej nie ma — brzęczyk gra tak głośno, jak gra."
+                }
+              }
+            ],
+            "linkedFile": "packages/core/browser/arduboy2js/tones.ts",
+            "doc": {
+              "summary": "Przełącznik dźwięku — odpowiednik `arduboy.audio` ze sprzętu, gdzie ustawienie przeżywa wyłączenie konsoli. Tutaj żyje tyle, co strona."
+            }
+          }
+        }
+      ],
+      "edges": []
+    }
+  ],
+  "updatedAt": 1788773665729,
+  "outputs": []
+}

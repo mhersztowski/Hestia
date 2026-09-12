@@ -22,9 +22,15 @@ describe('CAMERA_PRESETS', () => {
     expect(mouseButtons.RIGHT).toBe(MOUSE.PAN);
   });
 
-  it('blender and cad disable the left mouse button', () => {
+  it('blender disables the left mouse button', () => {
     expect(CAMERA_PRESETS.blender.mouseButtons.LEFT).toBeNull();
-    expect(CAMERA_PRESETS.cad.mouseButtons.LEFT).toBeNull();
+  });
+
+  // CAD used to disable it too. It now rotates, deliberately: a stylus reaches
+  // the browser through the mouse-LEFT path, and without this there is no way
+  // to orbit the camera with a pen. See the comment on the preset itself.
+  it('cad rotates with the left button, for single-pointer devices', () => {
+    expect(CAMERA_PRESETS.cad.mouseButtons.LEFT).toBe(MOUSE.ROTATE);
   });
 
   it('maya maps middle=pan, right=dolly', () => {

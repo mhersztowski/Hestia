@@ -13,15 +13,12 @@
  * application's own server (`app/drive`).
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
-    Alert, Box, Button, CircularProgress, Divider, IconButton, Paper, Stack,
-    TextField, Tooltip, Typography,
+    Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import { Drive, type DriveEntry, type DriveFileRef } from '@hestia/ui-core';
-import { platformDrive } from './driveStore';
+import { DrivePage } from '@hestia/ui-core';
+import { platformVfs } from './driveVfs';
 import { platformProvider } from './fsProvider';
 import { useDriveCapabilities } from './capabilities';
 import { platform, saveToken, token, type User } from './platform';
@@ -29,25 +26,20 @@ import { platform, saveToken, token, type User } from './platform';
 export function App() {
     const [user, setUser] = useState<User | null>(null);
     const [checking, setChecking] = useState(true);
-    const [open, setOpen] = useState<DriveFileRef | null>(null);
-    const [assistantOpen, setAssistantOpen] = useState(false);
-    // Bumped whenever something writes; the drive re-lists on a new key rather
-    // than polling, so nothing moves under the user while they read.
-    const [listingKey, setListingKey] = useState(0);
 
-    const store = useMemo(() => platformDrive(), []);
+    // The page works on a `DriveVfs`; the smaller `DriveStore` an editor or an
+    // assistant is handed, it derives itself from this one object.
+    const vfs = useMemo(() => platformVfs(), []);
     const provider = useMemo(() => platformProvider(), []);
 
-    const openPath = useCallback((path: string) => {
-        setOpen({ path, name: path.split('/').pop() ?? path, store });
-    }, [store]);
-
+    // Both are the page's business now: it renders the assistant's panel, so it
+    // passes its own handlers in the render context and these stay unused.
     const capabilities = useDriveCapabilities({
         provider,
         user,
         token: token(),
-        onOpenFile: openPath,
-        onFilesChanged: () => setListingKey((k) => k + 1),
+        onOpenFile: () => {},
+        onFilesChanged: () => {},
     });
 
     useMemo(() => {
@@ -75,61 +67,19 @@ export function App() {
 
     if (!user) return <SignIn onSignedIn={setUser} />;
 
-    const onOpenFile = (path: string, entry: DriveEntry) => {
-        if (entry.directory) return;
-        setOpen({ path, name: entry.name, store });
-    };
-
+    // The page is the whole application: the listing, the favourites, the
+    // actions, the search and every panel are its own. What it cannot know —
+    // where the files are, and who edits, assists or displays them — arrives
+    // here as props.
     return (
-        <Stack direction="row" sx={{ height: '100vh', overflow: 'hidden' }}>
-            <Box sx={{ flex: open ? '0 0 340px' : 1, minWidth: 0, borderRight: 1, borderColor: 'divider' }}>
-                <Drive
-                    key={listingKey}
-                    store={store}
-                    onOpenFile={onOpenFile}
-                    toolbarStart={
-                        capabilities.assistant ? (
-                            <Tooltip title={capabilities.assistant.label ?? 'Assistant'}>
-                                <IconButton size="small" onClick={() => setAssistantOpen((v) => !v)}>
-                                    <SmartToyIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        ) : null
-                    }
-                />
-            </Box>
-
-            {open && (
-                <Stack sx={{ flex: 1, minWidth: 0 }}>
-                    <Stack
-                        direction="row" alignItems="center" spacing={1}
-                        sx={{ px: 1.5, py: 0.75, borderBottom: 1, borderColor: 'divider' }}
-                    >
-                        <Typography variant="body2" sx={{ flex: 1, fontFamily: 'monospace' }}>
-                            {open.path}
-                        </Typography>
-                        <IconButton size="small" onClick={() => setOpen(null)}>
-                            <CloseIcon fontSize="small" />
-                        </IconButton>
-                    </Stack>
-                    <Box sx={{ flex: 1, minHeight: 0 }}>
-                        {capabilities.editor.render(open, { onClose: () => setOpen(null) })}
-                    </Box>
-                </Stack>
-            )}
-
-            {assistantOpen && capabilities.assistant && (
-                <>
-                    <Divider orientation="vertical" flexItem />
-                    <Box sx={{ flex: '0 0 400px', minHeight: 0, overflow: 'hidden' }}>
-                        {capabilities.assistant.render(
-                            { store, dir: '', file: open },
-                            { onClose: () => setAssistantOpen(false) },
-                        )}
-                    </Box>
-                </>
-            )}
-        </Stack>
+        <Box sx={{ height: '100vh', overflow: 'hidden' }}>
+            <DrivePage
+                vfs={vfs}
+                editor={capabilities.editor}
+                assistant={capabilities.assistant}
+                viewers={capabilities.viewers}
+            />
+        </Box>
     );
 }
 

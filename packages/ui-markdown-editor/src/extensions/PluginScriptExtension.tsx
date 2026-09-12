@@ -48,10 +48,10 @@ const MdScriptHelpDialog = lazy(() => import('./MdScriptHelpDialog'));
 
 import {
   useEditorFiles, useEditorServices, useEditorSession, type EditorScriptHost,
+  type EditorScriptScene,
 } from '../capabilities';
 import { useMdEnv } from './MdEnvContext';
 import { editorOverlay } from '../editorOverlayState';
-import type { IScene } from '@hestia/ui-scene3d/cad-viewer';
 import type {
   ScriptDisplayApi as DisplayApi,
   ScriptDisplayItem as DisplayItem,
@@ -178,7 +178,7 @@ const PluginScriptNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes,
   const [error, setError] = useState<string | undefined>();
   const [richOutput, setRichOutput] = useState<ScriptOutput>(undefined);
   /** Scena wczytana przez `Scene.load` — panel pokazuje się pod wynikiem. */
-  const [scenaPanelu, setScenaPanelu] = useState<{ scene: IScene; path: string } | null>(null);
+  const [scenaPanelu, setScenaPanelu] = useState<EditorScriptScene | null>(null);
   const [displayItems, setDisplayItems] = useState<DisplayItem[]>([]);
   const [isLive, setIsLive] = useState(false);
 

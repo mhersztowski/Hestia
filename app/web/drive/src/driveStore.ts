@@ -13,7 +13,7 @@
  * drive that shows one directory is a file picker, not a drive.
  */
 
-import type { DriveEntry, DriveStore } from '@hestia/ui-core';
+import { DIR_TYPE, type DriveEntry, type DriveStore } from '@hestia/ui-core';
 import { platform, PlatformError } from './platform';
 
 export function platformDrive(): DriveStore {
@@ -31,7 +31,7 @@ export function platformDrive(): DriveStore {
                 if (e instanceof PlatformError && (e.status === 401 || e.status === 403)) throw e;
                 return [];
             }
-            return entries.map((e) => ({ name: e.name, directory: e.type === 'directory' }));
+            return entries.map((e) => ({ name: e.name, directory: e.type === DIR_TYPE }));
         },
 
         read: (path) => platform.read(path),

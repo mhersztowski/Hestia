@@ -271,11 +271,11 @@ const UIFormNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, selec
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            {form && !inlineData && (
+            {!!form && !inlineData && (
               <Tooltip title="Edit in designer">
                 <IconButton
                   size="small"
-                  onClick={() => window.open(`/designer/ui/${form.id}`, '_blank')}
+                  onClick={() => window.open(`/designer/ui/${formId}`, '_blank')}
                 >
                   <OpenInFullIcon fontSize="small" />
                 </IconButton>
@@ -286,7 +286,7 @@ const UIFormNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, selec
 
         {/* Render form */}
         <Box sx={{ pointerEvents: 'none' }}>
-          {form && uiFormService?.render(form, 'view')}
+          {!!form && uiFormService?.render(form, 'view')}
         </Box>
       </Paper>
 

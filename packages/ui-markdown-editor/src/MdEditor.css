@@ -1,0 +1,984 @@
+.md-editor-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.md-editor-content .ProseMirror {
+  min-height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 2rem 1rem 2.6rem; /* extra left room for the heading fold chevron */
+  line-height: 1.6;
+  overflow-anchor: none;
+}
+
+.md-editor-content .ProseMirror:focus {
+  outline: none;
+}
+
+/* Placeholder */
+.md-editor-content .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Headings */
+.md-editor-content .ProseMirror h1,
+.md-editor-content .ProseMirror h2,
+.md-editor-content .ProseMirror h3,
+.md-editor-content .ProseMirror h4,
+.md-editor-content .ProseMirror h5,
+.md-editor-content .ProseMirror h6 {
+  position: relative; /* anchor for the absolutely-positioned fold chevron */
+}
+
+.md-editor-content .ProseMirror h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.md-editor-content .ProseMirror h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.md-editor-content .ProseMirror h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.md-editor-content .ProseMirror h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Paragraphs */
+.md-editor-content .ProseMirror p {
+  margin-bottom: 0.75rem;
+}
+
+/* Links */
+.md-editor-content .ProseMirror a,
+.md-editor-content .md-editor-link {
+  color: #1976d2;
+  text-decoration: underline;
+  cursor: text;
+}
+
+.md-editor-content .ProseMirror a:hover,
+.md-editor-content .md-editor-link:hover {
+  color: #1565c0;
+  background-color: rgba(25, 118, 210, 0.08);
+  border-radius: 2px;
+}
+
+/* Anchors INSIDE viewer embeds are the embed's own controls, not document links.
+   The rules above turned Leaflet's zoom +/- (which are <a> elements) into blue
+   underlined links that went washed-out on hover. Reset them across every viewer
+   (Map, Photo Map, all CAD View modes). */
+.md-editor-content .ProseMirror .leaflet-container a,
+.md-editor-content .ProseMirror .md-cadview-embed a {
+  text-decoration: none;
+}
+.md-editor-content .ProseMirror .leaflet-container a:hover,
+.md-editor-content .ProseMirror .md-cadview-embed a:hover {
+  text-decoration: none;
+  background-color: transparent;
+}
+/* Leaflet zoom buttons: restore Leaflet's dark glyphs + light-grey hover. */
+.md-editor-content .ProseMirror .leaflet-bar a {
+  color: #333;
+}
+.md-editor-content .ProseMirror .leaflet-bar a:hover {
+  color: #000;
+  background-color: #f4f4f4;
+}
+
+/* File chip (inline): icon + filename + Open/Options. */
+.md-editor-content .md-fileref { white-space: nowrap; }
+.md-editor-content .md-fileref-chip {
+  display: inline-flex; align-items: center; gap: 2px; vertical-align: middle;
+  padding: 1px 6px; border-radius: 6px;
+  background: rgba(120, 120, 120, 0.12); border: 1px solid rgba(120,120,120,0.25);
+  font-size: 0.9em; line-height: 1.4;
+}
+.md-editor-content .md-fileref-icon { color: #607d8b; }
+.md-editor-content .md-fileref-name { color: #1565c0; text-decoration: none; font-weight: 500; }
+.md-editor-content .md-fileref-name:hover { text-decoration: underline; }
+.md-editor-content .md-fileref-btn { padding: 1px !important; color: #607d8b !important; }
+
+/* Env-value marker (inline). */
+.md-editor-content .md-envvalue { }
+.md-editor-content .md-envvalue-empty {
+  color: #9c27b0; background: rgba(156, 39, 176, 0.08);
+  border-radius: 3px; padding: 0 3px; font-size: 0.9em; font-family: ui-monospace, monospace;
+}
+
+/* Raw-markdown block "source view" — a per-block toggle to see/edit raw markdown. */
+.md-editor-content .md-rawblock {
+  margin: 0.6rem 0;
+  border: 1px solid rgba(120, 120, 120, 0.35);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(120, 120, 120, 0.05);
+}
+.md-editor-content .md-rawblock-head {
+  display: flex; align-items: center; gap: 6px;
+  padding: 2px 6px 2px 10px;
+  background: rgba(120, 120, 120, 0.12);
+  border-bottom: 1px solid rgba(120, 120, 120, 0.25);
+  color: #607d8b; font-size: 0.78em; user-select: none;
+}
+.md-editor-content .md-rawblock-label { flex: 1; letter-spacing: 0.02em; text-transform: uppercase; }
+.md-editor-content .md-rawblock-btn { padding: 2px !important; color: #607d8b !important; }
+.md-editor-content .md-rawblock-source {
+  display: block; width: 100%; box-sizing: border-box;
+  border: 0; outline: none; resize: vertical;
+  padding: 10px 12px; min-height: 3.2em;
+  background: transparent; color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86em; line-height: 1.55;
+  white-space: pre; overflow-x: auto; tab-size: 2;
+}
+
+/* TableView — advanced env-driven table block. */
+.md-editor-content .md-tableview { position: relative; margin: 0.9rem 0; }
+.md-editor-content .md-tableview-toolbar {
+  position: absolute; top: 2px; right: 2px; z-index: 2;
+  display: flex; gap: 2px;
+  background: rgba(120,120,120,0.10); border: 1px solid rgba(120,120,120,0.22);
+  border-radius: 6px; padding: 1px;
+}
+.md-editor-content .md-tableview-btn { padding: 2px !important; color: #607d8b !important; }
+.md-editor-content .md-tableview-scroll { overflow-x: auto; border: 1px solid rgba(120,120,120,0.25); border-radius: 8px; }
+.md-editor-content .md-tableview-table {
+  border-collapse: collapse; width: 100%; table-layout: fixed;
+  font-size: 0.9em;
+}
+.md-editor-content .md-tableview-table th,
+.md-editor-content .md-tableview-table td {
+  border: 1px solid rgba(120,120,120,0.22);
+  padding: 4px 8px; text-align: left; vertical-align: middle;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.md-editor-content .md-tableview-table th {
+  background: rgba(120,120,120,0.10); font-weight: 600; position: sticky; top: 0;
+}
+.md-editor-content .md-tableview-table tbody tr:nth-of-type(even) { background: rgba(120,120,120,0.04); }
+.md-editor-content .md-tableview-norows,
+.md-editor-content .md-tableview-empty {
+  color: #9e9e9e; font-style: italic; text-align: center; padding: 12px !important;
+}
+
+/* Photo gallery embed (Immich / Google Photos). */
+.md-editor-content .md-gallery { margin: 0.9rem 0; }
+.md-editor-content .md-gallery-card {
+  border: 1px solid rgba(56, 142, 60, 0.35);
+  border-left: 3px solid #388e3c;
+  border-radius: 8px;
+  background: rgba(56, 142, 60, 0.045);
+  overflow: hidden;
+}
+.md-editor-content .md-gallery-header {
+  display: flex; align-items: center; gap: 6px; padding: 4px 8px;
+  font-size: 0.8em; background: rgba(56, 142, 60, 0.08);
+  border-bottom: 1px solid rgba(56, 142, 60, 0.18);
+}
+.md-editor-content .md-gallery-fold { padding: 1px; color: #388e3c; }
+.md-editor-content .md-gallery-icon { color: #388e3c; }
+.md-editor-content .md-gallery-title { font-weight: 600; color: #2e7d32; }
+.md-editor-content .md-gallery-count { color: #6b7280; }
+.md-editor-content .md-gallery-body { padding: 8px; }
+.md-editor-content .md-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 6px;
+}
+.md-editor-content .md-gallery-thumb {
+  width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+  border-radius: 6px; cursor: zoom-in; background: rgba(0,0,0,0.05);
+  transition: transform 0.12s ease;
+}
+.md-editor-content .md-gallery-thumb:hover { transform: scale(1.03); }
+.md-gallery-lightbox {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex; align-items: center; justify-content: center;
+  cursor: zoom-out;
+}
+.md-gallery-lightbox-img {
+  max-width: 88vw; max-height: 90vh; width: auto; height: auto;
+  object-fit: contain; border-radius: 4px; cursor: pointer; /* click → next */
+}
+/* NOTE: !important on `position` — MUI IconButton forces position:relative, which
+   would drop the buttons into the flex flow and make them shift with each image. */
+.md-gallery-lightbox-close {
+  position: fixed !important; top: 12px; right: 12px; color: #fff !important; z-index: 2001;
+}
+.md-gallery-lightbox-nav {
+  position: fixed !important; top: 50%; transform: translateY(-50%); z-index: 2001;
+  color: #fff !important; background: rgba(0, 0, 0, 0.35) !important; cursor: pointer;
+}
+.md-gallery-lightbox-nav:hover { background: rgba(0, 0, 0, 0.6) !important; }
+.md-gallery-lightbox-prev { left: 12px; right: auto; }
+.md-gallery-lightbox-next { right: 12px; left: auto; }
+.md-gallery-lightbox-counter {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  color: #fff; background: rgba(0, 0, 0, 0.45); padding: 3px 12px; border-radius: 12px;
+  font-size: 0.85rem; cursor: default;
+}
+
+/* Obsidian embed ![[…]] — a distinct transclusion card. */
+.md-editor-content .md-embed {
+  margin: 0.9rem 0;
+}
+.md-editor-content .md-embed-card {
+  border: 1px solid rgba(25, 118, 210, 0.35);
+  border-left: 3px solid #1976d2;
+  border-radius: 8px;
+  background: rgba(25, 118, 210, 0.045);
+  overflow: hidden;
+}
+.md-editor-content .md-embed-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 0.8em;
+  background: rgba(25, 118, 210, 0.08);
+  border-bottom: 1px solid rgba(25, 118, 210, 0.18);
+}
+.md-editor-content .md-embed-fold { padding: 1px; color: #1976d2; }
+.md-editor-content .md-embed-icon { color: #1976d2; }
+/* When collapsed the card is just the header — trim its bottom rounding. */
+.md-editor-content .md-embed-card:has(> .md-embed-header:last-child) .md-embed-header {
+  border-bottom: none;
+}
+.md-editor-content .md-embed-source {
+  color: #1565c0;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.md-editor-content .md-embed-source:hover { text-decoration: underline; }
+.md-editor-content .md-embed-body {
+  padding: 6px 14px;
+}
+/* Tame the embedded content's own margins so the card stays compact. */
+.md-editor-content .md-embed-body > :first-child { margin-top: 0; }
+.md-editor-content .md-embed-body > :last-child { margin-bottom: 0; }
+.md-editor-content .md-embed-body h1,
+.md-editor-content .md-embed-body h2,
+.md-editor-content .md-embed-body h3 { font-size: 1.15em; }
+
+/* Heading section fold — chevron in the left margin + hidden section blocks. */
+.md-editor-content .md-fold-toggle {
+  position: absolute;
+  left: -1.15em;
+  top: 0;
+  width: 1em;
+  height: 1.1em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7em;
+  line-height: 1;
+  color: #6b7280;
+  cursor: pointer;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.md-editor-content .ProseMirror h1:hover .md-fold-toggle,
+.md-editor-content .ProseMirror h2:hover .md-fold-toggle,
+.md-editor-content .ProseMirror h3:hover .md-fold-toggle,
+.md-editor-content .ProseMirror h4:hover .md-fold-toggle,
+.md-editor-content .ProseMirror h5:hover .md-fold-toggle,
+.md-editor-content .ProseMirror h6:hover .md-fold-toggle {
+  opacity: 0.55;
+}
+.md-editor-content .md-fold-toggle:hover {
+  opacity: 1 !important;
+  color: #1976d2;
+}
+/* A collapsed heading keeps its chevron visible so the fold is discoverable. */
+.md-editor-content .md-fold-toggle.is-collapsed {
+  opacity: 0.85;
+}
+.md-editor-content .md-folded-hidden {
+  display: none !important;
+}
+
+/* Brief highlight when jumping to a same-document anchor (heading / block ref). */
+.md-editor-content .md-anchor-flash {
+  animation: md-anchor-flash-kf 1.2s ease-out;
+  border-radius: 4px;
+}
+@keyframes md-anchor-flash-kf {
+  0%   { background-color: rgba(255, 213, 79, 0.75); }
+  100% { background-color: transparent; }
+}
+
+/* Code */
+.md-editor-content .ProseMirror code {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  padding: 0.2em 0.4em;
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 0.9em;
+}
+
+/* Code Block */
+.md-editor-content .ProseMirror pre,
+.md-editor-content .md-editor-code-block {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.md-editor-content .ProseMirror pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* Blockquote */
+.md-editor-content .ProseMirror blockquote {
+  border-left: 4px solid #1976d2;
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Lists */
+.md-editor-content .ProseMirror ul,
+.md-editor-content .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.md-editor-content .ProseMirror li {
+  margin: 0.25rem 0;
+}
+
+.md-editor-content .ProseMirror li p {
+  margin: 0;
+}
+
+/* Task List */
+.md-editor-content .ProseMirror ul[data-type="taskList"],
+.md-editor-content .md-editor-task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.md-editor-content .ProseMirror ul[data-type="taskList"] li,
+.md-editor-content .md-editor-task-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.md-editor-content .ProseMirror ul[data-type="taskList"] li > label,
+.md-editor-content .md-editor-task-list li > label {
+  flex: 0 0 auto;
+  margin-top: 0.25rem;
+}
+
+.md-editor-content .ProseMirror ul[data-type="taskList"] li > div,
+.md-editor-content .md-editor-task-list li > div {
+  flex: 1 1 auto;
+}
+
+.md-editor-content .ProseMirror ul[data-type="taskList"] input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1976d2;
+}
+
+/* Highlight */
+.md-editor-content .ProseMirror mark {
+  background-color: #fff59d;
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+}
+
+/* Horizontal Rule */
+.md-editor-content .ProseMirror hr {
+  border: none;
+  border-top: 2px solid #e0e0e0;
+  margin: 1.5rem 0;
+}
+
+/* Images */
+.md-editor-content .ProseMirror img,
+.md-editor-content .md-editor-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.md-editor-content .ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid #1976d2;
+}
+
+/* Tables */
+.md-editor-content .ProseMirror table,
+.md-editor-content .md-editor-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  table-layout: fixed;
+  overflow: hidden;
+}
+
+.md-editor-content .ProseMirror table td,
+.md-editor-content .ProseMirror table th {
+  border: 1px solid #ddd;
+  padding: 0.2rem 0.6rem; /* niższe wiersze — pojedyncza linia nie zajmuje 2× wysokości */
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Akapit w komórce nie dokłada dolnego marginesu (globalne .ProseMirror p ma 0.75rem).
+   Dzięki temu wiersz z jedną linią jest niski; komórka z wieloma akapitami rośnie sama. */
+.md-editor-content .ProseMirror table td > p,
+.md-editor-content .ProseMirror table th > p {
+  margin-bottom: 0;
+}
+.md-editor-content .ProseMirror table td > p + p,
+.md-editor-content .ProseMirror table th > p + p {
+  margin-top: 0.35rem; /* odstęp tylko MIĘDZY akapitami w dłuższej komórce */
+}
+
+.md-editor-content .ProseMirror table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  text-align: left;
+}
+
+.md-editor-content .ProseMirror table .selectedCell:after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(25, 118, 210, 0.1);
+  pointer-events: none;
+}
+
+/* Table resize handle */
+.md-editor-content .ProseMirror .tableWrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.md-editor-content .ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #1976d2;
+  pointer-events: none;
+}
+
+/* Table column resize cursor */
+.md-editor-content .ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
+
+/* Table cells with width */
+.md-editor-content .ProseMirror table td[style*="width"],
+.md-editor-content .ProseMirror table th[style*="width"] {
+  /* Preserve width styles */
+}
+
+/* Syntax highlighting (lowlight) */
+.md-editor-content .ProseMirror pre .hljs-comment,
+.md-editor-content .ProseMirror pre .hljs-quote {
+  color: #6a9955;
+}
+
+.md-editor-content .ProseMirror pre .hljs-variable,
+.md-editor-content .ProseMirror pre .hljs-template-variable,
+.md-editor-content .ProseMirror pre .hljs-attr,
+.md-editor-content .ProseMirror pre .hljs-tag,
+.md-editor-content .ProseMirror pre .hljs-name,
+.md-editor-content .ProseMirror pre .hljs-selector-id,
+.md-editor-content .ProseMirror pre .hljs-selector-class,
+.md-editor-content .ProseMirror pre .hljs-regexp,
+.md-editor-content .ProseMirror pre .hljs-deletion {
+  color: #f44747;
+}
+
+.md-editor-content .ProseMirror pre .hljs-number,
+.md-editor-content .ProseMirror pre .hljs-built_in,
+.md-editor-content .ProseMirror pre .hljs-literal,
+.md-editor-content .ProseMirror pre .hljs-type,
+.md-editor-content .ProseMirror pre .hljs-params,
+.md-editor-content .ProseMirror pre .hljs-meta,
+.md-editor-content .ProseMirror pre .hljs-link {
+  color: #b5cea8;
+}
+
+.md-editor-content .ProseMirror pre .hljs-string,
+.md-editor-content .ProseMirror pre .hljs-symbol,
+.md-editor-content .ProseMirror pre .hljs-bullet,
+.md-editor-content .ProseMirror pre .hljs-addition {
+  color: #ce9178;
+}
+
+.md-editor-content .ProseMirror pre .hljs-title,
+.md-editor-content .ProseMirror pre .hljs-section {
+  color: #dcdcaa;
+}
+
+.md-editor-content .ProseMirror pre .hljs-keyword,
+.md-editor-content .ProseMirror pre .hljs-selector-tag {
+  color: #569cd6;
+}
+
+/* Selection */
+.md-editor-content .ProseMirror ::selection {
+  background-color: rgba(25, 118, 210, 0.2);
+}
+
+/* Drag handle placeholder */
+.md-editor-content .ProseMirror .is-empty::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Math Block Styles */
+.md-editor-content .ProseMirror .math-block-wrapper {
+  margin: 1rem 0;
+}
+
+.md-editor-content .ProseMirror .math-block {
+  text-align: center;
+  padding: 16px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.md-editor-content .ProseMirror .math-block:hover {
+  background-color: #f5f5f5;
+  border-color: #bdbdbd;
+}
+
+.md-editor-content .ProseMirror .math-block.selected {
+  background-color: rgba(25, 118, 210, 0.05);
+  border: 2px solid #1976d2;
+}
+
+.md-editor-content .ProseMirror .math-block .katex-display {
+  margin: 0;
+}
+
+/* Inline Math Styles */
+.md-editor-content .ProseMirror .inline-math-wrapper {
+  display: inline;
+}
+
+.md-editor-content .ProseMirror .inline-math {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.md-editor-content .ProseMirror .inline-math:hover {
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+.md-editor-content .ProseMirror .inline-math.selected {
+  background-color: rgba(25, 118, 210, 0.2);
+}
+
+.md-editor-content .ProseMirror .inline-math-input {
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 0.9em;
+}
+
+/* Math block input */
+.md-editor-content .ProseMirror .math-block-input {
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 0.9em;
+}
+
+/* KaTeX overrides for dark mode support */
+.md-editor-content .ProseMirror .katex {
+  font-size: 1.1em;
+}
+
+.md-editor-content .ProseMirror .katex .katex-html {
+  white-space: normal;
+}
+
+/* Math error styling */
+.md-editor-content .ProseMirror .math-error {
+  color: #f44336;
+  font-family: monospace;
+  background-color: rgba(244, 67, 54, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* Image Node Styles */
+.md-editor-content .ProseMirror .image-node-wrapper {
+  /* Allow inline styles to control display */
+}
+
+.md-editor-content .ProseMirror .image-node-wrapper img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.md-editor-content .ProseMirror .image-node-wrapper.ProseMirror-selectednode img {
+  outline: 3px solid #1976d2;
+}
+
+/* Clear floats after floated images */
+.md-editor-content .ProseMirror p::after,
+.md-editor-content .ProseMirror h1::after,
+.md-editor-content .ProseMirror h2::after,
+.md-editor-content .ProseMirror h3::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+/* Text Alignment */
+.md-editor-content .ProseMirror [style*="text-align: left"],
+.md-editor-content .ProseMirror .text-left {
+  text-align: left;
+}
+
+.md-editor-content .ProseMirror [style*="text-align: center"],
+.md-editor-content .ProseMirror .text-center {
+  text-align: center;
+}
+
+.md-editor-content .ProseMirror [style*="text-align: right"],
+.md-editor-content .ProseMirror .text-right {
+  text-align: right;
+}
+
+.md-editor-content .ProseMirror [style*="text-align: justify"],
+.md-editor-content .ProseMirror .text-justify {
+  text-align: justify;
+}
+
+/* Table cell alignment */
+.md-editor-content .ProseMirror table td[style*="text-align"],
+.md-editor-content .ProseMirror table th[style*="text-align"] {
+  /* Allow inline styles to override */
+}
+
+/* Audio Styles */
+.md-editor-content .ProseMirror audio,
+.md-editor-content .md-editor-audio {
+  display: block;
+  width: 100%;
+  margin: 1rem 0;
+  border-radius: 8px;
+}
+
+.md-editor-content .ProseMirror .audio-node-wrapper {
+  margin: 1rem 0;
+}
+
+/* Video Styles */
+.md-editor-content .ProseMirror video,
+.md-editor-content .md-editor-video {
+  display: block;
+  max-width: 100%;
+  margin: 1rem auto;
+  border-radius: 8px;
+}
+
+.md-editor-content .ProseMirror .video-node-wrapper {
+  margin: 1rem 0;
+}
+
+.md-editor-content .ProseMirror video.ProseMirror-selectednode {
+  outline: 3px solid #f44336;
+}
+
+/* Column Layout Styles */
+.md-editor-content .ProseMirror .column-layout-wrapper {
+  margin: 1rem 0;
+}
+
+.md-editor-content .ProseMirror .column-layout-box {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: border-color 0.2s ease;
+  /* Required for absolute positioning of resize handles */
+}
+
+.md-editor-content .ProseMirror .column-layout-box:hover {
+  border-color: #1976d2;
+  border-style: dashed;
+}
+
+/* Toolbar */
+.md-editor-content .ProseMirror .column-layout-toolbar {
+  position: absolute;
+  top: -32px;
+  right: 8px;
+  display: none;
+  gap: 4px;
+  z-index: 20;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 4px;
+}
+
+.md-editor-content .ProseMirror .column-layout-box:hover .column-layout-toolbar {
+  display: flex;
+}
+
+.md-editor-content .ProseMirror .column-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.15s ease;
+}
+
+.md-editor-content .ProseMirror .column-btn:hover {
+  background: #f5f5f5;
+  color: #1976d2;
+}
+
+.md-editor-content .ProseMirror .column-btn-remove:hover {
+  color: #d32f2f;
+}
+
+/* Preset buttons container */
+.md-editor-content .ProseMirror .column-presets {
+  display: flex;
+  gap: 2px;
+  margin-right: 4px;
+  padding-right: 4px;
+  border-right: 1px solid #e0e0e0;
+}
+
+/* Preset button */
+.md-editor-content .ProseMirror .column-preset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.15s ease;
+  color: #999;
+}
+
+.md-editor-content .ProseMirror .column-preset-btn:hover {
+  border-color: #1976d2;
+  background: #f5f5f5;
+  color: #1976d2;
+}
+
+.md-editor-content .ProseMirror .column-preset-btn.active {
+  border-color: #1976d2;
+  background: rgba(25, 118, 210, 0.1);
+  color: #1976d2;
+}
+
+.md-editor-content .ProseMirror .column-preset-btn svg {
+  display: block;
+}
+
+/* Content area - flex container for columns */
+.md-editor-content .ProseMirror .column-layout-content {
+  display: flex !important;
+  min-height: 80px;
+  align-items: stretch;
+}
+
+/* Column node styling */
+.md-editor-content .ProseMirror .column-node {
+  min-height: 60px;
+  border-right: 1px solid #e0e0e0;
+}
+
+/* Last column doesn't need right border */
+.md-editor-content .ProseMirror .column-layout-content > .column-node:last-child {
+  border-right: none;
+}
+
+/* Column content styling */
+.md-editor-content .ProseMirror .column-node > p:first-child {
+  margin-top: 0;
+}
+
+.md-editor-content .ProseMirror .column-node > p:last-child {
+  margin-bottom: 0;
+}
+
+/* Focus indicator for column */
+.md-editor-content .ProseMirror .column-node:focus-within {
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+/* Note: Resize handles removed - column widths are fixed */
+
+/* Responsive columns - stack on mobile */
+@media (max-width: 768px) {
+  .md-editor-content .ProseMirror .column-layout-content {
+    flex-direction: column !important;
+  }
+
+  .md-editor-content .ProseMirror .column-node {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .md-editor-content .ProseMirror .column-layout-content > .column-node:last-child {
+    border-bottom: none;
+  }
+
+  /* Adjust toolbar position on mobile */
+  .md-editor-content .ProseMirror .column-layout-toolbar {
+    top: -28px;
+    right: 4px;
+    padding: 2px;
+  }
+
+  .md-editor-content .ProseMirror .column-btn {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Tablet - keep all columns in row */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .md-editor-content .ProseMirror .column-layout-content {
+    flex-wrap: nowrap;
+  }
+}
+
+/* HTML rendered columns (from markdown) */
+.md-editor-columns {
+  display: flex;
+  gap: 0;
+  margin: 1rem 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.md-editor-columns > [data-column] {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.md-editor-columns > [data-column]:last-child {
+  border-right: none;
+}
+
+/* Responsive markdown columns */
+@media (max-width: 768px) {
+  .md-editor-columns {
+    flex-direction: column;
+  }
+
+  .md-editor-columns > [data-column] {
+    width: 100% !important;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .md-editor-columns > [data-column]:last-child {
+    border-bottom: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .md-editor-columns {
+    flex-wrap: nowrap;
+  }
+}
+
+/* Automate Script Block Styles */
+.md-editor-content .ProseMirror .automate-script-wrapper {
+  margin: 0.75rem 0;
+}
+
+.md-editor-content .ProseMirror .automate-script-wrapper textarea {
+  tab-size: 2;
+  -moz-tab-size: 2;
+}
+
+.md-editor-content .ProseMirror .automate-script-wrapper textarea:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.4);
+}
+
+.md-editor-content .ProseMirror .automate-script-wrapper textarea::placeholder {
+  color: #666;
+}
+
+/* ── LanguageTool spellcheck decorations ──────────────────────────────────────
+ * Red wavy underline at character ranges flagged by LanguageTool. Override
+ * `text-decoration-color` per category later if we want to colour-code
+ * grammar vs spelling vs style. */
+.md-editor-content .ProseMirror .md-spell-error {
+  text-decoration: underline wavy var(--md-spell-error-color, #dc3545);
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+.md-editor-content .ProseMirror .md-spell-error:hover {
+  background-color: rgba(220, 53, 69, 0.08);
+}

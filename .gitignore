@@ -5,7 +5,11 @@ build/
 .env
 .env.local
 data/
+app/backend/public/
+app/cad/public/
+app/drive/public/
 app/finances/public/
+app/iot/public/
 coverage/
 
 # Generated documentation — rebuilt with `pnpm docs`.

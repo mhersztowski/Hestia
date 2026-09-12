@@ -44,8 +44,12 @@ export interface DriveEditor {
      * "Edit" entry, so a file the editor would refuse never offers it.
      */
     canEdit(file: DriveFileRef): boolean;
-    /** The editor itself, for the panel. `onClose` returns the drive to its preview. */
-    render(file: DriveFileRef, opts: { onClose: () => void }): ReactNode;
+    /**
+     * The editor itself, for the panel. `onClose` returns the drive to its
+     * preview; `onSaved` tells the listing the file changed, so the row's size
+     * and date stop being the ones from before the edit.
+     */
+    render(file: DriveFileRef, opts: { onClose: () => void; onSaved: () => void }): ReactNode;
 }
 
 /**
@@ -55,8 +59,23 @@ export interface DriveEditor {
  * work where the user is, and a file when one is open.
  */
 export interface DriveAssistant {
-    /** The panel. The drive draws the button that opens it and nothing else. */
-    render(context: { store: DriveStore; dir: string; file: DriveFileRef | null }, opts: { onClose: () => void }): ReactNode;
+    /**
+     * The panel. The drive draws the button that opens it and nothing else.
+     *
+     * `onFileOpen` and `onFileWritten` are the drive's: a file the assistant
+     * opens shows in the panel beside it, and a file it writes stops the
+     * listing from showing what was there before.
+     */
+    render(
+        context: {
+            store: DriveStore;
+            dir: string;
+            file: DriveFileRef | null;
+            onFileOpen?: (path: string) => void;
+            onFileWritten?: (paths: string[]) => void;
+        },
+        opts: { onClose: () => void },
+    ): ReactNode;
     /** What the button says; the drive has a default. */
     label?: string;
 }

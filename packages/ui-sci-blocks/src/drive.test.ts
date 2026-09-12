@@ -5,25 +5,14 @@
  * sprawdzamy, czy indeks, prerekwizyty i graf działają na ścieżkach z podfolderami.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { buildIndex, layoutKnowledgeGraph, learningOrder } from '@hestia/core-sci';
+import { collectMarkdown, hasKnowledge, knowledgeDir } from './test/knowledge';
 
-const DRIVE = resolve(__dirname, '../../../data/Minis/Users/admin/drive/knowledge');
+// The base lives on a user's drive, outside the repository — collecting it
+// returns nothing when it is not on this machine, and the suite is skipped.
+const files = collectMarkdown(knowledgeDir('admin'));
 
-/** Zbiera pliki `.md` z podkatalogów — tak jak robi to strona nad VFS. */
-function collect(dir: string, prefix = ''): Array<{ path: string; markdown: string }> {
-  const out: Array<{ path: string; markdown: string }> = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const path = prefix ? `${prefix}/${entry.name}` : entry.name;
-    if (entry.isDirectory()) out.push(...collect(resolve(dir, entry.name), path));
-    else if (entry.name.endsWith('.md')) out.push({ path, markdown: readFileSync(resolve(dir, entry.name), 'utf8') });
-  }
-  return out;
-}
-
-describe.runIf(existsSync(DRIVE))('baza rozłożona po katalogach', () => {
-  const files = collect(DRIVE);
+describe.runIf(hasKnowledge('admin'))('baza rozłożona po katalogach', () => {
   const index = buildIndex(files);
 
   it('wszystkie dokumenty są w podkatalogach dziedzin', () => {

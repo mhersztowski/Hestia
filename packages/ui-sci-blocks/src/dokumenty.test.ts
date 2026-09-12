@@ -14,7 +14,7 @@ import {
 } from '@hestia/core-sci';
 import { buildSimSetup, scanFormulas } from './documentModel';
 
-const DIR = resolve(__dirname, '../dokumenty');
+const DIR = resolve(__dirname, '../documents');
 const read = (name: string) => readFileSync(resolve(DIR, name), 'utf8');
 const simOf = (markdown: string) => /```sim(?::[\w-]+)?\n([\s\S]*?)```/.exec(markdown)![1];
 

@@ -26,7 +26,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CSSProperties } from 'react';
-import { parseFormulaBlock, parseTermBlock, symbolName } from '@hestia/core-sci';
+import { parseFormulaBlock, parseTermBlock, symbolName, type ReferenceKind } from '@hestia/core-sci';
 import { FigureBlock } from './FigureBlock';
 import { TableBlock } from './TableBlock';
 import { CalloutBlock } from './CalloutBlock';
@@ -37,7 +37,7 @@ export interface ReferenceTarget {
   /** Treść bloku (wzoru albo hasła) — z niej powstaje podgląd. */
   code?: string;
   /** Rodzaj celu; brak = wzór, dla zgodności ze starszymi wywołaniami. */
-  kind?: 'formula' | 'term' | 'figure' | 'table' | 'section' | 'callout' | 'law';
+  kind?: ReferenceKind;
   /** Tytuł dokumentu, gdy cel leży w innym. */
   documentTitle?: string;
   sameDocument: boolean;

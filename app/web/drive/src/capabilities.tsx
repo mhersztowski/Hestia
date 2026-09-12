@@ -28,7 +28,7 @@ import {
 } from '@hestia/ui-markdown-editor';
 import { TextEditorWorkspace } from '@hestia/ui-texteditor';
 import type { FileSystemProvider } from '@hestia/core';
-import type { User } from './platform';
+import { platform, type User } from './platform';
 
 /** Markdown opens in the Markdown editor; everything else in the code editor. */
 const MARKDOWN = new Set(['md', 'markdown', 'mdx']);
@@ -107,24 +107,21 @@ export interface DriveCapabilityOptions {
  * worse than no "Edit" entry at all.
  */
 export function buildEditor(opts: DriveCapabilityOptions): DriveEditor {
-    const { provider, user, token, onOpenFile, onFilesChanged } = opts;
+    const { provider, user, token } = opts;
 
     return {
         canEdit: (file) => !BINARY.has(extensionOf(file.name)),
 
-        render(file: DriveFileRef, { onClose }) {
+        render(file: DriveFileRef, { onSaved }: { onClose: () => void; onSaved: () => void }) {
             if (MARKDOWN.has(extensionOf(file.name))) {
                 // The Markdown editor takes its file store and its session as
                 // capabilities of its own — the same idea one layer down.
                 return (
                     <EditorFilesProvider files={editorFiles(file.store)}>
                         <EditorSessionProvider
-                            session={{ userName: user?.name ?? null, token, isAdmin: user?.isAdmin ?? false }}
+                            session={{ userName: user?.userName ?? null, token, isAdmin: user?.isAdmin ?? false }}
                         >
-                            <MdEditor
-                                filePath={file.path}
-                                onSave={() => onFilesChanged([file.path])}
-                            />
+                            <MdEditor filePath={file.path} onSave={onSaved} />
                         </EditorSessionProvider>
                     </EditorFilesProvider>
                 );
@@ -157,10 +154,9 @@ export function useDriveCapabilities(opts: DriveCapabilityOptions) {
             onFileOpen: onOpenFile,
             onFileWritten: onFilesChanged,
         }),
-        // The platform's VFS hands out text, so there are no bytes to give a
-        // viewer yet. It is listed here because the slot is the right shape and
-        // the day `readBytes` exists this is one line, not a redesign.
-        viewers: null as ReturnType<typeof driveViewers> | null,
+        // The day `readBytes` exists this is one line rather than a redesign —
+        // and it does now, so PDFs and DjVu open in the drive.
+        viewers: driveViewers({ readBytes: (path) => platform.readBytes(path) }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [provider, token, onOpenFile, onFilesChanged]);
 }

@@ -12,8 +12,6 @@ import CodeIcon from '@mui/icons-material/Code';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import SettingsIcon from '@mui/icons-material/Settings';
 import type { Editor } from '@tiptap/react';
 import { toggleHeadingFold, isHeadingCollapsed } from './extensions/HeadingFoldExtension';
 import { copyBlocks, readBlocksForPaste } from './utils/blockClipboard';

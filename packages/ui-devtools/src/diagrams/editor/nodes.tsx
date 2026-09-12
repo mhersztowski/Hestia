@@ -13,6 +13,7 @@ import type { NodeShape } from '../model/diagram';
 import type { FlowNodeData } from './flowBridge';
 import { InlineLabel } from './InlineLabel';
 import { NodeShapeBackground } from './NodeShapeBackground';
+import { NodeAnchors } from './nodeAnchors';
 import { ClassNodeView } from './ClassNodeView';
 import { C4NodeView } from './C4NodeView';
 import { EntityNodeView } from './EntityNodeView';
@@ -58,8 +59,7 @@ export function DiagramNodeView({ id, data, selected, width, height }: NodeProps
     return (
       <div style={{ background: '#0f172a', minWidth: 100, height: 10, borderRadius: 2, position: 'relative',
         ...(selected ? { outline: '2px solid #2563eb', outlineOffset: 3 } : {}) }}>
-        <Handle type="target" position={Position.Top} />
-        <Handle type="source" position={Position.Bottom} />
+        <NodeAnchors />
       </div>
     );
   }
@@ -74,7 +74,6 @@ export function DiagramNodeView({ id, data, selected, width, height }: NodeProps
         stroke={selected ? STROKE_SELECTED : STROKE}
         strokeWidth={selected ? 2 : 1.4}
       />
-      <Handle type="target" position={Position.Top} />
       {/* Treść leży NAD kształtem — inaczej wypełnienie figury zasłaniałoby tekst. */}
       <span style={{ position: 'relative', zIndex: 1 }}>
         <InlineLabel
@@ -86,7 +85,7 @@ export function DiagramNodeView({ id, data, selected, width, height }: NodeProps
           inputStyle={{ textAlign: 'center' }}
         />
       </span>
-      <Handle type="source" position={Position.Bottom} />
+      <NodeAnchors />
     </div>
   );
 }
@@ -104,8 +103,7 @@ export function DiagramPseudoNodeView({ data, selected }: NodeProps<Node<FlowNod
         ...(selected ? { outline: '2px solid #2563eb', outlineOffset: 2 } : {}),
       }}
     >
-      <Handle type="target" position={Position.Top} />
-      <Handle type="source" position={Position.Bottom} />
+      <NodeAnchors />
     </div>
   );
 }

@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { readFileSync } from 'node:fs';
 import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
+import { readDocument } from './test/documents';
 
 const pliki = [
   '15-Pytania.md', 'Slownik.md', '15-1-ruch-harmoniczny.md', '15-2-oscylator.md',
   '15-3-ruch-prosty.md', '15-4-energia.md', '15-5-zastosowania.md', '15-6-okrag.md',
   '15-7-skladanie.md', '15-8-dwa-ciala.md', '15-9-tlumiony.md', '15-10-rezonans.md',
-].map((p) => ({ path: p, markdown: readFileSync(`documents/${p}`, 'utf8') }));
+].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {

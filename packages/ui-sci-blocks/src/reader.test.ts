@@ -10,7 +10,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { splitDocument } from './ReaderView';
 
-const DIR = resolve(__dirname, '../dokumenty');
+const DIR = resolve(__dirname, '../documents');
 const read = (name: string) => readFileSync(resolve(DIR, name), 'utf8');
 
 describe('podział dokumentu', () => {

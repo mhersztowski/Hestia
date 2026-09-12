@@ -13,7 +13,9 @@
       }
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -23,6 +25,7 @@
   },
   "dependencies": {
     "@hestia/core": "workspace:*",
+    "@xyflow/react": "^12.10.0",
     "highlight.js": "^11.9.0",
     "katex": "^0.16.28",
     "rehype-highlight": "^7.0.2",
@@ -50,8 +53,12 @@
     "react-dom": "^18.2.0"
   },
   "peerDependenciesMeta": {
-    "@xterm/xterm": { "optional": true },
-    "@xterm/addon-fit": { "optional": true }
+    "@xterm/xterm": {
+      "optional": true
+    },
+    "@xterm/addon-fit": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@emotion/react": "^11.11.0",
@@ -63,6 +70,7 @@
     "@types/react-dom": "^18.3.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
+    "jsdom": "^28.1.0",
     "monaco-editor": "^0.52.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

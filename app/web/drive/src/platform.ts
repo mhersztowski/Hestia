@@ -10,7 +10,12 @@
  * stays a matter of the server's configuration.
  */
 
+import { DIR_TYPE, FILE_TYPE } from '@hestia/ui-core';
+
 const TOKEN_KEY = 'hestia-token';
+
+/** What the platform writes to make an empty directory exist. */
+export const KEEP_MARKER = '.keep';
 
 /** The token lives in `sessionStorage`: closing the tab signs the user out. */
 export function token(): string | null {
@@ -35,12 +40,18 @@ export interface User {
     roles: string[];
 }
 
-/** A file-tree entry as the platform returns it. */
+/**
+ * A directory entry as the platform returns it.
+ *
+ * `type` is a number, not a word: `/api/vfs/readdir` answers in MyCastle's
+ * shape (`FILE_TYPE` 1, `DIR_TYPE` 2), which is what `@hestia/ui-core` also
+ * describes. This was declared as `{ type: 'file' | 'directory'; children }`
+ * and read as a subtree — so every listing came out empty and the drive said
+ * the folder had nothing in it, whatever was on the disk.
+ */
 export interface TreeEntry {
     name: string;
-    path: string;
-    type: 'file' | 'directory';
-    children?: TreeEntry[];
+    type: typeof FILE_TYPE | typeof DIR_TYPE;
 }
 
 /**
@@ -107,23 +118,80 @@ export const platform = {
     },
 
     /**
-     * Contents of a directory. The platform returns the **whole subtree** rather
-     * than one level — we take only its direct children, because that is all the
-     * file dialog shows, and stepping deeper is a separate request anyway.
+     * Contents of a directory — one level, which is what the server sends: it
+     * flattens the subtree before answering, so there is nothing to descend
+     * into here. Stepping deeper is a request of its own.
      */
     async dir(path: string): Promise<TreeEntry[]> {
         const res = await fetch(`${platformBase}/api/vfs/readdir?path=${encodeURIComponent(path)}`, {
             headers: headers(),
         });
-        const { entries } = await response<{ entries: TreeEntry }>(res);
-        return entries?.children ?? [];
+        const { entries } = await response<{ entries: TreeEntry[] }>(res);
+        // `.keep` is the platform's own marker, not the user's file: its file
+        // system has no directories, so "create a folder" writes an empty
+        // `.keep` inside one to make it exist. Filtering it here covers every
+        // listing at once — the drive, the editor's tree and the assistant all
+        // come through this one call.
+        return (entries ?? []).filter((e) => e.name !== KEEP_MARKER);
     },
 
-    async read(path: string): Promise<string> {
+    /**
+     * A file's bytes.
+     *
+     * `readFile` answers with base64 under `data` — this read `content` and got
+     * `undefined` for every file, which downstream looked like an empty file
+     * rather than a misread response.
+     */
+    async readBytes(path: string): Promise<Uint8Array> {
         const res = await fetch(`${platformBase}/api/vfs/readFile?path=${encodeURIComponent(path)}`, {
             headers: headers(),
         });
-        return (await response<{ content: string }>(res)).content;
+        const { data } = await response<{ data: string }>(res);
+        const binary = atob(data ?? '');
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+    },
+
+    async read(path: string): Promise<string> {
+        return new TextDecoder('utf-8').decode(await platform.readBytes(path));
+    },
+
+    async writeBytes(path: string, bytes: Uint8Array): Promise<void> {
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        const res = await fetch(`${platformBase}/api/vfs/writeFile`, {
+            method: 'POST',
+            headers: headers(true),
+            body: JSON.stringify({ path, data: btoa(binary) }),
+        });
+        await response(res);
+    },
+
+    async mkdir(path: string): Promise<void> {
+        const res = await fetch(`${platformBase}/api/vfs/mkdir`, {
+            method: 'POST', headers: headers(true), body: JSON.stringify({ path }),
+        });
+        await response(res);
+    },
+
+    async move(from: string, to: string, operation: 'rename' | 'copy'): Promise<void> {
+        const res = await fetch(`${platformBase}/api/vfs/${operation}`, {
+            method: 'POST',
+            headers: headers(true),
+            body: JSON.stringify({ oldPath: from, newPath: to }),
+        });
+        await response(res);
+    },
+
+    /** `null` when nothing is there — the drive checks before it overwrites. */
+    async stat(path: string): Promise<{ type: number } | null> {
+        const res = await fetch(`${platformBase}/api/vfs/stat?path=${encodeURIComponent(path)}`, {
+            headers: headers(),
+        });
+        if (!res.ok) return null;
+        const { type } = await res.json() as { type?: number };
+        return type === undefined ? null : { type };
     },
 
     async write(path: string, content: string): Promise<void> {

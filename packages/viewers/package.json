@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@hestia/ui-core": "workspace:*",
-    "djvujs-dist": "^0.6.0",
+    "djvujs-dist": "0.5.4",
     "pdfjs-dist": "^4.10.38"
   },
   "peerDependencies": {

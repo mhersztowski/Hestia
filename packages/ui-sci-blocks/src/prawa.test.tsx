@@ -7,23 +7,19 @@
  */
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
+import { readBook } from './test/knowledge';
 
-const KSIAZKA = resolve(__dirname, '../../../data/Minis/Users/marcin/drive/knowledge/book/Resnick-Halliday-Fizyka-tom-1');
-const PRAWA = resolve(KSIAZKA, 'Prawa.md');
+const markdown = readBook('Prawa.md');
+const slownik = readBook('Slownik.md');
+const oscylator = readBook('15-drgania/15-02-oscylator-harmoniczny-prosty.md');
 
-describe.runIf(existsSync(PRAWA))('katalog praw', () => {
-  const markdown = readFileSync(PRAWA, 'utf8');
+describe.runIf(!!markdown && !!slownik && !!oscylator)('katalog praw', () => {
   const pliki = [
-    { path: 'Prawa.md', markdown },
-    { path: 'Slownik.md', markdown: readFileSync(resolve(KSIAZKA, 'Slownik.md'), 'utf8') },
-    {
-      path: '15-02.md',
-      markdown: readFileSync(resolve(KSIAZKA, '15-drgania/15-02-oscylator-harmoniczny-prosty.md'), 'utf8'),
-    },
+    { path: 'Prawa.md', markdown: markdown ?? '' },
+    { path: 'Slownik.md', markdown: slownik ?? '' },
+    { path: '15-02.md', markdown: oscylator ?? '' },
   ];
   const index = buildIndex(pliki);
   const prawa = index.documents.find((d) => d.path === 'Prawa.md')!.laws;
@@ -73,14 +69,14 @@ describe.runIf(existsSync(PRAWA))('katalog praw', () => {
   });
 
   it('pozycja bez treści czyta się jak zapowiedź, nie jak awaria', () => {
-    const { container } = render(<ReaderView markdown={markdown} path="Prawa.md" />);
+    const { container } = render(<ReaderView markdown={markdown ?? ''} path="Prawa.md" />);
     const t = (container.textContent ?? '').replace(/\s+/g, ' ');
     expect(t).toContain('Treść czeka na przeniesienie rozdziału 17');
     expect(t).not.toMatch(/undefined|NaN|\[object/);
   });
 
   it('cały katalog renderuje się bez surowego zapisu', () => {
-    const { container } = render(<ReaderView markdown={markdown} path="Prawa.md" />);
+    const { container } = render(<ReaderView markdown={markdown ?? ''} path="Prawa.md" />);
     const t = container.textContent ?? '';
     expect(t).toContain('Prawo Hooke\'a');
     expect(t).toContain('Zasada zachowania pędu');

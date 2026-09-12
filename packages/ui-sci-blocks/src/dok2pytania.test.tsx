@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { readFileSync } from 'node:fs';
 import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
+import { readDocument } from './test/documents';
 
 const pliki = ['2-Pytania.md', '2-1-wektory.md', '2-2-dodawanie.md', '2-3-skladowe.md',
   '2-4-mnozenie.md', '2-5-prawa.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readFileSync(`documents/${p}`, 'utf8') }));
+  .map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {

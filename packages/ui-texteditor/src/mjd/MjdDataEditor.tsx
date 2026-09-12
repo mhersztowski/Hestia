@@ -16,7 +16,6 @@ import {
 } from '@mui/material';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import ExtensionIcon from '@mui/icons-material/Extension';
 import type { MjdDocument, MjdFieldDef, MjdFieldType } from '@hestia/core';
 import { getFieldsForView } from '@hestia/core';
 import { MjdVisualEditor } from './MjdVisualEditor';

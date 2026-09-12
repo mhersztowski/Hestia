@@ -41,7 +41,13 @@ export function driveAssistant(options: DriveAssistantOptions): DriveAssistant {
 
     return {
         label,
-        render(context: { store: DriveStore; dir: string; file: DriveFileRef | null }): ReactNode {
+        render(context: {
+            store: DriveStore;
+            dir: string;
+            file: DriveFileRef | null;
+            onFileOpen?: (path: string) => void;
+            onFileWritten?: (paths: string[]) => void;
+        }): ReactNode {
             // Where the user is, and what is open, told to the agent as context
             // rather than as instructions: it decides what to do with them, and
             // a prompt that says "the user is looking at X" is the difference
@@ -56,8 +62,10 @@ export function driveAssistant(options: DriveAssistantOptions): DriveAssistant {
                 defaultConfig,
                 webFetchUrl,
                 authToken,
-                onFileOpen,
-                onFileWritten,
+                // The host's, unless the drive that renders this has its own —
+                // it does when the panel lives inside the page.
+                onFileOpen: context.onFileOpen ?? onFileOpen,
+                onFileWritten: context.onFileWritten ?? onFileWritten,
                 injectedClaudeMd: here,
             });
         },

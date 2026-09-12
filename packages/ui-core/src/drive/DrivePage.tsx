@@ -13,23 +13,22 @@
 import {
   asText, fromText, readJson, readTextOrNull, sortVfsEntries, DIR_TYPE, FILE_TYPE,
   type DriveVfs, type VfsEntry,
-} from '../src/drive/vfs';
-import type { DriveAssistant, DriveEditor, DriveFileRef, DriveViewers } from '../src/drive/capabilities';
-import type { DriveStore } from '../src/drive/store';
+} from './vfs';
+import type { DriveAssistant, DriveEditor, DriveFileRef, DriveViewers } from './capabilities';
+import type { DriveStore } from './store';
+// The search types live beside the dialog that also reads them: the dialog is
+// imported by this file, so it cannot import back, and a second copy of the
+// shapes would be a second truth.
+import type { SearchFileResult, SearchMatch, SearchProgress } from './driveSearchTypes';
+import DriveSearchDialog from './DriveSearchDialog';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert, Backdrop, Box, Breadcrumbs, Button, Chip, CircularProgress, Collapse, Dialog, DialogActions,
+  Alert, Box, Breadcrumbs, Button, Chip, CircularProgress, Collapse, Dialog, DialogActions,
   DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, LinearProgress,
   Link, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Select, Snackbar, Stack, Table,
   TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useMediaQuery, useTheme,
-  Switch, FormControlLabel, Popover,
+  Switch, FormControlLabel,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import TuneIcon from '@mui/icons-material/Tune';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import FolderZipIcon from '@mui/icons-material/FolderZip';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import ArticleIcon from '@mui/icons-material/Article';
 // Side-effect: ensures Monaco workers + compiler options + completionItems
 // configuration is in place BEFORE MdEditor (or the embedded workspace) mounts.
 import CloseIcon from '@mui/icons-material/Close';
@@ -41,9 +40,6 @@ import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import DynamicFormIcon from '@mui/icons-material/DynamicForm';
-import SchemaIcon from '@mui/icons-material/Schema';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload';
 import EditIcon from '@mui/icons-material/Edit';
@@ -70,10 +66,6 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PublicIcon from '@mui/icons-material/Public';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import StopIcon from '@mui/icons-material/Stop';
-import TerminalIcon from '@mui/icons-material/Terminal';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import SubjectIcon from '@mui/icons-material/Subject';
 import CodeIcon from '@mui/icons-material/Code';
@@ -81,9 +73,6 @@ import TodayIcon from '@mui/icons-material/Today';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import DescriptionIcon from '@mui/icons-material/Description';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 
 
 // MJD editor — lazy-loaded so the (sizeable) editor bundle isn't pulled in
@@ -162,14 +151,6 @@ async function vfsWriteFile(
   await vfs.writeFile(relPath, data, onProgress);
 }
 
-async function vfsReadFile(vfs: DriveVfs, relPath: string): Promise<Uint8Array> {
-  return vfs.readFile(relPath);
-}
-
-async function vfsReadText(vfs: DriveVfs, relPath: string): Promise<string> {
-  return asText(await vfs.readFile(relPath));
-}
-
 async function vfsCopy(vfs: DriveVfs, sourceRel: string, destRel: string): Promise<void> {
   if (vfs.copy) { await vfs.copy(sourceRel, destRel); return; }
   // Without a copy of its own: read and write it back. Fine for a file, and the
@@ -182,17 +163,7 @@ async function vfsStat(vfs: DriveVfs, relPath: string): Promise<{ type: number }
   return vfs.stat(relPath).catch(() => null);
 }
 
-
-// ─── File properties (sidecar JSON in drive root) ───────────────────────────
-// All per-file metadata that isn't part of the file body itself lives in a
-// single sidecar JSON at `drive/.fileproperties.json` — keeps the directory
-// clean (no `.tags` siblings everywhere) and lets us cache the whole index
-// once on mount instead of doing N reads per listing render.
-//
-// Keyed by relPath (same `cwd/name` convention used elsewhere in this file)
-// so a rename or move would orphan a tag entry — acceptable cost for the
-// simplicity. Future revision can migrate to a content-hash key.
-
+/** Tags and whatever else is said about a file, kept beside the files. */
 const FILE_PROPS_PATH = '.fileproperties.json';
 
 interface FileProperties {
@@ -221,30 +192,6 @@ async function saveFileProperties(vfs: DriveVfs, props: FileProperties): Promise
   await vfsWriteFile(vfs, FILE_PROPS_PATH, fromText(text));
 }
 
-// ─── Ustawienia widoku markdown (per-plik, zapisywane na backend) ────────────
-// Jeden plik na usera: klucz = ścieżka pliku (taka sama jak `filePath` przekazany
-// do MdEditor), wartość = { minimalView }.
-const MDVIEW_PATH = '.mdview.json';
-interface MdViewEntry { minimalView?: boolean; showToc?: boolean; showFavorites?: boolean; smallText?: boolean; fullWidth?: boolean }
-interface MdViewMap { [fileKey: string]: MdViewEntry }
-
-async function loadMdViewSettingsMap(vfs: DriveVfs): Promise<MdViewMap> {
-  try {
-    const text = await readTextOrNull(vfs, MDVIEW_PATH);
-    if (text === null) return {};
-    const parsed = JSON.parse(text) as MdViewMap;
-    return (parsed && typeof parsed === 'object') ? parsed : {};
-  } catch { return {}; }
-}
-
-async function saveMdViewSettingsMap(vfs: DriveVfs, map: MdViewMap): Promise<void> {
-  await vfsWriteFile(vfs, MDVIEW_PATH, fromText(JSON.stringify(map, null, 2)));
-}
-
-// ─── Cron schedules for backend JS scripts (Drive → Właściwości) ─────────────
-// Stored in `drive/.schedules.json`, keyed by drive-relative path:
-//   { "server/foo.mjs": { "cron": "0 * * * *", "enabled": true } }
-// The backend DriveScriptScheduler reads this file and runs `node {file}` on cron.
 const SCHEDULES_PATH = '.schedules.json';
 type DriveSchedules = Record<string, { cron: string; enabled: boolean; runAtStartup?: boolean }>;
 
@@ -265,28 +212,104 @@ async function saveSchedules(vfs: DriveVfs, schedules: DriveSchedules): Promise<
   // writes the schedule, and a host that acts on it watches the file.
 }
 
-/** One hit inside a file. */
-export interface SearchMatch {
-  lineNumber: number;
-  lineText: string;
-  matchStart: number;
-  matchEnd: number;
+
+/** Bytes out of a base64 payload — what the clipboard hands us for an image. */
+function base64ToBytes(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }
 
-/** What one file yielded. */
-export interface SearchFileResult {
-  /** Path relative to the drive's root. */
-  path: string;
-  matches: SearchMatch[];
-  /** Stopped collecting at `maxMatchesPerFile` — there may be more. */
-  truncated: boolean;
+/**
+ * Reads a file for the preview panel: the bytes always, and the text as well
+ * when this is a file that reads as text.
+ *
+ * Four call sites did this separately and all four read text only — so an
+ * image opened as an empty `data:` URL, which on screen is indistinguishable
+ * from a file that failed to load.
+ */
+async function readForPreview(
+  vfs: DriveVfs, rel: string, name: string,
+): Promise<{ mime: string; textContent?: string; bytes: Uint8Array }> {
+  const bytes = await vfs.readFile(rel);
+  const mime = guessMime(name);
+  return { mime, bytes, textContent: isEditableTextFile(name, mime) ? asText(bytes) : undefined };
 }
 
-/** How far the scan has got, for the dialog's bar. */
-export interface SearchProgress {
-  scanned: number;
-  total: number;
-  current?: string;
+/**
+ * Resolve filename collisions by appending " (copy)", " (copy 2)", ... before
+ * the extension. Probes via stat — returns the first free path.
+ */
+async function uniqueName(vfs: DriveVfs, dirRel: string, baseName: string): Promise<string> {
+  const dot = baseName.lastIndexOf('.');
+  const stem = dot > 0 ? baseName.slice(0, dot) : baseName;
+  const ext = dot > 0 ? baseName.slice(dot) : '';
+  for (let i = 0; i < 50; i++) {
+    const candidateName = i === 0 ? baseName : `${stem} (copy${i > 1 ? ' ' + i : ''})${ext}`;
+    const rel = dirRel ? `${dirRel}/${candidateName}` : candidateName;
+    const stat = await vfsStat(vfs, rel);
+    if (!stat) return candidateName;
+  }
+  return `${stem} (copy ${Date.now()})${ext}`;
+}
+
+/**
+ * Downloading a file.
+ *
+ * MyCastle built a URL with the token in the query string, because an Android
+ * WebView cannot carry an Authorization header through a navigation and ignores
+ * the `download` attribute on a blob URL made in JavaScript. Whether that is
+ * needed here is the host's business: `vfs.downloadUrl` returns an address to
+ * navigate to, and when the host offers none the bytes are read and handed to
+ * the browser as a blob, which works everywhere except that WebView.
+ */
+function downloadFile(vfs: DriveVfs, relPath: string, name: string): void {
+  const direct = vfs.downloadUrl?.(relPath);
+  const open = (href: string, revoke?: string) => {
+    const link = document.createElement('a');
+    link.href = href;
+    link.rel = 'noopener';
+    link.download = name;
+    // No `target="_blank"` — it would leave a blank tab dangling on a desktop.
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    if (revoke) URL.revokeObjectURL(revoke);
+  };
+  if (direct) { open(direct); return; }
+  void vfs.readFile(relPath).then((bytes) => {
+    const url = URL.createObjectURL(new Blob([bytes as unknown as BlobPart]));
+    open(url, url);
+  });
+}
+
+/**
+ * Whether a path lies in the drive's public area.
+ *
+ * The rule is the host's: it serves the files, so it decides which of them are
+ * reachable without a token. `vfs.publicUrl` returning an address is that
+ * decision; the page only shows it.
+ */
+function publicUrl(vfs: DriveVfs, relPath: string): string {
+  return vfs.publicUrl?.(relPath) ?? '';
+}
+
+function isPublic(vfs: DriveVfs, relPath: string): boolean {
+  return publicUrl(vfs, relPath) !== '';
+}
+
+function formatBytes(n?: number): string {
+  if (n === undefined) return '—';
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
+  return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+function formatDate(ms?: number): string {
+  if (!ms) return '—';
+  return new Date(ms).toLocaleString();
 }
 
 // ─── Full-text search (drive scan) ──────────────────────────────────────────
@@ -479,23 +502,6 @@ const isRunnable = (name: string) => /\.(mjs|cjs|js|ts|tsx|mts|cts)$/i.test(name
 
 // ── MJD editor association ──────────────────────────────────────────────────
 // `.mjd`           → opens MjdDefEditor (schema editor)
-// `.data.json`     → opens MjdDataEditor (form for the sibling .mjd)
-// Both render in the right-side preview panel via MjdVfsLoader, same UX as
-// Markdown editing.
-type MjdMode = 'def' | 'data';
-
-const getMjdMode = (name: string): MjdMode | null => {
-  const n = name.toLowerCase();
-  if (n.endsWith('.mjd')) return 'def';
-  if (n.endsWith('.data.json')) return 'data';
-  return null;
-};
-const isMjdEditable = (name: string) => getMjdMode(name) !== null;
-
-// `.myschema.json` → graphical schema/.d.ts editor (GlobalJsonLoader), opened in
-// the same right-side preview panel. Standalone JSON, no linked .mjd schema.
-const isMySchemaJson = (name: string) => /\.myschema\.json$/i.test(name);
-
 // ── New-file dialog presets ─────────────────────────────────────────────────
 // Each preset advertises a default filename + an extension. When the user
 // switches preset in the dialog, the name auto-suggests the preset default
@@ -590,175 +596,6 @@ function isEditableTextFile(name: string, mime: string): boolean {
   return /^(json|jsonc|json5|map|js|mjs|cjs|jsx|ts|tsx|mts|cts|py|pyi|xml|svg|xsd|xsl|html|htm|css|scss|less|yaml|yml|hydra|hsch|hcomp|sh|bash|zsh|sql|c|h|cpp|cc|cxx|hpp|hh|hxx|ino|pde|java|kt|rs|go|rb|php|cs|fs|swift|dart|lua|r|pl|ini|cfg|toml|env|conf|dockerfile|gitignore|gitattributes)$/.test(ext);
 }
 
-// Lekkie czyszczenie markdown wyeksportowanego z Notion: dekoduje %20 w lokalnych
-// linkach i usuwa 32-znakowy hash Notion z nazw plików ("Nazwa 1a2b…def.md" → "Nazwa.md").
-function cleanNotionMarkdown(md: string): string {
-  let s = md.replace(/\r\n/g, '\n');
-  s = s.replace(/\]\(([^)]+)\)/g, (m, url: string) => {
-    if (/^https?:/i.test(url)) return m;
-    try { return `](${decodeURIComponent(url).replace(/ [0-9a-f]{32}(?=[./]|$)/gi, '')})`; } catch { return m; }
-  });
-  s = s.replace(/ [0-9a-f]{32}(?=[.\s)/])/gi, '');
-  return s.replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
-}
-
-function stripNotionHash(s: string): string { return s.replace(/ [0-9a-f]{32}(?=\.|\/|$)/gi, ''); }
-function sanitizeFileName(s: string): string { return (s.replace(/[\\/:*?"<>|]+/g, '_').trim() || 'plik'); }
-
-function triggerDownload(blob: Blob, name: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = name; document.body.appendChild(a); a.click();
-  setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 500);
-}
-
-function base64ToText(b64: string): string {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return new TextDecoder('utf-8').decode(bytes);
-}
-function textToBase64(s: string): string {
-  const bytes = new TextEncoder().encode(s);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
-}
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onload = () => {
-      const r = fr.result;
-      if (typeof r !== 'string') { reject(new Error('FileReader gave non-string')); return; }
-      const comma = r.indexOf(',');
-      resolve(comma >= 0 ? r.slice(comma + 1) : r);
-    };
-    fr.onerror = () => reject(fr.error ?? new Error('FileReader failed'));
-    fr.readAsDataURL(blob);
-  });
-}
-
-/**
- * Resolve filename collisions by appending " (copy)", " (copy 2)", ... before
- * the extension. Probes via stat — returns the first free path.
- */
-async function uniqueName(vfs: DriveVfs, dirRel: string, baseName: string): Promise<string> {
-  const dot = baseName.lastIndexOf('.');
-  const stem = dot > 0 ? baseName.slice(0, dot) : baseName;
-  const ext = dot > 0 ? baseName.slice(dot) : '';
-  for (let i = 0; i < 50; i++) {
-    const candidateName = i === 0 ? baseName : `${stem} (copy${i > 1 ? ' ' + i : ''})${ext}`;
-    const rel = dirRel ? `${dirRel}/${candidateName}` : candidateName;
-    const stat = await vfsStat(vfs, rel);
-    if (!stat) return candidateName;
-  }
-  return `${stem} (copy ${Date.now()})${ext}`;
-}
-
-/** Convert a File to base64 (no `data:...,` prefix). Streams via FileReader. */
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onload = () => {
-      const r = fr.result;
-      if (typeof r !== 'string') { reject(new Error('FileReader gave non-string')); return; }
-      const comma = r.indexOf(',');
-      resolve(comma >= 0 ? r.slice(comma + 1) : r);
-    };
-    fr.onerror = () => reject(fr.error ?? new Error('FileReader failed'));
-    fr.readAsDataURL(file);
-  });
-}
-
-/** Read the JWT from localStorage — same source as authHeaders(). */
-function authToken(): string | undefined {
-  try {
-    const raw = localStorage.getItem('minis_current_user');
-    return raw ? (JSON.parse(raw) as { token?: string }).token : undefined;
-  } catch { return undefined; }
-}
-
-/**
- * Downloading a file.
- *
- * MyCastle built a URL with the token in the query string, because an Android
- * WebView cannot carry an Authorization header through a navigation and ignores
- * the `download` attribute on a blob URL made in JavaScript. Whether that is
- * needed here is the host's business: `vfs.downloadUrl` returns an address to
- * navigate to, and when the host offers none the bytes are read and handed to
- * the browser as a blob, which works everywhere except that WebView.
- */
-function downloadFile(vfs: DriveVfs, relPath: string, name: string): void {
-  const direct = vfs.downloadUrl?.(relPath);
-  const open = (href: string, revoke?: string) => {
-    const link = document.createElement('a');
-    link.href = href;
-    link.rel = 'noopener';
-    link.download = name;
-    // No `target="_blank"` — it would leave a blank tab dangling on a desktop.
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    if (revoke) URL.revokeObjectURL(revoke);
-  };
-  if (direct) { open(direct); return; }
-  void vfs.readFile(relPath).then((bytes) => {
-    const url = URL.createObjectURL(new Blob([bytes as unknown as BlobPart]));
-    open(url, url);
-  });
-}
-
-/**
- * Whether a path lies in the drive's public area.
- *
- * The rule is the host's: it serves the files, so it decides which of them are
- * reachable without a token. `vfs.publicUrl` returning an address is that
- * decision; the page only shows it.
- */
-function publicUrl(vfs: DriveVfs, relPath: string): string {
-  return vfs.publicUrl?.(relPath) ?? '';
-}
-
-function isPublic(vfs: DriveVfs, relPath: string): boolean {
-  return publicUrl(vfs, relPath) !== '';
-}
-
-function formatBytes(n?: number): string {
-  if (n === undefined) return '—';
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
-  return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
-}
-
-function formatDate(ms?: number): string {
-  if (!ms) return '—';
-  return new Date(ms).toLocaleString();
-}
-
-// ─── In-browser script runner ────────────────────────────────────────────────
-// JS/TS files opened in the Drive editor can be executed in the page itself
-// (the user's own code, same trust model as Plugin Scripts). `console.*` is
-// redirected into a panel below the editor.
-type BrowserConsoleLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
-interface BrowserConsoleLine { level: BrowserConsoleLevel; text: string }
-const MAX_BROWSER_CONSOLE = 500;
-const isBrowserRunnable = (name: string) => /\.(js|mjs|cjs|ts)$/i.test(name);
-function fmtConsoleArg(a: unknown): string {
-  if (typeof a === 'string') return a;
-  if (a instanceof Error) return a.stack ?? a.message;
-  try { return JSON.stringify(a, null, 2); } catch { return String(a); }
-}
-function browserConsoleColor(l: BrowserConsoleLevel): string {
-  return l === 'error' ? 'error.main'
-    : l === 'warn' ? 'warning.main'
-    : l === 'info' ? 'info.main'
-    : l === 'debug' ? 'text.secondary'
-    : 'text.primary';
-}
-
-// ─── Component ───────────────────────────────────────────────────────────────
-
 /**
  * What the page is given.
  *
@@ -792,6 +629,10 @@ export default function DrivePage({
   });                                                       // relative under /drive/
   const cwdRef = useRef(cwd);
   cwdRef.current = cwd;
+  // Forward declaration for the paste shortcut: the keyboard handler is
+  // attached before `paste` is in scope, and going through a ref avoids the
+  // temporal-dead-zone cycle that a direct dependency would create.
+  const pasteRef = useRef<() => void>(() => {});
   const [entries, setEntries] = useState<VfsEntry[]>([]);
   const [loading, setLoading] = useState(true);
   // Upload progress dialog state. `done` counts files already finished,
@@ -817,7 +658,7 @@ export default function DrivePage({
   // View dialog state. textContent is set only when the MIME maps to a text-like format
   // OR the filename matches a recognised code-file extension — the Monaco editor
   // in the right panel uses textContent as its initial value.
-  const [viewing, setViewing] = useState<{ entry: VfsEntry; mime: string; textContent?: string } | null>(null);
+  const [viewing, setViewing] = useState<{ entry: VfsEntry; mime: string; textContent?: string; bytes?: Uint8Array } | null>(null);
   // Git repo panel state — set when a `.repo.json` file is opened. `path` is the
   // .repo.json path relative to the user's drive root (e.g. `myrepo/.repo.json`).
   // Graphical (schema form) editor for a `.json` file. `rel` is drive-relative.
@@ -827,6 +668,11 @@ export default function DrivePage({
   // source markdown so the opened editor can offer a "← back to markdown" button.
   // "New empty file" dialog. Just a name field — content is empty bytes.
   const [newFileDialog, setNewFileDialog] = useState<{ name: string; presetKey: string } | null>(null);
+  // The upload paths trigger a hidden <input type="file">: one in the header,
+  // one inside the staging dialog. A single shared ref would mean the dialog's
+  // button reopening the header's picker while the dialog is over it.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dialogFileInputRef = useRef<HTMLInputElement>(null);
   // "Create from clipboard" dialog. `kind` distinguishes between system clipboard text
   // (editable in a textarea) and an image blob (rendered as a preview, name editable).
   const [clipboardCreateDialog, setClipboardCreateDialog] = useState<{
@@ -868,7 +714,11 @@ export default function DrivePage({
     try { return localStorage.getItem('drive_favs_open') !== '0'; }
     catch { return true; }
   });
-  const FAV_PATH = 'drive/.favorites.json';
+  // Beside the other two sidecars, and at the drive's own root: MyCastle's
+  // `drive/` prefix was one level of its own layout, and the host's VFS decides
+  // where the root is here — keeping the prefix put the favourites in a
+  // subdirectory that then showed up in the listing as a folder.
+  const FAV_PATH = '.favorites.json';
 
   // ── File properties (tags + future per-file metadata) ───────────────
   // Single source of truth for the whole drive; persisted as
@@ -909,13 +759,9 @@ export default function DrivePage({
   // to hold every action button — collapse copy/edit/download into a kebab menu.
   const isCompact = useMediaQuery(theme.breakpoints.down('md'));
   const [viewActionsMenu, setViewActionsMenu] = useState<HTMLElement | null>(null);
-  // Run-on-backend console state (Drive → Run). Declared here so panelOpen below
-  // can include it; the run/stop handlers live near closeRightPanel.
-  const [running, setRunning] = useState<{ rel: string; output: string; status: 'running' | 'done' | 'error'; kind: 'run' | 'install'; target: string } | null>(null);
-  const runAbortRef = useRef<AbortController | null>(null);
   // Read-only log viewer (Drive → Logs). Shows drive/.logs/{rel}.log content.
   const [logsView, setLogsView] = useState<{ rel: string; content: string } | null>(null);
-  const panelOpen = !!(viewing || editing || running || logsView);
+  const panelOpen = !!(viewing || editing || logsView);
 
   // Exactly ONE right-side panel may be open at a time. Every opener calls this
   // first, so a new panel never renders stacked next to a stale one (the bug
@@ -963,16 +809,103 @@ export default function DrivePage({
   const resetPanels = useCallback(() => {
     setViewing(null);
     setEditing(null);
-    runAbortRef.current?.abort();
-    setRunning(null);
     setLogsView(null);
   }, []);
+
+  const closeRightPanel = useCallback(() => {
+    resetPanels();
+    setPanelFullscreen(false);
+  }, [resetPanels]);
+
+  /**
+   * The log a scheduled script left behind, from `.logs/{path}.log`.
+   *
+   * MyCastle read this over an endpoint of its own; it is an ordinary file on
+   * the drive, so here it goes through the VFS like everything else. Whoever
+   * runs the script writes the file — the drive only reads it.
+   */
+  const openLogs = useCallback(async (rel: string) => {
+    resetPanels();
+    setLogsView({ rel, content: '…' });
+    const content = await readTextOrNull(vfs, `.logs/${rel}.log`);
+    setLogsView({
+      rel,
+      // An absent log and an empty one are different states, and saying so
+      // saves the reader from wondering whether the script ran at all.
+      content: content === null ? '(brak logów — uruchom skrypt albo poczekaj na cron)'
+        : content === '' ? '(pusty log)' : content,
+    });
+  }, [vfs, resetPanels]);
+
+  const clearLogs = useCallback(async (rel: string) => {
+    try {
+      await vfsWriteFile(vfs, `.logs/${rel}.log`, fromText('')); // empty file = cleared
+      setLogsView((prev) => (prev && prev.rel === rel ? { ...prev, content: '(wyczyszczono)' } : prev));
+      toast('Wyczyszczono logi');
+    } catch (err) {
+      toast((err as Error).message, 'error');
+    }
+  }, [vfs, toast]);
+
+  /**
+   * Opens (creating on the first visit of the day) today's journal entry,
+   * `Calendar/{year}/{month}/{day}.md`, and opens it in the host's editor.
+   *
+   * Nothing here is MyCastle's but the convention: the folders and the file are
+   * ordinary VFS operations, and what opens the file is the `editor`
+   * capability, so a host without one still gets the file created.
+   */
+  const openTodayJournal = useCallback(async () => {
+    const today = new Date();
+    const yyyy = String(today.getFullYear());
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const folderRel = `Calendar/${yyyy}/${mm}`;
+    const fileName = `${dd}.md`;
+    const rel = `${folderRel}/${fileName}`;
+
+    try {
+      // mkdir fails when the directory is there, which is the "create if
+      // missing" we want — the failure is swallowed on purpose.
+      await vfsMkdir(vfs, 'Calendar').catch(() => {});
+      await vfsMkdir(vfs, `Calendar/${yyyy}`).catch(() => {});
+      await vfsMkdir(vfs, folderRel).catch(() => {});
+
+      // The template is written only on the first open of the day; an entry
+      // already begun is never clobbered.
+      if (!await vfsStat(vfs, rel)) {
+        const weekday = today.toLocaleDateString('pl-PL', { weekday: 'long' });
+        await vfsWriteFile(vfs, rel, fromText(`# ${yyyy}-${mm}-${dd} (${weekday})\n\n`));
+        toast(`Utworzono dziennik na dziś — ${yyyy}-${mm}-${dd}`);
+      }
+
+      // Jump the listing to the month so closing the editor leaves the reader
+      // among the other days of that week.
+      setCwd(folderRel);
+      openInEditor({ name: fileName, type: FILE_TYPE }, rel);
+    } catch (err) {
+      toast(`Błąd otwarcia dziennika: ${(err as Error).message}`, 'error');
+    }
+  }, [vfs, openInEditor, toast]);
+
+  /** Copies the address at which the host serves a public file. */
+  const copyPublicUrl = useCallback(async (entry: VfsEntry) => {
+    const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
+    if (!isPublic(vfs, rel)) {
+      toast('Ten plik nie jest publiczny — nie ma adresu do skopiowania', 'error');
+      return;
+    }
+    const url = publicUrl(vfs, rel);
+    toast(await copyTextToClipboard(url) ? 'Link skopiowany do schowka' : url, 'info');
+  }, [vfs, cwd, toast]);
 
   // The editor/preview panel now opens inline on every screen size. On a phone
   // it takes over the whole viewport (the file list hides while it is open).
   const showRightPanel = panelOpen;
   const showSidebar = !((isWide && panelFullscreen) || (!isWide && panelOpen));
-  // [port] dropped — the agent panel is the `assistant` capability now
+  // The assistant sits beside the listing, and the drive owns only the button
+  // and the column — what is drawn inside comes from the capability.
+  const [showAgent, setShowAgent] = useState(false);
 
   // ── Initial mkdir + refresh ─────────────────────────────────────────────
   const refresh = useCallback(async () => {
@@ -993,6 +926,27 @@ export default function DrivePage({
     }
   }, [cwd, toast]);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+      if (newFolderDialog || renameDialog || menuFor || viewing || newFileDialog || clipboardCreateDialog) return;
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (e.key === 'v') {
+        e.preventDefault();
+        pasteRef.current();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [newFolderDialog, renameDialog, menuFor, viewing, newFileDialog, clipboardCreateDialog]);
+
+  // The listing, on mount and on every change of directory. `refresh` is a
+  // `useCallback` over `cwd`, so a new directory is a new function and this
+  // runs again — without it `loading` stays true for ever and the page is a
+  // spinner over a drive that answers perfectly well.
+  useEffect(() => { void refresh(); }, [refresh]);
+
   // [port] dropped — the schema editor is not part of this package
 
   // [port] dropped — the Markdown editor is not part of this package
@@ -1001,18 +955,67 @@ export default function DrivePage({
 
   // [port] dropped — importing Markdown bundles needs JSZip
 
+  /**
+   * Favourites and the per-file properties live on the drive, not in this
+   * browser — they follow the user between devices. Both are read once on
+   * mount; a missing file is an ordinary first visit, not a failure.
+   */
+  useEffect(() => {
+    if (favLoaded) return;
+    let cancelled = false;
+    readJson<{ favorites?: string[] }>(vfs, FAV_PATH, {})
+      .then((data) => {
+        if (cancelled) return;
+        if (Array.isArray(data?.favorites)) {
+          setFavorites(new Set(data.favorites.filter((x) => typeof x === 'string')));
+        }
+      })
+      .catch((err) => console.warn('[Drive] favorites load failed:', err))
+      .finally(() => { if (!cancelled) setFavLoaded(true); });
+    return () => { cancelled = true; };
+  }, [vfs, favLoaded]);
+
+  // Saved after a short delay, so starring several files in a row is one write
+  // rather than one per click — and never before the first read has finished,
+  // which would put an empty set over what is on the disk.
+  useEffect(() => {
+    if (!favLoaded) return;
+    const t = setTimeout(() => {
+      void vfsWriteFile(vfs, FAV_PATH, fromText(JSON.stringify({ favorites: Array.from(favorites).sort() }, null, 2)))
+        .catch((err) => console.warn('[Drive] favorites save failed:', err));
+    }, 300);
+    return () => clearTimeout(t);
+  }, [favorites, favLoaded, vfs]);
+
+  // The properties are saved by the dialog's own Save, so there is no
+  // auto-save counterpart here.
+  useEffect(() => {
+    if (fpLoaded) return;
+    let cancelled = false;
+    loadFileProperties(vfs)
+      .then((props) => { if (!cancelled) setFileProperties(props); })
+      .catch((err) => console.warn('[Drive] fileProperties load failed:', err))
+      .finally(() => { if (!cancelled) setFpLoaded(true); });
+    loadSchedules(vfs).then((sched) => { if (!cancelled) setSchedules(sched); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [vfs, fpLoaded]);
+
+  // Collapsed or not is a per-device preference, so it stays in this browser.
+  useEffect(() => {
+    try { localStorage.setItem('drive_favs_open', favoritesOpen ? '1' : '0'); } catch { /* private mode */ }
+  }, [favoritesOpen]);
+
+  // A closed panel must not stay "fullscreen": reopening it would hide the
+  // listing with no way back to it.
+  useEffect(() => { if (!panelOpen) setPanelFullscreen(false); }, [panelOpen]);
+
+  // The same when the window narrows past `md` — the sidebar would vanish
+  // entirely, with neither a dialog nor the list to return to.
+  useEffect(() => { if (!isWide) setPanelFullscreen(false); }, [isWide]);
+
   const isFavorite = useCallback((rel: string) => favorites.has(rel), [favorites]);
 
   // Toggle ulubionego po pełnej ścieżce (nie zależy od cwd) — używane w okienku Ulubione.
-  const toggleFavoritePath = useCallback((rel: string, name: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(rel)) { next.delete(rel); toast(`Usunięto z ulubionych: ${name}`, 'info'); }
-      else { next.add(rel); toast(`Dodano do ulubionych: ${name}`); }
-      return next;
-    });
-  }, [toast]);
-
   const toggleFavorite = useCallback((entry: VfsEntry) => {
     const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
     setFavorites((prev) => {
@@ -1090,10 +1093,6 @@ export default function DrivePage({
   // `openInMdEditor` is in scope. Avoids the TDZ cycle that would otherwise
   // happen because `goToFavorite` is wired into render before openInMdEditor
   // is declared.
-  const openInMdEditorRef = useRef<(entry: VfsEntry, relOverride?: string) => Promise<void>>(
-    async () => {},
-  );
-
   // [port] dropped — jumping to a favourite went through the Markdown editor and the router
   // sets cwd to the folder, then opens the file (MdEditor for .md/.txt,
   // preview for everything else). Skips already-deleted favorites with
@@ -1122,14 +1121,9 @@ export default function DrivePage({
     } else {
       // Inline read → setViewing (same as double-click on a file row).
       try {
-        const text = await readTextOrNull(vfs, rel);
-        if (text === null) return null;
-        const mime = guessMime(fileName);
-        // Source code / config files (.json, .ts, .py, …) are routed to the
-        // Monaco editor, so we decode them as text too — not just text/* MIMEs.
-        const textContent = isEditableTextFile(fileName, mime) ? text : undefined;
+        const loaded = await readForPreview(vfs, rel, fileName);
         resetPanels();
-        setViewing({ entry, mime, textContent });
+        setViewing({ entry, ...loaded });
       } catch (err) {
         toast((err as Error).message, 'error');
       }
@@ -1162,19 +1156,9 @@ export default function DrivePage({
     void (async () => {
       try {
         const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
-        const text = await readTextOrNull(vfs, rel);
-        if (text === null) return null;
-        const mime = guessMime(entry.name);
-        // See goToFavorite — same routing rule (code-like extensions get
-        // decoded so the Monaco editor can highlight them).
-        const textContent = isEditableTextFile(entry.name, mime) ? text : undefined;
-        // `.json` with a drive-relative `$schema` binding → graphical form editor.
-        if (textContent !== undefined && /\.json$/i.test(entry.name)) {
-          try {
-          } catch { /* not valid JSON — fall through to text editor */ }
-        }
+        const loaded = await readForPreview(vfs, rel, entry.name);
         resetPanels();
-        setViewing({ entry, mime, textContent });
+        setViewing({ entry, ...loaded });
       } catch (e) {
         toast((e as Error).message, 'error');
       }
@@ -1188,10 +1172,6 @@ export default function DrivePage({
   }, [cwd, toast]);
 
   // Nazwa pakowanego katalogu (≠ null ⇒ pokazujemy overlay ze spinnerem).
-  const [zipping, setZipping] = useState<string | null>(null);
-
-  // [port] dropped — zipping a folder in the browser needs JSZip — a dependency a file list should not carry
-
   const onDelete = useCallback(async (entry: VfsEntry) => {
     const kind = entry.type === DIR_TYPE ? 'katalog' : 'plik';
     if (!confirm(`Usunąć ${kind} "${entry.name}"${entry.type === DIR_TYPE ? ' i całą jego zawartość' : ''}?`)) return;
@@ -1277,7 +1257,7 @@ export default function DrivePage({
     }
   }, [clipboard, cwd, refresh, toast]);
 
-  // [port] dropped — exporting a zip needs JSZip
+  useEffect(() => { pasteRef.current = () => { void paste(); }; }, [paste]);
 
   // ── View / Open / Create ────────────────────────────────────────────────
 
@@ -1285,19 +1265,82 @@ export default function DrivePage({
     if (entry.type !== FILE_TYPE) return;
     try {
       const rel = relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name);
-      const text = await readTextOrNull(vfs, rel);
-      if (text === null) return null;
-      const mime = guessMime(entry.name);
-      // Decode UTF-8 for both proper text MIMEs and recognised code-file
-      // extensions (Monaco gets to highlight either way). Binary content
-      // stays as base64 — we render via data: URLs (img/iframe/audio/video).
-      const textContent = isEditableTextFile(entry.name, mime) ? text : undefined;
+      const loaded = await readForPreview(vfs, rel, entry.name);
       resetPanels();
-      setViewing({ entry, mime, textContent });
+      setViewing({ entry, ...loaded });
     } catch (err) {
       toast((err as Error).message, 'error');
     }
   }, [cwd, toast, resetPanels]);
+
+  const doCreateEmpty = useCallback(async () => {
+    if (!newFileDialog) return;
+    const rawName = newFileDialog.name.trim();
+    if (!rawName || rawName.includes('/')) {
+      toast('Nazwa nie może być pusta ani zawierać "/"', 'error');
+      return;
+    }
+    // The preset's extension is applied when the name lacks it — typing
+    // "config" with YAML selected creates "config.yaml".
+    const preset = FILE_PRESETS.find((pr) => pr.key === newFileDialog.presetKey) ?? FILE_PRESETS[0];
+    const name = applyExtension(rawName, preset.extension);
+    try {
+      const rel = cwd ? `${cwd}/${name}` : name;
+      if (await vfsStat(vfs, rel)) { toast(`Plik "${name}" już istnieje — wybierz inną nazwę`, 'error'); return; }
+      await vfsWriteFile(vfs, rel, fromText(''));
+      toast(`Utworzono "${name}"`);
+      setNewFileDialog(null);
+      await refresh();
+    } catch (err) {
+      toast((err as Error).message, 'error');
+    }
+  }, [newFileDialog, vfs, cwd, refresh, toast]);
+
+  /**
+   * A filename for pasted text, guessed from what the text looks like.
+   *
+   * Used when the dialog opens and again after a manual paste, which is the
+   * only path a phone has.
+   */
+  const suggestNameForText = (text: string): string => {
+    const trim = text.trim();
+    if (!trim) return 'clipboard.txt';
+    if (trim.startsWith('#')) return 'clipboard.md';
+    if ((trim.startsWith('{') && trim.endsWith('}')) || (trim.startsWith('[') && trim.endsWith(']'))) return 'clipboard.json';
+    if (trim.startsWith('<') && trim.endsWith('>')) return 'clipboard.xml';
+    return 'clipboard.txt';
+  };
+
+  /**
+   * Steps through the files of this directory while previewing.
+   *
+   * Goes through `viewFile`, so reading, the MIME guess and the state swap
+   * stay in one place.
+   */
+  const navigatePreview = useCallback(async (delta: number) => {
+    if (!viewing || currentPreviewIdx < 0) return;
+    const target = fileEntries[currentPreviewIdx + delta];
+    if (!target) return;
+    await viewFile(target);
+  }, [viewing, currentPreviewIdx, fileEntries, viewFile]);
+
+  // Arrows step through the preview and Escape closes it — but not while the
+  // focus is in a text field, and not over an open dialog or menu, where the
+  // same keys mean something else.
+  useEffect(() => {
+    if (!viewing) return;
+    const handler = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (newFolderDialog || renameDialog || menuFor || newFileDialog || clipboardCreateDialog || actionsMenu) return;
+      if (e.key === 'ArrowLeft' && hasPrev) { e.preventDefault(); void navigatePreview(-1); }
+      else if (e.key === 'ArrowRight' && hasNext) { e.preventDefault(); void navigatePreview(1); }
+      else if (e.key === 'Escape') { e.preventDefault(); closeRightPanel(); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [viewing, hasPrev, hasNext, navigatePreview, closeRightPanel,
+      newFolderDialog, renameDialog, menuFor, newFileDialog, clipboardCreateDialog, actionsMenu]);
 
   // [port] dropped — binding a JSON schema belonged to the schema form editor
 
@@ -1335,23 +1378,6 @@ export default function DrivePage({
   // [port] dropped — the schema editor is not part of this package
 
   // [port] dropped — the Markdown editor is not part of this package
-  const openMdAsRawSource = useCallback(async (entry: VfsEntry) => {
-    try {
-      const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
-      const text = await readTextOrNull(vfs, rel);
-      if (text === null) return null;
-      const mime = guessMime(entry.name) || 'text/markdown';
-      // Force-decode as text — the standard `isEditableTextFile` check would
-      // refuse markdown to keep MdEditor as the default; we're explicitly
-      // overriding that here.
-      const textContent = text;
-      resetPanels();
-      setViewing({ entry, mime, textContent });
-    } catch (err) {
-      toast((err as Error).message, 'error');
-    }
-  }, [cwd, toast, resetPanels]);
-
   // [port] dropped — the dashboard editor is not part of this package
 
   // [port] dropped — npm install is MyCastle's own endpoint
@@ -1363,10 +1389,6 @@ export default function DrivePage({
   // [port] dropped — the daily journal belonged to MyCastle's PIM
 
   // [port] dropped — exporting Markdown bundles needs JSZip
-  const exportCleanMd = useCallback(async () => {
-    // [port] dropped — the Markdown editor is not part of this package
-  }, []);
-
   const doCreateFromClipboard = useCallback(async () => {
     if (!clipboardCreateDialog) return;
     const name = clipboardCreateDialog.name.trim();
@@ -1378,10 +1400,10 @@ export default function DrivePage({
       // Auto-suffix on collision instead of failing — clipboard pastes are usually rapid.
       const finalName = await uniqueName(vfs, cwd, name);
       const rel = cwd ? `${cwd}/${finalName}` : finalName;
-      const b64 = clipboardCreateDialog.kind === 'image'
-        ? clipboardCreateDialog.imageB64
-        : textToBase64(clipboardCreateDialog.textContent);
-      await vfsWriteFile(vfs, rel, fromText(text));
+      const bytes = clipboardCreateDialog.kind === 'image'
+        ? base64ToBytes(clipboardCreateDialog.imageB64)
+        : fromText(clipboardCreateDialog.textContent);
+      await vfsWriteFile(vfs, rel, bytes);
       toast(`Utworzono "${finalName}"`);
       setClipboardCreateDialog(null);
       await refresh();
@@ -1412,9 +1434,8 @@ export default function DrivePage({
     // user navigates to a different folder mid-upload, all files in this batch
     // still land in the directory that was active when the upload started.
     const uploadCwd = cwd;
-    // Base64 encoding inflates ~33%. The backend's JSON body cap is 200 MB,
-    // so anything past ~140 MB raw will be rejected before we even POST.
-    // Pre-flight check gives a useful error instead of a vague 500.
+    // A pre-flight size check gives a useful error instead of a vague 500 from
+    // whatever the host's write does with a file this large.
     const HARD_LIMIT_BYTES = 140 * 1024 * 1024;
     setUploading({ done: 0, total: arr.length, currentName: null, currentPct: 0, failed: 0 });
     // mkdir is idempotent at this layer (we ignore errors), but doing it once
@@ -1430,7 +1451,7 @@ export default function DrivePage({
         if (file.size > HARD_LIMIT_BYTES) {
           throw new Error(`Plik za duży (${(file.size / 1024 / 1024).toFixed(1)} MB; limit ${(HARD_LIMIT_BYTES / 1024 / 1024).toFixed(0)} MB)`);
         }
-        const b64 = await fileToBase64(file);
+        const bytes = new Uint8Array(await file.arrayBuffer());
         const rel = uploadCwd ? `${uploadCwd}/${relPath}` : relPath;
         // For files inside subdirectories, ensure every parent dir exists
         // (Node's writeFile would error on a missing parent). We walk the
@@ -1614,17 +1635,24 @@ export default function DrivePage({
   // open target — the workspace's `/` is the Drive root via SubpathFS).
   const viewingRel = viewing ? (cwd ? `${cwd}/${viewing.entry.name}` : viewing.entry.name) : '';
 
+  /**
+   * A blob URL for the bytes being previewed, revoked when they change.
+   *
+   * A `data:` URL would mean base64 in the document for every image opened;
+   * the blob is the same bytes with an address, and the browser frees it when
+   * we say so — which is what the effect below is for.
+   */
+  const viewingUrl = useMemo(
+    () => (viewing?.bytes ? URL.createObjectURL(new Blob([viewing.bytes as BlobPart], { type: viewing.mime })) : ''),
+    [viewing?.bytes, viewing?.mime],
+  );
+  useEffect(() => () => { if (viewingUrl) URL.revokeObjectURL(viewingUrl); }, [viewingUrl]);
+
   const viewerBody = viewing && (
-    viewing.textContent !== undefined && driveWorkspaceFs ? (
-      // Full editor — same component as Electronics → Editor. The workspace
-      // owns loading/saving (Ctrl+S → VFS), IntelliSense, tabs and search;
-      // `initialPath` opens the clicked file. Keyed by user so switching
-      // files reuses the same workspace (new tabs) instead of remounting.
-      {/* [port] dropped — the embedded workspace: the host supplies an editor through the `editor` capability */}
-    ) : isImageMime(viewing.mime) ? (
+    isImageMime(viewing.mime) ? (
       <Box sx={{ textAlign: 'center', p: 2, height: '100%', overflow: 'auto' }}>
         <img
-          src={`data:${viewing.mime};base64,${''}`}
+          src={viewingUrl}
           alt={viewing.entry.name}
           style={{ maxWidth: '100%', maxHeight: 'calc(100% - 16px)' }}
         />
@@ -1636,19 +1664,19 @@ export default function DrivePage({
     ) : isAudioMime(viewing.mime) ? (
       <Box sx={{ textAlign: 'center', py: 4, px: 2 }}>
         <Box component="audio" controls
-          src={`data:${viewing.mime};base64,${''}`}
+          src={viewingUrl}
           sx={{ width: '100%', maxWidth: 500 }}
         />
       </Box>
     ) : isVideoMime(viewing.mime) ? (
       <Box component="video" controls
-        src={`data:${viewing.mime};base64,${''}`}
+        src={viewingUrl}
         sx={{ width: '100%', maxHeight: '100%', display: 'block' }}
       />
     ) : (
       <Box sx={{ p: 2 }}>
         <Alert severity="info">
-          Plik binarny <code>{viewing.mime}</code> (~{formatBytes(Math.floor(''.length * 3 / 4))}) —
+          Plik binarny <code>{viewing.mime}</code> (~{formatBytes(viewing.bytes?.byteLength)}) —
           podgląd niedostępny w przeglądarce. Pobierz, aby otworzyć w odpowiedniej aplikacji.
         </Alert>
       </Box>
@@ -1681,10 +1709,9 @@ export default function DrivePage({
       {/* Header — single "Actions" dropdown gathers every directory-level
           operation. Per-file ops live in the row's context menu (MoreVertIcon). */}
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
-        {/* Main nav + account — only as a full route (Global window has no params.userName) */}
-        {params.userName && (
+        {toolbarStart && (
           <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'action.hover', borderRadius: 1.5, px: 0.25, mr: 0.5 }}>
-            <Tooltip title="Menu główne"><IconButton size="small" onClick={openNav}><MenuIcon /></IconButton></Tooltip>
+            {toolbarStart}
           </Box>
         )}
         <Typography variant="h5" sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
@@ -1710,6 +1737,17 @@ export default function DrivePage({
             Today
           </Button>
         </Tooltip>
+        {assistant && (
+          <Tooltip title={assistant.label ?? 'Asystent'}>
+            <Button
+              variant={showAgent ? 'contained' : 'outlined'}
+              startIcon={<SmartToyIcon />}
+              onClick={() => setShowAgent((v) => !v)}
+            >
+              {assistant.label ?? 'Asystent'}
+            </Button>
+          </Tooltip>
+        )}
         <Tooltip title="Szukaj tekstu w plikach (bieżący katalog lub cały drive)">
           <Button
             variant="outlined"
@@ -2056,7 +2094,38 @@ export default function DrivePage({
             borderBottom: '1px solid', borderColor: 'divider',
             bgcolor: 'background.paper',
           }}>
-            {/* [port] dropped — going back to the Markdown editor */}
+            {viewing && (
+              <>
+                <Tooltip title={hasPrev ? 'Poprzedni plik (←)' : 'To jest pierwszy plik'}>
+                  <span>
+                    <IconButton size="small" disabled={!hasPrev} onClick={() => void navigatePreview(-1)}>
+                      <NavigateBeforeIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                <Typography variant="caption" sx={{
+                  minWidth: 48, textAlign: 'center', userSelect: 'none',
+                  color: 'text.secondary', fontVariantNumeric: 'tabular-nums',
+                }}>
+                  {currentPreviewIdx >= 0 ? `${currentPreviewIdx + 1} / ${fileEntries.length}` : '—'}
+                </Typography>
+                <Tooltip title={hasNext ? 'Następny plik (→)' : 'To jest ostatni plik'}>
+                  <span>
+                    <IconButton size="small" disabled={!hasNext} onClick={() => void navigatePreview(1)}>
+                      <NavigateNextIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+              </>
+            )}
+            {logsView ? <SubjectIcon fontSize="small" /> : viewing ? <VisibilityIcon fontSize="small" /> : <EditNoteIcon fontSize="small" />}
+            <Typography variant="subtitle1" sx={{
+              flex: 1, minWidth: 0,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {(logsView ? `${logsView.rel} · logi` : undefined) ?? viewing?.entry.name ?? editing?.name}
+            </Typography>
             {viewing && !isCompact && (
               <Chip size="small" variant="outlined" label={viewing.mime} />
             )}
@@ -2067,9 +2136,25 @@ export default function DrivePage({
                 </IconButton>
               </Tooltip>
             )}
-            {/* Run the open .js/.ts file in the browser (live editor buffer) +
-                console panel toggle. */}
-            {/* [port] dropped — the in-browser script runner went with the editor */}
+            {viewing && !isCompact && (
+              <Tooltip title="Pobierz">
+                <IconButton size="small" onClick={() => void onDownload(viewing.entry)}>
+                  <DownloadIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {viewing && isCompact && (
+              <Tooltip title="Akcje pliku">
+                <IconButton size="small" onClick={(ev) => setViewActionsMenu(ev.currentTarget)}>
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            <Tooltip title={panelFullscreen ? 'Pokaż listę plików' : 'Ukryj listę plików (panel na cały ekran)'}>
+              <IconButton size="small" onClick={() => setPanelFullscreen((f) => !f)}>
+                {panelFullscreen ? <FullscreenExitIcon fontSize="small" /> : <FullscreenIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Zamknij panel">
               <IconButton size="small" onClick={closeRightPanel}>
                 <CloseIcon fontSize="small" />
@@ -2090,35 +2175,15 @@ export default function DrivePage({
                 {/* [port] dropped — the in-browser runner’s console */}
               </Box>
             )}
-            {running && (
+            {/*
+              The editor itself. MyCastle rendered a component per editor here —
+              Markdown, MJD, the schema form, the dashboard, Qt — each with its
+              own state. There is one capability now, and what it draws is the
+              host's business; the page supplies the file and the panel.
+            */}
+            {editing && editor && (
               <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                {/* Console toolbar — status + Stop / Re-run */}
-                <Box sx={{
-                  display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.75,
-                  borderBottom: '1px solid', borderColor: 'divider',
-                }}>
-                  <Chip
-                    size="small"
-                    color={running.status === 'running' ? 'info' : running.status === 'done' ? 'success' : 'error'}
-                    label={running.status === 'running' ? 'Uruchomione…' : running.status === 'done' ? 'Zakończono' : 'Błąd'}
-                  />
-                  <Box sx={{ flex: 1 }} />
-                  {running.status === 'running' ? (
-                    <Button size="small" color="error" startIcon={<CloseIcon />} onClick={stopScript}>
-                      Stop
-                    </Button>
-                  ) : (
-                    {/* [port] dropped — npm install is MyCastle's own endpoint */}
-                  )}
-                </Box>
-                <Box component="pre" sx={{
-                  flex: 1, m: 0, p: 1.5, overflow: 'auto',
-                  fontFamily: 'monospace', fontSize: '0.78rem', lineHeight: 1.45,
-                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                  bgcolor: '#1e1e1e', color: '#d4d4d4',
-                }}>
-                  {running.output || (running.status === 'running' ? '…' : '(brak wyjścia)')}
-                </Box>
+                {editor.render(editing, { onClose: closeRightPanel, onSaved: () => { void refresh(); } })}
               </Box>
             )}
             {logsView && (
@@ -2147,7 +2212,22 @@ export default function DrivePage({
           </Box>
         </Box>
       )}
-      {/* [port] dropped — the AI agent panel: `@hestia/ui-ai` supplies it through the `assistant` capability */}
+      {assistant && showAgent && (
+        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {assistant.render(
+            {
+              store: driveStoreForCapabilities,
+              dir: cwd,
+              file: viewing
+                ? { path: viewingRel, name: viewing.entry.name, store: driveStoreForCapabilities }
+                : editing,
+              onFileOpen: (path) => { void goToFavorite(path); },
+              onFileWritten: () => { void refresh(); },
+            },
+            { onClose: () => setShowAgent(false) },
+          )}
+        </Box>
+      )}
       </Box>
 
       {/* Per-entry menu */}
@@ -2170,27 +2250,6 @@ export default function DrivePage({
             <ListItemText>Podgląd</ListItemText>
           </MenuItem>
         )}
-        {menuFor && menuFor.entry.type === FILE_TYPE && /\.(md|markdown)$/i.test(menuFor.entry.name) && (
-          <MenuItem onClick={() => {
-            const rel = cwd ? `${cwd}/${menuFor!.entry.name}` : menuFor!.entry.name;
-            const relEnc = rel.split('/').map(encodeURIComponent).join('/');
-            navigate(`/viewer/md-rich/u/${encodeURIComponent(userName)}/${relEnc}`);
-            setMenuFor(null);
-          }}>
-            <ListItemIcon><ArticleIcon fontSize="small" /></ListItemIcon>
-            <ListItemText>Otwórz w Viewer</ListItemText>
-          </MenuItem>
-        )}
-        {menuFor && menuFor.entry.type === FILE_TYPE && isRunnable(menuFor.entry.name) && (
-          <MenuItem onClick={() => {
-            const rel = cwd ? `${cwd}/${menuFor!.entry.name}` : menuFor!.entry.name;
-            void restartScript(rel);
-            setMenuFor(null);
-          }}>
-            <ListItemIcon><RestartAltIcon fontSize="small" sx={{ color: 'primary.main' }} /></ListItemIcon>
-            <ListItemText primary="Restart" secondary="Ubij i uruchom w tle nową wersję" />
-          </MenuItem>
-        )}
         {menuFor && menuFor.entry.type === FILE_TYPE && isRunnable(menuFor.entry.name) && (
           <MenuItem onClick={() => {
             const rel = cwd ? `${cwd}/${menuFor!.entry.name}` : menuFor!.entry.name;
@@ -2200,9 +2259,6 @@ export default function DrivePage({
             <ListItemIcon><SubjectIcon fontSize="small" /></ListItemIcon>
             <ListItemText primary="Logs" secondary="Wyjście skryptu (Run + cron)" />
           </MenuItem>
-        )}
-        {menuFor && menuFor.entry.type === FILE_TYPE && menuFor.entry.name === 'package.json' && (
-          {/* [port] dropped — npm install is MyCastle's own endpoint */}
         )}
         {menuFor && (() => {
           const rel = cwd ? `${cwd}/${menuFor.entry.name}` : menuFor.entry.name;
@@ -2263,18 +2319,6 @@ export default function DrivePage({
           <ListItemIcon><CodeIcon fontSize="small" /></ListItemIcon>
           <ListItemText primary="Path" secondary="Ścieżka dla api.file (skrypty)" />
         </MenuItem>
-        <MenuItem onClick={async () => {
-          // Pełna ścieżka VFS w katalogu użytkownika (backendowa: /data/Minis/Users/{u}/...).
-          const rel = cwd ? `${cwd}/${menuFor!.entry.name}` : menuFor!.entry.name;
-          const vfsPath = `/data/Minis/Users/${userName}/drive/${rel}`;
-          setMenuFor(null);
-          const ok = await copyTextToClipboard(vfsPath);
-          if (ok) toast(`Skopiowano VFS path: ${vfsPath}`);
-          else prompt('Skopiuj VFS path ręcznie:', vfsPath);
-        }}>
-          <ListItemIcon><FolderIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="VFS path" secondary="Pełna ścieżka w katalogu użytkownika" />
-        </MenuItem>
         <MenuItem onClick={() => { copyToClipboard(menuFor!.entry, 'copy'); setMenuFor(null); }}>
           <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Kopiuj</ListItemText>
@@ -2296,16 +2340,6 @@ export default function DrivePage({
           <ListItemText>Usuń</ListItemText>
         </MenuItem>
       </Menu>
-
-      {/* Overlay podczas pakowania katalogu do ZIP — kółko + informacja. */}
-      <Backdrop
-        open={zipping !== null}
-        sx={{ zIndex: (t) => t.zIndex.modal + 10, color: '#fff', flexDirection: 'column', gap: 2 }}
-      >
-        <CircularProgress color="inherit" />
-        <Typography variant="body1">Pakowanie „{zipping}" do ZIP…</Typography>
-        <Typography variant="caption" sx={{ opacity: 0.8 }}>To może chwilę potrwać przy dużych katalogach.</Typography>
-      </Backdrop>
 
       {/* ── Full-text search dialog ───────────────────────────────────── */}
       {/* `runSearch` is the actual top-level helper bound to the current
@@ -2479,79 +2513,6 @@ export default function DrivePage({
           </DialogActions>
         </Dialog>
       )}
-
-      {/* Ustawienia widoku markdown (per-plik, zapisywane na backend). */}
-      <Popover
-        open={Boolean(mdSettingsAnchor)}
-        anchorEl={mdSettingsAnchor}
-        onClose={() => setMdSettingsAnchor(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Box sx={{ p: 1.5, minWidth: 280 }}>
-          <Typography sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'text.secondary', mb: 0.5 }}>
-            Ustawienia widoku
-          </Typography>
-          <FormControlLabel
-            sx={{ ml: 0, width: '100%', justifyContent: 'space-between', mr: 0 }}
-            labelPlacement="start"
-            control={<Switch size="small" checked={!!mdView.minimalView} onChange={(e) => setMdSetting({ minimalView: e.target.checked })} />}
-            label={<Box><Typography sx={{ fontSize: 13 }}>Widok minimalny</Typography>
-              <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>Bez marginesów i bez nagłówków/ramek osadzonych bloczków</Typography></Box>}
-          />
-          <FormControlLabel
-            sx={{ ml: 0, width: '100%', justifyContent: 'space-between', mr: 0 }}
-            labelPlacement="start"
-            control={<Switch size="small" checked={!!mdView.fullWidth} onChange={(e) => setMdSetting({ fullWidth: e.target.checked })} />}
-            label={<Box><Typography sx={{ fontSize: 13 }}>Pełna szerokość</Typography>
-              <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>Treść na całą szerokość — bez pustych obszarów po bokach</Typography></Box>}
-          />
-          <FormControlLabel
-            sx={{ ml: 0, width: '100%', justifyContent: 'space-between', mr: 0 }}
-            labelPlacement="start"
-            control={<Switch size="small" checked={!!mdView.smallText} onChange={(e) => setMdSetting({ smallText: e.target.checked })} />}
-            label={<Box><Typography sx={{ fontSize: 13 }}>Mały tekst</Typography>
-              <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>Mniejsza czcionka treści dokumentu</Typography></Box>}
-          />
-          <FormControlLabel
-            sx={{ ml: 0, width: '100%', justifyContent: 'space-between', mr: 0 }}
-            labelPlacement="start"
-            control={<Switch size="small" checked={!!mdView.showToc} onChange={(e) => setMdSetting({ showToc: e.target.checked })} />}
-            label={<Box><Typography sx={{ fontSize: 13 }}>Pokaż spis treści</Typography>
-              <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>Ruchome okienko z nagłówkami (linki)</Typography></Box>}
-          />
-          <FormControlLabel
-            sx={{ ml: 0, width: '100%', justifyContent: 'space-between', mr: 0 }}
-            labelPlacement="start"
-            control={<Switch size="small" checked={!!mdView.showFavorites} onChange={(e) => setMdSetting({ showFavorites: e.target.checked })} />}
-            label={<Box><Typography sx={{ fontSize: 13 }}>Pokaż ulubione</Typography>
-              <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>Ruchome okienko z ulubionymi plikami</Typography></Box>}
-          />
-          <Divider sx={{ my: 1 }} />
-          <Typography sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'text.secondary', mb: 0.5 }}>
-            Import / Eksport
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <Button size="small" variant="outlined" startIcon={<UploadFileIcon fontSize="small" />} onClick={() => triggerMdImport('plain')} sx={{ justifyContent: 'flex-start', textTransform: 'none', fontSize: 12 }}>
-              Importuj czysty .md (z dysku)
-            </Button>
-            <Button size="small" variant="outlined" startIcon={<UploadFileIcon fontSize="small" />} onClick={() => triggerMdImport('notion')} sx={{ justifyContent: 'flex-start', textTransform: 'none', fontSize: 12 }}>
-              Importuj z Notion (.md / .zip)
-            </Button>
-            <Button size="small" variant="outlined" startIcon={<DownloadIcon fontSize="small" />} onClick={() => void exportCleanMd()} sx={{ justifyContent: 'flex-start', textTransform: 'none', fontSize: 12 }}>
-              Eksportuj czysty .md (bez rozszerzeń)
-            </Button>
-            <Button size="small" variant="outlined" startIcon={<DownloadIcon fontSize="small" />} onClick={() => void exportZip(true)} sx={{ justifyContent: 'flex-start', textTransform: 'none', fontSize: 12 }}>
-              Eksportuj strony → zip (czysty)
-            </Button>
-            <Button size="small" variant="outlined" startIcon={<DownloadIcon fontSize="small" />} onClick={() => void exportZip(false)} sx={{ justifyContent: 'flex-start', textTransform: 'none', fontSize: 12 }}>
-              Eksportuj strony → zip (z rozszerzeniami)
-            </Button>
-          </Box>
-        </Box>
-      </Popover>
-      {/* Ukryty input pliku do importu markdown. */}
-      <input ref={mdImportInputRef} type="file" accept=".md,.markdown,.txt,.zip" style={{ display: 'none' }} onChange={onMdImportFile} />
 
       {/* Ruchome okienka: Spis treści / Ulubione (per-plik, ustawiane w Ustawieniach). */}
       {/* [port] dropped — the Markdown table of contents */}
@@ -2733,6 +2694,32 @@ export default function DrivePage({
           </DialogActions>
         </Dialog>
       )}
+
+      <DriveSearchDialog
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        cwd={cwd}
+        runSearch={({ baseRel, query, caseSensitive, isRegex, signal, onProgress }) =>
+          searchInFiles(vfs, baseRel, query, { caseSensitive, isRegex }, signal, onProgress)
+        }
+        onOpenFile={(rel) => {
+          // A synthetic entry saves the openers a code path of their own, and
+          // the listing jumps to the file's directory: a result found deep in
+          // the tree should not leave the breadcrumbs pointing elsewhere.
+          const name = rel.split('/').pop() || rel;
+          const synthetic: VfsEntry = { name, type: FILE_TYPE };
+          const targetDir = rel.includes('/') ? rel.slice(0, rel.lastIndexOf('/')) : '';
+          if (targetDir !== cwd) setCwd(targetDir);
+          // `rel` is passed explicitly: `cwd` may not have committed yet, and
+          // the editor decides for itself whether it takes the file at all.
+          if (editor && editor.canEdit({ path: rel, name, store: driveStoreForCapabilities })) {
+            openInEditor(synthetic, rel);
+          } else {
+            void viewFile(synthetic, rel);
+          }
+          setSearchOpen(false);
+        }}
+      />
 
       {/* Upload staging dialog — pick / drop multiple files, review, commit. */}
       {uploadDialog && (() => {

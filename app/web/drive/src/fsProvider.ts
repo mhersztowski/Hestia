@@ -27,6 +27,7 @@ import {
     type FileSystemCapabilities,
     type FileSystemProvider,
 } from '@hestia/core';
+import { DIR_TYPE } from '@hestia/ui-core';
 import { platform } from './platform';
 
 const encoder = new TextEncoder();
@@ -51,7 +52,7 @@ export function platformProvider(): FileSystemProvider {
             // asks for a stat before opening a path the user typed, and a throw
             // there reads to the user as "the drive is broken".
             return {
-                type: found?.type === 'directory' ? FileType.Directory : FileType.File,
+                type: found?.type === DIR_TYPE ? FileType.Directory : FileType.File,
                 size: 0,
                 ctime: 0,
                 mtime: 0,
@@ -62,7 +63,7 @@ export function platformProvider(): FileSystemProvider {
             const entries = await platform.dir(rel(path));
             return entries.map((e) => ({
                 name: e.name,
-                type: e.type === 'directory' ? FileType.Directory : FileType.File,
+                type: e.type === DIR_TYPE ? FileType.Directory : FileType.File,
             }));
         },
 

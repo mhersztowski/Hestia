@@ -14,7 +14,12 @@
 export { Toolbar, MenuBar, FloatingToolbar } from './toolbar/Toolbar';
 export type { ToolbarProps, ToolbarOrientation, ToolbarVariant, ToolbarDisplay } from './toolbar/Toolbar';
 
-// The drive: a file list, and what the file holds
+// The drive: MyCastle's page, whole — the listing, favourites, the actions,
+// search, the preview and the panels.
+export { default as DrivePage } from './drive/DrivePage';
+export type { DrivePageProps } from './drive/DrivePage';
+// The small one: a listing with a preview, for a host that wants a file panel
+// rather than a drive (the CAD application's side bar).
 export { Drive } from './drive/Drive';
 export type { DriveProps } from './drive/Drive';
 export {

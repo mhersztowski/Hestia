@@ -12,7 +12,10 @@ import { fileURLToPath } from 'node:url';
 import { extractCallables, type UmlProjectLike } from './umlCallables';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const projectPath = resolve(here, '../../../core/browser/arduboy2js/arduboy2js.umlproj.json');
+// The project file travels with the test rather than being read out of the
+// library it describes: `arduboy2js` is MyCastle's, and what is tested here is
+// `extractCallables` against a real, large UML project — not the library.
+const projectPath = resolve(here, '__fixtures__/arduboy2js.umlproj.json');
 const project = JSON.parse(readFileSync(projectPath, 'utf8')) as UmlProjectLike;
 const callables = extractCallables(project, 'arduboy2js');
 const byName = (owner: string, name: string) =>

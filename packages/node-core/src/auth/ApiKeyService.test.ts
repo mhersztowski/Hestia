@@ -17,11 +17,18 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  // `verify` writes `lastUsedAt` in the background; without waiting for it the
+  // removal below races that write and fails with ENOTEMPTY — intermittently,
+  // and only in a full run, which reads as a flaky test rather than a race.
+  await lastService?.flush();
   await fs.rm(tmpDir, { recursive: true, force: true });
 });
 
+let lastService: ApiKeyService | undefined;
+
 function newService() {
-  return new ApiKeyService(fileSystem, KEYS_PATH);
+  lastService = new ApiKeyService(fileSystem, KEYS_PATH);
+  return lastService;
 }
 
 describe('ApiKeyService', () => {

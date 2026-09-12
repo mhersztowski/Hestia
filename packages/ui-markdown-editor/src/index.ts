@@ -104,7 +104,8 @@ export * from './utils/blockClipboard';
 // The block model: what a block is, how it renders, how it round-trips.
 export * from './extensions/blockRenderers';
 export * from './extensions/blockText';
-export * from './extensions/registerBuiltinBlocks';
+// Side effect only: it registers the built-in block views and exports nothing.
+import './extensions/registerBuiltinBlocks';
 export * from './extensions/selectBlockBefore';
 
 // Diagrams: the mode of a diagram block, its import, export and problems.

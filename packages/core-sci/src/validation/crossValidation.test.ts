@@ -37,7 +37,7 @@ interface Fixture {
 }
 
 const KATALOG_FIXTURES = join(__dirname, '..', '..', 'validation', 'fixtures');
-const KATALOG_DOKUMENTOW = join(__dirname, '..', '..', '..', 'sci-blocks', 'dokumenty');
+const KATALOG_DOKUMENTOW = join(__dirname, '..', '..', '..', 'ui-sci-blocks', 'documents');
 
 /** Blok `formula:id` wyjęty z dokumentu — to samo źródło co dla fixture. */
 function blokZDokumentu(dokument: string, id: string) {

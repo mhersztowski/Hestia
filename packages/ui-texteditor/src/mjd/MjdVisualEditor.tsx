@@ -1260,7 +1260,10 @@ export function MjdVisualEditor({ value, onChange, height }: MjdVisualEditorProp
   useEffect(() => { setNodes(flowNodes as AnyFlowNode[]); }, [flowNodes, setNodes]);
   useEffect(() => { setEdges(schemaEdges); }, [schemaEdges, setEdges]);
 
-  const onNodeDragStop = useCallback((_: React.MouseEvent, node: Node) => {
+  // The event type is the DOM one, not React's: from @xyflow/react 12.11 on,
+  // `OnNodeDrag` is declared with `MouseEvent | TouchEvent`, and a React
+  // synthetic event no longer satisfies it.
+  const onNodeDragStop = useCallback((_: MouseEvent | TouchEvent, node: Node) => {
     if (mode === 'schema') {
       setSchemaPositions(p => ({ ...p, [node.id]: node.position }));
     } else {

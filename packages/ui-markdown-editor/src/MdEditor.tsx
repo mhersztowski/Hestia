@@ -1,12 +1,9 @@
-// Side-effect import: configures Monaco's TypeScript service (compiler options,
-// mode configuration, web workers, completionItems on…) BEFORE any Monaco
-// Editor instance mounts. The Plugin Script and Automate Script blocks inside
-// MdEditor use Monaco for their fullscreen code dialogs, and without these
-// patches IntelliSense never lights up (workers stay unconfigured, mode config
-// defaults to "off" for completionItems). UserDataEditorPage et al. import this
-// directly; for Markdown editing surfaces we keep it next to MdEditor so the
-// monaco workers chunk only loads when an MdEditor instance is on screen.
-import '../../modules/editor/monacoWorkers';
+// The Plugin Script and Automate Script blocks open Monaco in a fullscreen
+// dialog, but its workers and its TypeScript service are **the host's** to set
+// up (a Vite `?worker` setup assigning `globalThis.MonacoEnvironment`, as in
+// `@hestia/ui-texteditor`): monaco is a peer dependency, and a package that
+// configured it would be configuring somebody else's copy. Without that setup
+// the editor still opens — IntelliSense is what stays dark.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';

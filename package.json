@@ -44,7 +44,8 @@
     "docs:full:md": "typedoc --options typedoc.full.json --out ./docs-site/full/markdown",
     "docs:full:json": "typedoc --options typedoc.full.json --json ./docs-site/full/docs.json",
     "docs:clean": "rm -rf docs-site",
-    "clean": "pnpm -r exec rm -rf dist"
+    "clean": "pnpm -r exec rm -rf dist && rm -rf app/cad/public app/drive/public app/finances/public app/iot/public",
+    "clean:deps": "find . -name node_modules -type d -prune -exec rm -rf {} + && echo 'run: pnpm install'"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.18",

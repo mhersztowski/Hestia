@@ -40,8 +40,6 @@ import TaskIcon from '@mui/icons-material/Task';
 import FolderIcon from '@mui/icons-material/Folder';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DynamicFormIcon from '@mui/icons-material/DynamicForm';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import TerminalIcon from '@mui/icons-material/Terminal';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import LinkIcon from '@mui/icons-material/Link';

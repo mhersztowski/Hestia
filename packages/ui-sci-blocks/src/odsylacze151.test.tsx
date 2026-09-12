@@ -7,22 +7,23 @@
  */
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { readFileSync } from 'node:fs';
 import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
+import { readDocument } from './test/documents';
+import { readBook } from './test/knowledge';
 
-const KSIAZKA = '../../data/Minis/Users/marcin/drive/knowledge/book/Resnick-Halliday-Fizyka-tom-1';
+// Paragrafy, do których 15-1 odsyła, mieszkają w rusztowaniu rozdziałów 6 i 10
+// — czyli w książce na dysku użytkownika, poza repozytorium.
+const rozdzialy = [
+  ['06-dynamika-punktu-materialnego-ii', '06-03-dynamika-ruchu-jednostajnego-po-okregu.md'],
+  ['10-zderzenia', '10-01-co-to-jest-zderzenie.md'],
+].map(([kat, plik]) => ({ path: `${kat}/${plik}`, markdown: readBook(`${kat}/${plik}`) }));
+const maKsiazke = rozdzialy.every((r) => r.markdown !== null);
 
 const pliki = [
   ...['15-1-ruch-harmoniczny.md', 'Slownik.md']
-    .map((p) => ({ path: p, markdown: readFileSync(`documents/${p}`, 'utf8') })),
-  // Paragrafy, do których 15-1 odsyła, mieszkają w rusztowaniu rozdziałów 6 i 10.
-  ...[['06-dynamika-punktu-materialnego-ii', '06-03-dynamika-ruchu-jednostajnego-po-okregu.md'],
-      ['10-zderzenia', '10-01-co-to-jest-zderzenie.md']]
-    .map(([kat, plik]) => {
-      const sciezka = `${KSIAZKA}/${kat}/${plik}`;
-      return { path: `${kat}/${plik}`, markdown: readFileSync(sciezka, 'utf8') };
-    }),
+    .map((p) => ({ path: p, markdown: readDocument(p) })),
+  ...rozdzialy.map((r) => ({ path: r.path, markdown: r.markdown ?? '' })),
 ];
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
@@ -42,7 +43,7 @@ const widok = () => render(
   <ReaderView markdown={bodies['15-1-ruch-harmoniczny.md']} path="15-1-ruch-harmoniczny.md" resolveRef={resolveRef} />,
 );
 
-describe('15-1: odsyłacze do wszystkich rodzajów celu', () => {
+describe.runIf(maKsiazke)('15-1: odsyłacze do wszystkich rodzajów celu', () => {
   it('rysunki są blokami z identyfikatorem i kotwicą', () => {
     const { container } = widok();
     expect(container.querySelector('#ref-rh1-15-rys1')).toBeTruthy();

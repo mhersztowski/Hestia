@@ -126,6 +126,20 @@ export { autoLayout, computeRanks } from './model/layout';
 export type { LayoutOptions } from './model/layout';
 
 export { mermaidFormat, parseFlowchart, serializeFlowchart, parseStateDiagram, serializeStateDiagram } from './formats/mermaid';
+export { readSectionLines, writeSectionLines } from './formats/mermaid/layoutFrontMatter';
+export { splitFrontMatter, withFrontMatter } from './formats/mermaid/frontMatter';
+
+// Most do projektów UML (`*.umlproj.json`) — wejście dla importu z kodu
+// źródłowego i wyjście dla strony Programming → UML.
+export {
+  umlDiagramToDocument, documentToUmlDiagram, parseUmlMember, formatUmlMember,
+} from './formats/uml/umlProject';
+export { umlProjectFormat } from './formats/uml/umlFormat';
+export { dotFormat, parseDot, serializeDot } from './formats/dot';
+export { plantUmlFormat, parsePlantUml, serializePlantUml } from './formats/plantuml';
+export type {
+  UmlDiagramLike, UmlNodeLike, UmlEdgeLike, UmlMemberLike, UmlNodeDataLike, UmlKind, UmlRelType,
+} from './formats/uml/umlProject';
 
 export { DiagramEditor } from './editor/DiagramEditor';
 export type { DiagramEditorProps } from './editor/DiagramEditor';
@@ -162,7 +176,13 @@ export type { FlowNodeData, FlowEdgeData } from './editor/flowBridge';
 
 import { diagramFormats } from './model/format';
 import { mermaidFormat } from './formats/mermaid';
+import { umlProjectFormat } from './formats/uml/umlFormat';
+import { dotFormat } from './formats/dot';
+import { plantUmlFormat } from './formats/plantuml';
 
 // Formaty wbudowane rejestrują się przy imporcie pakietu, więc host dostaje
 // działający `diagramFormats.detect()` bez dodatkowej konfiguracji.
 diagramFormats.register(mermaidFormat);
+diagramFormats.register(umlProjectFormat);
+diagramFormats.register(dotFormat);
+diagramFormats.register(plantUmlFormat);
