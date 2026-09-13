@@ -16,9 +16,21 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./coreobject-mqtt": {
+      "import": {
+        "types": "./dist/coreobject-mqtt.d.ts",
+        "default": "./dist/coreobject-mqtt.js"
+      },
+      "require": {
+        "types": "./dist/coreobject-mqtt.d.cts",
+        "default": "./dist/coreobject-mqtt.cjs"
+      }
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -28,6 +40,7 @@
   },
   "dependencies": {
     "dayjs": "^1.11.19",
+    "mqtt": "^5.15.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {

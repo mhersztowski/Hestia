@@ -21,13 +21,22 @@ import type { DriveStore } from './store';
 // shapes would be a second truth.
 import type { SearchFileResult, SearchMatch, SearchProgress } from './driveSearchTypes';
 import DriveSearchDialog from './DriveSearchDialog';
+import { archiveNameFor, folderNameFor, isArchive } from './zip';
+import {
+  isRunnableScript, runScript, stopScript, MAX_CONSOLE_LINES,
+  type ConsoleLine, type ScriptSession,
+} from './runScript';
+import {
+  decideScript, detectPackageManager, installPlan, readPackageManagerField, readPackageScripts,
+  type DetectedManager,
+} from './npmProject';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert, Box, Breadcrumbs, Button, Chip, CircularProgress, Collapse, Dialog, DialogActions,
+  Alert, Backdrop, Box, Breadcrumbs, Button, Chip, CircularProgress, Collapse, Dialog, DialogActions,
   DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, LinearProgress,
   Link, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Select, Snackbar, Stack, Table,
   TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useMediaQuery, useTheme,
-  Switch, FormControlLabel,
+  Switch, FormControlLabel, Popover,
 } from '@mui/material';
 // Side-effect: ensures Monaco workers + compiler options + completionItems
 // configuration is in place BEFORE MdEditor (or the embedded workspace) mounts.
@@ -43,6 +52,12 @@ import DownloadIcon from '@mui/icons-material/Download';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload';
 import EditIcon from '@mui/icons-material/Edit';
+import FolderZipIcon from '@mui/icons-material/FolderZip';
+import TuneIcon from '@mui/icons-material/Tune';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import TerminalIcon from '@mui/icons-material/Terminal';
+import InventoryIcon from '@mui/icons-material/Inventory2';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import FolderIcon from '@mui/icons-material/Folder';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
@@ -190,6 +205,19 @@ async function saveFileProperties(vfs: DriveVfs, props: FileProperties): Promise
   // accents in tag names, file paths).
 
   await vfsWriteFile(vfs, FILE_PROPS_PATH, fromText(text));
+}
+
+const VIEW_SETTINGS_PATH = '.mdview.json';
+type ViewSettings = Record<string, boolean>;
+type ViewSettingsMap = Record<string, ViewSettings>;
+
+async function loadViewSettings(vfs: DriveVfs): Promise<ViewSettingsMap> {
+  const map = await readJson<ViewSettingsMap>(vfs, VIEW_SETTINGS_PATH, {});
+  return (map && typeof map === 'object') ? map : {};
+}
+
+async function saveViewSettings(vfs: DriveVfs, map: ViewSettingsMap): Promise<void> {
+  await vfsWriteFile(vfs, VIEW_SETTINGS_PATH, fromText(JSON.stringify(map, null, 2)));
 }
 
 const SCHEDULES_PATH = '.schedules.json';
@@ -734,6 +762,9 @@ export default function DrivePage({
   const [propsDraftTagInput, setPropsDraftTagInput] = useState('');
   // Cron schedules (rel → {cron, enabled}); draft fields edited in Properties.
   const [schedules, setSchedules] = useState<DriveSchedules>({});
+  /** Saved view settings, by file path. Loaded with the other sidecars. */
+  const [viewSettingsMap, setViewSettingsMap] = useState<ViewSettingsMap>({});
+  const [viewSettingsAnchor, setViewSettingsAnchor] = useState<HTMLElement | null>(null);
   const [propsDraftCron, setPropsDraftCron] = useState('');
   const [propsDraftCronEnabled, setPropsDraftCronEnabled] = useState(false);
   const [propsDraftStartup, setPropsDraftStartup] = useState(false);
@@ -889,8 +920,8 @@ export default function DrivePage({
   }, [vfs, openInEditor, toast]);
 
   /** Copies the address at which the host serves a public file. */
-  const copyPublicUrl = useCallback(async (entry: VfsEntry) => {
-    const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
+  const copyPublicUrl = useCallback(async (entry: VfsEntry, relOverride?: string) => {
+    const rel = relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name);
     if (!isPublic(vfs, rel)) {
       toast('Ten plik nie jest publiczny — nie ma adresu do skopiowania', 'error');
       return;
@@ -997,6 +1028,7 @@ export default function DrivePage({
       .catch((err) => console.warn('[Drive] fileProperties load failed:', err))
       .finally(() => { if (!cancelled) setFpLoaded(true); });
     loadSchedules(vfs).then((sched) => { if (!cancelled) setSchedules(sched); }).catch(() => {});
+    loadViewSettings(vfs).then((m) => { if (!cancelled) setViewSettingsMap(m); }).catch(() => {});
     return () => { cancelled = true; };
   }, [vfs, fpLoaded]);
 
@@ -1013,9 +1045,39 @@ export default function DrivePage({
   // entirely, with neither a dialog nor the list to return to.
   useEffect(() => { if (!isWide) setPanelFullscreen(false); }, [isWide]);
 
+  /** What the editor should show this file as — empty until something is set. */
+  const viewSettingsFor = useCallback(
+    (rel: string): ViewSettings => viewSettingsMap[rel] ?? {},
+    [viewSettingsMap],
+  );
+
+  /**
+   * Flips one switch for one file and writes the whole map back.
+   *
+   * Saved immediately rather than debounced: a switch is flipped rarely and
+   * deliberately, and the reader who flips it then closes the tab expects it
+   * to be there next time.
+   */
+  const setViewSetting = useCallback((rel: string, key: string, value: boolean) => {
+    setViewSettingsMap((prev) => {
+      const next = { ...prev, [rel]: { ...(prev[rel] ?? {}), [key]: value } };
+      void saveViewSettings(vfs, next).catch((err) => console.warn('[Drive] view settings save failed:', err));
+      return next;
+    });
+  }, [vfs]);
+
   const isFavorite = useCallback((rel: string) => favorites.has(rel), [favorites]);
 
   // Toggle ulubionego po pełnej ścieżce (nie zależy od cwd) — używane w okienku Ulubione.
+  const toggleFavoritePath = useCallback((rel: string, name: string) => {
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(rel)) { next.delete(rel); toast(`Usunięto z ulubionych: ${name}`, 'info'); }
+      else { next.add(rel); toast(`Dodano do ulubionych: ${name}`); }
+      return next;
+    });
+  }, [toast]);
+
   const toggleFavorite = useCallback((entry: VfsEntry) => {
     const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
     setFavorites((prev) => {
@@ -1165,13 +1227,99 @@ export default function DrivePage({
     })();
   }, [cwd, toast, resetPanels]);
 
-  const onDownload = useCallback(async (entry: VfsEntry) => {
+  const onDownload = useCallback(async (entry: VfsEntry, relOverride?: string) => {
     try {
-      await downloadFile(vfs, cwd ? `${cwd}/${entry.name}` : entry.name, entry.name);
+      await downloadFile(vfs, relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name), entry.name);
     } catch (err) { toast((err as Error).message, 'error'); }
   }, [cwd, toast]);
 
   // Nazwa pakowanego katalogu (≠ null ⇒ pokazujemy overlay ze spinnerem).
+  // A run is a session, and the console below the panel is its output. The
+  // session lives in a ref because a timer that fires after "Stop" must see
+  // the stop, not the value React captured when the run began.
+  const [scriptRunning, setScriptRunning] = useState(false);
+  const [consoleOpen, setConsoleOpen] = useState(false);
+  const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
+  const scriptSessionRef = useRef<ScriptSession | null>(null);
+
+  /**
+   * The npm project the open `package.json` describes — its scripts and the
+   * tool that builds it. Null whenever something else is open, or when the host
+   * cannot run anything, in which case there is nothing to offer.
+   */
+  const [npmProject, setNpmProject] = useState<
+    { dir: string; scripts: Record<string, string> | null; manager: DetectedManager } | null
+  >(null);
+  const [npmMenu, setNpmMenu] = useState<HTMLElement | null>(null);
+  const [npmScriptsOpen, setNpmScriptsOpen] = useState(false);
+
+  /** Name of the folder being packed — non-null while the overlay is up. */
+  const [zipping, setZipping] = useState<string | null>(null);
+
+  /**
+   * Packs a folder into an archive **beside it, on the drive** — the files
+   * never leave the server. Unlike "download as ZIP", which is this followed by
+   * a download of the result.
+   */
+  const packEntry = useCallback(async (entry: VfsEntry) => {
+    if (!vfs.zipPack) return;
+    try {
+      // A unique name, so packing twice gives two archives instead of quietly
+      // overwriting the first.
+      const fileName = await uniqueName(vfs, cwd, archiveNameFor(entry.name));
+      const source = cwd ? `${cwd}/${entry.name}` : entry.name;
+      const destination = cwd ? `${cwd}/${fileName}` : fileName;
+      await vfs.zipPack(source, destination);
+      toast(`Spakowano do „${fileName}"`);
+      await refresh();
+    } catch (err) {
+      toast(`Nie udało się spakować: ${(err as Error).message}`, 'error');
+    }
+  }, [vfs, cwd, refresh, toast]);
+
+  const unpackEntry = useCallback(async (entry: VfsEntry) => {
+    if (!vfs.zipUnpack) return;
+    try {
+      // Same reasoning: unpacking twice gives two directories rather than
+      // mixing the new contents into the old ones.
+      const folder = await uniqueName(vfs, cwd, folderNameFor(entry.name));
+      const archive = cwd ? `${cwd}/${entry.name}` : entry.name;
+      const destination = cwd ? `${cwd}/${folder}` : folder;
+      await vfs.zipUnpack(archive, destination);
+      toast(`Rozpakowano do „${folder}"`);
+      await refresh();
+    } catch (err) {
+      toast(`Nie udało się rozpakować: ${(err as Error).message}`, 'error');
+    }
+  }, [vfs, cwd, refresh, toast]);
+
+  /**
+   * Packs a folder and downloads the result.
+   *
+   * MyCastle zipped this one in the browser; here the host does the packing and
+   * the page downloads what came out, then removes it. The archive is written
+   * to the drive for a moment — with a name of its own, so a failure leaves
+   * something the user can find and delete rather than a mystery.
+   */
+  const downloadFolderZip = useCallback(async (entry: VfsEntry) => {
+    if (!vfs.zipPack) return;
+    setZipping(entry.name);
+    const fileName = await uniqueName(vfs, cwd, archiveNameFor(entry.name));
+    const destination = cwd ? `${cwd}/${fileName}` : fileName;
+    try {
+      await vfs.zipPack(cwd ? `${cwd}/${entry.name}` : entry.name, destination);
+      downloadFile(vfs, destination, fileName);
+      // The download reads the file, so removing it immediately would race it.
+      // A moment is enough, and a leftover is visible in the listing anyway.
+      setTimeout(() => { void vfs.delete?.(destination, false).catch(() => {}); }, 5000);
+    } catch (err) {
+      toast(`Nie udało się spakować: ${(err as Error).message}`, 'error');
+    } finally {
+      setZipping(null);
+      await refresh();
+    }
+  }, [vfs, cwd, refresh, toast]);
+
   const onDelete = useCallback(async (entry: VfsEntry) => {
     const kind = entry.type === DIR_TYPE ? 'katalog' : 'plik';
     if (!confirm(`Usunąć ${kind} "${entry.name}"${entry.type === DIR_TYPE ? ' i całą jego zawartość' : ''}?`)) return;
@@ -1647,6 +1795,130 @@ export default function DrivePage({
     [viewing?.bytes, viewing?.mime],
   );
   useEffect(() => () => { if (viewingUrl) URL.revokeObjectURL(viewingUrl); }, [viewingUrl]);
+
+  /**
+   * The file the panel is showing, whichever panel that is.
+   *
+   * Every action in the toolbar was written as `viewing && …`, so opening a
+   * file in the editor left a bar with a name and nothing else on it — the
+   * file was the same file, only in the other panel.
+   */
+  const panelFile = viewing
+    ? { entry: viewing.entry, rel: viewingRel, name: viewing.entry.name }
+    : editing
+      ? { entry: { name: editing.name, type: FILE_TYPE } as VfsEntry, rel: editing.path, name: editing.name }
+      : null;
+
+  const stopRun = useCallback(() => {
+    if (scriptSessionRef.current) stopScript(scriptSessionRef.current);
+    scriptSessionRef.current = null;
+    setScriptRunning(false);
+  }, []);
+
+  // A run belongs to the file it was started from: opening another one ends it,
+  // and so does leaving the page. A script left running against a file nobody
+  // is looking at prints into a console that says someone else's name.
+  useEffect(() => stopRun, [stopRun]);
+  useEffect(() => { stopRun(); setConsoleOpen(false); setConsoleLines([]); },
+    [viewing?.entry.name, editing?.path, stopRun]);
+
+  /**
+   * Runs the open `.js`/`.ts` file and shows what it prints.
+   *
+   * The source comes from the editor when it has one (`prepareScript`): that
+   * is where the unsaved buffer and the TypeScript compiler are. Otherwise the
+   * file is read from the drive as it stands.
+   */
+  const runOpenScript = useCallback(async () => {
+    if (!panelFile) return;
+    stopRun();
+
+    const file: DriveFileRef = {
+      path: panelFile.rel, name: panelFile.name, store: driveStoreForCapabilities,
+    };
+    let source: string;
+    try {
+      source = editor?.prepareScript
+        ? await editor.prepareScript(file)
+        : (viewing?.textContent ?? await readTextOrNull(vfs, panelFile.rel) ?? '');
+    } catch (err) {
+      setConsoleOpen(true);
+      setConsoleLines([{ level: 'error', text: `Nie udało się przygotować skryptu: ${(err as Error).message}` }]);
+      return;
+    }
+
+    const session: ScriptSession = { stopped: false, timers: [] };
+    scriptSessionRef.current = session;
+    setConsoleLines([]);
+    setConsoleOpen(true);
+    setScriptRunning(true);
+
+    const append = (line: ConsoleLine) => setConsoleLines((prev) => (
+      // A runaway loop must not grow the page until it stops responding; the
+      // oldest lines go, because the newest are the ones being read.
+      prev.length >= MAX_CONSOLE_LINES ? [...prev.slice(1), line] : [...prev, line]
+    ));
+
+    try {
+      const { stillRunning } = await runScript(source, session, { onLine: append });
+      if (session.stopped) return;
+      if (stillRunning) {
+        append({ level: 'info', text: 'Działa dalej — zatrzymaj przyciskiem ⏹.' });
+      } else {
+        append({ level: 'info', text: '✓ gotowe' });
+        stopRun();
+      }
+    } catch (err) {
+      append({ level: 'error', text: `${(err as Error).name}: ${(err as Error).message}` });
+      stopRun();
+    }
+  }, [panelFile, editor, viewing, vfs, driveStoreForCapabilities, stopRun]);
+
+  useEffect(() => {
+    const rel = viewing ? viewingRel : editing?.path;
+    if (!vfs.runCommand || !rel || (rel.split('/').pop() ?? rel) !== 'package.json') { setNpmProject(null); return; }
+
+    let cancelled = false;
+    void (async () => {
+      const dir = rel.includes('/') ? rel.slice(0, rel.lastIndexOf('/')) : '';
+      const text = viewing?.textContent ?? await readTextOrNull(vfs, rel) ?? '';
+      // The manager is read from what lies beside the file, which is why this
+      // needs the listing of that directory and not only the file itself.
+      const siblings = await vfs.list(dir).then((e) => e.map((x) => x.name)).catch(() => []);
+      if (cancelled) return;
+      setNpmProject({
+        dir,
+        scripts: readPackageScripts(text),
+        manager: detectPackageManager(siblings, readPackageManagerField(text)),
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [vfs, viewing, viewingRel, editing?.path]);
+
+  /** Runs one command of the project, with its output in the same console. */
+  const runNpm = useCallback(async (command: string, args: readonly string[], title: string) => {
+    if (!vfs.runCommand || !npmProject) return;
+    setNpmMenu(null);
+    setConsoleLines([{ level: 'info', text: `$ ${command} ${args.join(' ')}` }]);
+    setConsoleOpen(true);
+    setScriptRunning(true);
+    try {
+      const { code } = await vfs.runCommand(npmProject.dir, command, args, (line) => {
+        setConsoleLines((prev) => (
+          prev.length >= MAX_CONSOLE_LINES ? [...prev.slice(1), { level: 'log' as const, text: line }]
+            : [...prev, { level: 'log' as const, text: line }]
+        ));
+      });
+      setConsoleLines((prev) => [...prev, {
+        level: code === 0 ? 'info' : 'error',
+        text: code === 0 ? `✓ ${title} zakończone` : `${title} zakończone kodem ${code}`,
+      }]);
+    } catch (err) {
+      setConsoleLines((prev) => [...prev, { level: 'error', text: `${title}: ${(err as Error).message}` }]);
+    } finally {
+      setScriptRunning(false);
+    }
+  }, [vfs, npmProject]);
 
   const viewerBody = viewing && (
     isImageMime(viewing.mime) ? (
@@ -2136,17 +2408,94 @@ export default function DrivePage({
                 </IconButton>
               </Tooltip>
             )}
-            {viewing && !isCompact && (
+            {/*
+              Editing and previewing are two views of one file, so the bar
+              offers the other one — the counterpart of MyCastle's "open the
+              source" and "open in the editor".
+            */}
+            {panelFile && !isCompact && editing && (
+              <Tooltip title="Podgląd (bez edytora)">
+                <IconButton size="small" onClick={() => void viewFile(panelFile.entry, panelFile.rel)}>
+                  <VisibilityIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {panelFile && !isCompact && viewing && editor
+              && editor.canEdit({ path: panelFile.rel, name: panelFile.name, store: driveStoreForCapabilities }) && (
+              <Tooltip title="Edytuj">
+                <IconButton size="small" onClick={() => openInEditor(panelFile.entry, panelFile.rel)}>
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {panelFile && !isCompact && (
+              <Tooltip title={isFavorite(panelFile.rel) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}>
+                <IconButton size="small" onClick={() => toggleFavoritePath(panelFile.rel, panelFile.name)}>
+                  {isFavorite(panelFile.rel)
+                    ? <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                    : <StarBorderIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+            )}
+            {panelFile && !isCompact && isPublic(vfs, panelFile.rel) && (
+              <Tooltip title="Kopiuj link publiczny">
+                <IconButton size="small" onClick={() => void copyPublicUrl(panelFile.entry, panelFile.rel)}>
+                  <LinkIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {panelFile && !isCompact && (
               <Tooltip title="Pobierz">
-                <IconButton size="small" onClick={() => void onDownload(viewing.entry)}>
+                <IconButton size="small" onClick={() => void onDownload(panelFile.entry, panelFile.rel)}>
                   <DownloadIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
             )}
-            {viewing && isCompact && (
+            {panelFile && isCompact && (
               <Tooltip title="Akcje pliku">
                 <IconButton size="small" onClick={(ev) => setViewActionsMenu(ev.currentTarget)}>
                   <MoreVertIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {npmProject && !isCompact && (
+              <Tooltip title="Projekt npm">
+                <IconButton size="small" onClick={(e) => setNpmMenu(e.currentTarget)}>
+                  <InventoryIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {panelFile && !isCompact && isRunnableScript(panelFile.name) && (
+              <Tooltip title={scriptRunning ? 'Zatrzymaj' : 'Uruchom w przeglądarce'}>
+                <IconButton
+                  size="small"
+                  color={scriptRunning ? 'error' : 'success'}
+                  onClick={() => (scriptRunning ? stopRun() : void runOpenScript())}
+                >
+                  {scriptRunning ? <StopIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+            )}
+            {panelFile && !isCompact && isRunnableScript(panelFile.name) && (
+              <Tooltip title={consoleOpen ? 'Ukryj konsolę' : 'Pokaż konsolę'}>
+                <IconButton size="small" onClick={() => setConsoleOpen((v) => !v)}>
+                  <TerminalIcon
+                    fontSize="small"
+                    sx={{ color: scriptRunning ? 'success.main' : 'text.secondary' }}
+                  />
+                </IconButton>
+              </Tooltip>
+            )}
+            {editing && editor?.viewOptions?.length && (
+              <Tooltip title="Ustawienia widoku (zapisywane per plik)">
+                <IconButton
+                  size="small"
+                  // Coloured when anything is on, so it is visible from the bar
+                  // that this file is being shown differently from the rest.
+                  color={editor.viewOptions.some((o) => viewSettingsFor(editing.path)[o.key]) ? 'primary' : 'default'}
+                  onClick={(e) => setViewSettingsAnchor(e.currentTarget)}
+                >
+                  <TuneIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
             )}
@@ -2183,7 +2532,58 @@ export default function DrivePage({
             */}
             {editing && editor && (
               <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                {editor.render(editing, { onClose: closeRightPanel, onSaved: () => { void refresh(); } })}
+                {editor.render(editing, {
+                  onClose: closeRightPanel,
+                  onSaved: () => { void refresh(); },
+                  view: viewSettingsFor(editing.path),
+                })}
+              </Box>
+            )}
+            {/*
+              The console sits under whatever the panel is showing rather than
+              replacing it: a script is read and run in the same breath, and a
+              console that covers the source makes the next edit guesswork.
+              A third of the height, so both halves stay usable.
+            */}
+            {consoleOpen && (
+              <Box sx={{ flex: '0 0 33%', minHeight: 120, display: 'flex', flexDirection: 'column', borderTop: '1px solid', borderColor: 'divider' }}>
+                <Box sx={{
+                  display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.5,
+                  borderBottom: '1px solid', borderColor: 'divider',
+                }}>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    icon={<TerminalIcon />}
+                    color={scriptRunning ? 'success' : 'default'}
+                    label={scriptRunning ? 'działa' : 'konsola'}
+                  />
+                  <Box sx={{ flex: 1 }} />
+                  <Button size="small" onClick={() => setConsoleLines([])}>Wyczyść</Button>
+                  <Tooltip title="Ukryj konsolę">
+                    <IconButton size="small" onClick={() => setConsoleOpen(false)}>
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Box component="pre" sx={{
+                  flex: 1, m: 0, p: 1.5, overflow: 'auto',
+                  fontFamily: 'monospace', fontSize: '0.78rem', lineHeight: 1.45,
+                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  bgcolor: '#1e1e1e', color: '#d4d4d4',
+                }}>
+                  {consoleLines.length === 0
+                    ? <Box component="span" sx={{ opacity: 0.5 }}>(brak wyjścia)</Box>
+                    : consoleLines.map((line, i) => (
+                      <Box
+                        key={i}
+                        component="div"
+                        sx={{ color: line.level === 'error' ? '#f48771' : line.level === 'warn' ? '#dcdcaa' : line.level === 'debug' ? '#808080' : '#d4d4d4' }}
+                      >
+                        {line.text}
+                      </Box>
+                    ))}
+                </Box>
               </Box>
             )}
             {logsView && (
@@ -2230,6 +2630,125 @@ export default function DrivePage({
       )}
       </Box>
 
+      <Backdrop
+        open={zipping !== null}
+        sx={{ zIndex: (t) => t.zIndex.modal + 10, color: '#fff', flexDirection: 'column', gap: 2 }}
+      >
+        <CircularProgress color="inherit" />
+        <Typography variant="body1">Pakowanie „{zipping}" do ZIP…</Typography>
+        <Typography variant="caption" sx={{ opacity: 0.8 }}>To może chwilę potrwać przy dużych katalogach.</Typography>
+      </Backdrop>
+
+      {/*
+        The view settings, drawn from what the editor declares. The page knows
+        the mechanics — a switch, a file, a saved value — and nothing about what
+        any of them does.
+      */}
+      {editing && editor?.viewOptions?.length && (
+        <Popover
+          open={Boolean(viewSettingsAnchor)}
+          anchorEl={viewSettingsAnchor}
+          onClose={() => setViewSettingsAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Box sx={{ p: 1.5, minWidth: 320 }}>
+            <Typography sx={{
+              fontSize: 12, fontWeight: 700, textTransform: 'uppercase',
+              letterSpacing: 0.5, color: 'text.secondary', mb: 0.5,
+            }}>
+              Ustawienia widoku
+            </Typography>
+            {editor.viewOptions.map((option) => (
+              <FormControlLabel
+                key={option.key}
+                sx={{ ml: 0, width: '100%', justifyContent: 'space-between', mr: 0, alignItems: 'flex-start', py: 0.5 }}
+                labelPlacement="start"
+                label={
+                  <Box>
+                    <Typography variant="body2">{option.label}</Typography>
+                    {option.description && (
+                      <Typography variant="caption" color="text.secondary">{option.description}</Typography>
+                    )}
+                  </Box>
+                }
+                control={
+                  <Switch
+                    size="small"
+                    checked={Boolean(viewSettingsFor(editing.path)[option.key])}
+                    onChange={(e) => setViewSetting(editing.path, option.key, e.target.checked)}
+                  />
+                }
+              />
+            ))}
+          </Box>
+        </Popover>
+      )}
+
+      {/*
+        The npm project's menu: install, and the scripts the file declares.
+        What each of them runs is decided by `npmProject.ts` — which manager,
+        which arguments, and whether the name may be passed on at all.
+      */}
+      {npmProject && (
+        <Menu
+          anchorEl={npmMenu}
+          open={npmMenu !== null}
+          onClose={() => setNpmMenu(null)}
+          slotProps={{ paper: { sx: { minWidth: 320 } } }}
+        >
+          {(() => {
+            const plan = installPlan(npmProject.manager.id, npmProject.manager.hasLockfile);
+            return (
+              <MenuItem onClick={() => void runNpm(plan.command, plan.args, `${plan.command} ${plan.args[0]}`)}>
+                <ListItemIcon><DownloadIcon fontSize="small" /></ListItemIcon>
+                <ListItemText primary={`${plan.command} ${plan.args.join(' ')}`} secondary={plan.note} />
+              </MenuItem>
+            );
+          })()}
+          <MenuItem onClick={() => setNpmScriptsOpen((v) => !v)}>
+            <ListItemIcon><PlayArrowIcon fontSize="small" color="success" /></ListItemIcon>
+            <ListItemText
+              primary={`${npmProject.manager.command} run`}
+              secondary={npmProject.scripts === null
+                ? 'Nie udało się odczytać package.json'
+                : `${Object.keys(npmProject.scripts).length} skryptów w package.json`}
+            />
+            {npmScriptsOpen ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+          </MenuItem>
+          <Collapse in={npmScriptsOpen} unmountOnExit>
+            {Object.entries(npmProject.scripts ?? {}).map(([name, body]) => {
+              const decision = decideScript(name, npmProject.scripts, npmProject.manager.id);
+              return (
+                <MenuItem
+                  key={name}
+                  sx={{ pl: 4 }}
+                  disabled={!decision.ok}
+                  title={decision.ok ? body : decision.reason}
+                  onClick={() => decision.ok && void runNpm(decision.plan.command, decision.plan.args, name)}
+                >
+                  <ListItemIcon><PlayArrowIcon fontSize="small" /></ListItemIcon>
+                  <ListItemText
+                    primary={name}
+                    secondary={decision.ok ? body : decision.reason}
+                    secondaryTypographyProps={{ sx: { fontFamily: 'monospace', fontSize: '0.72rem' } }}
+                  />
+                </MenuItem>
+              );
+            })}
+          </Collapse>
+          <Divider />
+          <MenuItem disabled sx={{ opacity: '1 !important' }}>
+            <ListItemText
+              secondary={npmProject.manager.detected
+                ? `Menedżer: ${npmProject.manager.command} (${npmProject.manager.lockfile})`
+                : `Menedżer: ${npmProject.manager.command} — zgaduję, brak pliku blokady`}
+              secondaryTypographyProps={{ variant: 'caption' }}
+            />
+          </MenuItem>
+        </Menu>
+      )}
+
       {/* Per-entry menu */}
       <Menu
         anchorEl={menuFor?.anchor}
@@ -2258,6 +2777,32 @@ export default function DrivePage({
           }}>
             <ListItemIcon><SubjectIcon fontSize="small" /></ListItemIcon>
             <ListItemText primary="Logs" secondary="Wyjście skryptu (Run + cron)" />
+          </MenuItem>
+        )}
+        {/*
+          The archive actions appear only when the host can perform them —
+          `zipPack` and `zipUnpack` are optional, and a button that always ends
+          in an error is worse than no button.
+        */}
+        {menuFor && menuFor.entry.type === DIR_TYPE && vfs.zipPack && (
+          <MenuItem
+            disabled={zipping !== null}
+            onClick={() => { const e = menuFor.entry; setMenuFor(null); void downloadFolderZip(e); }}
+          >
+            <ListItemIcon><FolderZipIcon fontSize="small" /></ListItemIcon>
+            <ListItemText primary="Pobierz ZIP" secondary="Spakuj katalog i pobierz" />
+          </MenuItem>
+        )}
+        {menuFor && menuFor.entry.type === DIR_TYPE && vfs.zipPack && (
+          <MenuItem onClick={() => { const e = menuFor.entry; setMenuFor(null); void packEntry(e); }}>
+            <ListItemIcon><FolderZipIcon fontSize="small" /></ListItemIcon>
+            <ListItemText primary="Spakuj" secondary="Archiwum .zip powstanie obok katalogu" />
+          </MenuItem>
+        )}
+        {menuFor && menuFor.entry.type === FILE_TYPE && isArchive(menuFor.entry.name) && vfs.zipUnpack && (
+          <MenuItem onClick={() => { const e = menuFor.entry; setMenuFor(null); void unpackEntry(e); }}>
+            <ListItemIcon><FolderZipIcon fontSize="small" /></ListItemIcon>
+            <ListItemText primary="Rozpakuj" secondary="Zawartość trafi do katalogu obok" />
           </MenuItem>
         )}
         {menuFor && (() => {
@@ -2520,7 +3065,7 @@ export default function DrivePage({
 
       {/* Preview actions menu — shared between mobile Dialog and the compact
           panel toolbar (tablet portrait). Mirrors what desktop shows inline. */}
-      {viewing && (
+      {panelFile && (
         <Menu
           anchorEl={viewActionsMenu}
           open={viewActionsMenu !== null}
@@ -2529,33 +3074,47 @@ export default function DrivePage({
         >
           <MenuItem disabled sx={{ opacity: '1 !important' }}>
             <ListItemText
-              primary={viewing.entry.name}
-              secondary={viewing.mime}
+              primary={panelFile.name}
+              secondary={viewing?.mime ?? panelFile.rel}
               primaryTypographyProps={{ noWrap: true, fontWeight: 500 }}
               secondaryTypographyProps={{ variant: 'caption' }}
             />
           </MenuItem>
           <Divider />
-          {viewing.textContent !== undefined && (
+          {viewing?.textContent !== undefined && (
             <MenuItem onClick={() => { void copyViewTextToSystem(); setViewActionsMenu(null); }}>
               <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
               <ListItemText primary="Kopiuj cały tekst" secondary="Do systemowego schowka" />
             </MenuItem>
           )}
-          {isMdEditable(viewing.entry.name) && (
-            <MenuItem onClick={() => {
-              void openInEditor(viewing.entry);
-              if (!isWide) setViewing(null);   // mobile Dialog: close on hand-off to new tab
-              setViewActionsMenu(null);
-            }}>
-              <ListItemIcon><EditNoteIcon fontSize="small" /></ListItemIcon>
-              <ListItemText
-                primary="Edytuj w MdEditor"
-                secondary={isWide ? 'Inline w prawym panelu' : 'W nowej karcie'}
-              />
+          {editing && (
+            <MenuItem onClick={() => { void viewFile(panelFile.entry, panelFile.rel); setViewActionsMenu(null); }}>
+              <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Podgląd" secondary="Bez edytora" />
             </MenuItem>
           )}
-          <MenuItem onClick={() => { void onDownload(viewing.entry); setViewActionsMenu(null); }}>
+          {viewing && editor
+            && editor.canEdit({ path: panelFile.rel, name: panelFile.name, store: driveStoreForCapabilities }) && (
+            <MenuItem onClick={() => { openInEditor(panelFile.entry, panelFile.rel); setViewActionsMenu(null); }}>
+              <ListItemIcon><EditNoteIcon fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Edytuj" secondary="W prawym panelu" />
+            </MenuItem>
+          )}
+          <MenuItem onClick={() => { toggleFavoritePath(panelFile.rel, panelFile.name); setViewActionsMenu(null); }}>
+            <ListItemIcon>
+              {isFavorite(panelFile.rel)
+                ? <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                : <StarBorderIcon fontSize="small" />}
+            </ListItemIcon>
+            <ListItemText primary={isFavorite(panelFile.rel) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'} />
+          </MenuItem>
+          {isPublic(vfs, panelFile.rel) && (
+            <MenuItem onClick={() => { void copyPublicUrl(panelFile.entry, panelFile.rel); setViewActionsMenu(null); }}>
+              <ListItemIcon><LinkIcon fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Kopiuj link publiczny" />
+            </MenuItem>
+          )}
+          <MenuItem onClick={() => { void onDownload(panelFile.entry, panelFile.rel); setViewActionsMenu(null); }}>
             <ListItemIcon><DownloadIcon fontSize="small" /></ListItemIcon>
             <ListItemText primary="Pobierz" />
           </MenuItem>

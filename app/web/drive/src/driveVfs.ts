@@ -33,5 +33,9 @@ export function platformVfs(): DriveVfs {
         rename: (from, to) => platform.move(from, to, 'rename'),
         copy: (from, to) => platform.move(from, to, 'copy'),
         stat: (path) => platform.stat(path),
+        zipPack: (source, destination) => platform.zipPack(source, destination),
+        zipUnpack: (archive, destination) => platform.zipUnpack(archive, destination),
+        runCommand: (directory, command, args, onLine) =>
+            platform.runCommand(directory, command, args, onLine),
     };
 }

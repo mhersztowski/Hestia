@@ -168,6 +168,65 @@ export const platform = {
         await response(res);
     },
 
+    async zipPack(source: string, destination: string): Promise<void> {
+        const res = await fetch(`${platformBase}/api/vfs/zip_pack`, {
+            method: 'POST', headers: headers(true), body: JSON.stringify({ source, destination }),
+        });
+        await response(res);
+    },
+
+    async zipUnpack(archive: string, destination: string): Promise<void> {
+        const res = await fetch(`${platformBase}/api/vfs/zip_unpack`, {
+            method: 'POST', headers: headers(true), body: JSON.stringify({ archive, destination }),
+        });
+        await response(res);
+    },
+
+    /**
+     * Runs a package-manager command and reports its output line by line.
+     *
+     * `fetch` with a reader rather than `EventSource`: the latter can only do
+     * GET, and this request carries a body. The stream is `text/event-stream`
+     * all the same, so a proxy in between treats it as one.
+     */
+    async runCommand(
+        directory: string, command: string, args: readonly string[], onLine: (line: string) => void,
+    ): Promise<{ code: number }> {
+        const res = await fetch(`${platformBase}/api/vfs/run_command?path=${encodeURIComponent(directory)}`, {
+            method: 'POST',
+            headers: headers(true),
+            body: JSON.stringify({ command, args }),
+        });
+        if (!res.ok || !res.body) {
+            const { error } = await res.json().catch(() => ({ error: `HTTP ${res.status}` })) as { error?: string };
+            throw new PlatformError(error ?? `HTTP ${res.status}`, res.status);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        // A chunk can end in the middle of an event, so what is left over waits
+        // for the next one — splitting per chunk would cut lines in half.
+        let buffer = '';
+        let code = -1;
+        for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const events = buffer.split('\n\n');
+            buffer = events.pop() ?? '';
+            for (const event of events) {
+                const payload = event.replace(/^data: /, '').trim();
+                if (!payload) continue;
+                try {
+                    const parsed = JSON.parse(payload) as { type: string; line?: string; code?: number };
+                    if (parsed.type === 'line' && parsed.line !== undefined) onLine(parsed.line);
+                    if (parsed.type === 'done') code = parsed.code ?? -1;
+                } catch { /* a partial event: the next chunk completes it */ }
+            }
+        }
+        return { code };
+    },
+
     async mkdir(path: string): Promise<void> {
         const res = await fetch(`${platformBase}/api/vfs/mkdir`, {
             method: 'POST', headers: headers(true), body: JSON.stringify({ path }),

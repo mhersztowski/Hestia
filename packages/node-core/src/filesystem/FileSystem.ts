@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { EventEmitter } from 'events';
+import AdmZip from 'adm-zip';
 
 export interface FileChangeEvent {
   path: string;
@@ -178,6 +179,52 @@ export class FileSystem extends EventEmitter {
   async deleteDirectory(dirPath: string): Promise<void> {
     const absolutePath = this.getAbsolutePath(dirPath);
     await fs.rm(absolutePath, { recursive: true, force: true });
+  }
+
+  /**
+   * Packs a file or a directory into a `.zip` inside this file system.
+   *
+   * Here rather than in a caller because the paths must not leave the root, and
+   * `getAbsolutePath` is the only thing that guarantees it. A caller doing this
+   * itself would need the absolute paths, which is exactly what that guard
+   * exists to keep out of reach.
+   */
+  async zipPack(sourcePath: string, destinationPath: string): Promise<void> {
+    const source = this.getAbsolutePath(sourcePath);
+    const destination = this.getAbsolutePath(destinationPath);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+
+    const zip = new AdmZip();
+    const stats = await fs.stat(source);
+    if (stats.isDirectory()) zip.addLocalFolder(source);
+    else zip.addLocalFile(source);
+    zip.writeZip(destination);
+
+    // The cache mirrors what was read as text; an archive is neither, and a
+    // stale entry under this path would be handed out as a file's content.
+    this.cache.delete(this.getRelativePath(destination));
+    this.emit('fileChanged', { path: this.getRelativePath(destination), action: 'write' } as FileChangeEvent);
+  }
+
+  /**
+   * The absolute path of something inside this file system.
+   *
+   * For the one case that cannot go through the methods above: running a
+   * process needs a working directory, and a process is not a read or a write.
+   * The guard is the same one every other method uses, so a path that climbs
+   * out of the root is refused here too.
+   */
+  resolveInside(relativePath: string): string {
+    return this.getAbsolutePath(relativePath);
+  }
+
+  /** Unpacks an archive into `destinationPath`, creating it if it is not there. */
+  async zipUnpack(archivePath: string, destinationPath: string): Promise<void> {
+    const archive = this.getAbsolutePath(archivePath);
+    const destination = this.getAbsolutePath(destinationPath);
+    await fs.mkdir(destination, { recursive: true });
+    new AdmZip(archive).extractAllTo(destination, true);
+    this.emit('fileChanged', { path: this.getRelativePath(destination), action: 'write' } as FileChangeEvent);
   }
 
   /**

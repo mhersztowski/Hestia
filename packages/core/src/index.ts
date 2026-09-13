@@ -17,3 +17,13 @@ export * from './drive/publicPaths';
  * the base into deciding by hand what belongs to whom.
  */
 export * from './finance';
+
+// ── The base object ─────────────────────────────────────────────────────────
+//
+// `CoreObject` and what grows on it — signals, properties, a tree, timers, a
+// state machine, undo/redo. Everything non-visual in Hestia stands on this, the
+// way Qt's own classes stand on `QObject`.
+//
+// The MQTT objects are deliberately absent: they carry a broker client and live
+// behind `@hestia/core/coreobject-mqtt`.
+export * from './coreobject/index.js';

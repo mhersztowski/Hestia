@@ -47,9 +47,42 @@ export interface DriveEditor {
     /**
      * The editor itself, for the panel. `onClose` returns the drive to its
      * preview; `onSaved` tells the listing the file changed, so the row's size
-     * and date stop being the ones from before the edit.
+     * and date stop being the ones from before the edit; `view` holds whatever
+     * the reader switched on in `viewOptions`.
      */
-    render(file: DriveFileRef, opts: { onClose: () => void; onSaved: () => void }): ReactNode;
+    render(
+        file: DriveFileRef,
+        opts: { onClose: () => void; onSaved: () => void; view: Readonly<Record<string, boolean>> },
+    ): ReactNode;
+    /**
+     * Switches this editor offers for how a document is shown — a narrower
+     * margin, a smaller font, whatever it has.
+     *
+     * The drive draws them and remembers them **per file**, because that is the
+     * same bookkeeping for any editor; what each one means is the editor's
+     * business, and the page never learns that one of them is about Markdown.
+     * An editor with nothing to offer gets no settings button.
+     */
+    viewOptions?: ReadonlyArray<EditorViewOption>;
+    /**
+     * The file as JavaScript, ready to run — for the "run in the browser"
+     * button.
+     *
+     * The editor is asked because it holds two things the page does not: the
+     * **unsaved** buffer, which is what the reader means by "run this", and a
+     * compiler for TypeScript. Without it the page runs what is on the disk,
+     * which is right for `.js` and wrong for `.ts` — so a host with no
+     * compiler should decline a `.ts` rather than hand back its source.
+     */
+    prepareScript?(file: DriveFileRef): Promise<string>;
+}
+
+export interface EditorViewOption {
+    /** Stable key — it is what lands in the file of saved settings. */
+    key: string;
+    label: string;
+    /** One line under the label, saying what it does. */
+    description?: string;
 }
 
 /**

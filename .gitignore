@@ -7,6 +7,7 @@ build/
 data/
 app/backend/public/
 app/cad/public/
+app/hestia/public/
 app/drive/public/
 app/finances/public/
 app/iot/public/

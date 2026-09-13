@@ -10,7 +10,8 @@ import type { VfsProviderDef, VfsMountPreset, VfsProjectContext } from '../vfs';
 import type { ProjectDeps } from '../vfs/project/types';
 import {
   FoldingPlugin, MarkdownPreviewPlugin, createMjdEditorPlugin, createTypeScriptPlugin,
-  createPythonPlugin, createCppPlugin, createSnippetsPlugin,
+  createPythonPlugin, createCppPlugin, createSnippetsPlugin, createCommentToolsPlugin,
+  createBlocklyPlugin, VisualMinisLibPlugin, type UmlProjectSource,
   createMarkdownLspPlugin, createMarkdownLspServerPlugin,
 } from '../plugins';
 import { ArduinoBoardConfigDialog } from './ArduinoBoardConfigDialog';
@@ -68,6 +69,18 @@ export interface TextEditorWorkspaceProps {
     context: VfsProjectContext,
     saveProjectJson: (updates: Record<string, unknown>) => Promise<void>,
   ) => void;
+  /**
+   * Where the block editor gets its UML diagrams, which is what its palette is
+   * built from.
+   *
+   * Injected rather than assumed: this editor is embedded by applications, only
+   * some of which have a store of diagrams. Without one Blockly works on its
+   * standard blocks and **says so** in the file-options dialog, instead of
+   * showing an empty list indistinguishable from a failed load.
+   *
+   * `createVfsUmlProjectSource()` is a ready implementation over the file system.
+   */
+  blocklyUmlSource?: UmlProjectSource;
   /** File opened automatically on mount / when changed (path within `provider`). */
   initialPath?: string;
 }
@@ -100,6 +113,7 @@ export function TextEditorWorkspace({
   projectDeps,
   onDialogAction,
   initialPath,
+  blocklyUmlSource,
 }: TextEditorWorkspaceProps) {
   // Plugins built from the editor's filesystem provider.
   const tsPlugin = useMemo(() => createTypeScriptPlugin(provider, { preloadDts: tsPreloadDts }), [provider, tsPreloadDts]);
@@ -108,6 +122,16 @@ export function TextEditorWorkspace({
   const mjdPlugin = useMemo(() => createMjdEditorPlugin(provider), [provider]);
   const snippetsPlugin = useMemo(() => createSnippetsPlugin(provider), [provider]);
   const mdLspPlugin = useMemo(() => createMarkdownLspPlugin(provider), [provider]);
+  // Embeds a VFS file into the open one and scans for TODO/FIXME markers; it
+  // needs nothing but the file system, so it belongs in the built-in set.
+  const commentToolsPlugin = useMemo(() => createCommentToolsPlugin(provider), [provider]);
+  const blocklyPlugin = useMemo(
+    () => createBlocklyPlugin({
+      fileSystem: provider,
+      ...(blocklyUmlSource ? { umlSource: blocklyUmlSource } : {}),
+    }),
+    [provider, blocklyUmlSource],
+  );
   const mdLspServerPlugin = useMemo(
     () => (authToken ? createMarkdownLspServerPlugin(authToken) : null),
     // recreate only when the token presence flips, not on every value change
@@ -117,12 +141,12 @@ export function TextEditorWorkspace({
 
   const plugins = useMemo<IPlugin[]>(() => [
     WordCountPluginV2, GenerateUuidPlugin, FoldingPlugin, MarkdownPreviewPlugin,
-    mjdPlugin, tsPlugin, pyPlugin, cppPlugin, snippetsPlugin,
-    mdLspPlugin,
+    mjdPlugin, tsPlugin, pyPlugin, cppPlugin, VisualMinisLibPlugin, snippetsPlugin, commentToolsPlugin,
+    mdLspPlugin, blocklyPlugin,
     ...(mdLspServerPlugin ? [mdLspServerPlugin] : []),
     ...(extraPlugins ?? []),
-  ], [mjdPlugin, tsPlugin, pyPlugin, cppPlugin, snippetsPlugin, mdLspPlugin,
-      mdLspServerPlugin, extraPlugins]);
+  ], [mjdPlugin, tsPlugin, pyPlugin, cppPlugin, snippetsPlugin, commentToolsPlugin, mdLspPlugin,
+      blocklyPlugin, mdLspServerPlugin, extraPlugins]);
 
   // ── Board-config dialog (project action `board-config`) ──────────────────
   const [boardConfigContext, setBoardConfigContext] = useState<VfsProjectContext | null>(null);

@@ -55,6 +55,35 @@ export interface DriveVfs {
     /** `null` when there is nothing there — the page uses this to avoid overwriting. */
     stat?(path: string): Promise<{ type: number } | null>;
     /**
+     * Packs a file or a folder into `destination`, on the host's side.
+     *
+     * Deliberately not done in the page: zipping in the browser means reading
+     * every file into memory, and a package that lists files has no business
+     * carrying an archiver. A host without this offers no packing at all —
+     * including "download as ZIP", which is this plus a download.
+     */
+    zipPack?(source: string, destination: string): Promise<void>;
+    /** Unpacks an archive into `destination`, which the page creates fresh. */
+    zipUnpack?(archive: string, destination: string): Promise<void>;
+    /**
+     * Runs a command of the project in `directory`, streaming its output.
+     *
+     * The page decides **what** to run — which manager, which arguments, and
+     * whether the script name is one it will pass on at all (see
+     * `npmProject.ts`) — and the host decides whether it will run anything.
+     * Absent: the drive offers no npm menu, because a button that cannot start
+     * a process is a promise it will not keep.
+     *
+     * The host is expected to check the same things again. A page can be lied
+     * to; a server cannot afford to be.
+     */
+    runCommand?(
+        directory: string,
+        command: string,
+        args: readonly string[],
+        onLine: (line: string) => void,
+    ): Promise<{ code: number }>;
+    /**
      * A public address for a file, when the host serves one. MyCastle published
      * anything under `public/` at a URL with no auth; whether that is true here
      * is the host's business, and `null` means the page offers no such link.

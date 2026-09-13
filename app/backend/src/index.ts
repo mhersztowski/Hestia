@@ -46,6 +46,8 @@ async function main(): Promise<void> {
     const server = new HestiaPlatformServer({
         port: PORT,
         fileSystem,
+        // Where those files actually live — source control needs a real path.
+        filesRoot: path.join(DATA_DIR, 'files'),
         users,
         jwt,
         staticDir: path.join(APP_DIR, 'public'),

@@ -26,6 +26,7 @@
   "dependencies": {
     "@hestia/core": "workspace:*",
     "@xyflow/react": "^12.10.0",
+    "blockly": "^12.4.1",
     "highlight.js": "^11.9.0",
     "katex": "^0.16.28",
     "rehype-highlight": "^7.0.2",

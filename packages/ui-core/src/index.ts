@@ -30,10 +30,22 @@ export {
 export type { DriveStore, DriveEntry, FileKind } from './drive/store';
 // The file operations the ported Drive page performs
 export { asText, fromText, readTextOrNull, readJson, sortVfsEntries, freeName, FILE_TYPE, DIR_TYPE } from './drive/vfs';
+export { isArchive, folderNameFor, archiveNameFor } from './drive/zip';
+export {
+    PACKAGE_MANAGERS, detectPackageManager, installPlan, runPlan, decideScript,
+    isSafeScriptName, readPackageScripts, readPackageManagerField,
+} from './drive/npmProject';
+export type {
+    PackageManagerId, PackageManagerInfo, DetectedManager, CommandPlan, ScriptDecision,
+} from './drive/npmProject';
+export {
+    isRunnableScript, runScript, stopScript, stripImports, formatConsoleArg, MAX_CONSOLE_LINES,
+} from './drive/runScript';
+export type { ConsoleLine, ConsoleLevel, ScriptSession } from './drive/runScript';
 export type { DriveVfs, VfsEntry } from './drive/vfs';
 export { has as hasCapability } from './drive/capabilities';
 export type {
-    DriveCapabilities, DriveEditor, DriveAssistant, DriveViewers, DriveFileRef,
+    DriveCapabilities, DriveEditor, DriveAssistant, DriveViewers, DriveFileRef, EditorViewOption,
 } from './drive/capabilities';
 
 export {

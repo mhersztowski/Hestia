@@ -26,7 +26,7 @@ import {
     EditorSessionProvider,
     type EditorFiles,
 } from '@hestia/ui-markdown-editor';
-import { TextEditorWorkspace } from '@hestia/ui-texteditor';
+import { TextEditorWorkspace, createGitPlugin } from '@hestia/ui-texteditor';
 import type { FileSystemProvider } from '@hestia/core';
 import { platform, type User } from './platform';
 
@@ -112,7 +112,40 @@ export function buildEditor(opts: DriveCapabilityOptions): DriveEditor {
     return {
         canEdit: (file) => !BINARY.has(extensionOf(file.name)),
 
-        render(file: DriveFileRef, { onSaved }: { onClose: () => void; onSaved: () => void }) {
+        /**
+         * What the Markdown editor can be told about how to show a document.
+         *
+         * Only the three it actually implements. MyCastle had two more — a
+         * floating table of contents and a favourites window — and they belong
+         * to `MdFloatingPanels`, which has not been moved; offering a switch
+         * that does nothing is worse than not offering it.
+         */
+        viewOptions: [
+            { key: 'minimalView', label: 'Widok minimalny', description: 'Bez marginesów i bez nagłówków/ramek osadzonych bloczków' },
+            { key: 'fullWidth', label: 'Pełna szerokość', description: 'Treść na całą szerokość — bez pustych obszarów po bokach' },
+            { key: 'smallText', label: 'Mały tekst', description: 'Mniejsza czcionka treści dokumentu' },
+        ],
+
+        /**
+         * The file as JavaScript, for the drive's "run in the browser".
+         *
+         * Reading it from the store rather than from an editor buffer: this
+         * host mounts Monaco through `TextEditorWorkspace`, which keeps its
+         * models to itself. A `.ts` is declined outright — handing back
+         * TypeScript would fail at the first type annotation, with an error
+         * pointing at the script rather than at the missing compiler.
+         */
+        async prepareScript(file: DriveFileRef): Promise<string> {
+            if (extensionOf(file.name) === 'ts') {
+                throw new Error('Pliki .ts wymagają kompilatora, którego ta strona nie ma — uruchom .js');
+            }
+            return file.store.read(file.path);
+        },
+
+        render(
+            file: DriveFileRef,
+            { onSaved, view }: { onClose: () => void; onSaved: () => void; view: Readonly<Record<string, boolean>> },
+        ) {
             if (MARKDOWN.has(extensionOf(file.name))) {
                 // The Markdown editor takes its file store and its session as
                 // capabilities of its own — the same idea one layer down.
@@ -121,7 +154,13 @@ export function buildEditor(opts: DriveCapabilityOptions): DriveEditor {
                         <EditorSessionProvider
                             session={{ userName: user?.userName ?? null, token, isAdmin: user?.isAdmin ?? false }}
                         >
-                            <MdEditor filePath={file.path} onSave={onSaved} />
+                            <MdEditor
+                                filePath={file.path}
+                                onSave={onSaved}
+                                minimalView={view.minimalView}
+                                fullWidth={view.fullWidth}
+                                smallText={view.smallText}
+                            />
                         </EditorSessionProvider>
                     </EditorFilesProvider>
                 );
@@ -130,7 +169,30 @@ export function buildEditor(opts: DriveCapabilityOptions): DriveEditor {
             return (
                 <TextEditorWorkspace
                     provider={provider}
-                    initialPath={file.path}
+                    // Absolute, with the leading slash: the editor normalises
+                    // VFS paths to `/…` and builds a model URI as `file://` +
+                    // the path. Without the slash that reads as
+                    // `file://notes.md` — a URI whose *host* is the file name
+                    // and whose path is empty, so the model is created under a
+                    // degenerate address and the tab opens on nothing.
+                    initialPath={file.path.startsWith('/') ? file.path : `/${file.path}`}
+                    // Source control for the directory this file is in. The
+                    // plugin asks for the path every time rather than being
+                    // rebuilt per file, and the server finds the repository
+                    // root from it — the panel therefore works anywhere inside
+                    // a clone, as it does in VS Code, and shows nothing
+                    // outside one.
+                    extraPlugins={[createGitPlugin({
+                        userName: user?.userName ?? '',
+                        token: token ?? undefined,
+                        repoPath: () => file.path,
+                    })]}
+                    // No `blocklyUmlSource`: the ready implementation reads
+                    // MyCastle's own UML endpoint, which this platform does not
+                    // have. Blockly then works on its standard blocks and says
+                    // so in its options dialog — which is what that fallback is
+                    // for. A source over `*.codemap.json` would be the Hestia
+                    // equivalent, and is a piece of work of its own.
                     authToken={token ?? undefined}
                     height="100%"
                     // No `agentPanel` here on purpose: there is one assistant on

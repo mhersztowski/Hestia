@@ -16,6 +16,9 @@
  */
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { spawn } from 'node:child_process';
+import { decideCommand } from './runCommand';
+import { GitService } from './git/GitService.js';
 import {
     ApiKeyService, HttpUploadServer, JwtService, checkAuth,
     type FileSystem,
@@ -34,16 +37,33 @@ export interface PlatformOptions {
     apiKeys?: ApiKeyService;
     /** Directory with the built frontend; without it the server exposes the API only. */
     staticDir?: string;
+    /**
+     * The directory the file system serves, as an absolute path.
+     *
+     * Only source control needs it: `git` is a process with a working
+     * directory, and a process is neither a read nor a write, so it cannot go
+     * through `FileSystem`. Absent: no git endpoints.
+     */
+    filesRoot?: string;
     /** The broker's WebSocket address reported to apps in `/api/platform/info`. */
     mqttPath?: string;
 }
 
 export class HestiaPlatformServer extends HttpUploadServer {
     private readonly options: PlatformOptions;
+    /**
+     * Source control, when the host supplies a files root to look in.
+     *
+     * Absent means the git endpoints answer 503 and the editor's panel says the
+     * feature is not available — which is the honest answer for a deployment
+     * with no `git` on it.
+     */
+    private readonly gitService: GitService | null;
 
     constructor(options: PlatformOptions) {
         super(options.port, options.fileSystem, undefined, undefined, undefined, options.staticDir);
         this.options = options;
+        this.gitService = options.filesRoot ? new GitService(options.filesRoot) : null;
     }
 
     /** The HTTP server — the broker needs it to join the same port. */
@@ -121,6 +141,22 @@ export class HestiaPlatformServer extends HttpUploadServer {
         // that an admin can reach somebody else's space; **who may do so is
         // decided by the token**, never by the path, or renaming oneself in the
         // address bar would be enough to read another person's files.
+        // `/api/users/{userName}/git/{operation}` — source control for a clone on
+        // that user's drive. Same rule as the VFS routes: the path names whose
+        // drive, the token decides who may reach it.
+        const userGit = pathname.match(/^\/api\/users\/([^/]+)\/git\/([a-zA-Z-]+)$/);
+        if (userGit) {
+            const identity = this.checkIdentity(req);
+            if (!identity) { this.sendJsonResponse(res, 401, { error: 'No valid token' }); return true; }
+            const target = decodeURIComponent(userGit[1]);
+            if (!identity.isAdmin && identity.userName !== target) {
+                this.sendJsonResponse(res, 403, { error: 'Forbidden' });
+                return true;
+            }
+            await this.handleUserGit(req, res, req.method ?? 'GET', target, userGit[2]);
+            return true;
+        }
+
         const userVfs = pathname.match(/^\/api\/users\/([^/]+)\/vfs\/([a-zA-Z]+)$/);
         if (userVfs) {
             const identity = this.checkIdentity(req);
@@ -229,6 +265,7 @@ export class HestiaPlatformServer extends HttpUploadServer {
                 const body = await this.readJson(req) as {
                     path?: string; data?: string; content?: string;
                     oldPath?: string; newPath?: string; source?: string; destination?: string;
+                    archive?: string; command?: string; args?: unknown[];
                 };
                 const path = url.searchParams.get('path') ?? body.path ?? '';
 
@@ -261,6 +298,78 @@ export class HestiaPlatformServer extends HttpUploadServer {
                     return true;
                 }
 
+                // Packing happens on this side on purpose: zipping in the
+                // browser means reading every file into memory first, and the
+                // files are here already.
+                if (operation === 'zip_pack') {
+                    await fs.zipPack(inHome(body.source ?? ''), inHome(body.destination ?? ''));
+                    this.sendJsonResponse(res, 200, { ok: true });
+                    return true;
+                }
+
+                if (operation === 'zip_unpack') {
+                    await fs.zipUnpack(inHome(body.archive ?? ''), inHome(body.destination ?? ''));
+                    this.sendJsonResponse(res, 200, { ok: true });
+                    return true;
+                }
+
+                /**
+                 * Starts a package-manager command in a project directory and
+                 * streams what it prints.
+                 *
+                 * `text/event-stream`, because an install takes minutes and
+                 * without lines as they come there is no telling "working" from
+                 * "hung". `X-Accel-Buffering: no` stops a proxy from holding
+                 * the whole stream back and delivering it as one parcel at the
+                 * end, which looks exactly like a hang.
+                 */
+                if (operation === 'run_command') {
+                    const command = String(body.command ?? '');
+                    const args = Array.isArray(body.args) ? body.args.map(String) : [];
+                    const decision = decideCommand(command, args);
+                    if (!decision.ok) {
+                        this.sendJsonResponse(res, 400, { error: decision.reason });
+                        return true;
+                    }
+
+                    // The working directory goes through the same guard as
+                    // every read and write: a path that climbs out is refused.
+                    const cwd = fs.resolveInside(inHome(path));
+                    res.writeHead(200, {
+                        'Content-Type': 'text/event-stream',
+                        'Cache-Control': 'no-cache',
+                        Connection: 'keep-alive',
+                        'X-Accel-Buffering': 'no',
+                    });
+                    const send = (event: unknown) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+
+                    await new Promise<void>((resolve) => {
+                        // `shell: false` — an argument stays an argument. With a
+                        // shell, a script name is executable.
+                        const child = spawn(command, args, { cwd, shell: false });
+                        const forward = (chunk: Buffer) => {
+                            for (const line of chunk.toString('utf8').split('\n')) send({ type: 'line', line });
+                        };
+                        child.stdout.on('data', forward);
+                        child.stderr.on('data', forward);
+                        child.on('error', (err) => {
+                            send({ type: 'line', line: `${command}: ${err.message}` });
+                            send({ type: 'done', code: -1 });
+                            res.end();
+                            resolve();
+                        });
+                        child.on('close', (code) => {
+                            send({ type: 'done', code: code ?? -1 });
+                            res.end();
+                            resolve();
+                        });
+                        // Leaving the page kills the process: an install nobody
+                        // is watching still holds the directory it writes into.
+                        req.on('close', () => { child.kill(); });
+                    });
+                    return true;
+                }
+
                 if (operation === 'rename' || operation === 'copy') {
                     const from = inHome(body.oldPath ?? body.source ?? '');
                     const to = inHome(body.newPath ?? body.destination ?? '');
@@ -283,6 +392,209 @@ export class HestiaPlatformServer extends HttpUploadServer {
 
         this.sendJsonResponse(res, 404, { error: `Unknown VFS operation: ${req.method} ${operation}` });
         return true;
+    }
+
+    /**
+       * Source control for a `.repo.json` clone on the user's drive.
+       *
+       * The whole surface the git panel in `@hestia/ui-texteditor` speaks to:
+       * info, changes, staging, diffs, commits, branches, the stash, the history
+       * and conflict resolution. The path the client sends is the marker file or
+       * a directory inside the clone; `GitService` finds the repository root from
+       * it and refuses anything outside the user's own drive.
+       */
+      private async handleUserGit(req: IncomingMessage, res: ServerResponse, method: string, userName: string, operation: string): Promise<void> {
+      if (!this.gitService) {
+        this.sendJsonResponse(res, 503, { error: 'Git service unavailable' });
+        return;
+      }
+      try {
+        if (method === 'GET') {
+          const urlObj = new URL(req.url!, `http://${req.headers.host ?? 'localhost'}`);
+          const repoPath = urlObj.searchParams.get('path') ?? '';
+          if (!repoPath) { this.sendJsonResponse(res, 400, { error: 'path is required' }); return; }
+          if (operation === 'info') {
+            const result = await this.gitService.info(userName, repoPath);
+            this.sendJsonResponse(res, 200, result);
+            return;
+          }
+          if (operation === 'files') {
+            const ref = urlObj.searchParams.get('ref') || undefined;
+            const files = await this.gitService.listFiles(userName, repoPath, ref);
+            this.sendJsonResponse(res, 200, { files });
+            return;
+          }
+          this.sendJsonResponse(res, 404, { error: `Unknown git operation: ${operation}` });
+          return;
+        }
+        if (method !== 'POST') {
+          this.sendJsonResponse(res, 405, { error: 'Method not allowed' });
+          return;
+        }
+        const body = await this.readJson(req) as { path?: string; ref?: string; type?: 'branch' | 'tag'; url?: string; remote?: string; branch?: string; token?: string; tokenSecretKey?: string | null; from?: string; to?: string; file?: string; message?: string;
+          // Panel kontroli źródeł: zaznaczone pliki i parametry dziennika.
+          paths?: string[]; limit?: number; name?: string;
+          // Łatki, schowek i konflikty.
+          patch?: string; cached?: boolean; reverse?: boolean;
+          action?: string; keepIndex?: boolean };
+        const repoPath = body.path ?? '';
+        if (!repoPath) { this.sendJsonResponse(res, 400, { error: 'path is required' }); return; }
+        switch (operation) {
+          case 'save': {
+            const repo = await this.gitService.save(userName, repoPath, {
+              url: body.url, remote: body.remote, branch: body.branch, token: body.token,
+              tokenSecretKey: body.tokenSecretKey,
+            });
+            this.sendJsonResponse(res, 200, { ok: true, repo });
+            return;
+          }
+          case 'clone': {
+            const r = await this.gitService.clone(userName, repoPath);
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          case 'pull': {
+            const r = await this.gitService.pull(userName, repoPath);
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          case 'push': {
+            const r = await this.gitService.push(userName, repoPath);
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          // Trzecia droga do repozytorium, obok clone'a i otwarcia katalogu
+          // w istniejącym: założenie pustego na miejscu. Nazwa gałęzi jest
+          // opcjonalna — bez niej `main`, jak w domyślnej konfiguracji gita.
+          case 'init': {
+            const r = await this.gitService.init(userName, repoPath, body.branch ? String(body.branch) : undefined);
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          case 'checkout': {
+            if (!body.ref) { this.sendJsonResponse(res, 400, { error: 'ref is required' }); return; }
+            const r = await this.gitService.checkout(userName, repoPath, body.ref, body.type === 'tag' ? 'tag' : 'branch');
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          case 'diff': {
+            const r = await this.gitService.diff(userName, repoPath, {
+              from: body.from || undefined,
+              to: body.to || undefined,
+              file: body.file || undefined,
+            });
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          case 'commit': {
+            if (!body.message) { this.sendJsonResponse(res, 400, { error: 'message is required' }); return; }
+            const r = await this.gitService.commit(userName, repoPath, body.message);
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          // ── Operacje dla panelu kontroli źródeł w edytorze ─────────────────
+          //
+          // `info` mówi tylko „są zmiany"; panel potrzebuje listy plików
+          // z podziałem na indeks i katalog roboczy, żeby dało się zaznaczyć
+          // pojedynczy plik do commita.
+          case 'changes': {
+            const changes = await this.gitService.changes(userName, repoPath);
+            this.sendJsonResponse(res, 200, { ok: true, changes });
+            return;
+          }
+          case 'stage':
+          case 'unstage':
+          case 'discard': {
+            const paths: string[] = Array.isArray(body.paths) ? body.paths.map(String) : [];
+            if (paths.length === 0) { this.sendJsonResponse(res, 400, { error: 'paths is required' }); return; }
+            const r = operation === 'stage' ? await this.gitService.stage(userName, repoPath, paths)
+              : operation === 'unstage' ? await this.gitService.unstage(userName, repoPath, paths)
+                : await this.gitService.discard(userName, repoPath, paths);
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          // Treść pliku z rewizji — lewa strona widoku różnic. Różnicę liczy
+          // sam edytor, więc wystarczy mu tekst „przed".
+          case 'show': {
+            if (!body.file) { this.sendJsonResponse(res, 400, { error: 'file is required' }); return; }
+            const content = await this.gitService.show(userName, repoPath, String(body.ref || 'HEAD'), String(body.file));
+            this.sendJsonResponse(res, 200, { ok: true, content });
+            return;
+          }
+          // Treść pliku z katalogu roboczego — prawa strona widoku różnic.
+          // Osobno od `show`, bo ten czyta z rewizji albo z indeksu, a żadne
+          // z dwojga nie jest tym, co użytkownik właśnie napisał na dysku.
+          case 'worktree': {
+            if (!body.file) { this.sendJsonResponse(res, 400, { error: 'file is required' }); return; }
+            const content = await this.gitService.worktree(userName, repoPath, String(body.file));
+            this.sendJsonResponse(res, 200, { ok: true, content });
+            return;
+          }
+          case 'log': {
+            // Filtr ścieżki idzie pod `file`, nie `path`: `path` w ciele żądania
+            // wskazuje repozytorium (plik `.repo.json`), więc użycie go tutaj
+            // filtrowałoby historię po pliku, którego w repozytorium nie ma —
+            // i dziennik wracał pusty bez śladu, że pytanie było o coś innego.
+            const entries = await this.gitService.log(userName, repoPath, {
+              limit: body.limit ? Number(body.limit) : undefined,
+              path: body.file ? String(body.file) : undefined,
+            });
+            this.sendJsonResponse(res, 200, { ok: true, entries });
+            return;
+          }
+          case 'branch': {
+            if (!body.name) { this.sendJsonResponse(res, 400, { error: 'name is required' }); return; }
+            const r = await this.gitService.createBranch(userName, repoPath, String(body.name));
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          // Łatka: przygotowanie części pliku i cofnięcie pojedynczej zmiany.
+          // Składa ją edytor — tylko on wie, który fragment wskazał użytkownik.
+          case 'apply': {
+            if (!body.patch) { this.sendJsonResponse(res, 400, { error: 'patch is required' }); return; }
+            const r = await this.gitService.applyPatch(userName, repoPath, String(body.patch), {
+              cached: !!body.cached, reverse: !!body.reverse,
+            });
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          case 'stash': {
+            // Jedna trasa, bo to jedno pojęcie; `action` mówi, co z nim zrobić.
+            const akcja = String(body.action ?? 'list');
+            const r = akcja === 'list' ? { ok: true, entries: await this.gitService.stashList(userName, repoPath) }
+              : akcja === 'push' ? await this.gitService.stashPush(userName, repoPath, body.message, !!body.keepIndex)
+                : akcja === 'pop' ? await this.gitService.stashPop(userName, repoPath, body.ref)
+                  : akcja === 'apply' ? await this.gitService.stashApply(userName, repoPath, body.ref)
+                    : akcja === 'drop' ? await this.gitService.stashDrop(userName, repoPath, body.ref)
+                      : null;
+            if (!r) { this.sendJsonResponse(res, 400, { error: `Nieznana operacja schowka: ${akcja}` }); return; }
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          case 'conflict': {
+            if (!body.file) { this.sendJsonResponse(res, 400, { error: 'file is required' }); return; }
+            const versions = await this.gitService.conflictVersions(userName, repoPath, String(body.file));
+            this.sendJsonResponse(res, 200, { ok: true, versions });
+            return;
+          }
+          case 'resolve': {
+            const paths: string[] = Array.isArray(body.paths) ? body.paths.map(String) : [];
+            if (paths.length === 0) { this.sendJsonResponse(res, 400, { error: 'paths is required' }); return; }
+            const r = await this.gitService.markResolved(userName, repoPath, paths);
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          case 'abort-merge': {
+            const r = await this.gitService.abortMerge(userName, repoPath);
+            this.sendJsonResponse(res, 200, r);
+            return;
+          }
+          default:
+            this.sendJsonResponse(res, 404, { error: `Unknown git operation: ${operation}` });
+        }
+      } catch (err) {
+        this.sendJsonResponse(res, 400, { error: err instanceof Error ? err.message : String(err) });
+      }
     }
 
     private async readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
