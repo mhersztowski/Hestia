@@ -28,13 +28,13 @@ export const PALM_WINDOW_MS = 1500;
 
 /** Whether the pen has been seen recently enough to take drawing away from touch. */
 export function penIsAbout(lastPenAt: number, now: number): boolean {
-    // `0` means it has never been seen — a tablet with no pen, where a finger
-    // has to keep drawing.
-    if (lastPenAt <= 0) return false;
-    return now - lastPenAt < PALM_WINDOW_MS;
+  // `0` means it has never been seen — a tablet with no pen, where a finger
+  // has to keep drawing.
+  if (lastPenAt <= 0) return false;
+  return now - lastPenAt < PALM_WINDOW_MS;
 }
 
 /** What a finger touching the page should do. */
 export function touchRole(lastPenAt: number, now: number): 'draw' | 'pan' {
-    return penIsAbout(lastPenAt, now) ? 'pan' : 'draw';
+  return penIsAbout(lastPenAt, now) ? 'pan' : 'draw';
 }

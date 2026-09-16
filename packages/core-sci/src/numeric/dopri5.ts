@@ -23,8 +23,13 @@
  * z cięciwy między odległymi próbkami i pokazywała łamaną.
  */
 import {
-  Trajectory, evalInterpolant,
-  type Derivative, type Interpolant, type Sample, type State, type StepHook,
+  Trajectory,
+  evalInterpolant,
+  type Derivative,
+  type Interpolant,
+  type Sample,
+  type State,
+  type StepHook,
 } from './trajectory';
 import { crossesZero, findEventTime, type EventHit, type EventSpec } from './events';
 
@@ -32,17 +37,38 @@ import { crossesZero, findEventTime, type EventHit, type EventSpec } from './eve
 // da się je porównać ze źródłem — przeliczone na dziesiętne byłyby nie do
 // sprawdzenia, a pomyłka w ostatniej cyfrze psuje rząd metody po cichu.
 const A21 = 1 / 5;
-const A31 = 3 / 40, A32 = 9 / 40;
-const A41 = 44 / 45, A42 = -56 / 15, A43 = 32 / 9;
-const A51 = 19372 / 6561, A52 = -25360 / 2187, A53 = 64448 / 6561, A54 = -212 / 729;
-const A61 = 9017 / 3168, A62 = -355 / 33, A63 = 46732 / 5247, A64 = 49 / 176, A65 = -5103 / 18656;
-const A71 = 35 / 384, A73 = 500 / 1113, A74 = 125 / 192, A75 = -2187 / 6784, A76 = 11 / 84;
+const A31 = 3 / 40,
+  A32 = 9 / 40;
+const A41 = 44 / 45,
+  A42 = -56 / 15,
+  A43 = 32 / 9;
+const A51 = 19372 / 6561,
+  A52 = -25360 / 2187,
+  A53 = 64448 / 6561,
+  A54 = -212 / 729;
+const A61 = 9017 / 3168,
+  A62 = -355 / 33,
+  A63 = 46732 / 5247,
+  A64 = 49 / 176,
+  A65 = -5103 / 18656;
+const A71 = 35 / 384,
+  A73 = 500 / 1113,
+  A74 = 125 / 192,
+  A75 = -2187 / 6784,
+  A76 = 11 / 84;
 
-const C2 = 1 / 5, C3 = 3 / 10, C4 = 4 / 5, C5 = 8 / 9;
+const C2 = 1 / 5,
+  C3 = 3 / 10,
+  C4 = 4 / 5,
+  C5 = 8 / 9;
 
 /** Różnice wag rzędu 5 i 4 — z nich powstaje oszacowanie błędu kroku. */
-const E1 = 71 / 57600, E3 = -71 / 16695, E4 = 71 / 1920,
-  E5 = -17253 / 339200, E6 = 22 / 525, E7 = -1 / 40;
+const E1 = 71 / 57600,
+  E3 = -71 / 16695,
+  E4 = 71 / 1920,
+  E5 = -17253 / 339200,
+  E6 = 22 / 525,
+  E7 = -1 / 40;
 
 /** Współczynniki dense output (Hairer, Nørsett, Wanner). */
 const D1 = -12715105075 / 11282082432;
@@ -112,7 +138,17 @@ function defaultNames(n: number): string[] {
  * Wartości są domykane w tablicach `r1..r5`, więc trajektoria trzyma pięć
  * wektorów na krok zamiast całego kontekstu solvera.
  */
-function makeInterpolant(y0: State, y1: State, h: number, k1: State, k3: State, k4: State, k5: State, k6: State, k7: State): Interpolant {
+function makeInterpolant(
+  y0: State,
+  y1: State,
+  h: number,
+  k1: State,
+  k3: State,
+  k4: State,
+  k5: State,
+  k6: State,
+  k7: State
+): Interpolant {
   const n = y0.length;
   const r1 = [...y0];
   const r2 = new Array<number>(n);
@@ -143,10 +179,15 @@ export function dopri5(
   f: Derivative,
   y0: State,
   tSpan: [number, number],
-  options: AdaptiveOptions = {},
+  options: AdaptiveOptions = {}
 ): Trajectory {
   const {
-    rtol = 1e-6, atol = 1e-9, maxSteps = 1_000_000, dense = true, onStep, events = [],
+    rtol = 1e-6,
+    atol = 1e-9,
+    maxSteps = 1_000_000,
+    dense = true,
+    onStep,
+    events = [],
   } = options;
   // Chwila zdarzenia z dokładnością proporcjonalną do tolerancji rozwiązania:
   // wyznaczanie jej dokładniej niż samo rozwiązanie byłoby pracą bez pokrycia.
@@ -190,7 +231,9 @@ export function dopri5(
   const k6 = new Array<number>(n);
   let k7 = new Array<number>(n);
   const yStage6 = new Array<number>(n);
-  const kopiuj = (from: State, to: number[]) => { for (let i = 0; i < n; i += 1) to[i] = from[i]; };
+  const kopiuj = (from: State, to: number[]) => {
+    for (let i = 0; i < n; i += 1) to[i] = from[i];
+  };
 
   kopiuj(f(t, y), k1);
   let steps = 0;
@@ -217,16 +260,16 @@ export function dopri5(
     steps += 1;
     if (steps > maxSteps) {
       throw new IntegrationError(
-        `Przekroczono limit ${maxSteps} kroków na przedziale [${t0}, ${tEnd}] (doszedłem do t = ${t.toPrecision(4)}). `
-        + 'Zwykle znaczy to, że układ jest sztywny — jawna metoda musi wtedy trzymać krok '
-        + 'mikroskopijny ze względu na stabilność, choć samo rozwiązanie jest gładkie.',
+        `Przekroczono limit ${maxSteps} kroków na przedziale [${t0}, ${tEnd}] (doszedłem do t = ${t.toPrecision(4)}). ` +
+          'Zwykle znaczy to, że układ jest sztywny — jawna metoda musi wtedy trzymać krok ' +
+          'mikroskopijny ze względu na stabilność, choć samo rozwiązanie jest gładkie.'
       );
     }
     if (h < minStep) {
       throw new IntegrationError(
-        `Krok całkowania zszedł poniżej ${minStep.toPrecision(3)} przy t = ${t.toPrecision(4)}. `
-        + 'Tolerancji nie da się spełnić — najczęściej dlatego, że rozwiązanie ma tam '
-        + 'osobliwość albo prawa strona równania nie jest ciągła.',
+        `Krok całkowania zszedł poniżej ${minStep.toPrecision(3)} przy t = ${t.toPrecision(4)}. ` +
+          'Tolerancji nie da się spełnić — najczęściej dlatego, że rozwiązanie ma tam ' +
+          'osobliwość albo prawa strona równania nie jest ciągła.'
       );
     }
 
@@ -262,7 +305,8 @@ export function dopri5(
 
     let sum = 0;
     for (let i = 0; i < n; i += 1) {
-      const błąd = h * (E1 * k1[i] + E3 * k3[i] + E4 * k4[i] + E5 * k5[i] + E6 * k6[i] + E7 * k7[i]);
+      const błąd =
+        h * (E1 * k1[i] + E3 * k3[i] + E4 * k4[i] + E5 * k5[i] + E6 * k6[i] + E7 * k7[i]);
       const skala = atol + rtol * Math.max(Math.abs(y[i]), Math.abs(yNext[i]));
       sum += (błąd / skala) ** 2;
     }
@@ -293,9 +337,9 @@ export function dopri5(
 
     if (stiffCount > 15) {
       throw new IntegrationError(
-        `Układ jest sztywny (przy t = ${t.toPrecision(4)} krok ogranicza stabilność, nie dokładność). `
-        + 'Metoda jawna musiałaby liczyć go krokiem rzędu odwrotności największej wartości własnej, '
-        + 'niezależnie od tego, jak gładkie jest rozwiązanie. Użyj metody niejawnej: `@solver rosenbrock`.',
+        `Układ jest sztywny (przy t = ${t.toPrecision(4)} krok ogranicza stabilność, nie dokładność). ` +
+          'Metoda jawna musiałaby liczyć go krokiem rzędu odwrotności największej wartości własnej, ' +
+          'niezależnie od tego, jak gładkie jest rozwiązanie. Użyj metody niejawnej: `@solver rosenbrock`.'
       );
     }
 
@@ -306,9 +350,9 @@ export function dopri5(
     // teoretyczny.
     const factor = !Number.isFinite(err)
       ? MIN_FACTOR
-      : (err === 0
+      : err === 0
         ? MAX_FACTOR
-        : Math.min(MAX_FACTOR, Math.max(MIN_FACTOR, SAFETY * err ** -0.2)));
+        : Math.min(MAX_FACTOR, Math.max(MIN_FACTOR, SAFETY * err ** -0.2));
 
     if (!dobry) {
       h = Math.max(minStep / 2, h * Math.min(1, factor));
@@ -319,9 +363,8 @@ export function dopri5(
     let stan = yNext;
     // Interpolant potrzebny jest także wtedy, gdy `dense` jest wyłączone —
     // to on pozwala zajrzeć w środek kroku przy szukaniu chwili zdarzenia.
-    const interpolant = (dense || events.length)
-      ? makeInterpolant(y, yNext, h, k1, k3, k4, k5, k6, k7)
-      : undefined;
+    const interpolant =
+      dense || events.length ? makeInterpolant(y, yNext, h, k1, k3, k4, k5, k6, k7) : undefined;
 
     /**
      * Najwcześniejsze zdarzenie w tym kroku.
@@ -355,7 +398,9 @@ export function dopri5(
 
       const tStar = findEventTime(
         (tau) => event.g(tau, evalInterpolant(interpolant!, (tau - t) / h)),
-        tFrom, tNext, eventTolerance,
+        tFrom,
+        tNext,
+        eventTolerance
       );
       if (tStar === undefined) continue;
       if (!hit || tStar < hit.t) {
@@ -369,7 +414,13 @@ export function dopri5(
       // przyciąć: obowiązuje teraz na krótszym przedziale.
       if (dense && interpolant) interpolants.push({ ...interpolant, scale: (hit.t - t) / h });
       samples.push({ t: hit.t, y: [...hit.y] });
-      hits.push({ name: event.name, t: hit.t, y: [...hit.y], index: hit.index, stopped: !!event.stop });
+      hits.push({
+        name: event.name,
+        t: hit.t,
+        y: [...hit.y],
+        index: hit.index,
+        stopped: !!event.stop,
+      });
 
       if (event.stop) break;
 
@@ -395,7 +446,12 @@ export function dopri5(
       if (dense) {
         const zero = y.map(() => 0);
         interpolants[interpolants.length - 1] = {
-          r1: [...y], r2: stan.map((v, i) => v - y[i]), r3: zero, r4: zero, r5: zero, scale: 1,
+          r1: [...y],
+          r2: stan.map((v, i) => v - y[i]),
+          r3: zero,
+          r4: zero,
+          r5: zero,
+          scale: 1,
         };
       }
     }
@@ -411,7 +467,11 @@ export function dopri5(
     // FSAL działa tylko wtedy, gdy stan na styku kroków się nie zmienił.
     // Zamiana buforów zamiast przypisania — obie tablice zostają w obiegu.
     if (reakcja) kopiuj(f(t, y), k1);
-    else { const przed = k1; k1 = k7; k7 = przed; }
+    else {
+      const przed = k1;
+      k1 = k7;
+      k7 = przed;
+    }
     h = Math.min(maxStep, h * factor);
   }
 

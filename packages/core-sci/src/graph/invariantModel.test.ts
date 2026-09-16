@@ -11,15 +11,23 @@ import { parseFormulaBlock } from '../formula/parseFormula';
 import { buildGraph } from './formulaGraph';
 import { compileGraph, defaultValues } from './compileGraph';
 
-const OSCYLATOR = (extra: string[]) => compileGraph(buildGraph([parseFormulaBlock('osc', [
-  '@ode',
-  '@state x, v',
-  '@d x = v',
-  '@d v = -\\frac{k}{m} x',
-  '@init x = A, v = 0',
-  '@vars k: N/m, m: kg, x: m, v: m/s, A: m, E: J',
-  ...extra,
-].join('\n'))]));
+const OSCYLATOR = (extra: string[]) =>
+  compileGraph(
+    buildGraph([
+      parseFormulaBlock(
+        'osc',
+        [
+          '@ode',
+          '@state x, v',
+          '@d x = v',
+          '@d v = -\\frac{k}{m} x',
+          '@init x = A, v = 0',
+          '@vars k: N/m, m: kg, x: m, v: m/s, A: m, E: J',
+          ...extra,
+        ].join('\n')
+      ),
+    ])
+  );
 
 const NASTAWY = { k: 1, m: 1, A: 1 };
 const ENERGIA = '@invariant E = \\frac{1}{2} m v^2 + \\frac{1}{2} k x^2';
@@ -71,11 +79,16 @@ describe('gdy mierzyć nie ma czego', () => {
   });
 
   it('model bez równania ruchu nie udaje, że coś zmierzył', () => {
-    const model = compileGraph(buildGraph([parseFormulaBlock('okres', [
-      'T = 2\\pi\\sqrt{\\frac{m}{k}}',
-      '@vars m: kg, k: N/m, T: s',
-      '@invariant T = T',
-    ].join('\n'))]));
+    const model = compileGraph(
+      buildGraph([
+        parseFormulaBlock(
+          'okres',
+          ['T = 2\\pi\\sqrt{\\frac{m}{k}}', '@vars m: kg, k: N/m, T: s', '@invariant T = T'].join(
+            '\n'
+          )
+        ),
+      ])
+    );
 
     expect(model.run(defaultValues(model)).invariants).toEqual([]);
   });

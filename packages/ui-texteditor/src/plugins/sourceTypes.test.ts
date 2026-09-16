@@ -4,7 +4,14 @@
  * rozpoznawanie deklaracji i importów w kształtach, jakie realnie występują.
  */
 import { describe, it, expect } from 'vitest';
-import { collectDeclaredTypes, collectImportedTypes, buildTypeOptions, BUILTIN_TS_TYPES, lastImportEnd, insertImportLine } from './sourceTypes';
+import {
+  collectDeclaredTypes,
+  collectImportedTypes,
+  buildTypeOptions,
+  BUILTIN_TS_TYPES,
+  lastImportEnd,
+  insertImportLine,
+} from './sourceTypes';
 
 const CODE = `
 import { MObject, Signal as Sig } from '@mhersztowski/minislib';
@@ -23,7 +30,14 @@ export enum Level { Low, High }
 
 describe('collectDeclaredTypes', () => {
   it('znajduje klasy, interfejsy, aliasy i enumy — także nieeksportowane', () => {
-    expect(collectDeclaredTypes(CODE)).toEqual(['Internal', 'Internal2', 'Level', 'Mode', 'Reading', 'Sensor']);
+    expect(collectDeclaredTypes(CODE)).toEqual([
+      'Internal',
+      'Internal2',
+      'Level',
+      'Mode',
+      'Reading',
+      'Sensor',
+    ]);
   });
 
   it('radzi sobie z klasą abstrakcyjną i default export', () => {
@@ -41,14 +55,14 @@ describe('collectImportedTypes', () => {
 
   it('bierze nazwy z klamer, aliasy w postaci użytecznej w kodzie', () => {
     expect(names).toContain('MObject');
-    expect(names).toContain('Sig');        // `Signal as Sig`
+    expect(names).toContain('Sig'); // `Signal as Sig`
     expect(names).not.toContain('Signal');
   });
 
   it('obsługuje import typu, domyślny i przestrzeń nazw', () => {
-    expect(names).toContain('Config');     // import type { Config }
-    expect(names).toContain('Logger');     // import Logger from
-    expect(names).toContain('Utils');      // import * as Utils
+    expect(names).toContain('Config'); // import type { Config }
+    expect(names).toContain('Logger'); // import Logger from
+    expect(names).toContain('Utils'); // import * as Utils
   });
 
   it('pomija symbole zaczynające się małą literą — to nie typy', () => {
@@ -79,7 +93,9 @@ describe('buildTypeOptions', () => {
   });
 
   it('dokłada dodatkowe źródła na końcu', () => {
-    const withExtra = buildTypeOptions(CODE, [{ label: 'MTimer', group: '@mhersztowski/minislib' }]);
+    const withExtra = buildTypeOptions(CODE, [
+      { label: 'MTimer', group: '@mhersztowski/minislib' },
+    ]);
     expect(withExtra.find((o) => o.label === 'MTimer')?.group).toBe('@mhersztowski/minislib');
   });
 });

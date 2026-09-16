@@ -14,7 +14,10 @@ import { gaussSteps, gramSchmidtSteps } from './procedures';
 import type { Matrix2, Vector2 } from './matrix';
 
 describe('eliminacja Gaussa', () => {
-  const UKLAD: Matrix2 = [[2, 1], [4, 3]];
+  const UKLAD: Matrix2 = [
+    [2, 1],
+    [4, 3],
+  ];
   const PRAWA: Vector2 = [5, 11];
 
   it('rozwiązuje układ', () => {
@@ -48,7 +51,13 @@ describe('eliminacja Gaussa', () => {
   it('zamienia wiersze, gdy na przekątnej stoi zero', () => {
     // Bez zamiany dzielenie przez zero dałoby NaN w każdym kolejnym kroku,
     // a czytelnik zobaczyłby tabelę „NaN" bez wyjaśnienia.
-    const kroki = gaussSteps([[0, 1], [1, 0]], [3, 2]);
+    const kroki = gaussSteps(
+      [
+        [0, 1],
+        [1, 0],
+      ],
+      [3, 2]
+    );
     expect(kroki.some((k) => k.description.includes('Zamien'))).toBe(true);
 
     const wynik = kroki[kroki.length - 1].solution!;
@@ -57,7 +66,13 @@ describe('eliminacja Gaussa', () => {
   });
 
   it('układ sprzeczny mówi wprost, że nie ma rozwiązania', () => {
-    const kroki = gaussSteps([[1, 1], [2, 2]], [1, 5]);
+    const kroki = gaussSteps(
+      [
+        [1, 1],
+        [2, 2],
+      ],
+      [1, 5]
+    );
     const ostatni = kroki[kroki.length - 1];
 
     expect(ostatni.solution).toBeUndefined();
@@ -65,7 +80,13 @@ describe('eliminacja Gaussa', () => {
   });
 
   it('układ nieoznaczony też nie udaje jednego rozwiązania', () => {
-    const kroki = gaussSteps([[1, 1], [2, 2]], [1, 2]);
+    const kroki = gaussSteps(
+      [
+        [1, 1],
+        [2, 2],
+      ],
+      [1, 2]
+    );
     const ostatni = kroki[kroki.length - 1];
 
     expect(ostatni.solution).toBeUndefined();

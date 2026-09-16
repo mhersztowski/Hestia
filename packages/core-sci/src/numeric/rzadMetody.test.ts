@@ -32,12 +32,15 @@ const oscylator: Derivative = (_t, [x, v]) => [v, -x];
  * zachowuje się jak metoda o stałym kroku. Bez tego mierzylibyśmy rząd
  * sterowania błędem, a nie rząd metody.
  */
-const zeStalymKrokiem = (
-  solver: typeof dopri5,
-  y0: number[] = [1, 0],
-) => (dt: number) => solver(oscylator, y0, [0, 5], {
-  rtol: 1e12, atol: 1e12, dt, maxStep: dt,
-});
+const zeStalymKrokiem =
+  (solver: typeof dopri5, y0: number[] = [1, 0]) =>
+  (dt: number) =>
+    solver(oscylator, y0, [0, 5], {
+      rtol: 1e12,
+      atol: 1e12,
+      dt,
+      maxStep: dt,
+    });
 
 describe('rząd metody, mierzony a nie zakładany', () => {
   it('Dormand–Prince jest piątego rzędu', () => {

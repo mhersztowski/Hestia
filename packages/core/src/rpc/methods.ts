@@ -33,11 +33,13 @@ export const getDeviceStatuses = defineRpcMethod({
     userName: { autocomplete: 'users' },
   },
   output: z.object({
-    items: z.array(z.object({
-      deviceId: z.string(),
-      status: z.enum(['ONLINE', 'OFFLINE', 'UNKNOWN']),
-      lastSeenAt: z.number().describe('Timestamp in ms'),
-    })),
+    items: z.array(
+      z.object({
+        deviceId: z.string(),
+        status: z.enum(['ONLINE', 'OFFLINE', 'UNKNOWN']),
+        lastSeenAt: z.number().describe('Timestamp in ms'),
+      })
+    ),
   }),
 });
 
@@ -79,14 +81,16 @@ export const getLatestTelemetry = defineRpcMethod({
     userName: { autocomplete: 'users' },
     deviceName: { autocomplete: 'userDevices', dependsOn: 'userName' },
   },
-  output: z.object({
-    deviceId: z.string(),
-    userId: z.string(),
-    timestamp: z.number(),
-    metrics: z.array(telemetryMetricSchema),
-    rssi: z.number().optional(),
-    battery: z.number().optional(),
-  }).nullable(),
+  output: z
+    .object({
+      deviceId: z.string(),
+      userId: z.string(),
+      timestamp: z.number(),
+      metrics: z.array(telemetryMetricSchema),
+      rssi: z.number().optional(),
+      battery: z.number().optional(),
+    })
+    .nullable(),
 });
 
 export const rpcMethods = {

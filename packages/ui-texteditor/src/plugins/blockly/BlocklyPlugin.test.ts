@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createBlocklyPlugin } from './BlocklyPlugin';
 import type {
-  IPluginAPI, ToolbarContribution, ContextMenuContribution, CommandPaletteContribution,
+  IPluginAPI,
+  ToolbarContribution,
+  ContextMenuContribution,
+  CommandPaletteContribution,
 } from '../../monaco/plugins/types';
 
 /**
@@ -25,7 +28,10 @@ function makeHost(pluginId = 'com.mycastle.blockly') {
   const api = {
     pluginId,
     editor: {
-      onDidChangeModel: (cb: (uri: string) => void) => { modelHandler = cb; return { dispose() {} }; },
+      onDidChangeModel: (cb: (uri: string) => void) => {
+        modelHandler = cb;
+        return { dispose() {} };
+      },
       onDidOpenDocument: () => ({ dispose() {} }),
       onDidChangeCursorPosition: () => ({ dispose() {} }),
       onDidSaveDocument: () => ({ dispose() {} }),
@@ -39,35 +45,69 @@ function makeHost(pluginId = 'com.mycastle.blockly') {
       execute: async (id: string, ...a: unknown[]) => commands.get(id)?.(...a),
     },
     ui: {
-      toolbar: { register: (i: ToolbarContribution) => { toolbar.push(i); return { dispose() {} }; } },
+      toolbar: {
+        register: (i: ToolbarContribution) => {
+          toolbar.push(i);
+          return { dispose() {} };
+        },
+      },
       statusbar: { register: () => ({ dispose() {}, update() {} }) },
-      contextmenu: { register: (i: ContextMenuContribution) => { contextmenu.push(i); return { dispose() {} }; } },
-      commandpalette: { register: (i: CommandPaletteContribution) => { palette.push(i); return { dispose() {} }; } },
+      contextmenu: {
+        register: (i: ContextMenuContribution) => {
+          contextmenu.push(i);
+          return { dispose() {} };
+        },
+      },
+      commandpalette: {
+        register: (i: CommandPaletteContribution) => {
+          palette.push(i);
+          return { dispose() {} };
+        },
+      },
       sidebar: { register: () => ({ dispose() {} }) },
       openSidebarPanel: () => {},
     },
     events: { on: () => ({ dispose() {} }), emit: () => {} },
     storage: {
-      get: <T,>(k: string) => storage.get(k) as T | undefined,
-      set: <T,>(k: string, v: T) => { storage.set(k, v); },
-      delete: (k: string) => { storage.delete(k); },
+      get: <T>(k: string) => storage.get(k) as T | undefined,
+      set: <T>(k: string, v: T) => {
+        storage.set(k, v);
+      },
+      delete: (k: string) => {
+        storage.delete(k);
+      },
     },
     logger: {
       info: () => {},
-      warn: (m: string) => { warnings.push(m); },
-      error: (m: string) => { warnings.push(m); },
+      warn: (m: string) => {
+        warnings.push(m);
+      },
+      error: (m: string) => {
+        warnings.push(m);
+      },
     },
-    openEditorTab: (o: { uri: string; title: string }) => { tabs.push(o); },
+    openEditorTab: (o: { uri: string; title: string }) => {
+      tabs.push(o);
+    },
   } as unknown as IPluginAPI;
 
   return {
-    api, commands, toolbar, contextmenu, palette, storage, warnings, tabs,
+    api,
+    commands,
+    toolbar,
+    contextmenu,
+    palette,
+    storage,
+    warnings,
+    tabs,
     openFile: (uri: string) => modelHandler?.(uri),
   };
 }
 
 let host: ReturnType<typeof makeHost>;
-beforeEach(() => { host = makeHost(); });
+beforeEach(() => {
+  host = makeHost();
+});
 
 /**
  * Czeka, aż warunek zajdzie.
@@ -90,7 +130,7 @@ describe('manifest', () => {
     // deklaracji nie pojawia się nigdzie i wygląda jak zignorowana wtyczka.
     const plugin = createBlocklyPlugin();
     expect(plugin.manifest.contributes).toEqual(
-      expect.arrayContaining(['contextmenu', 'commandpalette', 'toolbar']),
+      expect.arrayContaining(['contextmenu', 'commandpalette', 'toolbar'])
     );
   });
 });
@@ -112,11 +152,13 @@ describe('rejestracja', () => {
   it('menu kontekstowe ma pozycję otwarcia edytora i opcji pliku', () => {
     // „dla wszystkich zakładek" — host nie sprawdza `when`, więc obie pozycje
     // są zawsze widoczne, a rozstrzyga polecenie.
-    return createBlocklyPlugin().activate(host.api).then(() => {
-      const labels = host.contextmenu.map((i) => i.label);
-      expect(labels.some((l) => /bloczk/i.test(l))).toBe(true);
-      expect(labels.some((l) => /opcje/i.test(l))).toBe(true);
-    });
+    return createBlocklyPlugin()
+      .activate(host.api)
+      .then(() => {
+        const labels = host.contextmenu.map((i) => i.label);
+        expect(labels.some((l) => /bloczk/i.test(l))).toBe(true);
+        expect(labels.some((l) => /opcje/i.test(l))).toBe(true);
+      });
   });
 });
 

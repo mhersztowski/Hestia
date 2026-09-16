@@ -2,7 +2,11 @@ import type { Point2D } from '../core';
 import type { PreviewGeometry, Tool, ToolContext } from './types';
 
 /** The circle through three points (the circumcircle); null when they are collinear. */
-export function circumcircle(a: Point2D, b: Point2D, c: Point2D): { cx: number; cy: number; r: number } | null {
+export function circumcircle(
+  a: Point2D,
+  b: Point2D,
+  c: Point2D
+): { cx: number; cy: number; r: number } | null {
   const d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
   if (Math.abs(d) < 1e-9) return null;
   const a2 = a.x * a.x + a.y * a.y;
@@ -33,25 +37,44 @@ export class Circle3PointTool implements Tool {
   }
 
   onPointerDown(point: Point2D, ctx: ToolContext): void {
-    if (!this.p1) { this.p1 = point; this.cursor = point; }
-    else if (!this.p2) { this.p2 = point; this.cursor = point; }
-    else {
+    if (!this.p1) {
+      this.p1 = point;
+      this.cursor = point;
+    } else if (!this.p2) {
+      this.p2 = point;
+      this.cursor = point;
+    } else {
       const c = circumcircle(this.p1, this.p2, point);
       if (c && c.r > 0.01) {
         ctx.project.addEntity({
-          type: 'circle', cx: c.cx, cy: c.cy, radius: c.r,
+          type: 'circle',
+          cx: c.cx,
+          cy: c.cy,
+          radius: c.r,
           layerId: ctx.project.layerSystem.getActiveId(),
-          color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-          visible: true, locked: false, extrudeHeight: 0,
+          color: 'bylayer',
+          lineType: 'bylayer',
+          lineWidth: 'bylayer',
+          visible: true,
+          locked: false,
+          extrudeHeight: 0,
         });
       }
       this.reset();
     }
   }
 
-  onPointerMove(point: Point2D, _ctx: ToolContext): void { this.cursor = point; }
+  onPointerMove(point: Point2D, _ctx: ToolContext): void {
+    this.cursor = point;
+  }
   onPointerUp(_point: Point2D, _ctx: ToolContext): void {}
-  onKeyDown(key: string, _ctx: ToolContext): void { if (key === 'Escape') this.reset(); }
+  onKeyDown(key: string, _ctx: ToolContext): void {
+    if (key === 'Escape') this.reset();
+  }
 
-  reset(): void { this.p1 = null; this.p2 = null; this.cursor = { x: 0, y: 0 }; }
+  reset(): void {
+    this.p1 = null;
+    this.p2 = null;
+    this.cursor = { x: 0, y: 0 };
+  }
 }

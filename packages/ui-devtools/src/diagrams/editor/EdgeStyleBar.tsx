@@ -12,7 +12,13 @@
  * niż jego brak.
  */
 import type { CSSProperties } from 'react';
-import type { ClassRelationKind, DiagramEdge, DiagramKind, EdgeArrowType, EdgeLineStyle } from '../model/diagram';
+import type {
+  ClassRelationKind,
+  DiagramEdge,
+  DiagramKind,
+  EdgeArrowType,
+  EdgeLineStyle,
+} from '../model/diagram';
 import type { EdgeStylePatch } from '../model/operations';
 import { CLASS_RELATION_KINDS, RELATION_MEANING, relationOf } from '../model/classRelations';
 
@@ -29,7 +35,11 @@ export interface EdgeStyleBarProps {
 }
 
 /** Diagram klas zna dwa rodzaje linii: ciągłą i przerywaną (`..`). */
-const CLASS_LINE_STYLES: Array<{ value: EdgeLineStyle | 'invisible'; label: string; title: string }> = [
+const CLASS_LINE_STYLES: Array<{
+  value: EdgeLineStyle | 'invisible';
+  label: string;
+  title: string;
+}> = [
   { value: 'solid', label: 'ciągła', title: 'A -- B' },
   { value: 'dotted', label: 'przerywana', title: 'A .. B — zależność, realizacja' },
 ];
@@ -58,33 +68,61 @@ const UML_ENDS: Array<{ value: EdgeArrowType; label: string; title: string }> = 
 ];
 
 /** Strony relacji w kolejności semantycznej — do podpisu w pasku. */
-function relationSides(edge: DiagramEdge, relation: ClassRelationKind): { from: string; to: string } {
+function relationSides(
+  edge: DiagramEdge,
+  relation: ClassRelationKind
+): { from: string; to: string } {
   const endAtSource = edge.relationEnd
     ? edge.relationEnd === 'source'
     : edge.arrow === 'none' && !!edge.meta?.startArrow;
-  const endAtFrom = relation === 'inheritance' || relation === 'realization'
-    || relation === 'composition' || relation === 'aggregation';
+  const endAtFrom =
+    relation === 'inheritance' ||
+    relation === 'realization' ||
+    relation === 'composition' ||
+    relation === 'aggregation';
   const mainIsSource = endAtFrom ? endAtSource : !endAtSource;
   return mainIsSource
     ? { from: edge.source, to: edge.target }
     : { from: edge.target, to: edge.source };
 }
 
-const field: CSSProperties = { fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 };
-const input: CSSProperties = { fontSize: 11, padding: '2px 4px', borderRadius: 4, border: '1px solid #cbd5e1', background: '#fff' };
+const field: CSSProperties = {
+  fontSize: 11,
+  color: '#64748b',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 4,
+};
+const input: CSSProperties = {
+  fontSize: 11,
+  padding: '2px 4px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+};
 
-export function EdgeStyleBar({ edge, kind, onChange, onReverse, onRelation, onSwapSides }: EdgeStyleBarProps) {
+export function EdgeStyleBar({
+  edge,
+  kind,
+  onChange,
+  onReverse,
+  onRelation,
+  onSwapSides,
+}: EdgeStyleBarProps) {
   // W diagramie stanów Mermaid rysuje wyłącznie `-->`; wszystko inne i tak by
   // przy zapisie zniknęło.
   const stylesSupported = kind !== 'state';
-  const unsupported = stylesSupported ? undefined : 'Mermaid w diagramie stanów rysuje tylko zwykłe strzałki';
+  const unsupported = stylesSupported
+    ? undefined
+    : 'Mermaid w diagramie stanów rysuje tylko zwykłe strzałki';
   // Diagram klas ma własny zestaw zakończeń (UML) i tylko dwa style linii;
   // „gruba" i „niewidzialna" nie mają tam odpowiednika w składni.
   const isClass = kind === 'class';
   const lineOptions = isClass ? CLASS_LINE_STYLES : LINE_STYLES;
   const endOptions = isClass ? UML_ENDS : ENDS;
 
-  const lineValue: EdgeLineStyle | 'invisible' = edge.meta?.invisible === 'true' ? 'invisible' : edge.lineStyle;
+  const lineValue: EdgeLineStyle | 'invisible' =
+    edge.meta?.invisible === 'true' ? 'invisible' : edge.lineStyle;
   const startArrow = (edge.meta?.startArrow as EdgeArrowType | undefined) ?? 'none';
 
   // W diagramie klas o wyglądzie decyduje RODZAJ relacji, a nie odwrotnie —
@@ -103,13 +141,20 @@ export function EdgeStyleBar({ edge, kind, onChange, onReverse, onRelation, onSw
             onChange={(e) => onRelation(e.target.value as ClassRelationKind)}
           >
             {CLASS_RELATION_KINDS.map((k) => (
-              <option key={k} value={k}>{RELATION_MEANING[k].label}</option>
+              <option key={k} value={k}>
+                {RELATION_MEANING[k].label}
+              </option>
             ))}
           </select>
         </label>
 
         {onSwapSides && (
-          <button type="button" style={{ ...input, cursor: 'pointer' }} onClick={onSwapSides} title="Zamień strony relacji">
+          <button
+            type="button"
+            style={{ ...input, cursor: 'pointer' }}
+            onClick={onSwapSides}
+            title="Zamień strony relacji"
+          >
             Zamień strony
           </button>
         )}
@@ -117,7 +162,8 @@ export function EdgeStyleBar({ edge, kind, onChange, onReverse, onRelation, onSw
         {/* Kto jest kim w tej relacji — bez tego trzeba by pamiętać, po której
             stronie stoi nadklasa, a po której podklasa. */}
         <span style={{ fontSize: 11, color: '#475569' }}>
-          {relationSides(edge, relation).from} <em style={{ color: '#94a3b8' }}>({meaning.from})</em>
+          {relationSides(edge, relation).from}{' '}
+          <em style={{ color: '#94a3b8' }}>({meaning.from})</em>
           {' → '}
           {relationSides(edge, relation).to} <em style={{ color: '#94a3b8' }}>({meaning.to})</em>
         </span>
@@ -137,12 +183,16 @@ export function EdgeStyleBar({ edge, kind, onChange, onReverse, onRelation, onSw
             const next = e.target.value as EdgeLineStyle | 'invisible';
             // „Niewidzialna" nie jest stylem linii, tylko osobnym rodzajem
             // połączenia — przy powrocie trzeba ją zdjąć, nie nadpisać.
-            onChange(next === 'invisible'
-              ? { invisible: true }
-              : { lineStyle: next, invisible: false });
+            onChange(
+              next === 'invisible' ? { invisible: true } : { lineStyle: next, invisible: false }
+            );
           }}
         >
-          {lineOptions.map((s) => <option key={s.value} value={s.value} title={s.title}>{s.label}</option>)}
+          {lineOptions.map((s) => (
+            <option key={s.value} value={s.value} title={s.title}>
+              {s.label}
+            </option>
+          ))}
         </select>
       </label>
 
@@ -154,11 +204,18 @@ export function EdgeStyleBar({ edge, kind, onChange, onReverse, onRelation, onSw
           disabled={!stylesSupported}
           onChange={(e) => onChange({ arrow: e.target.value as EdgeArrowType })}
         >
-          {endOptions.map((a) => <option key={a.value} value={a.value} title={a.title}>{a.label}</option>)}
+          {endOptions.map((a) => (
+            <option key={a.value} value={a.value} title={a.title}>
+              {a.label}
+            </option>
+          ))}
         </select>
       </label>
 
-      <label style={field} title={unsupported ?? 'Zakończenie po stronie źródła (`<-->`, `o--o`, `x--x`)'}>
+      <label
+        style={field}
+        title={unsupported ?? 'Zakończenie po stronie źródła (`<-->`, `o--o`, `x--x`)'}
+      >
         Początek
         <select
           style={input}
@@ -166,11 +223,18 @@ export function EdgeStyleBar({ edge, kind, onChange, onReverse, onRelation, onSw
           disabled={!stylesSupported}
           onChange={(e) => onChange({ startArrow: e.target.value as EdgeArrowType })}
         >
-          {endOptions.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+          {endOptions.map((a) => (
+            <option key={a.value} value={a.value}>
+              {a.label}
+            </option>
+          ))}
         </select>
       </label>
 
-      <label style={field} title={unsupported ?? 'Długość linii — w Mermaidzie odsuwa węzły od siebie'}>
+      <label
+        style={field}
+        title={unsupported ?? 'Długość linii — w Mermaidzie odsuwa węzły od siebie'}
+      >
         Długość
         <input
           type="number"
@@ -196,7 +260,9 @@ export function EdgeStyleBar({ edge, kind, onChange, onReverse, onRelation, onSw
         Odwróć kierunek
       </button>
 
-      <span style={{ fontSize: 11, color: '#94a3b8' }}>{edge.source} → {edge.target}</span>
+      <span style={{ fontSize: 11, color: '#94a3b8' }}>
+        {edge.source} → {edge.target}
+      </span>
       {unsupported && <span style={{ fontSize: 11, color: '#94a3b8' }}>({unsupported})</span>}
     </div>
   );

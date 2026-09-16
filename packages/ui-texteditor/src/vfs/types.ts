@@ -8,11 +8,15 @@ export type VfsProjectLanguage = 'MicroPython' | 'Python' | 'C++' | string;
 
 export function platformToLanguage(platform: string): VfsProjectLanguage {
   switch (platform) {
-    case 'uPython': return 'MicroPython';
-    case 'pygame':  return 'Python';
+    case 'uPython':
+      return 'MicroPython';
+    case 'pygame':
+      return 'Python';
     case 'Arduino':
-    case 'PicoSdk': return 'C++';
-    default:        return platform;
+    case 'PicoSdk':
+      return 'C++';
+    default:
+      return platform;
   }
 }
 
@@ -66,7 +70,7 @@ export interface VfsExplorerProps {
   onDialogAction?: (
     actionId: string,
     context: VfsProjectContext,
-    saveProjectJson: (updates: Record<string, unknown>) => Promise<void>,
+    saveProjectJson: (updates: Record<string, unknown>) => Promise<void>
   ) => void;
   /**
    * Called for every output line produced by a project action.

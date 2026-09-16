@@ -78,7 +78,13 @@ function przerysuj(canvas: HTMLCanvasElement, strokes: InkStroke[], biale: boole
 }
 
 export function InkCanvas({
-  mode, recognize, onRecognized, onStrokesChange, value, readOnly, height = 160,
+  mode,
+  recognize,
+  onRecognized,
+  onStrokesChange,
+  value,
+  readOnly,
+  height = 160,
 }: InkCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokesRef = useRef<InkStroke[]>(value ?? []);
@@ -172,8 +178,12 @@ export function InkCanvas({
   }, [recognize, mode, onRecognized]);
 
   const przycisk: CSSProperties = {
-    fontSize: 12, padding: '4px 10px', border: '1px solid #cbd5e1',
-    borderRadius: 6, background: '#fff', cursor: 'pointer',
+    fontSize: 12,
+    padding: '4px 10px',
+    border: '1px solid #cbd5e1',
+    borderRadius: 6,
+    background: '#fff',
+    cursor: 'pointer',
   };
 
   return (
@@ -187,10 +197,14 @@ export function InkCanvas({
         onPointerUp={koniec}
         onPointerLeave={koniec}
         style={{
-          width: '100%', height, background: '#fff',
-          border: '1px solid #cbd5e1', borderRadius: 6,
+          width: '100%',
+          height,
+          background: '#fff',
+          border: '1px solid #cbd5e1',
+          borderRadius: 6,
           // Bez tego przeciągnięcie rysikiem przewija stronę zamiast pisać.
-          touchAction: 'none', cursor: readOnly ? 'default' : 'crosshair',
+          touchAction: 'none',
+          cursor: readOnly ? 'default' : 'crosshair',
         }}
       />
 

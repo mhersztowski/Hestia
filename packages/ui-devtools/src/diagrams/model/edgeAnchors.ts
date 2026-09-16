@@ -78,11 +78,21 @@ export function assignEdgeAnchors(doc: DiagramDocument): Map<string, EdgeAnchors
     const dy = to.y - from.y;
     const vertical = Math.abs(dy) >= Math.abs(dx);
 
-    const sourceSide: AnchorSide = vertical ? (dy > 0 ? 'b' : 't') : (dx > 0 ? 'r' : 'l');
-    const targetSide: AnchorSide = vertical ? (dy > 0 ? 't' : 'b') : (dx > 0 ? 'l' : 'r');
+    const sourceSide: AnchorSide = vertical ? (dy > 0 ? 'b' : 't') : dx > 0 ? 'r' : 'l';
+    const targetSide: AnchorSide = vertical ? (dy > 0 ? 't' : 'b') : dx > 0 ? 'l' : 'r';
 
-    placements.push({ edgeId: edge.id, side: sourceSide, along: vertical ? to.x : to.y, role: 'source' });
-    placements.push({ edgeId: edge.id, side: targetSide, along: vertical ? from.x : from.y, role: 'target' });
+    placements.push({
+      edgeId: edge.id,
+      side: sourceSide,
+      along: vertical ? to.x : to.y,
+      role: 'source',
+    });
+    placements.push({
+      edgeId: edge.id,
+      side: targetSide,
+      along: vertical ? from.x : from.y,
+      role: 'target',
+    });
   }
 
   // Grupujemy po „węzeł + bok" i rozdajemy sloty w kolejności położenia.
@@ -108,9 +118,10 @@ export function assignEdgeAnchors(doc: DiagramDocument): Map<string, EdgeAnchors
       // Przy większej liczbie krawędzi niż slotów rozkładamy je równomiernie i
       // pozwalamy się powtórzyć — lepiej dwie linie w jednym punkcie niż
       // wszystkie w środku boku.
-      const slot = bucket.length <= ANCHORS_PER_SIDE
-        ? Math.floor((ANCHORS_PER_SIDE - bucket.length) / 2) + index
-        : Math.round((index / (bucket.length - 1)) * (ANCHORS_PER_SIDE - 1));
+      const slot =
+        bucket.length <= ANCHORS_PER_SIDE
+          ? Math.floor((ANCHORS_PER_SIDE - bucket.length) / 2) + index
+          : Math.round((index / (bucket.length - 1)) * (ANCHORS_PER_SIDE - 1));
       put(placement.edgeId, placement.role, `${placement.side}${slot}`);
     });
   }

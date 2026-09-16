@@ -5,19 +5,22 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-10-spadek-swobodny.md';
-const pliki = [DOK, '3-9-zgodnosc-jednostek.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-9-zgodnosc-jednostek.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 
@@ -35,13 +38,20 @@ describe('3-10 w czytniku', () => {
 
   it('wprowadza dwa hasła, oba definiowane na tych stronach', () => {
     for (const id of ['rh1-poj-spadek-swobodny', 'rh1-poj-przyspieszenie-ziemskie']) {
-      const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
+      const cel = resolveReference(
+        id,
+        { anchors: index.anchors, formulaHome: index.formulaHome },
+        DOK
+      );
       expect(cel.found, id).toBe(true);
       expect(cel.path, id).toBe('Slownik.md');
     }
-    expect(bodies['Slownik.md']).toContain('@source 3-10, s. 57 (skorowidz: „spadek swobodny 57 i n.")');
-    expect(bodies['Slownik.md'])
-      .toContain('@source 3-10, s. 58 (skorowidz: „przyspieszenie — ziemskie 58, 389, 395 i n.")');
+    expect(bodies['Slownik.md']).toContain(
+      '@source 3-10, s. 57 (skorowidz: „spadek swobodny 57 i n.")'
+    );
+    expect(bodies['Slownik.md']).toContain(
+      '@source 3-10, s. 58 (skorowidz: „przyspieszenie — ziemskie 58, 389, 395 i n.")'
+    );
   });
 
   /**
@@ -76,8 +86,7 @@ describe('3-10 w czytniku', () => {
       .filter((e) => (e.textContent ?? '').startsWith('Tytuł, który Resnick'))
       .pop();
     expect(nota?.textContent).not.toContain('*');
-    expect([...nota!.querySelectorAll('em')].map((e) => e.textContent))
-      .toContain('Discorsi');
+    expect([...nota!.querySelectorAll('em')].map((e) => e.textContent)).toContain('Discorsi');
   });
 
   // Jedyna notka w tym podrozdziale: Arystotelesa książka cytuje i sama obala,
@@ -110,13 +119,16 @@ describe('3-10 w czytniku', () => {
 
     const cytat = widok().container.querySelector('blockquote')?.textContent ?? '';
     expect(cytat.indexOf('D. R. Tate')).toBeGreaterThanOrEqual(0);
-    expect(cytat.indexOf('Galileo’s Discovery') > cytat.indexOf('D. R. Tate')
-      || cytat.indexOf("Galileo's Discovery") > cytat.indexOf('D. R. Tate')).toBe(true);
+    expect(
+      cytat.indexOf('Galileo’s Discovery') > cytat.indexOf('D. R. Tate') ||
+        cytat.indexOf("Galileo's Discovery") > cytat.indexOf('D. R. Tate')
+    ).toBe(true);
   });
 
   it('wyróżnienia druku zostają wyróżnieniami', () => {
-    const em = [...widok().container.querySelectorAll('em')]
-      .map((e) => (e.textContent ?? '').replace(/\s+/g, ' '));
+    const em = [...widok().container.querySelectorAll('em')].map((e) =>
+      (e.textContent ?? '').replace(/\s+/g, ' ')
+    );
     // Pojęcie wprowadzane kursywą — i jednocześnie odsyłacz do hasła.
     expect(em).toContain('spadkiem swobodnym');
     expect(em.some((t) => t.startsWith('Dialog o dwu najważniejszych'))).toBe(true);

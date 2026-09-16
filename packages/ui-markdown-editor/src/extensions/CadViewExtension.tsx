@@ -33,9 +33,16 @@ import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import ViewInArOutlinedIcon from '@mui/icons-material/ViewInArOutlined';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
 import {
-  CadViewerPage, Cad3dViewerPage, Scene3dViewerPage, ElectronicsViewerPage,
-  MapViewerPage, NotesViewerPage, LegoViewerPage, PcbViewerPage,
-  setViewerApiBase, setViewerUserId,
+  CadViewerPage,
+  Cad3dViewerPage,
+  Scene3dViewerPage,
+  ElectronicsViewerPage,
+  MapViewerPage,
+  NotesViewerPage,
+  LegoViewerPage,
+  PcbViewerPage,
+  setViewerApiBase,
+  setViewerUserId,
 } from '@hestia/ui-scene3d/cad-viewer';
 import MapIcon from '@mui/icons-material/Map';
 import GestureIcon from '@mui/icons-material/Gesture';
@@ -45,7 +52,8 @@ import { useMdViewSettings } from '../mdViewSettings';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type CadViewMode = 'cad' | 'cad3d' | 'scene3d' | 'electronics' | 'pcb' | 'map' | 'notes' | 'lego';
+export type CadViewMode =
+  'cad' | 'cad3d' | 'scene3d' | 'electronics' | 'pcb' | 'map' | 'notes' | 'lego';
 
 const MODE_LABELS: Record<CadViewMode, string> = {
   cad: 'CAD 2D',
@@ -92,19 +100,24 @@ function setCadBaseUrl(url: string) {
 // ── Project fetcher ──────────────────────────────────────────────────────────
 
 interface ProjectEntry {
-  name: string;   // display label
-  path: string;   // full VFS path (without extension) — stored in embed attrs
+  name: string; // display label
+  path: string; // full VFS path (without extension) — stored in embed attrs
 }
 
-const ELEC_EXT  = '.elec.json';
-const CAD_EXT   = '.cad.json';
-const MAP_EXT   = '.map.json';
+const ELEC_EXT = '.elec.json';
+const CAD_EXT = '.cad.json';
+const MAP_EXT = '.map.json';
 const NOTES_EXT = '.notes.json';
-const LEGO_EXT  = '.lego.json';
+const LEGO_EXT = '.lego.json';
 
 // Non-scene3d modes read `/users/{user}/projects` filtered by this extension.
 const EXT_BY_MODE: Partial<Record<CadViewMode, string>> = {
-  cad: CAD_EXT, cad3d: CAD_EXT, electronics: ELEC_EXT, map: MAP_EXT, notes: NOTES_EXT, lego: LEGO_EXT,
+  cad: CAD_EXT,
+  cad3d: CAD_EXT,
+  electronics: ELEC_EXT,
+  map: MAP_EXT,
+  notes: NOTES_EXT,
+  lego: LEGO_EXT,
 };
 
 async function fetchProjects(mode: CadViewMode): Promise<ProjectEntry[]> {
@@ -120,59 +133,96 @@ async function fetchProjects(mode: CadViewMode): Promise<ProjectEntry[]> {
       const rels: string[] = []; // ścieżki plików względem root, bez rozszerzenia
       const walk = async (dirPath: string, rel: string, depth: number): Promise<void> => {
         if (depth > 8) return;
-        const res = await fetch(`${base}/api/vfs/readdir?path=${encodeURIComponent(dirPath)}`, { signal: AbortSignal.timeout(6000) });
+        const res = await fetch(`${base}/api/vfs/readdir?path=${encodeURIComponent(dirPath)}`, {
+          signal: AbortSignal.timeout(6000),
+        });
         if (!res.ok) return;
         const data = (await res.json()) as { entries?: { name: string; type: number }[] };
-        const dirs = (data.entries ?? []).filter(e => e.type === 2);
+        const dirs = (data.entries ?? []).filter((e) => e.type === 2);
         for (const e of data.entries ?? []) {
-          if (e.type !== 2 && e.name.endsWith(ext)) rels.push(rel ? `${rel}/${e.name.slice(0, -ext.length)}` : e.name.slice(0, -ext.length));
+          if (e.type !== 2 && e.name.endsWith(ext))
+            rels.push(
+              rel ? `${rel}/${e.name.slice(0, -ext.length)}` : e.name.slice(0, -ext.length)
+            );
         }
-        for (const d of dirs) await walk(`${dirPath}/${d.name}`, rel ? `${rel}/${d.name}` : d.name, depth + 1);
+        for (const d of dirs)
+          await walk(`${dirPath}/${d.name}`, rel ? `${rel}/${d.name}` : d.name, depth + 1);
       };
       await walk(root, '', 0);
       const decode = (b64: string): string => {
-        try { const bin = atob(b64); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); return new TextDecoder().decode(bytes); } catch { return ''; }
+        try {
+          const bin = atob(b64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          return new TextDecoder().decode(bytes);
+        } catch {
+          return '';
+        }
       };
       const entries: ProjectEntry[] = [];
-      await Promise.all(rels.map(async (rel) => {
-        const vfsFile = `users/${userId}/projects/${rel}`;
-        // Zawsze pokaż projekt (zakładki Sheet/PCB/3D w viewerze), nawet gdy odczyt treści zawiedzie.
-        entries.push({ name: `${rel}/Project (Sheet · PCB · 3D)`, path: `${vfsFile}/project` });
-        try {
-          const r = await fetch(`${base}/api/vfs/readFile?path=${encodeURIComponent(`/users/${userId}/projects/${rel}${ext}`)}`, { signal: AbortSignal.timeout(6000) });
-          if (!r.ok) return;
-          const rd = (await r.json()) as { data?: string };
-          const d = JSON.parse(decode(rd.data ?? '')) as {
-            symbols?: { id: string; name?: string }[];
-            footprints?: { id: string; name?: string }[];
-          };
-          // Konkretny symbol/footprint (viewer pokaże go + powiązany element).
-          for (const s of d.symbols ?? []) entries.push({ name: `${rel}/Symbols/${s.name || s.id}`, path: `${vfsFile}/symbol/${s.id}` });
-          for (const s of d.footprints ?? []) entries.push({ name: `${rel}/Footprints/${s.name || s.id}`, path: `${vfsFile}/footprint/${s.id}` });
-        } catch { /* pokaż przynajmniej wpis projektu */ }
-      }));
+      await Promise.all(
+        rels.map(async (rel) => {
+          const vfsFile = `users/${userId}/projects/${rel}`;
+          // Zawsze pokaż projekt (zakładki Sheet/PCB/3D w viewerze), nawet gdy odczyt treści zawiedzie.
+          entries.push({ name: `${rel}/Project (Sheet · PCB · 3D)`, path: `${vfsFile}/project` });
+          try {
+            const r = await fetch(
+              `${base}/api/vfs/readFile?path=${encodeURIComponent(`/users/${userId}/projects/${rel}${ext}`)}`,
+              { signal: AbortSignal.timeout(6000) }
+            );
+            if (!r.ok) return;
+            const rd = (await r.json()) as { data?: string };
+            const d = JSON.parse(decode(rd.data ?? '')) as {
+              symbols?: { id: string; name?: string }[];
+              footprints?: { id: string; name?: string }[];
+            };
+            // Konkretny symbol/footprint (viewer pokaże go + powiązany element).
+            for (const s of d.symbols ?? [])
+              entries.push({
+                name: `${rel}/Symbols/${s.name || s.id}`,
+                path: `${vfsFile}/symbol/${s.id}`,
+              });
+            for (const s of d.footprints ?? [])
+              entries.push({
+                name: `${rel}/Footprints/${s.name || s.id}`,
+                path: `${vfsFile}/footprint/${s.id}`,
+              });
+          } catch {
+            /* pokaż przynajmniej wpis projektu */
+          }
+        })
+      );
       entries.sort((a, b) => a.name.localeCompare(b.name));
       return entries;
     } else if (mode === 'scene3d') {
       // Flat list: project/file — each JSON file is a separate entry
-      const projRes = await fetch(`${base}/api/scene3d/projects?user=${userId}`, { signal: AbortSignal.timeout(4000) });
+      const projRes = await fetch(`${base}/api/scene3d/projects?user=${userId}`, {
+        signal: AbortSignal.timeout(4000),
+      });
       if (!projRes.ok) return [];
       const projData = (await projRes.json()) as { projects?: { name: string }[] };
       const projects = projData.projects ?? [];
       const entries: ProjectEntry[] = [];
-      await Promise.all(projects.map(async proj => {
-        try {
-          const fileRes = await fetch(`${base}/api/scene3d/projects/${encodeURIComponent(proj.name)}?user=${userId}`, { signal: AbortSignal.timeout(4000) });
-          if (!fileRes.ok) return;
-          const fileData = (await fileRes.json()) as { files?: { name: string }[] };
-          for (const f of fileData.files ?? []) {
-            entries.push({
-              name: `${proj.name}/${f.name}`,
-              path: `users/${userId}/scene3d/${proj.name}/${f.name}`,
-            });
+      await Promise.all(
+        projects.map(async (proj) => {
+          try {
+            const fileRes = await fetch(
+              `${base}/api/scene3d/projects/${encodeURIComponent(proj.name)}?user=${userId}`,
+              { signal: AbortSignal.timeout(4000) }
+            );
+            if (!fileRes.ok) return;
+            const fileData = (await fileRes.json()) as { files?: { name: string }[] };
+            for (const f of fileData.files ?? []) {
+              entries.push({
+                name: `${proj.name}/${f.name}`,
+                path: `users/${userId}/scene3d/${proj.name}/${f.name}`,
+              });
+            }
+          } catch {
+            /* skip project on error */
           }
-        } catch { /* skip project on error */ }
-      }));
+        })
+      );
       return entries;
     } else {
       // Walk `/users/{user}/projects` recursively so files nested in subfolders
@@ -183,10 +233,12 @@ async function fetchProjects(mode: CadViewMode): Promise<ProjectEntry[]> {
       const out: ProjectEntry[] = [];
       const walk = async (dirPath: string, rel: string, depth: number): Promise<void> => {
         if (depth > 8) return;
-        const res = await fetch(`${base}/api/vfs/readdir?path=${encodeURIComponent(dirPath)}`, { signal: AbortSignal.timeout(6000) });
+        const res = await fetch(`${base}/api/vfs/readdir?path=${encodeURIComponent(dirPath)}`, {
+          signal: AbortSignal.timeout(6000),
+        });
         if (!res.ok) return;
         const data = (await res.json()) as { entries: { name: string; type: number }[] };
-        const dirs = (data.entries ?? []).filter(e => e.type === 2);
+        const dirs = (data.entries ?? []).filter((e) => e.type === 2);
         for (const e of data.entries ?? []) {
           if (e.type !== 2 && e.name.endsWith(ext)) {
             const bare = e.name.slice(0, -ext.length);
@@ -220,21 +272,30 @@ function buildViewerUrl(mode: CadViewMode, vfsPath: string): string {
 function SettingsDialog({ open, onClose }: { open: boolean; onClose(): void }) {
   const [url, setUrl] = useState(getCadBaseUrl);
 
-  const handleSave = () => { setCadBaseUrl(url.trim() || DEFAULT_CAD_URL); onClose(); };
+  const handleSave = () => {
+    setCadBaseUrl(url.trim() || DEFAULT_CAD_URL);
+    onClose();
+  };
 
   return (
     <Dialog open={open} onClose={handleSave} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+      <DialogTitle
+        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}
+      >
         <Typography fontWeight={600}>CAD App Settings</Typography>
-        <IconButton size="small" onClick={handleSave}><CloseIcon fontSize="small" /></IconButton>
+        <IconButton size="small" onClick={handleSave}>
+          <CloseIcon fontSize="small" />
+        </IconButton>
       </DialogTitle>
       <DialogContent sx={{ pt: '8px !important' }}>
         <TextField
           label="CAD App base URL"
           value={url}
-          onChange={e => setUrl(e.target.value)}
+          onChange={(e) => setUrl(e.target.value)}
           onBlur={handleSave}
-          onKeyDown={e => { if (e.key === 'Enter') handleSave(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSave();
+          }}
           size="small"
           fullWidth
           placeholder={DEFAULT_CAD_URL}
@@ -249,7 +310,11 @@ function SettingsDialog({ open, onClose }: { open: boolean; onClose(): void }) {
 
 // ── Project tree (folders → files) ────────────────────────────────────────────
 
-interface TreeNode { name: string; entry?: ProjectEntry; children: TreeNode[] }
+interface TreeNode {
+  name: string;
+  entry?: ProjectEntry;
+  children: TreeNode[];
+}
 
 /** Build a folder tree from entries whose `name` is a `/`-separated path. */
 function buildProjectTree(entries: ProjectEntry[]): TreeNode {
@@ -259,27 +324,47 @@ function buildProjectTree(entries: ProjectEntry[]): TreeNode {
     let cur = root;
     segs.forEach((seg, i) => {
       const leaf = i === segs.length - 1;
-      let child = cur.children.find(c => c.name === seg && !!c.entry === leaf);
-      if (!child) { child = { name: seg, children: [] }; cur.children.push(child); }
+      let child = cur.children.find((c) => c.name === seg && !!c.entry === leaf);
+      if (!child) {
+        child = { name: seg, children: [] };
+        cur.children.push(child);
+      }
       if (leaf) child.entry = entry;
       cur = child;
     });
   }
   const sortRec = (n: TreeNode) => {
-    n.children.sort((a, b) => (a.entry ? 1 : 0) - (b.entry ? 1 : 0) || a.name.localeCompare(b.name));
+    n.children.sort(
+      (a, b) => (a.entry ? 1 : 0) - (b.entry ? 1 : 0) || a.name.localeCompare(b.name)
+    );
     n.children.forEach(sortRec);
   };
   sortRec(root);
   return root;
 }
 
-function TreeRow({ node, depth, icon, selectedPath, onPick }: {
-  node: TreeNode; depth: number; icon: React.ReactNode; selectedPath: string; onPick: (e: ProjectEntry) => void;
+function TreeRow({
+  node,
+  depth,
+  icon,
+  selectedPath,
+  onPick,
+}: {
+  node: TreeNode;
+  depth: number;
+  icon: React.ReactNode;
+  selectedPath: string;
+  onPick: (e: ProjectEntry) => void;
 }) {
   const [open, setOpen] = useState(true);
   if (node.entry) {
     return (
-      <ListItemButton dense selected={node.entry.path === selectedPath} onClick={() => onPick(node.entry!)} sx={{ pl: 1 + depth * 1.5, py: 0.25 }}>
+      <ListItemButton
+        dense
+        selected={node.entry.path === selectedPath}
+        onClick={() => onPick(node.entry!)}
+        sx={{ pl: 1 + depth * 1.5, py: 0.25 }}
+      >
         <ListItemIcon sx={{ minWidth: 28 }}>{icon}</ListItemIcon>
         <ListItemText primary={node.name} primaryTypographyProps={{ fontSize: 12 }} />
       </ListItemButton>
@@ -287,14 +372,34 @@ function TreeRow({ node, depth, icon, selectedPath, onPick }: {
   }
   return (
     <>
-      <ListItemButton dense onClick={() => setOpen(o => !o)} sx={{ pl: 1 + depth * 1.5, py: 0.25 }}>
-        <ListItemIcon sx={{ minWidth: 22 }}>{open ? <ExpandMoreIcon sx={{ fontSize: 18 }} /> : <ChevronRightIcon sx={{ fontSize: 18 }} />}</ListItemIcon>
+      <ListItemButton
+        dense
+        onClick={() => setOpen((o) => !o)}
+        sx={{ pl: 1 + depth * 1.5, py: 0.25 }}
+      >
+        <ListItemIcon sx={{ minWidth: 22 }}>
+          {open ? (
+            <ExpandMoreIcon sx={{ fontSize: 18 }} />
+          ) : (
+            <ChevronRightIcon sx={{ fontSize: 18 }} />
+          )}
+        </ListItemIcon>
         <FolderIcon sx={{ fontSize: 16, mr: 0.75, color: 'warning.light', flexShrink: 0 }} />
-        <ListItemText primary={node.name} primaryTypographyProps={{ fontSize: 12, fontWeight: 600 }} />
+        <ListItemText
+          primary={node.name}
+          primaryTypographyProps={{ fontSize: 12, fontWeight: 600 }}
+        />
       </ListItemButton>
       <Collapse in={open} unmountOnExit>
         {node.children.map((c, i) => (
-          <TreeRow key={`${c.name}-${i}`} node={c} depth={depth + 1} icon={icon} selectedPath={selectedPath} onPick={onPick} />
+          <TreeRow
+            key={`${c.name}-${i}`}
+            node={c}
+            depth={depth + 1}
+            icon={icon}
+            selectedPath={selectedPath}
+            onPick={onPick}
+          />
         ))}
       </Collapse>
     </>
@@ -325,19 +430,27 @@ function ProjectPickerDialog({ open, initialMode, initialPath, onClose, onConfir
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    fetchProjects(mode).then(setProjects).finally(() => setLoading(false));
+    fetchProjects(mode)
+      .then(setProjects)
+      .finally(() => setLoading(false));
   }, [open, mode]);
 
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+        <DialogTitle
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}
+        >
           <Typography fontWeight={600}>Select CAD Project</Typography>
           <Box sx={{ display: 'flex', gap: 0.5 }}>
             <Tooltip title="CAD app URL settings">
-              <IconButton size="small" onClick={() => setSettingsOpen(true)}><SettingsIcon fontSize="small" /></IconButton>
+              <IconButton size="small" onClick={() => setSettingsOpen(true)}>
+                <SettingsIcon fontSize="small" />
+              </IconButton>
             </Tooltip>
-            <IconButton size="small" onClick={onClose}><CloseIcon fontSize="small" /></IconButton>
+            <IconButton size="small" onClick={onClose}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent sx={{ pt: 0 }}>
@@ -350,10 +463,19 @@ function ProjectPickerDialog({ open, initialMode, initialPath, onClose, onConfir
             variant="scrollable"
             scrollButtons="auto"
             allowScrollButtonsMobile
-            sx={{ mb: 1.5, '& .MuiTab-root': { minHeight: 32, fontSize: 11, px: 0.75, minWidth: 'auto' } }}
+            sx={{
+              mb: 1.5,
+              '& .MuiTab-root': { minHeight: 32, fontSize: 11, px: 0.75, minWidth: 'auto' },
+            }}
           >
-            {(Object.keys(MODE_LABELS) as CadViewMode[]).map(m => (
-              <Tab key={m} value={m} label={MODE_LABELS[m]} icon={MODE_ICONS[m] as React.ReactElement} iconPosition="start" />
+            {(Object.keys(MODE_LABELS) as CadViewMode[]).map((m) => (
+              <Tab
+                key={m}
+                value={m}
+                label={MODE_LABELS[m]}
+                icon={MODE_ICONS[m] as React.ReactElement}
+                iconPosition="start"
+              />
             ))}
           </Tabs>
 
@@ -362,21 +484,38 @@ function ProjectPickerDialog({ open, initialMode, initialPath, onClose, onConfir
               <CircularProgress size={24} />
             </Box>
           ) : (
-            <List dense sx={{ maxHeight: 260, overflow: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+            <List
+              dense
+              sx={{
+                maxHeight: 260,
+                overflow: 'auto',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+              }}
+            >
               {projects.length === 0 ? (
                 <ListItemButton disabled>
-                  <ListItemText primary="No projects found" secondary="Check the CAD app URL in settings" />
+                  <ListItemText
+                    primary="No projects found"
+                    secondary="Check the CAD app URL in settings"
+                  />
                 </ListItemButton>
-              ) : projectTree.children.map((c, i) => (
-                <TreeRow
-                  key={`${c.name}-${i}`}
-                  node={c}
-                  depth={0}
-                  icon={MODE_ICONS[mode]}
-                  selectedPath={initialPath}
-                  onPick={(e) => { onConfirm(mode, e.path); onClose(); }}
-                />
-              ))}
+              ) : (
+                projectTree.children.map((c, i) => (
+                  <TreeRow
+                    key={`${c.name}-${i}`}
+                    node={c}
+                    depth={0}
+                    icon={MODE_ICONS[mode]}
+                    selectedPath={initialPath}
+                    onPick={(e) => {
+                      onConfirm(mode, e.path);
+                      onClose();
+                    }}
+                  />
+                ))
+              )}
             </List>
           )}
         </DialogContent>
@@ -406,7 +545,9 @@ function baseFromUrl(url: string): string {
 
 // „Change project" wyzwalane z menu bloczka (⋮): NodeView nasłuchuje i otwiera picker.
 export const CADVIEW_EDIT_EVENT = 'md-cadview-edit';
-export interface CadViewEditEventDetail { pos: number }
+export interface CadViewEditEventDetail {
+  pos: number;
+}
 
 /** Zewnętrzny URL „Open in CAD app" wyliczony z atrybutów bloczka cadView. */
 export function getCadExternalUrl(attrs: { mode?: string; path?: string; url?: string }): string {
@@ -426,21 +567,37 @@ const viewerDarkTheme = createTheme({ palette: { mode: 'dark' } });
 
 /** Renders the appropriate core-cad-viewer page for `mode`, reading scenes from
  *  the CAD backend origin (cross-origin — needs CORS on the backend). */
-function NativeCadViewer({ mode, vfsPath, apiBase }: { mode: CadViewMode; vfsPath: string; apiBase: string }) {
+function NativeCadViewer({
+  mode,
+  vfsPath,
+  apiBase,
+}: {
+  mode: CadViewMode;
+  vfsPath: string;
+  apiBase: string;
+}) {
   // Point the viewer's VFS client at the CAD backend before it fetches.
   setViewerApiBase(apiBase);
   setViewerUserId('default');
   const common = { vfsPath };
   switch (mode) {
-    case 'cad':         return <CadViewerPage {...common} />;
-    case 'cad3d':       return <Cad3dViewerPage {...common} />;
-    case 'electronics': return <ElectronicsViewerPage {...common} />;
-    case 'pcb':         return <PcbViewerPage {...common} />;
-    case 'map':         return <MapViewerPage {...common} />;
-    case 'notes':       return <NotesViewerPage {...common} />;
-    case 'lego':        return <LegoViewerPage {...common} />;
+    case 'cad':
+      return <CadViewerPage {...common} />;
+    case 'cad3d':
+      return <Cad3dViewerPage {...common} />;
+    case 'electronics':
+      return <ElectronicsViewerPage {...common} />;
+    case 'pcb':
+      return <PcbViewerPage {...common} />;
+    case 'map':
+      return <MapViewerPage {...common} />;
+    case 'notes':
+      return <NotesViewerPage {...common} />;
+    case 'lego':
+      return <LegoViewerPage {...common} />;
     case 'scene3d':
-    default:            return <Scene3dViewerPage {...common} />;
+    default:
+      return <Scene3dViewerPage {...common} />;
   }
 }
 
@@ -471,9 +628,12 @@ function CadViewNodeView({ node, updateAttributes, editor, getPos }: NodeViewPro
   // External "open in CAD app" link — use the embed's own base when present.
   const externalUrl = vfsPath ? `${apiBase.replace(/\/$/, '')}/viewer/${mode}/${vfsPath}` : '';
 
-  const handleConfirm = useCallback((m: CadViewMode, path: string) => {
-    updateAttributes({ mode: m, path, url: buildViewerUrl(m, path) });
-  }, [updateAttributes]);
+  const handleConfirm = useCallback(
+    (m: CadViewMode, path: string) => {
+      updateAttributes({ mode: m, path, url: buildViewerUrl(m, path) });
+    },
+    [updateAttributes]
+  );
 
   const isEditable = editor.isEditable;
 
@@ -483,40 +643,71 @@ function CadViewNodeView({ node, updateAttributes, editor, getPos }: NodeViewPro
         className="md-cadview-embed"
         contentEditable={false}
         // Widok minimalny: bez ramki i bez marginesów (bloczek „na styk").
-        sx={minimalView
-          ? { overflow: 'hidden', my: 0, bgcolor: 'background.paper' }
-          : { border: '1px solid', borderColor: 'divider', borderRadius: 1, overflow: 'hidden', my: 1, bgcolor: 'background.paper' }}
+        sx={
+          minimalView
+            ? { overflow: 'hidden', my: 0, bgcolor: 'background.paper' }
+            : {
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                overflow: 'hidden',
+                my: 1,
+                bgcolor: 'background.paper',
+              }
+        }
       >
         {/* Header — ukryty w widoku minimalnym (akcje dostępne z menu kontekstowego). */}
         {!minimalView && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.75, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
-          {MODE_ICONS[mode]}
-          <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>
-            {label || <em style={{ opacity: 0.5 }}>No project selected</em>}
-          </Typography>
-          <Chip label={MODE_LABELS[mode]} size="small" sx={{ fontSize: 10, height: 18 }} />
-          {isEditable && (
-            <Tooltip title="Change project">
-              <IconButton size="small" onClick={() => setPickerOpen(true)}>
-                <EditIcon sx={{ fontSize: 14 }} />
-              </IconButton>
-            </Tooltip>
-          )}
-          {externalUrl && (
-            <Tooltip title="Open in CAD app">
-              <IconButton size="small" component="a" href={externalUrl} target="_blank" rel="noopener noreferrer">
-                <OpenInNewIcon sx={{ fontSize: 14 }} />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              px: 1.5,
+              py: 0.75,
+              bgcolor: 'background.default',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            {MODE_ICONS[mode]}
+            <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>
+              {label || <em style={{ opacity: 0.5 }}>No project selected</em>}
+            </Typography>
+            <Chip label={MODE_LABELS[mode]} size="small" sx={{ fontSize: 10, height: 18 }} />
+            {isEditable && (
+              <Tooltip title="Change project">
+                <IconButton size="small" onClick={() => setPickerOpen(true)}>
+                  <EditIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              </Tooltip>
+            )}
+            {externalUrl && (
+              <Tooltip title="Open in CAD app">
+                <IconButton
+                  size="small"
+                  component="a"
+                  href={externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <OpenInNewIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
         )}
 
         {/* Content — native core-cad-viewer render (no iframe). */}
         {vfsPath ? (
           <Box sx={{ position: 'relative', width: '100%', height: 360 }}>
             <ThemeProvider theme={viewerDarkTheme}>
-              <NativeCadViewer key={`${apiBase}:${mode}:${vfsPath}`} mode={mode} vfsPath={vfsPath} apiBase={apiBase} />
+              <NativeCadViewer
+                key={`${apiBase}:${mode}:${vfsPath}`}
+                mode={mode}
+                vfsPath={vfsPath}
+                apiBase={apiBase}
+              />
             </ThemeProvider>
           </Box>
         ) : (
@@ -552,32 +743,37 @@ export const CadViewEmbed = Node.create({
       // `path` is the vfs path (native render). `url` kept for the external
       // "open in CAD app" link + backward-compat with pre-native embeds.
       path: { default: '' },
-      url:  { default: '' },
+      url: { default: '' },
     };
   },
 
   parseHTML() {
-    return [{
-      tag: 'div[data-type="cad-view-embed"]',
-      getAttrs(node) {
-        if (typeof node === 'string') return false;
-        const el = node as HTMLElement;
-        return {
-          mode: el.getAttribute('data-mode') || 'scene3d',
-          path: el.getAttribute('data-path') || '',
-          url:  el.getAttribute('data-url')  || '',
-        };
+    return [
+      {
+        tag: 'div[data-type="cad-view-embed"]',
+        getAttrs(node) {
+          if (typeof node === 'string') return false;
+          const el = node as HTMLElement;
+          return {
+            mode: el.getAttribute('data-mode') || 'scene3d',
+            path: el.getAttribute('data-path') || '',
+            url: el.getAttribute('data-url') || '',
+          };
+        },
       },
-    }];
+    ];
   },
 
   renderHTML({ node }) {
-    return ['div', {
-      'data-type': 'cad-view-embed',
-      'data-mode': node.attrs.mode,
-      'data-path': node.attrs.path,
-      'data-url': node.attrs.url,
-    }];
+    return [
+      'div',
+      {
+        'data-type': 'cad-view-embed',
+        'data-mode': node.attrs.mode,
+        'data-path': node.attrs.path,
+        'data-url': node.attrs.url,
+      },
+    ];
   },
 
   addNodeView() {
@@ -586,8 +782,13 @@ export const CadViewEmbed = Node.create({
 
   addCommands() {
     return {
-      insertCadView: (mode: CadViewMode = 'scene3d', path = '') => ({ commands }) =>
-        commands.insertContent({ type: this.name, attrs: { mode, path, url: path ? buildViewerUrl(mode, path) : '' } }),
+      insertCadView:
+        (mode: CadViewMode = 'scene3d', path = '') =>
+        ({ commands }) =>
+          commands.insertContent({
+            type: this.name,
+            attrs: { mode, path, url: path ? buildViewerUrl(mode, path) : '' },
+          }),
     };
   },
 });

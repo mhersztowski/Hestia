@@ -130,7 +130,9 @@ describe('adapter Mermaida', () => {
   });
 
   it('pozycja węzła, którego już nie ma, znika z zapisu', () => {
-    const zRozjazdem = ['---', 'positions:', '  A: [1, 2]', '  Z: [9, 9]', '---', PROSTY].join('\n');
+    const zRozjazdem = ['---', 'positions:', '  A: [1, 2]', '  Z: [9, 9]', '---', PROSTY].join(
+      '\n'
+    );
     const doc = mermaidFormat.parse(zRozjazdem).document;
 
     expect(mermaidFormat.serialize(doc)).not.toContain('Z:');

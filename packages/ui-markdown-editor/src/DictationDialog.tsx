@@ -18,8 +18,18 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Box, Dialog, DialogContent, IconButton, Slider, Tooltip, Typography,
-  Select, MenuItem, FormControl, ToggleButton, ToggleButtonGroup,
+  Box,
+  Dialog,
+  DialogContent,
+  IconButton,
+  Slider,
+  Tooltip,
+  Typography,
+  Select,
+  MenuItem,
+  FormControl,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -37,21 +47,21 @@ import AutoFixOffIcon from '@mui/icons-material/AutoFixOff';
 /** Convert Markdown to plain text, suitable for TTS. Drops syntax, keeps content. */
 function stripMarkdown(md: string): string {
   return md
-    .replace(/```[\s\S]*?```/g, '')              // fenced code blocks → drop entirely
-    .replace(/`([^`]+)`/g, '$1')                 // inline code → bare text
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')    // images → alt text
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')     // links → label
-    .replace(/\*\*([^*]+)\*\*/g, '$1')           // bold
-    .replace(/__([^_]+)__/g, '$1')               // bold (underscore)
-    .replace(/\*([^*]+)\*/g, '$1')               // italic
-    .replace(/_([^_]+)_/g, '$1')                 // italic (underscore)
-    .replace(/~~([^~]+)~~/g, '$1')               // strikethrough
-    .replace(/^#{1,6}\s+/gm, '')                 // headings
-    .replace(/^>\s?/gm, '')                      // blockquotes
-    .replace(/^[-*+]\s+/gm, '')                  // unordered list bullets
-    .replace(/^\d+\.\s+/gm, '')                  // ordered list markers
-    .replace(/^---+$/gm, '')                     // horizontal rules
-    .replace(/\n{3,}/g, '\n\n')                  // collapse blank lines
+    .replace(/```[\s\S]*?```/g, '') // fenced code blocks → drop entirely
+    .replace(/`([^`]+)`/g, '$1') // inline code → bare text
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // images → alt text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links → label
+    .replace(/\*\*([^*]+)\*\*/g, '$1') // bold
+    .replace(/__([^_]+)__/g, '$1') // bold (underscore)
+    .replace(/\*([^*]+)\*/g, '$1') // italic
+    .replace(/_([^_]+)_/g, '$1') // italic (underscore)
+    .replace(/~~([^~]+)~~/g, '$1') // strikethrough
+    .replace(/^#{1,6}\s+/gm, '') // headings
+    .replace(/^>\s?/gm, '') // blockquotes
+    .replace(/^[-*+]\s+/gm, '') // unordered list bullets
+    .replace(/^\d+\.\s+/gm, '') // ordered list markers
+    .replace(/^---+$/gm, '') // horizontal rules
+    .replace(/\n{3,}/g, '\n\n') // collapse blank lines
     .trim();
 }
 
@@ -74,14 +84,22 @@ function splitWords(text: string): WordSpan[] {
 
 // ─── Canvas state — held in refs since redraws are imperative ──────────────
 
-interface StrokePoint { x: number; y: number; pressure: number }
-interface Stroke { points: StrokePoint[]; color: string; baseWidth: number }
+interface StrokePoint {
+  x: number;
+  y: number;
+  pressure: number;
+}
+interface Stroke {
+  points: StrokePoint[];
+  color: string;
+  baseWidth: number;
+}
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export interface DictationDialogProps {
   open: boolean;
-  text: string;             // markdown — gets stripped automatically
+  text: string; // markdown — gets stripped automatically
   onClose: () => void;
 }
 
@@ -132,7 +150,7 @@ const DictationDialog: React.FC<DictationDialogProps> = ({ open, text, onClose }
       setPaused(false);
       return;
     }
-    speechSynthesis.cancel();  // wipe any stale utterance
+    speechSynthesis.cancel(); // wipe any stale utterance
     const u = new SpeechSynthesisUtterance(plainText);
     u.rate = rate;
     const voice = voices.find((v) => v.voiceURI === voiceURI);
@@ -178,7 +196,9 @@ const DictationDialog: React.FC<DictationDialogProps> = ({ open, text, onClose }
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokesRef = useRef<Stroke[]>([]);
   const currentStrokeRef = useRef<Stroke | null>(null);
-  const activePointersRef = useRef<Map<number, { x: number; y: number; pressure: number }>>(new Map());
+  const activePointersRef = useRef<Map<number, { x: number; y: number; pressure: number }>>(
+    new Map()
+  );
   // pinch state: snapshot at the moment the second pointer goes down
   const pinchRef = useRef<{
     startDist: number;
@@ -194,7 +214,11 @@ const DictationDialog: React.FC<DictationDialogProps> = ({ open, text, onClose }
   // Single-pointer pan snapshot taken when the user starts a drag with the
   // pan tool active. Without this `tool='pan'` was a no-op — only the
   // two-finger pinch handler was actually moving the view.
-  const singlePanRef = useRef<{ startX: number; startY: number; panStart: { x: number; y: number } } | null>(null);
+  const singlePanRef = useRef<{
+    startX: number;
+    startY: number;
+    panStart: { x: number; y: number };
+  } | null>(null);
   const [tool, setTool] = useState<'pen' | 'pan'>('pen');
   const [strokeColor, setStrokeColor] = useState('#1976d2');
   const [, forceRender] = useState(0);
@@ -222,8 +246,14 @@ const DictationDialog: React.FC<DictationDialogProps> = ({ open, text, onClose }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     // Apply pan/zoom transform on top of DPR.
-    ctx.setTransform(dpr * zoomRef.current, 0, 0, dpr * zoomRef.current,
-                     dpr * panRef.current.x, dpr * panRef.current.y);
+    ctx.setTransform(
+      dpr * zoomRef.current,
+      0,
+      0,
+      dpr * zoomRef.current,
+      dpr * panRef.current.x,
+      dpr * panRef.current.y
+    );
     // Faint background grid so the user has a reference while writing.
     ctx.strokeStyle = 'rgba(0,0,0,0.05)';
     ctx.lineWidth = 1 / zoomRef.current;
@@ -317,131 +347,152 @@ const DictationDialog: React.FC<DictationDialogProps> = ({ open, text, onClose }
 
   // ── Pointer handlers ───────────────────────────────────────────────────
 
-  const onCanvasPointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    // Last-resort sync — if the canvas still has its HTML default 300x150
-    // internal size (i.e. ResizeObserver hasn't fired yet because the Dialog
-    // animation was mid-flight when the user clicked), bring it up to its
-    // real CSS size right now so the first stroke is visible.
-    const canvas = e.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    const expectedW = Math.round(rect.width * dpr);
-    const expectedH = Math.round(rect.height * dpr);
-    if (expectedW > 0 && (canvas.width !== expectedW || canvas.height !== expectedH)) {
-      canvas.width = expectedW;
-      canvas.height = expectedH;
-    }
-
-    canvas.setPointerCapture(e.pointerId);
-    activePointersRef.current.set(e.pointerId, {
-      x: e.clientX, y: e.clientY, pressure: e.pressure || 0.5,
-    });
-
-    const count = activePointersRef.current.size;
-    if (count === 1 && tool === 'pen') {
-      // Start a new stroke at the touched world position
-      const p = screenToWorld(e.clientX, e.clientY);
-      currentStrokeRef.current = {
-        points: [{ ...p, pressure: e.pressure || 0.5 }],
-        color: strokeColor,
-        baseWidth: 2.5,
-      };
-    } else if (count === 1 && tool === 'pan') {
-      // Snapshot start position + current pan so move handler can compute delta.
-      singlePanRef.current = {
-        startX: e.clientX,
-        startY: e.clientY,
-        panStart: { ...panRef.current },
-      };
-    } else if (count === 2) {
-      // Two-finger gesture — cancel any in-progress stroke (the user obviously
-      // didn't mean a draw) and snapshot pinch state.
-      currentStrokeRef.current = null;
-      const pts = Array.from(activePointersRef.current.values());
-      const dx = pts[1].x - pts[0].x, dy = pts[1].y - pts[0].y;
-      pinchRef.current = {
-        startDist: Math.hypot(dx, dy) || 1,
-        startZoom: zoomRef.current,
-        centerStart: { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 },
-        panStart: { ...panRef.current },
-      };
-    }
-  }, [tool, strokeColor, screenToWorld]);
-
-  const onCanvasPointerMove = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!activePointersRef.current.has(e.pointerId)) return;
-    activePointersRef.current.set(e.pointerId, {
-      x: e.clientX, y: e.clientY, pressure: e.pressure || 0.5,
-    });
-
-    const count = activePointersRef.current.size;
-    if (count === 1 && currentStrokeRef.current) {
-      const p = screenToWorld(e.clientX, e.clientY);
-      currentStrokeRef.current.points.push({ ...p, pressure: e.pressure || 0.5 });
-      redraw();
-    } else if (count === 1 && tool === 'pan' && singlePanRef.current) {
-      // Drag the view — translate by the delta from where the pointer landed.
-      const dx = e.clientX - singlePanRef.current.startX;
-      const dy = e.clientY - singlePanRef.current.startY;
-      panRef.current = {
-        x: singlePanRef.current.panStart.x + dx,
-        y: singlePanRef.current.panStart.y + dy,
-      };
-      redraw();
-    } else if (count === 2 && pinchRef.current) {
-      const pts = Array.from(activePointersRef.current.values());
-      const dx = pts[1].x - pts[0].x, dy = pts[1].y - pts[0].y;
-      const dist = Math.hypot(dx, dy) || 1;
-      const center = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
-      const newZoom = Math.max(0.2, Math.min(8, pinchRef.current.startZoom * (dist / pinchRef.current.startDist)));
-      // Pan = how much the gesture's center moved between down and now
-      const dxC = center.x - pinchRef.current.centerStart.x;
-      const dyC = center.y - pinchRef.current.centerStart.y;
-      zoomRef.current = newZoom;
-      panRef.current = {
-        x: pinchRef.current.panStart.x + dxC,
-        y: pinchRef.current.panStart.y + dyC,
-      };
-      redraw();
-    }
-  }, [screenToWorld, redraw]);
-
-  const onCanvasPointerUp = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    activePointersRef.current.delete(e.pointerId);
-    if (activePointersRef.current.size === 0) {
-      // Commit the stroke. Drop one-point taps so we don't pollute the canvas.
-      if (currentStrokeRef.current && currentStrokeRef.current.points.length > 1) {
-        strokesRef.current = [...strokesRef.current, currentStrokeRef.current];
+  const onCanvasPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      // Last-resort sync — if the canvas still has its HTML default 300x150
+      // internal size (i.e. ResizeObserver hasn't fired yet because the Dialog
+      // animation was mid-flight when the user clicked), bring it up to its
+      // real CSS size right now so the first stroke is visible.
+      const canvas = e.currentTarget;
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const expectedW = Math.round(rect.width * dpr);
+      const expectedH = Math.round(rect.height * dpr);
+      if (expectedW > 0 && (canvas.width !== expectedW || canvas.height !== expectedH)) {
+        canvas.width = expectedW;
+        canvas.height = expectedH;
       }
-      currentStrokeRef.current = null;
-      pinchRef.current = null;
-      singlePanRef.current = null;
-      redraw();
-    } else if (activePointersRef.current.size < 2) {
-      // Second finger lifted but one remains — finish the pinch but keep tracking.
-      pinchRef.current = null;
-      singlePanRef.current = null;
-    }
-  }, [redraw]);
+
+      canvas.setPointerCapture(e.pointerId);
+      activePointersRef.current.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY,
+        pressure: e.pressure || 0.5,
+      });
+
+      const count = activePointersRef.current.size;
+      if (count === 1 && tool === 'pen') {
+        // Start a new stroke at the touched world position
+        const p = screenToWorld(e.clientX, e.clientY);
+        currentStrokeRef.current = {
+          points: [{ ...p, pressure: e.pressure || 0.5 }],
+          color: strokeColor,
+          baseWidth: 2.5,
+        };
+      } else if (count === 1 && tool === 'pan') {
+        // Snapshot start position + current pan so move handler can compute delta.
+        singlePanRef.current = {
+          startX: e.clientX,
+          startY: e.clientY,
+          panStart: { ...panRef.current },
+        };
+      } else if (count === 2) {
+        // Two-finger gesture — cancel any in-progress stroke (the user obviously
+        // didn't mean a draw) and snapshot pinch state.
+        currentStrokeRef.current = null;
+        const pts = Array.from(activePointersRef.current.values());
+        const dx = pts[1].x - pts[0].x,
+          dy = pts[1].y - pts[0].y;
+        pinchRef.current = {
+          startDist: Math.hypot(dx, dy) || 1,
+          startZoom: zoomRef.current,
+          centerStart: { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 },
+          panStart: { ...panRef.current },
+        };
+      }
+    },
+    [tool, strokeColor, screenToWorld]
+  );
+
+  const onCanvasPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (!activePointersRef.current.has(e.pointerId)) return;
+      activePointersRef.current.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY,
+        pressure: e.pressure || 0.5,
+      });
+
+      const count = activePointersRef.current.size;
+      if (count === 1 && currentStrokeRef.current) {
+        const p = screenToWorld(e.clientX, e.clientY);
+        currentStrokeRef.current.points.push({ ...p, pressure: e.pressure || 0.5 });
+        redraw();
+      } else if (count === 1 && tool === 'pan' && singlePanRef.current) {
+        // Drag the view — translate by the delta from where the pointer landed.
+        const dx = e.clientX - singlePanRef.current.startX;
+        const dy = e.clientY - singlePanRef.current.startY;
+        panRef.current = {
+          x: singlePanRef.current.panStart.x + dx,
+          y: singlePanRef.current.panStart.y + dy,
+        };
+        redraw();
+      } else if (count === 2 && pinchRef.current) {
+        const pts = Array.from(activePointersRef.current.values());
+        const dx = pts[1].x - pts[0].x,
+          dy = pts[1].y - pts[0].y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const center = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+        const newZoom = Math.max(
+          0.2,
+          Math.min(8, pinchRef.current.startZoom * (dist / pinchRef.current.startDist))
+        );
+        // Pan = how much the gesture's center moved between down and now
+        const dxC = center.x - pinchRef.current.centerStart.x;
+        const dyC = center.y - pinchRef.current.centerStart.y;
+        zoomRef.current = newZoom;
+        panRef.current = {
+          x: pinchRef.current.panStart.x + dxC,
+          y: pinchRef.current.panStart.y + dyC,
+        };
+        redraw();
+      }
+    },
+    [screenToWorld, redraw]
+  );
+
+  const onCanvasPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      activePointersRef.current.delete(e.pointerId);
+      if (activePointersRef.current.size === 0) {
+        // Commit the stroke. Drop one-point taps so we don't pollute the canvas.
+        if (currentStrokeRef.current && currentStrokeRef.current.points.length > 1) {
+          strokesRef.current = [...strokesRef.current, currentStrokeRef.current];
+        }
+        currentStrokeRef.current = null;
+        pinchRef.current = null;
+        singlePanRef.current = null;
+        redraw();
+      } else if (activePointersRef.current.size < 2) {
+        // Second finger lifted but one remains — finish the pinch but keep tracking.
+        pinchRef.current = null;
+        singlePanRef.current = null;
+      }
+    },
+    [redraw]
+  );
 
   // Mouse-wheel zoom. Zooms toward the cursor for natural feel.
-  const onCanvasWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const sx = e.clientX - rect.left;
-    const sy = e.clientY - rect.top;
-    const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-    const newZoom = Math.max(0.2, Math.min(8, zoomRef.current * factor));
-    // Keep the world point under the cursor stationary across the zoom.
-    panRef.current = {
-      x: sx - ((sx - panRef.current.x) / zoomRef.current) * newZoom,
-      y: sy - ((sy - panRef.current.y) / zoomRef.current) * newZoom,
-    };
-    zoomRef.current = newZoom;
-    redraw();
-  }, [redraw]);
+  const onCanvasWheel = useCallback(
+    (e: React.WheelEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+      const newZoom = Math.max(0.2, Math.min(8, zoomRef.current * factor));
+      // Keep the world point under the cursor stationary across the zoom.
+      panRef.current = {
+        x: sx - ((sx - panRef.current.x) / zoomRef.current) * newZoom,
+        y: sy - ((sy - panRef.current.y) / zoomRef.current) * newZoom,
+      };
+      zoomRef.current = newZoom;
+      redraw();
+    },
+    [redraw]
+  );
 
   // ── Toolbar actions ────────────────────────────────────────────────────
 
@@ -474,17 +525,21 @@ const DictationDialog: React.FC<DictationDialogProps> = ({ open, text, onClose }
           {/* Transport bar */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, flexWrap: 'wrap' }}>
             <RecordVoiceOverIcon color="primary" />
-            <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>Dyktowanie</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+              Dyktowanie
+            </Typography>
             <Box sx={{ flex: 1 }} />
 
-            <Tooltip title={playing && !paused ? 'Pauza' : (paused ? 'Wznów' : 'Odtwórz')}>
+            <Tooltip title={playing && !paused ? 'Pauza' : paused ? 'Wznów' : 'Odtwórz'}>
               <IconButton onClick={playing && !paused ? handlePause : handlePlay} color="primary">
                 {playing && !paused ? <PauseIcon /> : <PlayArrowIcon />}
               </IconButton>
             </Tooltip>
             <Tooltip title="Stop">
               <span>
-                <IconButton onClick={handleStop} disabled={!playing}><StopIcon /></IconButton>
+                <IconButton onClick={handleStop} disabled={!playing}>
+                  <StopIcon />
+                </IconButton>
               </span>
             </Tooltip>
 
@@ -523,95 +578,135 @@ const DictationDialog: React.FC<DictationDialogProps> = ({ open, text, onClose }
             )}
 
             <Tooltip title="Zamknij">
-              <IconButton onClick={onClose}><CloseIcon /></IconButton>
+              <IconButton onClick={onClose}>
+                <CloseIcon />
+              </IconButton>
             </Tooltip>
           </Box>
 
           {/* Text with highlighted current word */}
-          <Box sx={{
-            p: 2, maxHeight: '30vh', overflow: 'auto',
-            fontSize: '1.05rem', lineHeight: 1.7,
-            userSelect: 'text',
-          }}>
-            {plainText
-              ? (
-                <span>
-                  {words.map((w, i) => {
-                    // Render gap between previous word and this one (whitespace, newlines)
-                    const prev = i === 0 ? 0 : words[i - 1].endChar;
-                    const gap = plainText.slice(prev, w.startChar);
-                    const isCurrent = currentWordIdx === i;
-                    return (
-                      <React.Fragment key={i}>
-                        {gap.includes('\n')
-                          ? gap.split('').map((c, ci) =>
-                              c === '\n' ? <br key={`br-${i}-${ci}`} /> : <span key={`sp-${i}-${ci}`}>{c}</span>)
-                          : gap}
-                        <span
-                          onClick={() => {
-                            // Click a word → restart speech from that word.
-                            // Browser speech APIs don't support real seek, so
-                            // we splice the text from the chosen offset.
-                            speechSynthesis.cancel();
-                            const startText = plainText.slice(w.startChar);
-                            const u = new SpeechSynthesisUtterance(startText);
-                            u.rate = rate;
-                            const voice = voices.find((v) => v.voiceURI === voiceURI);
-                            if (voice) u.voice = voice;
-                            u.lang = voice?.lang ?? 'pl-PL';
-                            const offset = w.startChar;
-                            u.onboundary = (ev) => {
-                              if (ev.name && ev.name !== 'word') return;
-                              const absChar = ev.charIndex + offset;
-                              const idx = words.findIndex((ww) => absChar >= ww.startChar && absChar < ww.endChar);
-                              if (idx >= 0) setCurrentWordIdx(idx);
-                            };
-                            u.onend = () => { setPlaying(false); setPaused(false); setCurrentWordIdx(null); };
-                            speechSynthesis.speak(u);
-                            setPlaying(true);
+          <Box
+            sx={{
+              p: 2,
+              maxHeight: '30vh',
+              overflow: 'auto',
+              fontSize: '1.05rem',
+              lineHeight: 1.7,
+              userSelect: 'text',
+            }}
+          >
+            {plainText ? (
+              <span>
+                {words.map((w, i) => {
+                  // Render gap between previous word and this one (whitespace, newlines)
+                  const prev = i === 0 ? 0 : words[i - 1].endChar;
+                  const gap = plainText.slice(prev, w.startChar);
+                  const isCurrent = currentWordIdx === i;
+                  return (
+                    <React.Fragment key={i}>
+                      {gap.includes('\n')
+                        ? gap
+                            .split('')
+                            .map((c, ci) =>
+                              c === '\n' ? (
+                                <br key={`br-${i}-${ci}`} />
+                              ) : (
+                                <span key={`sp-${i}-${ci}`}>{c}</span>
+                              )
+                            )
+                        : gap}
+                      <span
+                        onClick={() => {
+                          // Click a word → restart speech from that word.
+                          // Browser speech APIs don't support real seek, so
+                          // we splice the text from the chosen offset.
+                          speechSynthesis.cancel();
+                          const startText = plainText.slice(w.startChar);
+                          const u = new SpeechSynthesisUtterance(startText);
+                          u.rate = rate;
+                          const voice = voices.find((v) => v.voiceURI === voiceURI);
+                          if (voice) u.voice = voice;
+                          u.lang = voice?.lang ?? 'pl-PL';
+                          const offset = w.startChar;
+                          u.onboundary = (ev) => {
+                            if (ev.name && ev.name !== 'word') return;
+                            const absChar = ev.charIndex + offset;
+                            const idx = words.findIndex(
+                              (ww) => absChar >= ww.startChar && absChar < ww.endChar
+                            );
+                            if (idx >= 0) setCurrentWordIdx(idx);
+                          };
+                          u.onend = () => {
+                            setPlaying(false);
                             setPaused(false);
-                          }}
-                          style={{
-                            cursor: 'pointer',
-                            padding: isCurrent ? '2px 4px' : '0',
-                            margin: isCurrent ? '0 -4px' : '0',
-                            borderRadius: 4,
-                            backgroundColor: isCurrent ? 'rgba(255, 235, 59, 0.65)' : 'transparent',
-                            fontWeight: isCurrent ? 600 : 400,
-                            transition: 'background-color 0.15s',
-                          }}
-                        >
-                          {w.text}
-                        </span>
-                      </React.Fragment>
-                    );
-                  })}
-                </span>
-              )
-              : <Typography color="text.secondary">Brak tekstu do dyktowania — zaznacz fragment w edytorze lub anuluj.</Typography>
-            }
+                            setCurrentWordIdx(null);
+                          };
+                          speechSynthesis.speak(u);
+                          setPlaying(true);
+                          setPaused(false);
+                        }}
+                        style={{
+                          cursor: 'pointer',
+                          padding: isCurrent ? '2px 4px' : '0',
+                          margin: isCurrent ? '0 -4px' : '0',
+                          borderRadius: 4,
+                          backgroundColor: isCurrent ? 'rgba(255, 235, 59, 0.65)' : 'transparent',
+                          fontWeight: isCurrent ? 600 : 400,
+                          transition: 'background-color 0.15s',
+                        }}
+                      >
+                        {w.text}
+                      </span>
+                    </React.Fragment>
+                  );
+                })}
+              </span>
+            ) : (
+              <Typography color="text.secondary">
+                Brak tekstu do dyktowania — zaznacz fragment w edytorze lub anuluj.
+              </Typography>
+            )}
           </Box>
         </Box>
 
         {/* ─── Bottom: hand-writing canvas ─────────────────────────────────── */}
-        <Box sx={{
-          position: 'relative', flex: 1, minHeight: 0,
-          bgcolor: '#fafafa', overflow: 'hidden',
-        }}>
+        <Box
+          sx={{
+            position: 'relative',
+            flex: 1,
+            minHeight: 0,
+            bgcolor: '#fafafa',
+            overflow: 'hidden',
+          }}
+        >
           {/* Canvas toolbar (floating) */}
-          <Box sx={{
-            position: 'absolute', top: 8, left: 8, zIndex: 2,
-            display: 'flex', alignItems: 'center', gap: 0.5, p: 0.5,
-            bgcolor: 'background.paper', borderRadius: 1, boxShadow: 1,
-          }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 8,
+              left: 8,
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              p: 0.5,
+              bgcolor: 'background.paper',
+              borderRadius: 1,
+              boxShadow: 1,
+            }}
+          >
             <ToggleButtonGroup
               size="small"
               value={tool}
               exclusive
               onChange={(_, v) => v && setTool(v)}
             >
-              <ToggleButton value="pen"><CreateIcon fontSize="small" /></ToggleButton>
-              <ToggleButton value="pan"><AutoFixOffIcon fontSize="small" /></ToggleButton>
+              <ToggleButton value="pen">
+                <CreateIcon fontSize="small" />
+              </ToggleButton>
+              <ToggleButton value="pan">
+                <AutoFixOffIcon fontSize="small" />
+              </ToggleButton>
             </ToggleButtonGroup>
             {/* Small palette */}
             {['#1976d2', '#222', '#d32f2f', '#388e3c', '#f57c00'].map((c) => (
@@ -619,20 +714,45 @@ const DictationDialog: React.FC<DictationDialogProps> = ({ open, text, onClose }
                 key={c}
                 onClick={() => setStrokeColor(c)}
                 sx={{
-                  width: 22, height: 22, borderRadius: '50%', bgcolor: c,
-                  cursor: 'pointer', border: strokeColor === c ? '2px solid #fff' : '2px solid transparent',
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  bgcolor: c,
+                  cursor: 'pointer',
+                  border: strokeColor === c ? '2px solid #fff' : '2px solid transparent',
                   boxShadow: strokeColor === c ? '0 0 0 1px #000' : 'none',
                 }}
               />
             ))}
-            <Tooltip title="Cofnij"><IconButton size="small" onClick={handleUndo}><UndoIcon fontSize="small" /></IconButton></Tooltip>
-            <Tooltip title="Wyczyść"><IconButton size="small" onClick={handleClear}><DeleteSweepIcon fontSize="small" /></IconButton></Tooltip>
-            <Tooltip title="Wyśrodkuj widok"><IconButton size="small" onClick={handleResetView}><CenterFocusStrongIcon fontSize="small" /></IconButton></Tooltip>
+            <Tooltip title="Cofnij">
+              <IconButton size="small" onClick={handleUndo}>
+                <UndoIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Wyczyść">
+              <IconButton size="small" onClick={handleClear}>
+                <DeleteSweepIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Wyśrodkuj widok">
+              <IconButton size="small" onClick={handleResetView}>
+                <CenterFocusStrongIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Box>
-          <Box sx={{
-            position: 'absolute', bottom: 8, right: 8, zIndex: 2,
-            bgcolor: 'background.paper', borderRadius: 1, boxShadow: 1, px: 1, py: 0.25,
-          }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 8,
+              right: 8,
+              zIndex: 2,
+              bgcolor: 'background.paper',
+              borderRadius: 1,
+              boxShadow: 1,
+              px: 1,
+              py: 0.25,
+            }}
+          >
             <Typography variant="caption" color="text.secondary">
               Zoom {(zoomRef.current * 100).toFixed(0)}% · stylus + 2-pal. zoom/pan · scroll = zoom
             </Typography>
@@ -646,7 +766,9 @@ const DictationDialog: React.FC<DictationDialogProps> = ({ open, text, onClose }
             onPointerCancel={onCanvasPointerUp}
             onWheel={onCanvasWheel}
             style={{
-              width: '100%', height: '100%', display: 'block',
+              width: '100%',
+              height: '100%',
+              display: 'block',
               // touch-action: none → we own all gestures. Without this, the
               // browser steals two-finger drags for scroll/zoom and we never
               // see them.

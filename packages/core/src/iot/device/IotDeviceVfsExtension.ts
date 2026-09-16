@@ -1,5 +1,10 @@
 import { mqttTopics } from '../../mqtt/topics';
-import type { FileSystemProvider, WriteFileOptions, DeleteOptions, RenameOptions } from '../../vfs/types';
+import type {
+  FileSystemProvider,
+  WriteFileOptions,
+  DeleteOptions,
+  RenameOptions,
+} from '../../vfs/types';
 import { VfsError, VfsErrorCode } from '../../vfs/errors';
 import type { IotDeviceExtension } from './IotDeviceExtension';
 
@@ -68,7 +73,7 @@ export class IotDeviceVfsExtension implements IotDeviceExtension {
     path: string | undefined,
     newPath: string | undefined,
     data: string | undefined,
-    options: Record<string, unknown> | undefined,
+    options: Record<string, unknown> | undefined
   ): Promise<unknown> {
     switch (op) {
       case 'stat':
@@ -119,7 +124,7 @@ export class IotDeviceVfsExtension implements IotDeviceExtension {
     id: string,
     ok: boolean,
     data?: unknown,
-    error?: { code: string; message?: string },
+    error?: { code: string; message?: string }
   ): void {
     const payload: Record<string, unknown> = { id, ok };
     if (data !== undefined) payload['data'] = data;

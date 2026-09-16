@@ -4,7 +4,14 @@
  * (ts.createSourceFile) which is enough to extract structure cheaply.
  */
 import ts from 'typescript';
-import { CodeMember, CodeParam, CodeSymbol, DocMeta, Language, Visibility } from '../model/CodeModel.js';
+import {
+  CodeMember,
+  CodeParam,
+  CodeSymbol,
+  DocMeta,
+  Language,
+  Visibility,
+} from '../model/CodeModel.js';
 import { memberId, symbolId } from '../model/ids.js';
 import { renderMember } from '../model/render.js';
 import { LanguageParser } from './types.js';
@@ -18,7 +25,8 @@ function visibilityOf(mods: readonly ts.ModifierLike[] | undefined): Visibility 
   }
   return 'public';
 }
-const hasMod = (mods: readonly ts.ModifierLike[] | undefined, k: ts.SyntaxKind) => !!mods?.some((m) => m.kind === k);
+const hasMod = (mods: readonly ts.ModifierLike[] | undefined, k: ts.SyntaxKind) =>
+  !!mods?.some((m) => m.kind === k);
 
 /**
  * Extracts TSDoc/JSDoc documentation from a declaration.
@@ -42,7 +50,10 @@ function docOf(node: ts.Node): DocMeta | undefined {
   const textOf = (comment: string | ts.NodeArray<ts.JSDocComment> | undefined): string => {
     if (!comment) return '';
     if (typeof comment === 'string') return comment.trim();
-    return comment.map((c) => c.text ?? '').join('').trim();
+    return comment
+      .map((c) => c.text ?? '')
+      .join('')
+      .trim();
   };
 
   for (const block of blocks) {
@@ -60,7 +71,8 @@ function docOf(node: ts.Node): DocMeta | undefined {
           }
           break;
         }
-        case 'returns': case 'return':
+        case 'returns':
+        case 'return':
           if (value) doc.returns = value;
           break;
         case 'remarks':
@@ -109,8 +121,12 @@ function params(decl: ts.SignatureDeclarationBase): CodeParam[] {
   return decl.parameters.map((p) => ({ name: p.name.getText(), type: typeText(p.type) }));
 }
 
-function heritage(node: ts.ClassDeclaration | ts.InterfaceDeclaration): { ext: string[]; impl: string[] } {
-  const ext: string[] = []; const impl: string[] = [];
+function heritage(node: ts.ClassDeclaration | ts.InterfaceDeclaration): {
+  ext: string[];
+  impl: string[];
+} {
+  const ext: string[] = [];
+  const impl: string[] = [];
   for (const h of node.heritageClauses ?? []) {
     for (const t of h.types) {
       const name = t.expression.getText();
@@ -122,15 +138,25 @@ function heritage(node: ts.ClassDeclaration | ts.InterfaceDeclaration): { ext: s
 }
 
 function fileBaseName(file: string): string {
-  return file.replace(/\.[^.]+$/, '').split(/[/\\]/).pop() ?? 'module';
+  return (
+    file
+      .replace(/\.[^.]+$/, '')
+      .split(/[/\\]/)
+      .pop() ?? 'module'
+  );
 }
 
 export class TsParser implements LanguageParser {
   readonly languages: Language[] = ['typescript', 'javascript'];
 
   parse(content: string, file: string, language: Language): CodeSymbol[] {
-    const sf = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true,
-      language === 'javascript' ? ts.ScriptKind.JSX : ts.ScriptKind.TSX);
+    const sf = ts.createSourceFile(
+      file,
+      content,
+      ts.ScriptTarget.Latest,
+      true,
+      language === 'javascript' ? ts.ScriptKind.JSX : ts.ScriptKind.TSX
+    );
     const symbols: CodeSymbol[] = [];
 
     const visit = (node: ts.Node) => {
@@ -138,20 +164,31 @@ export class TsParser implements LanguageParser {
         const name = node.name.text;
         const { ext, impl } = heritage(node);
         symbols.push({
-          id: symbolId(name), name, kind: 'class', file, language,
+          id: symbolId(name),
+          name,
+          kind: 'class',
+          file,
+          language,
           isAbstract: hasMod(node.modifiers, ts.SyntaxKind.AbstractKeyword),
           doc: docOf(node),
-          extends: ext, implements: impl,
+          extends: ext,
+          implements: impl,
           members: this.classMembers(name, node.members),
         });
       } else if (ts.isInterfaceDeclaration(node)) {
         const name = node.name.text;
         const ext: string[] = [];
-        for (const h of node.heritageClauses ?? []) for (const t of h.types) ext.push(t.expression.getText());
+        for (const h of node.heritageClauses ?? [])
+          for (const t of h.types) ext.push(t.expression.getText());
         symbols.push({
-          id: symbolId(name), name, kind: 'interface', file, language,
+          id: symbolId(name),
+          name,
+          kind: 'interface',
+          file,
+          language,
           doc: docOf(node),
-          extends: ext, implements: [],
+          extends: ext,
+          implements: [],
           members: this.interfaceMembers(name, node.members),
         });
       } else if (ts.isEnumDeclaration(node)) {
@@ -161,7 +198,17 @@ export class TsParser implements LanguageParser {
           const base = { kind: 'field' as const, name: mn, visibility: 'public' as Visibility };
           return { id: memberId(name, 'field', mn) + `#${i}`, ...base, text: mn };
         });
-        symbols.push({ id: symbolId(name), name, kind: 'enum', file, language, doc: docOf(node), extends: [], implements: [], members });
+        symbols.push({
+          id: symbolId(name),
+          name,
+          kind: 'enum',
+          file,
+          language,
+          doc: docOf(node),
+          extends: [],
+          implements: [],
+          members,
+        });
       }
       ts.forEachChild(node, visit);
     };
@@ -183,21 +230,50 @@ export class TsParser implements LanguageParser {
       const isExported = hasMod((stmt as ts.HasModifiers).modifiers, ts.SyntaxKind.ExportKeyword);
       const vis: Visibility = isExported ? 'public' : 'package';
       if (ts.isFunctionDeclaration(stmt) && stmt.name) {
-        pushMod({ kind: 'method', name: stmt.name.text, visibility: vis, type: typeText(stmt.type), params: params(stmt), isAsync: hasMod(stmt.modifiers, ts.SyntaxKind.AsyncKeyword), doc: docOf(stmt) });
+        pushMod({
+          kind: 'method',
+          name: stmt.name.text,
+          visibility: vis,
+          type: typeText(stmt.type),
+          params: params(stmt),
+          isAsync: hasMod(stmt.modifiers, ts.SyntaxKind.AsyncKeyword),
+          doc: docOf(stmt),
+        });
       } else if (ts.isVariableStatement(stmt)) {
         for (const decl of stmt.declarationList.declarations) {
           const name = decl.name.getText();
           if (name && !name.startsWith('{') && !name.startsWith('[')) {
-            pushMod({ kind: 'field', name, visibility: vis, type: typeText(decl.type), doc: docOf(stmt) });
+            pushMod({
+              kind: 'field',
+              name,
+              visibility: vis,
+              type: typeText(decl.type),
+              doc: docOf(stmt),
+            });
           }
         }
       } else if (ts.isTypeAliasDeclaration(stmt)) {
-        pushMod({ kind: 'field', name: stmt.name.text, visibility: vis, type: stmt.type.getText().replace(/\s+/g, ' ').slice(0, 60), doc: docOf(stmt) });
+        pushMod({
+          kind: 'field',
+          name: stmt.name.text,
+          visibility: vis,
+          type: stmt.type.getText().replace(/\s+/g, ' ').slice(0, 60),
+          doc: docOf(stmt),
+        });
       }
     }
 
     if (modMembers.length > 0) {
-      symbols.push({ id: symbolId(moduleName), name: moduleName, kind: 'module', file, language, extends: [], implements: [], members: modMembers });
+      symbols.push({
+        id: symbolId(moduleName),
+        name: moduleName,
+        kind: 'module',
+        file,
+        language,
+        extends: [],
+        implements: [],
+        members: modMembers,
+      });
     }
 
     return symbols;
@@ -214,16 +290,52 @@ export class TsParser implements LanguageParser {
     };
     for (const m of members) {
       if (ts.isPropertyDeclaration(m)) {
-        push({ kind: 'field', name: m.name.getText(), visibility: visibilityOf(m.modifiers), type: typeText(m.type), isStatic: hasMod(m.modifiers, ts.SyntaxKind.StaticKeyword), doc: docOf(m) });
+        push({
+          kind: 'field',
+          name: m.name.getText(),
+          visibility: visibilityOf(m.modifiers),
+          type: typeText(m.type),
+          isStatic: hasMod(m.modifiers, ts.SyntaxKind.StaticKeyword),
+          doc: docOf(m),
+        });
       } else if (ts.isMethodDeclaration(m)) {
-        push({ kind: 'method', name: m.name.getText(), visibility: visibilityOf(m.modifiers), type: typeText(m.type), params: params(m), isStatic: hasMod(m.modifiers, ts.SyntaxKind.StaticKeyword), isAbstract: hasMod(m.modifiers, ts.SyntaxKind.AbstractKeyword), isAsync: hasMod(m.modifiers, ts.SyntaxKind.AsyncKeyword), doc: docOf(m) });
+        push({
+          kind: 'method',
+          name: m.name.getText(),
+          visibility: visibilityOf(m.modifiers),
+          type: typeText(m.type),
+          params: params(m),
+          isStatic: hasMod(m.modifiers, ts.SyntaxKind.StaticKeyword),
+          isAbstract: hasMod(m.modifiers, ts.SyntaxKind.AbstractKeyword),
+          isAsync: hasMod(m.modifiers, ts.SyntaxKind.AsyncKeyword),
+          doc: docOf(m),
+        });
       } else if (ts.isGetAccessorDeclaration(m) || ts.isSetAccessorDeclaration(m)) {
-        push({ kind: 'method', name: m.name.getText(), visibility: visibilityOf(m.modifiers), type: typeText(m.type), params: params(m), doc: docOf(m) });
+        push({
+          kind: 'method',
+          name: m.name.getText(),
+          visibility: visibilityOf(m.modifiers),
+          type: typeText(m.type),
+          params: params(m),
+          doc: docOf(m),
+        });
       } else if (ts.isConstructorDeclaration(m)) {
-        push({ kind: 'method', name: 'constructor', visibility: 'public', params: params(m), doc: docOf(m) });
+        push({
+          kind: 'method',
+          name: 'constructor',
+          visibility: 'public',
+          params: params(m),
+          doc: docOf(m),
+        });
         // constructor parameter properties become fields
         for (const p of m.parameters) {
-          if (p.modifiers?.length) push({ kind: 'field', name: p.name.getText(), visibility: visibilityOf(p.modifiers), type: typeText(p.type) });
+          if (p.modifiers?.length)
+            push({
+              kind: 'field',
+              name: p.name.getText(),
+              visibility: visibilityOf(p.modifiers),
+              type: typeText(p.type),
+            });
         }
       }
     }
@@ -240,8 +352,23 @@ export class TsParser implements LanguageParser {
       out.push({ ...base, id, text: renderMember(base) });
     };
     for (const m of members) {
-      if (ts.isPropertySignature(m)) push({ kind: 'field', name: m.name.getText(), visibility: 'public', type: typeText(m.type), doc: docOf(m) });
-      else if (ts.isMethodSignature(m)) push({ kind: 'method', name: m.name.getText(), visibility: 'public', type: typeText(m.type), params: params(m), doc: docOf(m) });
+      if (ts.isPropertySignature(m))
+        push({
+          kind: 'field',
+          name: m.name.getText(),
+          visibility: 'public',
+          type: typeText(m.type),
+          doc: docOf(m),
+        });
+      else if (ts.isMethodSignature(m))
+        push({
+          kind: 'method',
+          name: m.name.getText(),
+          visibility: 'public',
+          type: typeText(m.type),
+          params: params(m),
+          doc: docOf(m),
+        });
     }
     return out;
   }

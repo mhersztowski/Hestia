@@ -52,9 +52,7 @@ class WorkerAtrapa {
 
 describe('useModelRunner', () => {
   it('bez fabryki liczy synchronicznie i mówi to wprost', async () => {
-    const { result } = renderHook(() =>
-      useModelRunner(SKRYPT, { a: 2 }, [0, 3], 0.01),
-    );
+    const { result } = renderHook(() => useModelRunner(SKRYPT, { a: 2 }, [0, 3], 0.01));
 
     await waitFor(() => expect(result.current.pending).toBe(false));
     expect(result.current.result?.scalars.droga).toBeCloseTo(9, 6);
@@ -85,7 +83,7 @@ describe('useModelRunner', () => {
 
     const { result, rerender } = renderHook(
       ({ a }) => useModelRunner(SKRYPT, { a }, [0, 3], 0.01, factory),
-      { initialProps: { a: 2 } },
+      { initialProps: { a: 2 } }
     );
 
     await waitFor(() => expect(worker.kolejka).toHaveLength(1));
@@ -103,7 +101,7 @@ describe('useModelRunner', () => {
   it('zatrzymuje workera przy odmontowaniu', async () => {
     const worker = new WorkerAtrapa();
     const { unmount } = renderHook(() =>
-      useModelRunner(SKRYPT, { a: 2 }, [0, 3], 0.01, () => worker as unknown as Worker),
+      useModelRunner(SKRYPT, { a: 2 }, [0, 3], 0.01, () => worker as unknown as Worker)
     );
 
     await waitFor(() => expect(worker.kolejka).toHaveLength(1));
@@ -115,7 +113,7 @@ describe('useModelRunner', () => {
   it('błąd workera trafia do stanu zamiast znikać', async () => {
     const worker = new WorkerAtrapa();
     const { result } = renderHook(() =>
-      useModelRunner(SKRYPT, { a: 2 }, [0, 3], 0.01, () => worker as unknown as Worker),
+      useModelRunner(SKRYPT, { a: 2 }, [0, 3], 0.01, () => worker as unknown as Worker)
     );
 
     await waitFor(() => expect(worker.kolejka).toHaveLength(1));

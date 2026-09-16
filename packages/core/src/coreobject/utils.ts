@@ -11,7 +11,7 @@ import { Signal } from './Signal';
 export function debounce<T extends unknown[]>(
   fn: (...args: T) => void,
   delayMs: number,
-  context?: CoreObject,
+  context?: CoreObject
 ): (...args: T) => void {
   let handle: ReturnType<typeof setTimeout> | null = null;
 
@@ -42,7 +42,7 @@ export function debounce<T extends unknown[]>(
 export function throttle<T extends unknown[]>(
   fn: (...args: T) => void,
   intervalMs: number,
-  context?: CoreObject,
+  context?: CoreObject
 ): (...args: T) => void {
   let lastCall = 0;
   let active = true;
@@ -74,7 +74,7 @@ export function throttle<T extends unknown[]>(
  */
 export function promiseToSignals<T>(
   promise: Promise<T>,
-  context?: CoreObject,
+  context?: CoreObject
 ): {
   resolved: Signal<[value: T]>;
   rejected: Signal<[error: unknown]>;
@@ -90,8 +90,12 @@ export function promiseToSignals<T>(
   }
 
   promise.then(
-    (value) => { if (alive) resolved.emit(value); },
-    (err)   => { if (alive) rejected.emit(err); },
+    (value) => {
+      if (alive) resolved.emit(value);
+    },
+    (err) => {
+      if (alive) rejected.emit(err);
+    }
   );
 
   return { resolved, rejected };
@@ -106,9 +110,9 @@ export function promiseToSignals<T>(
 export function connectOnce<T extends unknown[]>(
   signal: Signal<T>,
   slot: (...args: T) => void,
-  context?: CoreObject,
+  context?: CoreObject
 ): void {
-  let conn = signal.connect((...args) => {
+  const conn = signal.connect((...args) => {
     conn.disconnect();
     slot(...args);
   }, context);

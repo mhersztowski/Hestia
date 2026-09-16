@@ -17,33 +17,62 @@ function graph(edges: Array<[string, string]>, ids?: string[]): DiagramDocument 
   const nodeIds = ids ?? [...new Set(edges.flat())];
   doc.nodes = nodeIds.map((id) => ({ id, label: '', shape: 'rectangle' as const }));
   doc.edges = edges.map(([source, target]) => ({
-    id: `${source}__${target}`, source, target, lineStyle: 'solid' as const, arrow: 'arrow' as const,
+    id: `${source}__${target}`,
+    source,
+    target,
+    lineStyle: 'solid' as const,
+    arrow: 'arrow' as const,
   }));
   return doc;
 }
 
-const ranksOf = (doc: DiagramDocument) => computeRanks(doc.nodes.map((n) => n.id), doc.edges);
+const ranksOf = (doc: DiagramDocument) =>
+  computeRanks(
+    doc.nodes.map((n) => n.id),
+    doc.edges
+  );
 const posOf = (doc: DiagramDocument, id: string) => doc.nodes.find((n) => n.id === id)!.position!;
 
 describe('computeRanks', () => {
   it('łańcuch dostaje kolejne warstwy', () => {
-    const ranks = ranksOf(graph([['A', 'B'], ['B', 'C']]));
+    const ranks = ranksOf(
+      graph([
+        ['A', 'B'],
+        ['B', 'C'],
+      ])
+    );
     expect([ranks.get('A'), ranks.get('B'), ranks.get('C')]).toEqual([0, 1, 2]);
   });
 
   it('rozgałęzienie zostaje na jednej warstwie', () => {
-    const ranks = ranksOf(graph([['A', 'B'], ['A', 'C']]));
+    const ranks = ranksOf(
+      graph([
+        ['A', 'B'],
+        ['A', 'C'],
+      ])
+    );
     expect(ranks.get('B')).toBe(1);
     expect(ranks.get('C')).toBe(1);
   });
 
   it('węzeł z dwoma poprzednikami ląduje za tym dalszym', () => {
-    const ranks = ranksOf(graph([['A', 'B'], ['B', 'C'], ['A', 'C']]));
+    const ranks = ranksOf(
+      graph([
+        ['A', 'B'],
+        ['B', 'C'],
+        ['A', 'C'],
+      ])
+    );
     expect(ranks.get('C')).toBe(2);
   });
 
   it('cykl nie zapętla obliczeń', () => {
-    const ranks = ranksOf(graph([['A', 'B'], ['B', 'A']]));
+    const ranks = ranksOf(
+      graph([
+        ['A', 'B'],
+        ['B', 'A'],
+      ])
+    );
     expect(ranks.size).toBe(2);
   });
 
@@ -70,7 +99,12 @@ describe('autoLayout', () => {
   });
 
   it('węzły tej samej warstwy nie nachodzą na siebie', () => {
-    const doc = autoLayout(graph([['A', 'B'], ['A', 'C']]));
+    const doc = autoLayout(
+      graph([
+        ['A', 'B'],
+        ['A', 'C'],
+      ])
+    );
     // Rozstaw musi przekraczać szerokość węzła, inaczej pudełka by się przykryły.
     expect(Math.abs(posOf(doc, 'B').x - posOf(doc, 'C').x)).toBeGreaterThan(100);
   });

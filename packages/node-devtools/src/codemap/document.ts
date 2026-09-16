@@ -27,8 +27,17 @@ import { UmlDiagram } from './uml/umlTypes.js';
 export const CODEMAP_EXTENSION = '.codemap.json';
 
 /** The state of a codemap recorded by one commit. */
-export interface CodemapSnapshot { diagrams: UmlDiagram[]; linkedPath?: string }
-export interface CodemapCommit { id: string; message: string; at: number; parents: string[]; snapshot: CodemapSnapshot }
+export interface CodemapSnapshot {
+  diagrams: UmlDiagram[];
+  linkedPath?: string;
+}
+export interface CodemapCommit {
+  id: string;
+  message: string;
+  at: number;
+  parents: string[];
+  snapshot: CodemapSnapshot;
+}
 export interface CodemapHistory {
   commits: Record<string, CodemapCommit>;
   /** Branch name → id of its tip commit. */
@@ -71,12 +80,20 @@ export interface SyncResult {
 
 let counter = 0;
 const uid = (p: string) => `${p}_${Date.now().toString(36)}_${counter++}`;
-const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x));
+const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
 
-function initialHistory(diagrams: UmlDiagram[], linkedPath: string | undefined, message: string): CodemapHistory {
+function initialHistory(
+  diagrams: UmlDiagram[],
+  linkedPath: string | undefined,
+  message: string
+): CodemapHistory {
   const id = commitId(uid('c'));
   const snapshot: CodemapSnapshot = { diagrams: clone(diagrams), linkedPath };
-  return { commits: { [id]: { id, message, at: Date.now(), parents: [], snapshot } }, branches: { main: id }, head: 'main' };
+  return {
+    commits: { [id]: { id, message, at: Date.now(), parents: [], snapshot } },
+    branches: { main: id },
+    head: 'main',
+  };
 }
 
 /**
@@ -84,30 +101,47 @@ function initialHistory(diagrams: UmlDiagram[], linkedPath: string | undefined, 
  * The first commit records them, so the history starts with what the user saw.
  */
 export function codemapFromDiagrams(
-  name: string, diagrams: UmlDiagram[], opts: { linkedPath?: string; message?: string } = {},
+  name: string,
+  diagrams: UmlDiagram[],
+  opts: { linkedPath?: string; message?: string } = {}
 ): Codemap {
   return {
-    type: 'codemap', version: 1, name, linkedPath: opts.linkedPath, diagrams,
-    history: initialHistory(diagrams, opts.linkedPath, opts.message ?? 'Start'), updatedAt: Date.now(),
+    type: 'codemap',
+    version: 1,
+    name,
+    linkedPath: opts.linkedPath,
+    diagrams,
+    history: initialHistory(diagrams, opts.linkedPath, opts.message ?? 'Start'),
+    updatedAt: Date.now(),
   };
 }
 
 /** Create a brand-new codemap from a parsed model. */
 export function createCodemap(model: CodeModel, name: string, linkedPath?: string): Codemap {
   const diagram = modelToDiagram(model, { diagramName: 'Model' });
-  return codemapFromDiagrams(name, [diagram], { linkedPath, message: 'Generated from source code' });
+  return codemapFromDiagrams(name, [diagram], {
+    linkedPath,
+    message: 'Generated from source code',
+  });
 }
 
 /** Append a commit (advancing the current branch) to a codemap's history. */
 export function commitCodemap(codemap: Codemap, message: string): Codemap {
-  const snapshot: CodemapSnapshot = { diagrams: clone(codemap.diagrams), linkedPath: codemap.linkedPath };
+  const snapshot: CodemapSnapshot = {
+    diagrams: clone(codemap.diagrams),
+    linkedPath: codemap.linkedPath,
+  };
   const head = codemap.history.head;
   const parent = codemap.history.branches[head];
   const id = commitId(uid('c'));
   const commit = { id, message, at: Date.now(), parents: parent ? [parent] : [], snapshot };
   return {
     ...codemap,
-    history: { ...codemap.history, commits: { ...codemap.history.commits, [id]: commit }, branches: { ...codemap.history.branches, [head]: id } },
+    history: {
+      ...codemap.history,
+      commits: { ...codemap.history.commits, [id]: commit },
+      branches: { ...codemap.history.branches, [head]: id },
+    },
     updatedAt: Date.now(),
   };
 }
@@ -152,7 +186,13 @@ export function hasUncommittedChanges(codemap: Codemap): boolean {
 export function checkoutBranch(codemap: Codemap, branch: string): Codemap {
   const snap = codemap.history.commits[codemap.history.branches[branch]]?.snapshot;
   if (!snap) throw new Error(`codemap: branch "${branch}" does not exist`);
-  return { ...codemap, diagrams: clone(snap.diagrams), linkedPath: snap.linkedPath, history: { ...codemap.history, head: branch }, updatedAt: Date.now() };
+  return {
+    ...codemap,
+    diagrams: clone(snap.diagrams),
+    linkedPath: snap.linkedPath,
+    history: { ...codemap.history, head: branch },
+    updatedAt: Date.now(),
+  };
 }
 
 /**
@@ -162,9 +202,18 @@ export function checkoutBranch(codemap: Codemap, branch: string): Codemap {
 export function createBranch(codemap: Codemap, name: string): Codemap {
   const clean = name.trim().replace(/\s+/g, '-');
   if (!clean) throw new Error('codemap: a branch needs a name');
-  if (codemap.history.branches[clean] !== undefined) throw new Error(`codemap: branch "${clean}" already exists`);
+  if (codemap.history.branches[clean] !== undefined)
+    throw new Error(`codemap: branch "${clean}" already exists`);
   const tip = codemap.history.branches[codemap.history.head];
-  return { ...codemap, history: { ...codemap.history, branches: { ...codemap.history.branches, [clean]: tip }, head: clean }, updatedAt: Date.now() };
+  return {
+    ...codemap,
+    history: {
+      ...codemap.history,
+      branches: { ...codemap.history.branches, [clean]: tip },
+      head: clean,
+    },
+    updatedAt: Date.now(),
+  };
 }
 
 /**
@@ -175,7 +224,12 @@ export function createBranch(codemap: Codemap, name: string): Codemap {
 export function restoreCommit(codemap: Codemap, id: string): Codemap {
   const snap = codemap.history.commits[id]?.snapshot;
   if (!snap) throw new Error(`codemap: commit "${id}" does not exist`);
-  return { ...codemap, diagrams: clone(snap.diagrams), linkedPath: snap.linkedPath, updatedAt: Date.now() };
+  return {
+    ...codemap,
+    diagrams: clone(snap.diagrams),
+    linkedPath: snap.linkedPath,
+    updatedAt: Date.now(),
+  };
 }
 
 const isRecord = (x: unknown): x is Record<string, unknown> =>
@@ -198,11 +252,17 @@ export function parseCodemap(text: string): Codemap {
   const current = raw.type === 'codemap' && raw.version === 1;
   const legacy = raw.type === 'uml-project' && raw.version === 2;
   if (!current && !legacy) {
-    throw new Error(`codemap: expected type "codemap" v1 or "uml-project" v2, got ${JSON.stringify(raw.type)} v${JSON.stringify(raw.version)}`);
+    throw new Error(
+      `codemap: expected type "codemap" v1 or "uml-project" v2, got ${JSON.stringify(raw.type)} v${JSON.stringify(raw.version)}`
+    );
   }
   const h = raw.history;
-  const historyOk = isRecord(h) && isRecord(h.commits) && isRecord(h.branches)
-    && typeof h.head === 'string' && typeof h.branches[h.head] === 'string';
+  const historyOk =
+    isRecord(h) &&
+    isRecord(h.commits) &&
+    isRecord(h.branches) &&
+    typeof h.head === 'string' &&
+    typeof h.branches[h.head] === 'string';
   if (typeof raw.name !== 'string' || !Array.isArray(raw.diagrams) || !historyOk) {
     throw new Error('codemap: missing or invalid "name", "diagrams" or "history"');
   }

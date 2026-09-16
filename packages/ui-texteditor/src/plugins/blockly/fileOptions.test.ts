@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  readFileOptions, writeFileOptions, defaultFileOptions,
-  effectiveDialect, type BlocklyFileOptions,
+  readFileOptions,
+  writeFileOptions,
+  defaultFileOptions,
+  effectiveDialect,
+  type BlocklyFileOptions,
 } from './fileOptions';
 import { dialectById } from './dialects';
 
@@ -11,15 +14,23 @@ function makeStorage() {
   return {
     map,
     api: {
-      get<T>(key: string): T | undefined { return map.get(key) as T | undefined; },
-      set<T>(key: string, value: T): void { map.set(key, value); },
-      delete(key: string): void { map.delete(key); },
+      get<T>(key: string): T | undefined {
+        return map.get(key) as T | undefined;
+      },
+      set<T>(key: string, value: T): void {
+        map.set(key, value);
+      },
+      delete(key: string): void {
+        map.delete(key);
+      },
     },
   };
 }
 
 let storage: ReturnType<typeof makeStorage>;
-beforeEach(() => { storage = makeStorage(); });
+beforeEach(() => {
+  storage = makeStorage();
+});
 
 describe('readFileOptions', () => {
   it('plik bez ustawień dostaje wartości domyślne, a nie undefined', () => {
@@ -84,8 +95,9 @@ describe('effectiveDialect — czym jest ten plik', () => {
   it('wskazanie nieznanego języka nie unieważnia rozpoznania po rozszerzeniu', () => {
     // Zapis mógł powstać w nowszej wersji wtyczki. Cofnięcie się do
     // rozszerzenia jest lepsze niż odmowa otwarcia pliku.
-    expect(effectiveDialect('/a/b.py', { projects: [], dialectId: 'brainfuck' }))
-      .toBe(dialectById('python'));
+    expect(effectiveDialect('/a/b.py', { projects: [], dialectId: 'brainfuck' })).toBe(
+      dialectById('python')
+    );
   });
 
   it('plik nieobsługiwany zostaje nieobsługiwany', () => {

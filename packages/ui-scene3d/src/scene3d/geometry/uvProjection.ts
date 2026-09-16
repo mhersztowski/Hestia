@@ -42,7 +42,10 @@ const OSIE_OBRAZU: Record<OsRzutu, [0 | 1 | 2, 0 | 1 | 2]> = {
   z: [0, 1],
 };
 
-interface Zasieg { min: number; max: number }
+interface Zasieg {
+  min: number;
+  max: number;
+}
 
 function zasiegOsi(positions: number[], os: number): Zasieg {
   let min = Infinity;
@@ -102,12 +105,17 @@ function rzutPlaski(dane: BufferGeometryData, opcje: OpcjeRzutu): BufferGeometry
 
 /** Rozwija siatkę indeksowaną do listy trójkątów. */
 function bezIndeksow(dane: BufferGeometryData): { positions: number[]; normals?: number[] } {
-  if (!dane.indices) return { positions: dane.positions, ...(dane.normals ? { normals: dane.normals } : {}) };
+  if (!dane.indices)
+    return { positions: dane.positions, ...(dane.normals ? { normals: dane.normals } : {}) };
 
   const positions: number[] = [];
   const normals: number[] = [];
   for (const idx of dane.indices) {
-    positions.push(dane.positions[idx * 3]!, dane.positions[idx * 3 + 1]!, dane.positions[idx * 3 + 2]!);
+    positions.push(
+      dane.positions[idx * 3]!,
+      dane.positions[idx * 3 + 1]!,
+      dane.positions[idx * 3 + 2]!
+    );
     if (dane.normals) {
       normals.push(dane.normals[idx * 3]!, dane.normals[idx * 3 + 1]!, dane.normals[idx * 3 + 2]!);
     }
@@ -117,9 +125,15 @@ function bezIndeksow(dane: BufferGeometryData): { positions: number[]; normals?:
 
 /** Oś, wzdłuż której trójkąt jest najbardziej „płaski" — wybiera ścianę sześcianu. */
 function dominujacaOs(p: number[], t: number): OsRzutu {
-  const ax = p[t]!; const ay = p[t + 1]!; const az = p[t + 2]!;
-  const bx = p[t + 3]!; const by = p[t + 4]!; const bz = p[t + 5]!;
-  const cx = p[t + 6]!; const cy = p[t + 7]!; const cz = p[t + 8]!;
+  const ax = p[t]!;
+  const ay = p[t + 1]!;
+  const az = p[t + 2]!;
+  const bx = p[t + 3]!;
+  const by = p[t + 4]!;
+  const bz = p[t + 5]!;
+  const cx = p[t + 6]!;
+  const cy = p[t + 7]!;
+  const cz = p[t + 8]!;
 
   // Normalna z iloczynu wektorowego krawędzi — liczona z pozycji, a nie z
   // atrybutu, bo normalne wierzchołków bywają wygładzone i wskazują wtedy
@@ -128,7 +142,9 @@ function dominujacaOs(p: number[], t: number): OsRzutu {
   const ny = (bz - az) * (cx - ax) - (bx - ax) * (cz - az);
   const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
 
-  const absX = Math.abs(nx); const absY = Math.abs(ny); const absZ = Math.abs(nz);
+  const absX = Math.abs(nx);
+  const absY = Math.abs(ny);
+  const absZ = Math.abs(nz);
   if (absX >= absY && absX >= absZ) return 'x';
   if (absY >= absZ) return 'y';
   return 'z';
@@ -148,9 +164,18 @@ function rzutSzescienny(dane: BufferGeometryData, opcje: OpcjeRzutu): BufferGeom
   const obrot = ((opcje.obrot ?? 0) * Math.PI) / 180;
 
   const zasiegi: Record<OsRzutu, [Zasieg, Zasieg]> = {
-    x: [zasiegOsi(plaska.positions, OSIE_OBRAZU.x[0]), zasiegOsi(plaska.positions, OSIE_OBRAZU.x[1])],
-    y: [zasiegOsi(plaska.positions, OSIE_OBRAZU.y[0]), zasiegOsi(plaska.positions, OSIE_OBRAZU.y[1])],
-    z: [zasiegOsi(plaska.positions, OSIE_OBRAZU.z[0]), zasiegOsi(plaska.positions, OSIE_OBRAZU.z[1])],
+    x: [
+      zasiegOsi(plaska.positions, OSIE_OBRAZU.x[0]),
+      zasiegOsi(plaska.positions, OSIE_OBRAZU.x[1]),
+    ],
+    y: [
+      zasiegOsi(plaska.positions, OSIE_OBRAZU.y[0]),
+      zasiegOsi(plaska.positions, OSIE_OBRAZU.y[1]),
+    ],
+    z: [
+      zasiegOsi(plaska.positions, OSIE_OBRAZU.z[0]),
+      zasiegOsi(plaska.positions, OSIE_OBRAZU.z[1]),
+    ],
   };
 
   const uvs: number[] = [];

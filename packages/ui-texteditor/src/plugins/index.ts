@@ -18,14 +18,37 @@ export { VisualMinisLibPlugin } from './VisualMinisLibPlugin';
 // into a marked region of the file. Its source of diagrams is injected — see
 // `TextEditorWorkspace`'s `blocklyUmlSource` — because only some hosts have one.
 export {
-  createBlocklyPlugin, createVfsUmlProjectSource,
-  type UmlProjectSource, type UmlProjectRef,
+  createBlocklyPlugin,
+  createVfsUmlProjectSource,
+  type UmlProjectSource,
+  type UmlProjectRef,
 } from './blockly';
 
 // Kontrola źródeł (git) — panel zmian, commit, gałęzie, widok różnic.
 // Host podaje nazwę użytkownika, token i ścieżkę pliku `.repo.json`, bo tylko
 // on wie, który projekt jest otwarty.
 export { createGitPlugin, type GitPluginOptions } from './git/GitPlugin';
-export { GitApi, type GitChange, type GitInfo, type GitLogEntry, type GitStashEntry } from './git/gitApi';
-export { diffLines, toHunks, formatPatch, reverseHunk, splitLines, endsWithNewline, type Hunk } from './git/hunks';
-export { parseConflicts, resolveConflict, resolveAll, hasConflictMarkers, type Conflict, type Resolution } from './git/conflicts';
+export {
+  GitApi,
+  type GitChange,
+  type GitInfo,
+  type GitLogEntry,
+  type GitStashEntry,
+} from './git/gitApi';
+export {
+  diffLines,
+  toHunks,
+  formatPatch,
+  reverseHunk,
+  splitLines,
+  endsWithNewline,
+  type Hunk,
+} from './git/hunks';
+export {
+  parseConflicts,
+  resolveConflict,
+  resolveAll,
+  hasConflictMarkers,
+  type Conflict,
+  type Resolution,
+} from './git/conflicts';

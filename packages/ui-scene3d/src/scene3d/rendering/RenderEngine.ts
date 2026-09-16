@@ -32,7 +32,7 @@ export class RenderEngine {
       75,
       container.clientWidth / container.clientHeight,
       0.1,
-      1000,
+      1000
     );
     this.camera.position.set(5, 5, 5);
     this.camera.lookAt(0, 0, 0);
@@ -88,31 +88,27 @@ export class RenderEngine {
     let geometry: THREE.BufferGeometry;
     switch (node.geometry.type) {
       case 'sphere':
-        geometry = new THREE.SphereGeometry(
-          node.geometry.params?.['radius'] ?? 1,
-          32,
-          32,
-        );
+        geometry = new THREE.SphereGeometry(node.geometry.params?.['radius'] ?? 1, 32, 32);
         break;
       case 'cylinder':
         geometry = new THREE.CylinderGeometry(
           node.geometry.params?.['radiusTop'] ?? 1,
           node.geometry.params?.['radiusBottom'] ?? 1,
           node.geometry.params?.['height'] ?? 2,
-          32,
+          32
         );
         break;
       case 'plane':
         geometry = new THREE.PlaneGeometry(
           node.geometry.params?.['width'] ?? 10,
-          node.geometry.params?.['height'] ?? 10,
+          node.geometry.params?.['height'] ?? 10
         );
         break;
       case 'cone':
         geometry = new THREE.ConeGeometry(
           node.geometry.params?.['radius'] ?? 1,
           node.geometry.params?.['height'] ?? 2,
-          32,
+          32
         );
         break;
       case 'torus':
@@ -120,7 +116,7 @@ export class RenderEngine {
           node.geometry.params?.['radius'] ?? 1,
           node.geometry.params?.['tube'] ?? 0.4,
           16,
-          100,
+          100
         );
         break;
       case 'box':
@@ -128,7 +124,7 @@ export class RenderEngine {
         geometry = new THREE.BoxGeometry(
           node.geometry.params?.['width'] ?? 1,
           node.geometry.params?.['height'] ?? 1,
-          node.geometry.params?.['depth'] ?? 1,
+          node.geometry.params?.['depth'] ?? 1
         );
     }
 

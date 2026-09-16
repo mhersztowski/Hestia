@@ -46,17 +46,28 @@ function rowGlyph(row: PlotRow): string {
   switch (row.parsed.kind) {
     case 'explicit-y':
     case 'explicit-x':
-    case 'implicit': return '∿';
-    case 'inequality': return '◪';
-    case 'point': return '•';
-    case 'constant': return '=';
-    case 'function': return 'ƒ';
-    case 'value': return '#';
-    default: return '';
+    case 'implicit':
+      return '∿';
+    case 'inequality':
+      return '◪';
+    case 'point':
+      return '•';
+    case 'constant':
+      return '=';
+    case 'function':
+      return 'ƒ';
+    case 'value':
+      return '#';
+    default:
+      return '';
   }
 }
 
-function RowEditor({ latex, onCommit, onCancel }: {
+function RowEditor({
+  latex,
+  onCommit,
+  onCancel,
+}: {
   latex: string;
   onCommit: (next: string) => void;
   onCancel: () => void;
@@ -89,7 +100,13 @@ function RowEditor({ latex, onCommit, onCancel }: {
           if (e.key === 'Enter') onCommit((e.target as HTMLInputElement).value);
           if (e.key === 'Escape') onCancel();
         }}
-        style={{ width: '100%', font: 'inherit', padding: 4, border: '1px solid #cbd5e1', borderRadius: 4 }}
+        style={{
+          width: '100%',
+          font: 'inherit',
+          padding: 4,
+          border: '1px solid #cbd5e1',
+          borderRadius: 4,
+        }}
       />
     );
   }
@@ -101,7 +118,15 @@ function RowEditor({ latex, onCommit, onCancel }: {
   );
 }
 
-function Slider({ name, value, spec, playing, onChange, onTogglePlay, onSpecChange }: {
+function Slider({
+  name,
+  value,
+  spec,
+  playing,
+  onChange,
+  onTogglePlay,
+  onSpecChange,
+}: {
   name: string;
   value: number;
   spec: { min: number; max: number; step: number };
@@ -123,9 +148,18 @@ function Slider({ name, value, spec, playing, onChange, onTogglePlay, onSpecChan
           aria-label={`${playing ? 'Zatrzymaj' : 'Animuj'} ${name}`}
           title={playing ? 'Zatrzymaj' : 'Animuj'}
           style={{
-            width: 22, height: 22, border: '1px solid #cbd5e1', borderRadius: '50%',
-            background: playing ? '#eff6ff' : '#fff', cursor: 'pointer', fontSize: 10, lineHeight: 1,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+            width: 22,
+            height: 22,
+            border: '1px solid #cbd5e1',
+            borderRadius: '50%',
+            background: playing ? '#eff6ff' : '#fff',
+            cursor: 'pointer',
+            fontSize: 10,
+            lineHeight: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
           }}
         >
           {playing ? '❚❚' : '▶'}
@@ -151,7 +185,14 @@ function Slider({ name, value, spec, playing, onChange, onTogglePlay, onSpecChan
           onClick={() => setUstawienia((u) => !u)}
           aria-label={`Zakres suwaka ${name}`}
           title="Zakres i krok"
-          style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14, padding: 0 }}
+          style={{
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            color: '#94a3b8',
+            fontSize: 14,
+            padding: 0,
+          }}
         >
           ⋯
         </button>
@@ -159,7 +200,13 @@ function Slider({ name, value, spec, playing, onChange, onTogglePlay, onSpecChan
 
       {ustawienia && (
         <div style={{ display: 'flex', gap: 6, marginTop: 4, fontSize: 11, alignItems: 'center' }}>
-          {([['min', 'od'], ['max', 'do'], ['step', 'krok']] as const).map(([pole, etykieta]) => (
+          {(
+            [
+              ['min', 'od'],
+              ['max', 'do'],
+              ['step', 'krok'],
+            ] as const
+          ).map(([pole, etykieta]) => (
             <label key={pole} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
               {etykieta}
               <input
@@ -178,20 +225,45 @@ function Slider({ name, value, spec, playing, onChange, onTogglePlay, onSpecChan
 }
 
 export function PlotRowList({
-  document: doc, issuesByRow, onChangeRow, onAddRow, onRemoveRow, onToggleHidden,
-  onParameterChange, parameters, animating, onToggleAnimation, onSliderSpecChange,
+  document: doc,
+  issuesByRow,
+  onChangeRow,
+  onAddRow,
+  onRemoveRow,
+  onToggleHidden,
+  onParameterChange,
+  parameters,
+  animating,
+  onToggleAnimation,
+  onSliderSpecChange,
 }: PlotRowListProps) {
   const [editing, setEditing] = useState<string | undefined>();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: 6, borderBottom: '1px solid #e2e8f0' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          padding: 6,
+          borderBottom: '1px solid #e2e8f0',
+        }}
+      >
         <button
           type="button"
           onClick={onAddRow}
           title="Dodaj wyrażenie"
           aria-label="Dodaj wyrażenie"
-          style={{ fontSize: 20, lineHeight: 1, width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer' }}
+          style={{
+            fontSize: 20,
+            lineHeight: 1,
+            width: 32,
+            height: 32,
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+          }}
         >
           +
         </button>
@@ -206,10 +278,17 @@ export function PlotRowList({
           return (
             <div key={row.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 44 }}>
-                <div style={{
-                  width: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, color: '#94a3b8', background: '#f8fafc',
-                }}>
+                <div
+                  style={{
+                    width: 22,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 11,
+                    color: '#94a3b8',
+                    background: '#f8fafc',
+                  }}
+                >
                   {index + 1}
                 </div>
 
@@ -222,9 +301,17 @@ export function PlotRowList({
                   title={row.hidden ? 'Pokaż' : 'Ukryj'}
                   aria-label={`${row.hidden ? 'Pokaż' : 'Ukryj'} wiersz ${index + 1}`}
                   style={{
-                    width: 22, border: 'none', cursor: 'pointer', color: '#fff', fontSize: 13,
-                    background: row.parsed.kind === 'blank' ? 'transparent'
-                      : row.hidden ? '#cbd5e1' : row.style.color,
+                    width: 22,
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontSize: 13,
+                    background:
+                      row.parsed.kind === 'blank'
+                        ? 'transparent'
+                        : row.hidden
+                          ? '#cbd5e1'
+                          : row.style.color,
                   }}
                 >
                   {rowGlyph(row)}
@@ -232,12 +319,17 @@ export function PlotRowList({
 
                 <div
                   style={{ flex: 1, minWidth: 0, padding: '6px 8px', cursor: 'text' }}
-                  onClick={() => { if (!wEdycji) setEditing(row.id); }}
+                  onClick={() => {
+                    if (!wEdycji) setEditing(row.id);
+                  }}
                 >
                   {wEdycji ? (
                     <RowEditor
                       latex={row.latex}
-                      onCommit={(next) => { onChangeRow(row.id, next); setEditing(undefined); }}
+                      onCommit={(next) => {
+                        onChangeRow(row.id, next);
+                        setEditing(undefined);
+                      }}
                       onCancel={() => setEditing(undefined)}
                     />
                   ) : row.latex ? (
@@ -252,7 +344,14 @@ export function PlotRowList({
                   onClick={() => onRemoveRow(row.id)}
                   title="Usuń wiersz"
                   aria-label={`Usuń wiersz ${index + 1}`}
-                  style={{ width: 28, border: 'none', background: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 15 }}
+                  style={{
+                    width: 28,
+                    border: 'none',
+                    background: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    fontSize: 15,
+                  }}
                 >
                   ×
                 </button>
@@ -272,7 +371,9 @@ export function PlotRowList({
 
               {issues.length > 0 && (
                 <div style={{ padding: '0 8px 6px 44px', fontSize: 11, color: '#b91c1c' }}>
-                  {issues.map((issue) => <div key={issue}>{issue}</div>)}
+                  {issues.map((issue) => (
+                    <div key={issue}>{issue}</div>
+                  ))}
                 </div>
               )}
             </div>

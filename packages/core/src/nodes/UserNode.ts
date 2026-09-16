@@ -18,8 +18,12 @@ export class UserNode extends NodeBase<UserModel> {
     this.roles = [...model.roles];
   }
 
-  static fromModel(model: UserModel): UserNode { return new UserNode(model); }
-  static fromModels(models: UserModel[]): UserNode[] { return models.map(m => new UserNode(m)); }
+  static fromModel(model: UserModel): UserNode {
+    return new UserNode(model);
+  }
+  static fromModels(models: UserModel[]): UserNode[] {
+    return models.map((m) => new UserNode(m));
+  }
 
   getDisplayName(): string {
     return this.name;
@@ -34,7 +38,7 @@ export class UserNode extends NodeBase<UserModel> {
     return (
       this.id.toLowerCase().includes(lowerQuery) ||
       this.name.toLowerCase().includes(lowerQuery) ||
-      this.roles.some(r => r.toLowerCase().includes(lowerQuery))
+      this.roles.some((r) => r.toLowerCase().includes(lowerQuery))
     );
   }
 

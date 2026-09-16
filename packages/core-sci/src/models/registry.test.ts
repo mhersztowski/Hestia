@@ -22,13 +22,19 @@ describe('rejestrowanie', () => {
     const off = registerModel({
       name: 'test-liniowy',
       summary: 'Ruch jednostajny, do testów.',
-      build: () => defineModel({
-        parameters: [{ name: 'v', value: 2, unit: 'm/s' }],
-        observables: [{ name: 'x', unit: 'm' }],
-        run: ({ v }, tSpan, dt) => ({
-          series: { x: [[tSpan[0], 0], [tSpan[1], v * (tSpan[1] - tSpan[0])]] },
+      build: () =>
+        defineModel({
+          parameters: [{ name: 'v', value: 2, unit: 'm/s' }],
+          observables: [{ name: 'x', unit: 'm' }],
+          run: ({ v }, tSpan) => ({
+            series: {
+              x: [
+                [tSpan[0], 0],
+                [tSpan[1], v * (tSpan[1] - tSpan[0])],
+              ],
+            },
+          }),
         }),
-      }),
     });
 
     const { model, issues } = buildModel('test-liniowy');
@@ -57,7 +63,9 @@ describe('rejestrowanie', () => {
     const off = registerModel({
       name: 'test-wadliwy',
       summary: 'Zawsze rzuca — sprawdzenie odporności.',
-      build: () => { throw new Error('brak danych'); },
+      build: () => {
+        throw new Error('brak danych');
+      },
     });
 
     const { model, issues } = buildModel('test-wadliwy');
@@ -97,7 +105,8 @@ describe('oscylator', () => {
     const wynik = model().run({ m: 1, k: 4, c: 0.02, F_0: 0.5, x_0: 0, v_0: 0 }, [0, 40], 0.001);
 
     let max = 0;
-    for (let t = 30; t <= 40; t += 0.01) max = Math.max(max, Math.abs(wynik.trajectory!.value('x', t)));
+    for (let t = 30; t <= 40; t += 0.01)
+      max = Math.max(max, Math.abs(wynik.trajectory!.value('x', t)));
     // Amplituda ustalona w rezonansie: F₀/(c·ω₀) = 0,5/(0,02·2) = 12,5 m.
     expect(max).toBeGreaterThan(2);
   });

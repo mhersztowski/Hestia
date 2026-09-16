@@ -58,9 +58,21 @@ describe('automate models', () => {
     });
 
     it('keeps provided ports and config', () => {
-      const input = { id: 'in', name: 'in', direction: 'input' as const, dataType: 'flow' as const };
-      const output = { id: 'out', name: 'out', direction: 'output' as const, dataType: 'flow' as const };
-      const node = createNode('n2', 'if_else', 'Cond', { x: 0, y: 0 }, [input], [output], { expr: 'x > 1' });
+      const input = {
+        id: 'in',
+        name: 'in',
+        direction: 'input' as const,
+        dataType: 'flow' as const,
+      };
+      const output = {
+        id: 'out',
+        name: 'out',
+        direction: 'output' as const,
+        dataType: 'flow' as const,
+      };
+      const node = createNode('n2', 'if_else', 'Cond', { x: 0, y: 0 }, [input], [output], {
+        expr: 'x > 1',
+      });
       expect(node.inputs).toEqual([input]);
       expect(node.outputs).toEqual([output]);
       expect(node.config).toEqual({ expr: 'x > 1' });

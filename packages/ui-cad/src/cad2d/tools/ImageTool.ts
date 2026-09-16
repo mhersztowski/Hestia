@@ -4,7 +4,9 @@ import type { PreviewGeometry, Tool, ToolContext, ToolName } from './types';
 export class ImageTool implements Tool {
   name: ToolName = 'image';
 
-  getPreview(): PreviewGeometry | null { return null; }
+  getPreview(): PreviewGeometry | null {
+    return null;
+  }
 
   onPointerDown(point: Point2D, ctx: ToolContext): void {
     const input = document.createElement('input');
@@ -53,7 +55,9 @@ export class ImageTool implements Tool {
 
   onPointerMove(_p: Point2D, _ctx: ToolContext): void {}
   onPointerUp(_p: Point2D, _ctx: ToolContext): void {}
-  onKeyDown(key: string, _ctx: ToolContext): void { if (key === 'Escape') this.reset(); }
+  onKeyDown(key: string, _ctx: ToolContext): void {
+    if (key === 'Escape') this.reset();
+  }
   reset(): void {}
 }
 

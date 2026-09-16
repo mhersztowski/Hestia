@@ -21,20 +21,18 @@ export type Page = (typeof PAGES)[number];
 export const DEFAULT_PAGE: Page = 'notes';
 
 export const PAGE_NAMES: Record<Page, string> = {
-    notes: 'Notes',
-    cad2d: 'Cad2d',
-    cad3d: 'Cad3d',
+  notes: 'Notes',
+  cad2d: 'Cad2d',
+  cad3d: 'Cad3d',
 };
 
 /** The subpage named by the address fragment; the default when it is unknown. */
 export function pageFromHash(hash: string): Page {
-    const name = (hash ?? '').replace(/^#\/?/, '').split('?')[0].trim();
-    return (PAGES as readonly string[]).includes(name)
-        ? (name as Page)
-        : DEFAULT_PAGE;
+  const name = (hash ?? '').replace(/^#\/?/, '').split('?')[0].trim();
+  return (PAGES as readonly string[]).includes(name) ? (name as Page) : DEFAULT_PAGE;
 }
 
 /** The address fragment for a subpage — for a tab's `href` and for `location.hash`. */
 export function hashForPage(page: Page): string {
-    return `#/${page}`;
+  return `#/${page}`;
 }

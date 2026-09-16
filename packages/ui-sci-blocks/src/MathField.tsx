@@ -38,7 +38,11 @@ export interface MathFieldProps {
 }
 
 export function MathField({
-  latex, onCommit, onCancel, virtualKeyboard = 'auto', recognizeInk,
+  latex,
+  onCommit,
+  onCancel,
+  virtualKeyboard = 'auto',
+  recognizeInk,
 }: MathFieldProps) {
   /**
    * Pióro jest **drugim wejściem do tego samego pola**, nie osobnym trybem
@@ -111,11 +115,16 @@ export function MathField({
         pole.style.border = '1px solid #a855f7';
         pole.style.borderRadius = '4px';
 
-        pole.addEventListener('input', () => { wartoscRef.current = (pole as any).value; });
+        pole.addEventListener('input', () => {
+          wartoscRef.current = (pole as any).value;
+        });
         pole.addEventListener('change', () => onCommitRef.current((pole as any).value));
         pole.addEventListener('keydown', (event) => {
           const klawisz = (event as KeyboardEvent).key;
-          if (klawisz === 'Escape') { event.preventDefault(); onCancel?.(); }
+          if (klawisz === 'Escape') {
+            event.preventDefault();
+            onCancel?.();
+          }
         });
 
         hostRef.current.appendChild(pole);
@@ -127,7 +136,9 @@ export function MathField({
         (pole as any).focus?.();
         setStan('gotowe');
       })
-      .catch(() => { if (!anulowane) setStan('błąd'); });
+      .catch(() => {
+        if (!anulowane) setStan('błąd');
+      });
 
     return () => {
       anulowane = true;
@@ -168,9 +179,13 @@ export function MathField({
             type="button"
             onClick={() => setPioro((p) => !p)}
             style={{
-              alignSelf: 'flex-start', fontSize: 12, padding: '4px 10px',
-              border: '1px solid #cbd5e1', borderRadius: 6,
-              background: pioro ? '#eff6ff' : '#fff', cursor: 'pointer',
+              alignSelf: 'flex-start',
+              fontSize: 12,
+              padding: '4px 10px',
+              border: '1px solid #cbd5e1',
+              borderRadius: 6,
+              background: pioro ? '#eff6ff' : '#fff',
+              cursor: 'pointer',
             }}
           >
             {pioro ? '× zamknij pióro' : '✎ napisz rysikiem'}

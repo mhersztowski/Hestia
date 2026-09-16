@@ -23,7 +23,7 @@ const setup = (solver: string, nastawy: Record<string, unknown>) => {
 // „0" bez jednostki nie przejdzie: analiza wymiarowa nie przyjmuje gołej
 // liczby tam, gdzie spodziewa się kg/m — i słusznie, bo zero też ma wymiar.
 const BEZ_OPORU = { b: '0 kg/m', m: '1 kg', v_0: '20 m/s', alpha: '45 deg', g: '9.81 m/s^2' };
-const ZASIĘG = 20 ** 2 * Math.sin(2 * (Math.PI / 4)) / 9.81;
+const ZASIĘG = (20 ** 2 * Math.sin(2 * (Math.PI / 4))) / 9.81;
 
 describe('zasięg rzutu bez oporu', () => {
   it('zgadza się ze wzorem, bo chwila upadku jest rozwiązana, a nie zgadnięta', () => {
@@ -35,7 +35,7 @@ describe('zasięg rzutu bez oporu', () => {
 
   it('czas lotu też wychodzi z rachunku: 2·v₀·sin α / g', () => {
     const { model, values } = setup('dopri5', BEZ_OPORU);
-    const czas = 2 * 20 * Math.sin(Math.PI / 4) / 9.81;
+    const czas = (2 * 20 * Math.sin(Math.PI / 4)) / 9.81;
 
     expect(model.run(values, [0, 10], 0.01).trajectory!.t1).toBeCloseTo(czas, 8);
   });

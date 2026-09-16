@@ -18,7 +18,11 @@ function editorWithBlockAndParagraph(code = 'flowchart TD\n  A --> B') {
     content: {
       type: 'doc',
       content: [
-        { type: 'codeBlock', attrs: { language: 'mermaid' }, content: [{ type: 'text', text: code }] },
+        {
+          type: 'codeBlock',
+          attrs: { language: 'mermaid' },
+          content: [{ type: 'text', text: code }],
+        },
         { type: 'paragraph' },
       ],
     },
@@ -57,7 +61,10 @@ describe('Backspace w akapicie pod blokiem kodu', () => {
   it('pusty blok kodu znika po Backspace w środku', () => {
     const editor = new Editor({
       extensions: [StarterKit],
-      content: { type: 'doc', content: [{ type: 'codeBlock', content: [] }, { type: 'paragraph' }] },
+      content: {
+        type: 'doc',
+        content: [{ type: 'codeBlock', content: [] }, { type: 'paragraph' }],
+      },
     });
     editor.commands.setTextSelection(1);
     editor.commands.deleteNode('codeBlock');

@@ -36,18 +36,31 @@ export interface ProcedureBlockProps {
 }
 
 const box: CSSProperties = {
-  border: '1px solid #e2e8f0', borderLeft: '4px solid #0d9488',
-  borderRadius: 6, background: '#fff', padding: 10,
+  border: '1px solid #e2e8f0',
+  borderLeft: '4px solid #0d9488',
+  borderRadius: 6,
+  background: '#fff',
+  padding: 10,
 };
 const label: CSSProperties = { fontSize: 11, color: '#64748b' };
 const btn: CSSProperties = {
-  fontSize: 12, padding: '3px 10px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#334155',
+  fontSize: 12,
+  padding: '3px 10px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#334155',
 };
 
 /** Kolory wektorów procedury — stałe, żeby ten sam symbol miał ten sam kolor. */
 const KOLORY: Record<string, string> = {
-  a: '#2563eb', b: '#ea580c', e_1: '#16a34a', e_2: '#a855f7', p: '#94a3b8', r: '#0891b2',
+  a: '#2563eb',
+  b: '#ea580c',
+  e_1: '#16a34a',
+  e_2: '#a855f7',
+  p: '#94a3b8',
+  r: '#0891b2',
 };
 
 export function ProcedureBlock({ id, code, bare }: ProcedureBlockProps) {
@@ -83,9 +96,13 @@ export function ProcedureBlock({ id, code, bare }: ProcedureBlockProps) {
   const gauss = spec.kind === 'gauss';
 
   return (
-    <div style={bare
-      ? { display: 'flex', flexDirection: 'column', gap: 8 }
-      : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div
+      style={
+        bare
+          ? { display: 'flex', flexDirection: 'column', gap: 8 }
+          : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }
+      }
+    >
       {!bare && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: '#0d9488' }}>procedura</span>
@@ -94,7 +111,9 @@ export function ProcedureBlock({ id, code, bare }: ProcedureBlockProps) {
       )}
 
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-        <button type="button" style={btn} disabled={krok === 0} onClick={() => setKrok(krok - 1)}>←</button>
+        <button type="button" style={btn} disabled={krok === 0} onClick={() => setKrok(krok - 1)}>
+          ←
+        </button>
         <button
           type="button"
           style={btn}
@@ -103,8 +122,12 @@ export function ProcedureBlock({ id, code, bare }: ProcedureBlockProps) {
         >
           →
         </button>
-        <span style={label}>krok {Math.min(krok, kroki.length - 1) + 1} / {kroki.length}</span>
-        <button type="button" style={btn} onClick={() => setKrok(0)}>⟲ od początku</button>
+        <span style={label}>
+          krok {Math.min(krok, kroki.length - 1) + 1} / {kroki.length}
+        </span>
+        <button type="button" style={btn} onClick={() => setKrok(0)}>
+          ⟲ od początku
+        </button>
       </div>
 
       <div style={{ fontSize: 13, color: '#0f172a', minHeight: 40 }}>{biezacy.description}</div>
@@ -139,7 +162,9 @@ export function ProcedureBlock({ id, code, bare }: ProcedureBlockProps) {
  * się po obu jej stronach naraz.
  */
 function UkladRownan({
-  matrix, rhs, solution,
+  matrix,
+  rhs,
+  solution,
 }: {
   matrix: number[][];
   rhs: number[];
@@ -153,17 +178,25 @@ function UkladRownan({
 
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-      <table style={{ borderCollapse: 'collapse', fontVariantNumeric: 'tabular-nums', fontSize: 14 }}>
+      <table
+        style={{ borderCollapse: 'collapse', fontVariantNumeric: 'tabular-nums', fontSize: 14 }}
+      >
         <tbody>
           {matrix.map((wiersz, i) => (
             <tr key={i}>
               {wiersz.map((wartosc, j) => (
-                <td key={j} style={{ padding: '4px 10px', textAlign: 'right' }}>{liczba(wartosc)}</td>
+                <td key={j} style={{ padding: '4px 10px', textAlign: 'right' }}>
+                  {liczba(wartosc)}
+                </td>
               ))}
-              <td style={{
-                padding: '4px 10px', textAlign: 'right',
-                borderLeft: '2px solid #94a3b8', color: '#0d9488',
-              }}>
+              <td
+                style={{
+                  padding: '4px 10px',
+                  textAlign: 'right',
+                  borderLeft: '2px solid #94a3b8',
+                  color: '#0d9488',
+                }}
+              >
                 {liczba(rhs[i])}
               </td>
             </tr>

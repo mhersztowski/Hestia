@@ -74,7 +74,9 @@ export class SceneNode {
     this.children.push(node);
     if (this._onChange) {
       const cb = this._onChange;
-      node.traverse((n) => { n._onChange = cb; });
+      node.traverse((n) => {
+        n._onChange = cb;
+      });
     }
     this.notifyChange();
   }
@@ -84,7 +86,9 @@ export class SceneNode {
     if (index === -1) return null;
     const [removed] = this.children.splice(index, 1);
     removed.parent = null;
-    removed.traverse((n) => { n._onChange = null; });
+    removed.traverse((n) => {
+      n._onChange = null;
+    });
     this.notifyChange();
     return removed;
   }
@@ -250,7 +254,7 @@ export class SceneNode {
     const m = new Matrix4().lookAt(
       new Vector3(...worldPos),
       new Vector3(...target),
-      new Vector3(0, 1, 0),
+      new Vector3(0, 1, 0)
     );
     const euler = new Euler().setFromRotationMatrix(m);
     if (this.parent) {

@@ -57,7 +57,14 @@ describe('async methods', () => {
   });
 
   it('the line text can be read back (round-trip for codegen)', () => {
-    const line = renderMember({ kind: 'method', name: 'fetchOne', visibility: 'public', isAsync: true, type: 'Promise<string>', params: [{ name: 'id', type: 'string' }] });
+    const line = renderMember({
+      kind: 'method',
+      name: 'fetchOne',
+      visibility: 'public',
+      isAsync: true,
+      type: 'Promise<string>',
+      params: [{ name: 'id', type: 'string' }],
+    });
     const parsed = parseMemberText(line);
     expect(parsed.name).toBe('fetchOne');
     expect(parsed.isAsync).toBe(true);
@@ -76,6 +83,6 @@ describe('code generation from a diagram', () => {
 
     expect(code).toContain('async fetchOne(');
     expect(code).toContain('static async loadAll(');
-    expect(code).toMatch(/\n\s+sync\(/);   // an ordinary method, no async
+    expect(code).toMatch(/\n\s+sync\(/); // an ordinary method, no async
   });
 });

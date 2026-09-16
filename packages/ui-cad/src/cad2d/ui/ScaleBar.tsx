@@ -30,19 +30,26 @@ export function ScaleBar({ renderer }: Props) {
       prev?.();
       setScale(niceScale(renderer.getPixelToWorld()));
     };
-    return () => { renderer.onViewChange = prev; };
+    return () => {
+      renderer.onViewChange = prev;
+    };
   }, [renderer]);
 
-  const label = scale.worldLen >= 1
-    ? `${scale.worldLen}`
-    : `${scale.worldLen}`;
+  const label = scale.worldLen >= 1 ? `${scale.worldLen}` : `${scale.worldLen}`;
 
   return (
-    <Box sx={{
-      position: 'absolute', bottom: 32, left: 12,
-      display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-      pointerEvents: 'none', userSelect: 'none',
-    }}>
+    <Box
+      sx={{
+        position: 'absolute',
+        bottom: 32,
+        left: 12,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        pointerEvents: 'none',
+        userSelect: 'none',
+      }}
+    >
       {/* bar */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
         <Box sx={{ width: 1, height: 6, bgcolor: '#aaa' }} />
@@ -50,10 +57,16 @@ export function ScaleBar({ renderer }: Props) {
         <Box sx={{ width: 1, height: 6, bgcolor: '#aaa' }} />
       </Box>
       {/* label */}
-      <Typography variant="caption" sx={{
-        color: '#aaa', fontSize: 10, fontFamily: 'monospace',
-        lineHeight: 1.2, mt: '1px',
-      }}>
+      <Typography
+        variant="caption"
+        sx={{
+          color: '#aaa',
+          fontSize: 10,
+          fontFamily: 'monospace',
+          lineHeight: 1.2,
+          mt: '1px',
+        }}
+      >
         {label} u
       </Typography>
     </Box>

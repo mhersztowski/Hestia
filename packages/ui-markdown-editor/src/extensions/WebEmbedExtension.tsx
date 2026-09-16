@@ -16,8 +16,22 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Node } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
 import {
-  Box, Typography, IconButton, Tooltip, Chip, Dialog, DialogTitle, DialogContent,
-  DialogActions, Button, TextField, Tabs, Tab, List, ListItemButton, ListItemText,
+  Box,
+  Typography,
+  IconButton,
+  Tooltip,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Tabs,
+  Tab,
+  List,
+  ListItemButton,
+  ListItemText,
   CircularProgress,
 } from '@mui/material';
 import LanguageIcon from '@mui/icons-material/Language';
@@ -34,11 +48,15 @@ const DEFAULT_HEIGHT = 360;
 // ── Lit component rendering (sandboxed iframe srcDoc) ────────────────────────
 // `importMap` (optional) maps package names → served node_modules URLs, so the
 // embedded component can `import 'pkg'` (after `npm install` in its directory).
-function litWrapperHtml(absUrl: string, importMap?: { imports?: Record<string, string> } | null): string {
+function litWrapperHtml(
+  absUrl: string,
+  importMap?: { imports?: Record<string, string> } | null
+): string {
   const u = JSON.stringify(absUrl);
-  const im = importMap && importMap.imports && Object.keys(importMap.imports).length
-    ? `<script type="importmap">${JSON.stringify(importMap)}</script>`
-    : '';
+  const im =
+    importMap && importMap.imports && Object.keys(importMap.imports).length
+      ? `<script type="importmap">${JSON.stringify(importMap)}</script>`
+      : '';
   return `<!doctype html><html><head><meta charset="utf-8">
 ${im}
 <style>html,body{margin:0;padding:8px;font-family:system-ui,sans-serif;color:#222}</style>
@@ -68,10 +86,11 @@ async function listLitModules(userName: string, token: string | null): Promise<s
     const url = `/api/users/${encodeURIComponent(userName)}/vfs/readdir?path=${encodeURIComponent(absPath)}`;
     const r = await fetch(url, { headers });
     if (!r.ok) return;
-    const j = await r.json() as { entries?: Array<{ name: string; type: number }> };
+    const j = (await r.json()) as { entries?: Array<{ name: string; type: number }> };
     for (const e of j.entries ?? []) {
       const child = `${absPath}/${e.name}`;
-      if (e.type === 2) await walk(child);           // 2 = directory
+      if (e.type === 2)
+        await walk(child); // 2 = directory
       else if (/\.m?js$/i.test(e.name)) out.push(child.replace(`${base}/`, ''));
     }
   };
@@ -80,7 +99,13 @@ async function listLitModules(userName: string, token: string | null): Promise<s
 }
 
 // ── Settings dialog ──────────────────────────────────────────────────────────
-function WebEmbedDialog({ open, initialMode, initialValue, onClose, onConfirm }: {
+function WebEmbedDialog({
+  open,
+  initialMode,
+  initialValue,
+  onClose,
+  onConfirm,
+}: {
   open: boolean;
   initialMode: WebEmbedMode;
   initialValue: string;
@@ -106,10 +131,13 @@ function WebEmbedDialog({ open, initialMode, initialValue, onClose, onConfirm }:
   useEffect(() => {
     if (!open || tab !== 'lit' || litList !== null || !userName) return;
     setLitList([]);
-    listLitModules(userName, token).then(setLitList).catch(() => setLitList([]));
+    listLitModules(userName, token)
+      .then(setLitList)
+      .catch(() => setLitList([]));
   }, [open, tab, litList, userName, token]);
 
-  const litPublicPath = (rel: string) => `/public/drive/users/${encodeURIComponent(userName)}/lit/${rel}`;
+  const litPublicPath = (rel: string) =>
+    `/public/drive/users/${encodeURIComponent(userName)}/lit/${rel}`;
 
   const canConfirm = tab === 'url' ? !!url.trim() : !!litSelected;
   const handleConfirm = () => {
@@ -124,7 +152,11 @@ function WebEmbedDialog({ open, initialMode, initialValue, onClose, onConfirm }:
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Osadź stronę www</DialogTitle>
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, borderBottom: 1, borderColor: 'divider' }}>
+      <Tabs
+        value={tab}
+        onChange={(_, v) => setTab(v)}
+        sx={{ px: 2, borderBottom: 1, borderColor: 'divider' }}
+      >
         <Tab value="url" label="Strona (URL)" />
         <Tab value="lit" label="Komponent (lit)" />
       </Tabs>
@@ -132,12 +164,19 @@ function WebEmbedDialog({ open, initialMode, initialValue, onClose, onConfirm }:
         {tab === 'url' && (
           <Box>
             <TextField
-              autoFocus fullWidth label="Adres URL" placeholder="https://example.com"
-              value={url} onChange={(e) => setUrl(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && url.trim()) handleConfirm(); }}
+              autoFocus
+              fullWidth
+              label="Adres URL"
+              placeholder="https://example.com"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && url.trim()) handleConfirm();
+              }}
             />
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              Strona zostanie osadzona w iframe. Niektóre serwisy blokują osadzanie (X-Frame-Options).
+              Strona zostanie osadzona w iframe. Niektóre serwisy blokują osadzanie
+              (X-Frame-Options).
             </Typography>
           </Box>
         )}
@@ -147,20 +186,38 @@ function WebEmbedDialog({ open, initialMode, initialValue, onClose, onConfirm }:
               Komponenty Lit z <code>drive/public/lit</code> (eksportują TAG + klasę).
             </Typography>
             {litList === null ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}><CircularProgress size={22} /></Box>
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                <CircularProgress size={22} />
+              </Box>
             ) : litList.length === 0 ? (
-              <Typography variant="body2" color="text.secondary" sx={{ py: 2, fontStyle: 'italic' }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ py: 2, fontStyle: 'italic' }}
+              >
                 Brak modułów w drive/public/lit.
               </Typography>
             ) : (
-              <List dense sx={{ maxHeight: 220, overflow: 'auto', border: 1, borderColor: 'divider', borderRadius: 1 }}>
+              <List
+                dense
+                sx={{
+                  maxHeight: 220,
+                  overflow: 'auto',
+                  border: 1,
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                }}
+              >
                 {litList.map((rel) => (
                   <ListItemButton
                     key={rel}
                     selected={rel === selectedRel}
                     onClick={() => setLitSelected(litPublicPath(rel))}
                   >
-                    <ListItemText primary={rel} primaryTypographyProps={{ fontFamily: 'monospace', fontSize: 13 }} />
+                    <ListItemText
+                      primary={rel}
+                      primaryTypographyProps={{ fontFamily: 'monospace', fontSize: 13 }}
+                    />
                   </ListItemButton>
                 ))}
               </List>
@@ -170,7 +227,9 @@ function WebEmbedDialog({ open, initialMode, initialValue, onClose, onConfirm }:
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Anuluj</Button>
-        <Button variant="contained" onClick={handleConfirm} disabled={!canConfirm}>Osadź</Button>
+        <Button variant="contained" onClick={handleConfirm} disabled={!canConfirm}>
+          Osadź
+        </Button>
       </DialogActions>
     </Dialog>
   );
@@ -187,7 +246,9 @@ function WebEmbedNodeView({ node, updateAttributes, editor }: NodeViewProps) {
   const [dialogOpen, setDialogOpen] = useState(!value);
 
   const label = value
-    ? (mode === 'lit' ? decodeURIComponent(value.split('/').pop() ?? value) : value)
+    ? mode === 'lit'
+      ? decodeURIComponent(value.split('/').pop() ?? value)
+      : value
     : '';
   const absUrl = value ? new URL(value, window.location.origin).href : '';
 
@@ -201,19 +262,34 @@ function WebEmbedNodeView({ node, updateAttributes, editor }: NodeViewProps) {
   }, [mode, value]);
   const [importMap, setImportMap] = useState<{ imports?: Record<string, string> } | null>(null);
   useEffect(() => {
-    if (mode !== 'lit' || !litDir || !currentUser?.name) { setImportMap(null); return; }
+    if (mode !== 'lit' || !litDir || !currentUser?.name) {
+      setImportMap(null);
+      return;
+    }
     let cancelled = false;
     const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-    fetch(`/api/users/${encodeURIComponent(currentUser.name)}/drive/importmap?dir=${encodeURIComponent(litDir)}`, { headers })
+    fetch(
+      `/api/users/${encodeURIComponent(currentUser.name)}/drive/importmap?dir=${encodeURIComponent(litDir)}`,
+      { headers }
+    )
       .then((r) => (r.ok ? r.json() : { imports: {} }))
-      .then((m) => { if (!cancelled) setImportMap(m); })
-      .catch(() => { if (!cancelled) setImportMap({ imports: {} }); });
-    return () => { cancelled = true; };
+      .then((m) => {
+        if (!cancelled) setImportMap(m);
+      })
+      .catch(() => {
+        if (!cancelled) setImportMap({ imports: {} });
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [mode, litDir, currentUser?.name, token]);
 
-  const handleConfirm = useCallback((m: WebEmbedMode, v: string) => {
-    updateAttributes({ mode: m, value: v });
-  }, [updateAttributes]);
+  const handleConfirm = useCallback(
+    (m: WebEmbedMode, v: string) => {
+      updateAttributes({ mode: m, value: v });
+    },
+    [updateAttributes]
+  );
 
   // Czy adres w ogóle wolno pokazać w ramce. Serwisy z `X-Frame-Options` /
   // CSP `frame-ancestors` (claude.ai, portale społecznościowe, banki) wyświetlą
@@ -225,37 +301,78 @@ function WebEmbedNodeView({ node, updateAttributes, editor }: NodeViewProps) {
     if (mode !== 'url' || !absUrl || !/^https?:/i.test(absUrl)) return;
     let cancelled = false;
     fetch(`/api/embed-check?url=${encodeURIComponent(absUrl)}`)
-      .then((r) => (r.ok ? r.json() as Promise<EmbedCheckResult> : { error: `HTTP ${r.status}` }))
-      .then((result) => { if (!cancelled) setEmbedCheck(result); })
-      .catch((e: unknown) => { if (!cancelled) setEmbedCheck({ error: (e as Error).message }); });
-    return () => { cancelled = true; };
+      .then((r) => (r.ok ? (r.json() as Promise<EmbedCheckResult>) : { error: `HTTP ${r.status}` }))
+      .then((result) => {
+        if (!cancelled) setEmbedCheck(result);
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) setEmbedCheck({ error: (e as Error).message });
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [mode, absUrl]);
 
   const decision = useMemo(() => embedDecision(absUrl, embedCheck), [absUrl, embedCheck]);
 
   return (
     <NodeViewWrapper>
-      <Box contentEditable={false} sx={{
-        border: '1px solid', borderColor: 'divider', borderRadius: 1, overflow: 'hidden', my: 1,
-        bgcolor: 'background.paper',
-      }}>
-        <Box sx={{
-          display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.75,
-          bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider',
-        }}>
-          {mode === 'lit' ? <WidgetsIcon fontSize="small" color="secondary" /> : <LanguageIcon fontSize="small" color="info" />}
-          <Typography variant="body2" fontWeight={600} sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <Box
+        contentEditable={false}
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          overflow: 'hidden',
+          my: 1,
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            px: 1.5,
+            py: 0.75,
+            bgcolor: 'background.default',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          {mode === 'lit' ? (
+            <WidgetsIcon fontSize="small" color="secondary" />
+          ) : (
+            <LanguageIcon fontSize="small" color="info" />
+          )}
+          <Typography
+            variant="body2"
+            fontWeight={600}
+            sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
             {label || <em style={{ opacity: 0.5 }}>Nie wybrano</em>}
           </Typography>
-          <Chip label={mode === 'lit' ? 'komponent' : 'strona'} size="small" sx={{ fontSize: 10, height: 18 }} />
+          <Chip
+            label={mode === 'lit' ? 'komponent' : 'strona'}
+            size="small"
+            sx={{ fontSize: 10, height: 18 }}
+          />
           {editor.isEditable && (
             <Tooltip title="Zmień">
-              <IconButton size="small" onClick={() => setDialogOpen(true)}><EditIcon sx={{ fontSize: 14 }} /></IconButton>
+              <IconButton size="small" onClick={() => setDialogOpen(true)}>
+                <EditIcon sx={{ fontSize: 14 }} />
+              </IconButton>
             </Tooltip>
           )}
           {mode === 'url' && absUrl && (
             <Tooltip title="Otwórz w nowej karcie">
-              <IconButton size="small" component="a" href={absUrl} target="_blank" rel="noopener noreferrer">
+              <IconButton
+                size="small"
+                component="a"
+                href={absUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <OpenInNewIcon sx={{ fontSize: 14 }} />
               </IconButton>
             </Tooltip>
@@ -264,7 +381,8 @@ function WebEmbedNodeView({ node, updateAttributes, editor }: NodeViewProps) {
 
         {value ? (
           mode === 'lit' ? (
-            <Box component="iframe"
+            <Box
+              component="iframe"
               key={`${absUrl}|${importMap ? Object.keys(importMap.imports ?? {}).length : 'x'}`}
               srcDoc={litWrapperHtml(absUrl, importMap)}
               sandbox="allow-scripts allow-popups allow-forms"
@@ -285,8 +403,8 @@ function WebEmbedNodeView({ node, updateAttributes, editor }: NodeViewProps) {
                 {absUrl}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {decision.reason ?? 'Serwis blokuje wyświetlanie w ramce.'}
-                {' '}Otwórz ją w nowej karcie — treść pozostaje dostępna, tylko nie w tym dokumencie.
+                {decision.reason ?? 'Serwis blokuje wyświetlanie w ramce.'} Otwórz ją w nowej karcie
+                — treść pozostaje dostępna, tylko nie w tym dokumencie.
               </Typography>
               <Button
                 size="small"
@@ -301,7 +419,8 @@ function WebEmbedNodeView({ node, updateAttributes, editor }: NodeViewProps) {
               </Button>
             </Box>
           ) : (
-            <Box component="iframe"
+            <Box
+              component="iframe"
               src={value}
               sx={{ display: 'block', width: '100%', height, border: 'none', bgcolor: '#fff' }}
               title={label}
@@ -342,27 +461,32 @@ export const WebEmbed = Node.create({
   },
 
   parseHTML() {
-    return [{
-      tag: 'div[data-type="web-embed"]',
-      getAttrs(node) {
-        if (typeof node === 'string') return false;
-        const el = node as HTMLElement;
-        return {
-          mode: el.getAttribute('data-mode') || 'url',
-          value: el.getAttribute('data-value') || '',
-          height: Number(el.getAttribute('data-height')) || DEFAULT_HEIGHT,
-        };
+    return [
+      {
+        tag: 'div[data-type="web-embed"]',
+        getAttrs(node) {
+          if (typeof node === 'string') return false;
+          const el = node as HTMLElement;
+          return {
+            mode: el.getAttribute('data-mode') || 'url',
+            value: el.getAttribute('data-value') || '',
+            height: Number(el.getAttribute('data-height')) || DEFAULT_HEIGHT,
+          };
+        },
       },
-    }];
+    ];
   },
 
   renderHTML({ node }) {
-    return ['div', {
-      'data-type': 'web-embed',
-      'data-mode': node.attrs.mode,
-      'data-value': node.attrs.value,
-      'data-height': String(node.attrs.height),
-    }];
+    return [
+      'div',
+      {
+        'data-type': 'web-embed',
+        'data-mode': node.attrs.mode,
+        'data-value': node.attrs.value,
+        'data-height': String(node.attrs.height),
+      },
+    ];
   },
 
   addNodeView() {
@@ -371,8 +495,10 @@ export const WebEmbed = Node.create({
 
   addCommands() {
     return {
-      insertWebEmbed: (mode: WebEmbedMode = 'url', value = '') => ({ commands }) =>
-        commands.insertContent({ type: this.name, attrs: { mode, value } }),
+      insertWebEmbed:
+        (mode: WebEmbedMode = 'url', value = '') =>
+        ({ commands }) =>
+          commands.insertContent({ type: this.name, attrs: { mode, value } }),
     };
   },
 });

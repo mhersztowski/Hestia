@@ -45,9 +45,12 @@ function krotko(v: number): string {
 export function serializeInk(strokes: InkStroke[]): string {
   return strokes
     .filter((s) => s.points.length > 0)
-    .map((s) => `${krotko(s.width)}:${s.points
-      .map((p) => `${krotko(p.x)}/${krotko(p.y)}/${Math.round(p.pressure * 100) / 100}`)
-      .join(',')}`)
+    .map(
+      (s) =>
+        `${krotko(s.width)}:${s.points
+          .map((p) => `${krotko(p.x)}/${krotko(p.y)}/${Math.round(p.pressure * 100) / 100}`)
+          .join(',')}`
+    )
     .join(';');
 }
 

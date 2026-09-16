@@ -10,7 +10,7 @@ import type { Project } from '../core';
  */
 export function useProject(project: Project) {
   const [version, setVersion] = useState(0);
-  const bump = useCallback(() => setVersion(v => v + 1), []);
+  const bump = useCallback(() => setVersion((v) => v + 1), []);
 
   useEffect(() => {
     const unsubs = [
@@ -24,7 +24,7 @@ export function useProject(project: Project) {
       project.eventBus.on('history:changed', bump),
       project.eventBus.on('project:loaded', bump),
     ];
-    return () => unsubs.forEach(u => u());
+    return () => unsubs.forEach((u) => u());
   }, [project, bump]);
 
   return { version };

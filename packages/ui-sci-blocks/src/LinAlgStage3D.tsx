@@ -22,8 +22,13 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import {
-  applyM3, detM3, eigenM3, interpolateM3, kernelBasis,
-  type Matrix3, type Vector3,
+  applyM3,
+  detM3,
+  eigenM3,
+  interpolateM3,
+  kernelBasis,
+  type Matrix3,
+  type Vector3,
 } from '@hestia/core-sci';
 
 export interface Stage3DVector {
@@ -54,7 +59,12 @@ const OSIE: Array<{ dir: Vector3; color: number }> = [
 type Three = typeof import('three');
 
 export function LinAlgStage3D({
-  matrix, t, vectors = [], size = 360, showEigen, showKernel,
+  matrix,
+  t,
+  vectors = [],
+  size = 360,
+  showEigen,
+  showKernel,
 }: LinAlgStage3DProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [three, setThree] = useState<Three | null>(null);
@@ -71,13 +81,17 @@ export function LinAlgStage3D({
   useEffect(() => {
     let anulowane = false;
     import('three')
-      .then((mod) => { if (!anulowane) setThree(mod); })
+      .then((mod) => {
+        if (!anulowane) setThree(mod);
+      })
       .catch(() => {
         if (!anulowane) {
           setBlad('Nie udało się wczytać silnika 3D. Scena wymaga pakietu „three".');
         }
       });
-    return () => { anulowane = true; };
+    return () => {
+      anulowane = true;
+    };
   }, []);
 
   // Budowa sceny — raz na komponent.
@@ -149,40 +163,59 @@ export function LinAlgStage3D({
       // kwadrat w scenie 2D.
       const wyznacznik = detM3(M);
       const rogi: Vector3[] = [
-        [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0],
-        [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1],
+        [0, 0, 0],
+        [1, 0, 0],
+        [1, 1, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 1],
+        [0, 1, 1],
       ].map((v) => przeksztalc(v as Vector3));
 
       const geometria = new T.BufferGeometry();
-      geometria.setAttribute('position', new T.Float32BufferAttribute(
-        rogi.flatMap((r) => [r[0], r[1], r[2]]), 3,
-      ));
+      geometria.setAttribute(
+        'position',
+        new T.Float32BufferAttribute(
+          rogi.flatMap((r) => [r[0], r[1], r[2]]),
+          3
+        )
+      );
       geometria.setIndex([
-        0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6, 0, 4, 5, 0, 5, 1,
-        1, 5, 6, 1, 6, 2, 2, 6, 7, 2, 7, 3, 3, 7, 4, 3, 4, 0,
+        0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6, 0, 4, 5, 0, 5, 1, 1, 5, 6, 1, 6, 2, 2, 6, 7, 2, 7, 3, 3,
+        7, 4, 3, 4, 0,
       ]);
       geometria.computeVertexNormals();
 
-      grupa.add(new T.Mesh(geometria, new T.MeshLambertMaterial({
-        color: wyznacznik >= 0 ? 0x2563eb : 0xdc2626,
-        transparent: true,
-        opacity: 0.28,
-        // Obie strony, bo przy ujemnym wyznaczniku bryła jest „wywrócona"
-        // i ściany patrzą do środka.
-        side: T.DoubleSide,
-      })));
+      grupa.add(
+        new T.Mesh(
+          geometria,
+          new T.MeshLambertMaterial({
+            color: wyznacznik >= 0 ? 0x2563eb : 0xdc2626,
+            transparent: true,
+            opacity: 0.28,
+            // Obie strony, bo przy ujemnym wyznaczniku bryła jest „wywrócona"
+            // i ściany patrzą do środka.
+            side: T.DoubleSide,
+          })
+        )
+      );
 
       // Krawędzie osobno: przy wyznaczniku bliskim zera bryła spłaszcza się i
       // same półprzezroczyste ściany przestają być widoczne — a wtedy nie
       // widać, że coś się zapadło, tylko że coś zniknęło.
-      grupa.add(new T.LineSegments(
-        new T.EdgesGeometry(geometria),
-        new T.LineBasicMaterial({ color: wyznacznik >= 0 ? 0x1d4ed8 : 0xb91c1c }),
-      ));
+      grupa.add(
+        new T.LineSegments(
+          new T.EdgesGeometry(geometria),
+          new T.LineBasicMaterial({ color: wyznacznik >= 0 ? 0x1d4ed8 : 0xb91c1c })
+        )
+      );
     }
 
     for (const { value, color } of vectors) {
-      grupa.add(strzalka3D(three, [0, 0, 0], przeksztalc(value), Number(color.replace('#', '0x')), 1.4));
+      grupa.add(
+        strzalka3D(three, [0, 0, 0], przeksztalc(value), Number(color.replace('#', '0x')), 1.4)
+      );
     }
 
     if (showEigen && matrix) {
@@ -193,9 +226,16 @@ export function LinAlgStage3D({
           wek([-vector[0] * 3, -vector[1] * 3, -vector[2] * 3]),
           wek([vector[0] * 3, vector[1] * 3, vector[2] * 3]),
         ]);
-        grupa.add(new T.Line(geo, new T.LineDashedMaterial({
-          color: 0xa855f7, dashSize: 0.18, gapSize: 0.12,
-        })).computeLineDistances());
+        grupa.add(
+          new T.Line(
+            geo,
+            new T.LineDashedMaterial({
+              color: 0xa855f7,
+              dashSize: 0.18,
+              gapSize: 0.12,
+            })
+          ).computeLineDistances()
+        );
       }
     }
 
@@ -214,9 +254,12 @@ export function LinAlgStage3D({
         const plaszczyzna = new T.Mesh(
           new T.PlaneGeometry(4, 4),
           new T.MeshBasicMaterial({
-            color: 0xf59e0b, transparent: true, opacity: 0.13, side: T.DoubleSide,
+            color: 0xf59e0b,
+            transparent: true,
+            opacity: 0.13,
+            side: T.DoubleSide,
             depthWrite: false,
-          }),
+          })
         );
         const normalna = new T.Vector3().crossVectors(wek(jadro[0]), wek(jadro[1])).normalize();
         plaszczyzna.quaternion.setFromUnitVectors(new T.Vector3(0, 0, 1), normalna);
@@ -238,7 +281,7 @@ export function LinAlgStage3D({
     camera.position.set(
       promien * Math.sin(phi) * Math.cos(theta),
       promien * Math.cos(phi),
-      promien * Math.sin(phi) * Math.sin(theta),
+      promien * Math.sin(phi) * Math.sin(theta)
     );
     camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
@@ -264,7 +307,10 @@ export function LinAlgStage3D({
         orbita.theta -= (e.clientX - start.x) * 0.01;
         // Ograniczenie kąta: przy biegunach kamera przeskakuje i scena
         // wygląda, jakby się teleportowała.
-        orbita.phi = Math.max(0.15, Math.min(Math.PI - 0.15, orbita.phi - (e.clientY - start.y) * 0.01));
+        orbita.phi = Math.max(
+          0.15,
+          Math.min(Math.PI - 0.15, orbita.phi - (e.clientY - start.y) * 0.01)
+        );
         przeciaganieRef.current = { x: e.clientX, y: e.clientY };
         rysuj();
       }}
@@ -299,13 +345,7 @@ export function LinAlgStage3D({
  * perspektywie wektor bliski i daleki wyglądają tak samo — a w scenie, gdzie
  * chodzi o porównywanie długości, to zaciera właśnie to, co ważne.
  */
-function strzalka3D(
-  T: Three,
-  od: Vector3,
-  do_: Vector3,
-  kolor: number,
-  grubosc: number,
-): any {
+function strzalka3D(T: Three, od: Vector3, do_: Vector3, kolor: number, grubosc: number): any {
   const kierunek = new T.Vector3(do_[0] - od[0], do_[1] - od[1], do_[2] - od[2]);
   const dlugosc = kierunek.length();
   const grupa = new T.Group();

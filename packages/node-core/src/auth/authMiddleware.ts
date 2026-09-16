@@ -9,7 +9,11 @@ export function extractBearerToken(req: IncomingMessage): string | null {
   return header.slice(7);
 }
 
-export function checkAuth(req: IncomingMessage, jwtService: JwtService, apiKeyService?: ApiKeyService): AuthTokenPayload | null {
+export function checkAuth(
+  req: IncomingMessage,
+  jwtService: JwtService,
+  apiKeyService?: ApiKeyService
+): AuthTokenPayload | null {
   const token = extractBearerToken(req);
   if (!token) return null;
   if (apiKeyService && ApiKeyService.isApiKey(token)) {

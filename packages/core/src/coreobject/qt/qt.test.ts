@@ -11,19 +11,29 @@ import {
 
 // ── Minimal fake of the browser-Qt meta-object system ────────────────────────
 // Mirrors packages/core/browser/qt (metaProperties/metaSignals/property/…)
-// so the wrappers can be tested hermetically in a plain TreeNode environment.
+// so the wrappers can be tested hermetically in a plain Node environment.
 
 class FakeSignal {
   #name: string;
   #conns = new Set<(...a: unknown[]) => void>();
-  constructor(name = '') { this.#name = name; }
-  name() { return this.#name; }
+  constructor(name = '') {
+    this.#name = name;
+  }
+  name() {
+    return this.#name;
+  }
   connect(slot: (...a: unknown[]) => void) {
     this.#conns.add(slot);
     return { disconnect: () => this.#conns.delete(slot) };
   }
-  disconnect() { this.#conns.clear(); return true; }
-  emit(...a: unknown[]) { for (const c of [...this.#conns]) c(...a); return this.#conns.size > 0; }
+  disconnect() {
+    this.#conns.clear();
+    return true;
+  }
+  emit(...a: unknown[]) {
+    for (const c of [...this.#conns]) c(...a);
+    return this.#conns.size > 0;
+  }
 }
 
 class FakeQObject {
@@ -35,9 +45,16 @@ class FakeQObject {
   _destroyed = false;
   destroyed = new FakeSignal('destroyed');
 
-  objectName() { return this._objectName; }
-  setObjectName(n: string) { this._objectName = String(n); return this; }
-  className() { return this.constructor.name; }
+  objectName() {
+    return this._objectName;
+  }
+  setObjectName(n: string) {
+    this._objectName = String(n);
+    return this;
+  }
+  className() {
+    return this.constructor.name;
+  }
   inherits(name: string) {
     let c: unknown = this.constructor;
     while (c && (c as { name?: string }).name) {
@@ -46,22 +63,35 @@ class FakeQObject {
     }
     return false;
   }
-  isDestroyed() { return this._destroyed; }
+  isDestroyed() {
+    return this._destroyed;
+  }
 
   #metaOf(field: 'properties' | 'signals'): Record<string, any> {
     const chain: any[] = [];
     let c: any = this.constructor;
-    while (c && c !== Object && c !== Function.prototype) { chain.unshift(c); c = Object.getPrototypeOf(c); }
+    while (c && c !== Object && c !== Function.prototype) {
+      chain.unshift(c);
+      c = Object.getPrototypeOf(c);
+    }
     const out: Record<string, any> = {};
     for (const k of chain) {
       if (Object.prototype.hasOwnProperty.call(k, field)) Object.assign(out, k[field]);
     }
     return out;
   }
-  metaProperties() { return this.#metaOf('properties'); }
-  metaSignals() { return this.#metaOf('signals'); }
-  propertyNames() { return Object.keys(this.metaProperties()); }
-  signalNames() { return Object.keys(this.metaSignals()); }
+  metaProperties() {
+    return this.#metaOf('properties');
+  }
+  metaSignals() {
+    return this.#metaOf('signals');
+  }
+  propertyNames() {
+    return Object.keys(this.metaProperties());
+  }
+  signalNames() {
+    return Object.keys(this.metaSignals());
+  }
 
   property(key: string): unknown {
     const m = this.metaProperties()[key];
@@ -71,46 +101,88 @@ class FakeQObject {
     const m = this.metaProperties()[key];
     if (m && m.set) {
       m.set(this, v);
-      if (m.notify && (this as any)[m.notify] instanceof FakeSignal) (this as any)[m.notify].emit(v);
+      if (m.notify && (this as any)[m.notify] instanceof FakeSignal)
+        (this as any)[m.notify].emit(v);
     } else {
       (this as any)['_' + key] = v;
     }
     return this;
   }
 
-  parent() { return this._parent; }
-  children() { return this._children.slice(); }
-  destroy() { if (this._destroyed) return; this._destroyed = true; this.destroyed.emit(this); }
+  parent() {
+    return this._parent;
+  }
+  children() {
+    return this._children.slice();
+  }
+  destroy() {
+    if (this._destroyed) return;
+    this._destroyed = true;
+    this.destroyed.emit(this);
+  }
 }
 
 class FakePushButton extends FakeQObject {
   static properties = {
-    text: { get: (o: any) => o._text, set: (o: any, v: any) => { o._text = String(v); }, type: 'string' },
-    checked: { get: (o: any) => o._checked, set: (o: any, v: any) => { o._checked = !!v; }, notify: 'toggled', type: 'bool' },
+    text: {
+      get: (o: any) => o._text,
+      set: (o: any, v: any) => {
+        o._text = String(v);
+      },
+      type: 'string',
+    },
+    checked: {
+      get: (o: any) => o._checked,
+      set: (o: any, v: any) => {
+        o._checked = !!v;
+      },
+      notify: 'toggled',
+      type: 'bool',
+    },
   };
   static signals = { clicked: { params: [] }, toggled: { params: ['checked'] } };
   _text = '';
   _checked = false;
   clicked = new FakeSignal('clicked');
   toggled = new FakeSignal('toggled');
-  override className() { return 'QPushButton'; }
-  override inherits(n: string) { return ['QPushButton', 'QAbstractButton', 'QWidget'].includes(n) || super.inherits(n); }
-  click() { this.clicked.emit(); }
+  override className() {
+    return 'QPushButton';
+  }
+  override inherits(n: string) {
+    return ['QPushButton', 'QAbstractButton', 'QWidget'].includes(n) || super.inherits(n);
+  }
+  click() {
+    this.clicked.emit();
+  }
 }
 
 class FakeSlider extends FakeQObject {
   static properties = {
-    value: { get: (o: any) => o._value, set: (o: any, v: any) => { o._value = v; }, notify: 'valueChanged', type: 'number' },
+    value: {
+      get: (o: any) => o._value,
+      set: (o: any, v: any) => {
+        o._value = v;
+      },
+      notify: 'valueChanged',
+      type: 'number',
+    },
     minimum: { get: (o: any) => o._min, type: 'number' },
   };
   static signals = { valueChanged: { params: ['value'] } };
   _value = 0;
   _min = 0;
   valueChanged = new FakeSignal('valueChanged');
-  override className() { return 'QSlider'; }
-  override inherits(n: string) { return ['QSlider', 'QAbstractSlider', 'QWidget'].includes(n) || super.inherits(n); }
+  override className() {
+    return 'QSlider';
+  }
+  override inherits(n: string) {
+    return ['QSlider', 'QAbstractSlider', 'QWidget'].includes(n) || super.inherits(n);
+  }
   /** Native-side change (e.g. user drag) — fires notify like the real widget. */
-  drag(v: number) { this._value = v; this.valueChanged.emit(v); }
+  drag(v: number) {
+    this._value = v;
+    this.valueChanged.emit(v);
+  }
 }
 
 const asQt = (o: FakeQObject) => o as unknown as QtObjectLike;
@@ -124,7 +196,11 @@ describe('wrapQt', () => {
   });
 
   it('falls back to the closest ancestor via inherits()', () => {
-    class FancyButton extends FakePushButton { override className() { return 'FancyButton'; } }
+    class FancyButton extends FakePushButton {
+      override className() {
+        return 'FancyButton';
+      }
+    }
     const node = wrapQt(asQt(new FancyButton()));
     expect(node).toBeInstanceOf(QtButtonNode); // inherits QPushButton
   });
@@ -151,7 +227,7 @@ describe('QtProperty binding', () => {
     const btn = wrapQt(asQt(native)) as QtButtonNode;
     const spy = vi.fn();
     btn.checked.changed.connect(spy);
-    btn.checked.value = true;             // write → notify → changed
+    btn.checked.value = true; // write → notify → changed
     expect(spy).toHaveBeenCalledWith(true, false);
     expect(native._checked).toBe(true);
   });
@@ -249,9 +325,9 @@ describe('recursive tree wrapping', () => {
     root._children = [btn, slider];
 
     const node = wrapQt(asQt(root), { recursive: true });
-    expect(node.nodes.length).toBe(2);
-    expect(node.nodes[0]).toBeInstanceOf(QtButtonNode);
-    expect(node.nodes[1]).toBeInstanceOf(QtSliderNode);
-    expect((node.nodes[0] as QtButtonNode).parentNode).toBe(node);
+    expect(node.children.length).toBe(2);
+    expect(node.children[0]).toBeInstanceOf(QtButtonNode);
+    expect(node.children[1]).toBeInstanceOf(QtSliderNode);
+    expect((node.children[0] as QtButtonNode).parent).toBe(node);
   });
 });

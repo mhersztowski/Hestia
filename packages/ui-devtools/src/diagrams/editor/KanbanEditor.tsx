@@ -12,10 +12,22 @@
 import { useCallback, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { DiagramDocument } from '../model/diagram';
-import { KANBAN_PRIORITIES, cardCount, type KanbanCard, type KanbanPriority } from '../model/kanban';
 import {
-  addColumn, updateColumn, removeColumn, moveColumn,
-  addCard, updateCard, removeCard, moveCard, moveCardToColumn,
+  KANBAN_PRIORITIES,
+  cardCount,
+  type KanbanCard,
+  type KanbanPriority,
+} from '../model/kanban';
+import {
+  addColumn,
+  updateColumn,
+  removeColumn,
+  moveColumn,
+  addCard,
+  updateCard,
+  removeCard,
+  moveCard,
+  moveCardToColumn,
 } from '../model/kanbanOps';
 
 export interface KanbanEditorProps {
@@ -26,12 +38,23 @@ export interface KanbanEditorProps {
 }
 
 const btn: CSSProperties = {
-  fontSize: 11, padding: '2px 6px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#334155',
+  fontSize: 11,
+  padding: '2px 6px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#334155',
 };
 const input: CSSProperties = {
-  fontSize: 11, padding: '2px 4px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', minWidth: 0, width: '100%', boxSizing: 'border-box',
+  fontSize: 11,
+  padding: '2px 4px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  minWidth: 0,
+  width: '100%',
+  boxSizing: 'border-box',
 };
 
 /** Kolor paska priorytetu — ta sama skala co w Mermaidzie. */
@@ -42,14 +65,18 @@ const PRIORITY_COLOR: Record<KanbanPriority, string> = {
   'Very Low': '#94a3b8',
 };
 
-export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }: KanbanEditorProps) {
+export function KanbanEditor({
+  document: doc,
+  onChange,
+  readOnly,
+  height = 520,
+}: KanbanEditorProps) {
   const board = doc.kanban ?? { columns: [], unknown: [] };
   const [selected, setSelected] = useState<{ column: number; card?: number } | undefined>();
   const emit = useCallback((next: DiagramDocument) => onChange(next), [onChange]);
 
-  const zaznaczonaKarta: KanbanCard | undefined = selected?.card !== undefined
-    ? board.columns[selected.column]?.cards[selected.card]
-    : undefined;
+  const zaznaczonaKarta: KanbanCard | undefined =
+    selected?.card !== undefined ? board.columns[selected.column]?.cards[selected.card] : undefined;
 
   /** Przenosi zaznaczoną kartę i zabiera zaznaczenie ze sobą. */
   const moveToColumn = (target: number) => {
@@ -62,18 +89,46 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
   };
 
   return (
-    <div style={{ height, display: 'flex', flexDirection: 'column', border: '1px solid #e2e8f0', borderRadius: 6 }}>
+    <div
+      style={{
+        height,
+        display: 'flex',
+        flexDirection: 'column',
+        border: '1px solid #e2e8f0',
+        borderRadius: 6,
+      }}
+    >
       {!readOnly && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', padding: 6, borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-          <button type="button" style={btn} onClick={() => emit(addColumn(doc, 'Nowa kolumna', selected?.column))}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 6,
+            alignItems: 'center',
+            padding: 6,
+            borderBottom: '1px solid #e2e8f0',
+            background: '#f8fafc',
+          }}
+        >
+          <button
+            type="button"
+            style={btn}
+            onClick={() => emit(addColumn(doc, 'Nowa kolumna', selected?.column))}
+          >
             + Kolumna
           </button>
           <button
             type="button"
             style={btn}
             disabled={selected === undefined}
-            onClick={() => selected && emit(addCard(doc, selected.column, 'Nowe zadanie', selected.card))}
-            title={selected === undefined ? 'Zaznacz kolumnę albo kartę' : 'Dodaj kartę w zaznaczonej kolumnie'}
+            onClick={() =>
+              selected && emit(addCard(doc, selected.column, 'Nowe zadanie', selected.card))
+            }
+            title={
+              selected === undefined
+                ? 'Zaznacz kolumnę albo kartę'
+                : 'Dodaj kartę w zaznaczonej kolumnie'
+            }
           >
             + Karta
           </button>
@@ -83,7 +138,9 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
         </div>
       )}
 
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 8, padding: 8, overflowX: 'auto' }}>
+      <div
+        style={{ flex: 1, minHeight: 0, display: 'flex', gap: 8, padding: 8, overflowX: 'auto' }}
+      >
         {board.columns.map((column, columnIndex) => {
           const aktywnaKolumna = selected?.column === columnIndex && selected.card === undefined;
           return (
@@ -109,7 +166,9 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
                   <input
                     style={{ ...input, fontWeight: 600, background: 'transparent', border: 'none' }}
                     value={column.label}
-                    onChange={(e) => emit(updateColumn(doc, columnIndex, { label: e.target.value }))}
+                    onChange={(e) =>
+                      emit(updateColumn(doc, columnIndex, { label: e.target.value }))
+                    }
                   />
                 )}
                 <span style={{ fontSize: 10, color: '#94a3b8' }}>{column.cards.length}</span>
@@ -117,13 +176,36 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
 
               {!readOnly && (
                 <div style={{ display: 'flex', gap: 3 }}>
-                  <button type="button" style={btn} title="Kolumna w lewo" disabled={columnIndex === 0}
-                    onClick={() => emit(moveColumn(doc, columnIndex, columnIndex - 1))}>←</button>
-                  <button type="button" style={btn} title="Kolumna w prawo" disabled={columnIndex === board.columns.length - 1}
-                    onClick={() => emit(moveColumn(doc, columnIndex, columnIndex + 1))}>→</button>
+                  <button
+                    type="button"
+                    style={btn}
+                    title="Kolumna w lewo"
+                    disabled={columnIndex === 0}
+                    onClick={() => emit(moveColumn(doc, columnIndex, columnIndex - 1))}
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    style={btn}
+                    title="Kolumna w prawo"
+                    disabled={columnIndex === board.columns.length - 1}
+                    onClick={() => emit(moveColumn(doc, columnIndex, columnIndex + 1))}
+                  >
+                    →
+                  </button>
                   <span style={{ flex: 1 }} />
-                  <button type="button" style={btn} title="Usuń kolumnę razem z kartami"
-                    onClick={() => { emit(removeColumn(doc, columnIndex)); setSelected(undefined); }}>×</button>
+                  <button
+                    type="button"
+                    style={btn}
+                    title="Usuń kolumnę razem z kartami"
+                    onClick={() => {
+                      emit(removeColumn(doc, columnIndex));
+                      setSelected(undefined);
+                    }}
+                  >
+                    ×
+                  </button>
                 </div>
               )}
 
@@ -132,7 +214,10 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
                 return (
                   <div
                     key={cardIndex}
-                    onClick={(e) => { e.stopPropagation(); setSelected({ column: columnIndex, card: cardIndex }); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelected({ column: columnIndex, card: cardIndex });
+                    }}
                     style={{
                       background: '#fff',
                       // Krawędzie rozpisane co do boku: lewa niesie priorytet,
@@ -154,7 +239,15 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
                     {/* Metadane pod treścią, drobnym drukiem — na karcie liczy
                         się przede wszystkim, co jest do zrobienia. */}
                     {(card.ticket || card.assigned) && (
-                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 3, display: 'flex', gap: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: '#64748b',
+                          marginTop: 3,
+                          display: 'flex',
+                          gap: 6,
+                        }}
+                      >
                         {card.ticket && <span>{card.ticket}</span>}
                         {card.assigned && <span>@{card.assigned}</span>}
                       </div>
@@ -176,13 +269,25 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
       {/* Szczegóły zaznaczonej karty. Pasek pod tablicą, a nie nakładka, bo
           tablica przewija się w poziomie i nakładka zasłaniałaby kolumny. */}
       {!readOnly && zaznaczonaKarta && selected?.card !== undefined && (
-        <div style={{ borderTop: '1px solid #e2e8f0', padding: 8, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', background: '#f8fafc' }}>
+        <div
+          style={{
+            borderTop: '1px solid #e2e8f0',
+            padding: 8,
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            alignItems: 'center',
+            background: '#f8fafc',
+          }}
+        >
           <label style={{ fontSize: 10, color: '#94a3b8', flex: '1 1 180px' }}>
             treść
             <input
               style={input}
               value={zaznaczonaKarta.label}
-              onChange={(e) => emit(updateCard(doc, selected.column, selected.card!, { label: e.target.value }))}
+              onChange={(e) =>
+                emit(updateCard(doc, selected.column, selected.card!, { label: e.target.value }))
+              }
             />
           </label>
           <label style={{ fontSize: 10, color: '#94a3b8', flex: '0 1 120px' }}>
@@ -191,7 +296,9 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
               style={input}
               value={zaznaczonaKarta.ticket ?? ''}
               placeholder="np. MC-1"
-              onChange={(e) => emit(updateCard(doc, selected.column, selected.card!, { ticket: e.target.value }))}
+              onChange={(e) =>
+                emit(updateCard(doc, selected.column, selected.card!, { ticket: e.target.value }))
+              }
             />
           </label>
           <label style={{ fontSize: 10, color: '#94a3b8', flex: '0 1 120px' }}>
@@ -199,7 +306,9 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
             <input
               style={input}
               value={zaznaczonaKarta.assigned ?? ''}
-              onChange={(e) => emit(updateCard(doc, selected.column, selected.card!, { assigned: e.target.value }))}
+              onChange={(e) =>
+                emit(updateCard(doc, selected.column, selected.card!, { assigned: e.target.value }))
+              }
             />
           </label>
           <label style={{ fontSize: 10, color: '#94a3b8', flex: '0 1 120px' }}>
@@ -207,12 +316,20 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
             <select
               style={input}
               value={zaznaczonaKarta.priority ?? ''}
-              onChange={(e) => emit(updateCard(doc, selected.column, selected.card!, {
-                priority: (e.target.value || undefined) as KanbanPriority | undefined,
-              }))}
+              onChange={(e) =>
+                emit(
+                  updateCard(doc, selected.column, selected.card!, {
+                    priority: (e.target.value || undefined) as KanbanPriority | undefined,
+                  })
+                )
+              }
             >
               <option value="">— brak —</option>
-              {KANBAN_PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
+              {KANBAN_PRIORITIES.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -220,23 +337,59 @@ export function KanbanEditor({ document: doc, onChange, readOnly, height = 520 }
             {/* Karta trafia na koniec docelowej kolumny — zaznaczenie idzie
                 za nią, żeby panel został otwarty na tej samej karcie i dało się
                 ją przesuwać dalej bez ponownego klikania. */}
-            <button type="button" style={btn} title="Do kolumny w lewo" disabled={selected.column === 0}
-              onClick={() => moveToColumn(selected.column - 1)}>← kolumna</button>
-            <button type="button" style={btn} title="Do kolumny w prawo" disabled={selected.column === board.columns.length - 1}
-              onClick={() => moveToColumn(selected.column + 1)}>kolumna →</button>
-            <button type="button" style={btn} title="Wyżej" disabled={selected.card === 0}
+            <button
+              type="button"
+              style={btn}
+              title="Do kolumny w lewo"
+              disabled={selected.column === 0}
+              onClick={() => moveToColumn(selected.column - 1)}
+            >
+              ← kolumna
+            </button>
+            <button
+              type="button"
+              style={btn}
+              title="Do kolumny w prawo"
+              disabled={selected.column === board.columns.length - 1}
+              onClick={() => moveToColumn(selected.column + 1)}
+            >
+              kolumna →
+            </button>
+            <button
+              type="button"
+              style={btn}
+              title="Wyżej"
+              disabled={selected.card === 0}
               onClick={() => {
                 emit(moveCard(doc, selected.column, selected.card!, selected.card! - 1));
                 setSelected({ column: selected.column, card: selected.card! - 1 });
-              }}>↑</button>
-            <button type="button" style={btn} title="Niżej"
+              }}
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              style={btn}
+              title="Niżej"
               disabled={selected.card === board.columns[selected.column].cards.length - 1}
               onClick={() => {
                 emit(moveCard(doc, selected.column, selected.card!, selected.card! + 1));
                 setSelected({ column: selected.column, card: selected.card! + 1 });
-              }}>↓</button>
-            <button type="button" style={btn} title="Usuń kartę"
-              onClick={() => { emit(removeCard(doc, selected.column, selected.card!)); setSelected({ column: selected.column }); }}>×</button>
+              }}
+            >
+              ↓
+            </button>
+            <button
+              type="button"
+              style={btn}
+              title="Usuń kartę"
+              onClick={() => {
+                emit(removeCard(doc, selected.column, selected.card!));
+                setSelected({ column: selected.column });
+              }}
+            >
+              ×
+            </button>
           </div>
         </div>
       )}

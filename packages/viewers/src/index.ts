@@ -15,7 +15,12 @@
 export { PdfViewContent, loadPdfDocument, invalidatePdfCache, usePdfNumPages } from './PdfView';
 export type { DocView as PdfDocView, FileBytes } from './PdfView';
 
-export { DjvuViewContent, loadDjvuDocument, invalidateDjvuCache, useDjvuNumPages } from './DjvuView';
+export {
+  DjvuViewContent,
+  loadDjvuDocument,
+  invalidateDjvuCache,
+  useDjvuNumPages,
+} from './DjvuView';
 export type { DocView as DjvuDocView } from './DjvuView';
 
 export { driveViewers, VIEWER_EXTENSIONS } from './driveViewers';

@@ -10,7 +10,9 @@ const REQUEST_TIMEOUT_MS = 12000;
 
 // User id for scene3d requests (header + query). Read-only default; settable.
 let currentUserId = 'default';
-export function setViewerUserId(id: string): void { currentUserId = id; }
+export function setViewerUserId(id: string): void {
+  currentUserId = id;
+}
 
 // Base origin for the CAD backend. Empty → origin-relative (viewer served BY the
 // cad-backend). Set to an absolute origin (e.g. https://cad.hersztowski.org) to
@@ -20,7 +22,9 @@ let apiBaseOrigin = '';
 export function setViewerApiBase(origin: string): void {
   apiBaseOrigin = (origin || '').replace(/\/+$/, '');
 }
-function apiOrigin(): string { return apiBaseOrigin || window.location.origin; }
+function apiOrigin(): string {
+  return apiBaseOrigin || window.location.origin;
+}
 
 // ── file extensions ───────────────────────────────────────────────────────────
 
@@ -73,7 +77,7 @@ async function vfsGet<T>(op: string, path?: string): Promise<T> {
   const url = new URL(BASE + op, apiOrigin());
   if (path) url.searchParams.set('path', path);
   const res = await vfsFetch(url.toString());
-  const data = await res.json() as { error?: string; code?: string } & T;
+  const data = (await res.json()) as { error?: string; code?: string } & T;
   if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
   return data;
 }
@@ -109,13 +113,16 @@ function scene3dUrl(path: string): string {
 
 /** Read a scene file from a scene3d project. */
 export async function readScene3dFile(project: string, file: string): Promise<string> {
-  const res = await fetch(scene3dUrl(`/${encodeURIComponent(project)}/${encodeURIComponent(file)}`), {
-    headers: { 'Content-Type': 'application/json', 'X-Cad-User': currentUserId },
-  });
+  const res = await fetch(
+    scene3dUrl(`/${encodeURIComponent(project)}/${encodeURIComponent(file)}`),
+    {
+      headers: { 'Content-Type': 'application/json', 'X-Cad-User': currentUserId },
+    }
+  );
   if (!res.ok) {
     const data = await res.json().catch(() => ({}) as { error?: string });
     throw new Error((data as { error?: string }).error ?? `HTTP ${res.status}`);
   }
-  const data = await res.json() as { data?: string };
+  const data = (await res.json()) as { data?: string };
   return base64ToText(data.data!);
 }

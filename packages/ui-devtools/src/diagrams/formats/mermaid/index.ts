@@ -120,10 +120,13 @@ function unsupportedResult(text: string, kind: string): ParseResult {
   doc.unknown = text.split('\n').map((line, index) => ({ index, text: line }));
   return {
     document: doc,
-    issues: [{
-      message: `Diagram „${kind}" da się obejrzeć, ale nie da się go edytować graficznie — `
-        + 'ten rodzaj nie ma jeszcze modelu w edytorze.',
-    }],
+    issues: [
+      {
+        message:
+          `Diagram „${kind}" da się obejrzeć, ale nie da się go edytować graficznie — ` +
+          'ten rodzaj nie ma jeszcze modelu w edytorze.',
+      },
+    ],
   };
 }
 
@@ -165,7 +168,18 @@ function parseByHeader(text: string): ParseResult {
 export const mermaidFormat: DiagramFormat = {
   id: 'mermaid',
   label: 'Mermaid',
-  kinds: ['flowchart', 'state', 'class', 'sequence', 'er', 'packet', 'kanban', 'gantt', 'timeline', 'c4'],
+  kinds: [
+    'flowchart',
+    'state',
+    'class',
+    'sequence',
+    'er',
+    'packet',
+    'kanban',
+    'gantt',
+    'timeline',
+    'c4',
+  ],
 
   detect(text) {
     // Rozpoznanie mówi „to jest Mermaid", a nie „umiem to edytować" — pasek ma
@@ -218,6 +232,11 @@ export { parseSequenceDiagram, serializeSequenceDiagram } from './sequenceDiagra
 export { parseErDiagram, serializeErDiagram, parseAttribute } from './erDiagram';
 export { parsePacketDiagram, serializePacketDiagram } from './packetDiagram';
 export { parseKanbanDiagram, serializeKanbanDiagram, parseCardMeta } from './kanbanDiagram';
-export { parseGanttDiagram, serializeGanttDiagram, parseTaskData, serializeTaskData } from './ganttDiagram';
+export {
+  parseGanttDiagram,
+  serializeGanttDiagram,
+  parseTaskData,
+  serializeTaskData,
+} from './ganttDiagram';
 export { parseTimelineDiagram, serializeTimelineDiagram } from './timelineDiagram';
 export { parseC4Diagram, serializeC4Diagram, splitArgs } from './c4Diagram';

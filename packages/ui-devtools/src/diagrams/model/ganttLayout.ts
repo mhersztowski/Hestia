@@ -78,17 +78,46 @@ export interface GanttLayout {
 }
 
 /** Kroki podziałki od najgęstszego; pierwszy, który daje mało kresek, wygrywa. */
-const STEPS: Array<{ ms: number; label: (date: Date) => string; major: (date: Date) => boolean }> = [
-  { ms: HOUR, label: (d) => `${pad(d.getUTCHours())}:00`, major: (d) => d.getUTCHours() === 0 },
-  { ms: 6 * HOUR, label: (d) => `${pad(d.getUTCHours())}:00`, major: (d) => d.getUTCHours() === 0 },
-  { ms: DAY, label: (d) => `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}`, major: (d) => d.getUTCDate() === 1 },
-  { ms: 2 * DAY, label: (d) => `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}`, major: (d) => d.getUTCDate() === 1 },
-  { ms: 7 * DAY, label: (d) => `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}`, major: (d) => d.getUTCDate() <= 7 },
-  { ms: 14 * DAY, label: (d) => `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}`, major: (d) => d.getUTCDate() <= 7 },
-  { ms: 30 * DAY, label: (d) => `${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`, major: (d) => d.getUTCMonth() === 0 },
-  { ms: 90 * DAY, label: (d) => `${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`, major: (d) => d.getUTCMonth() === 0 },
-  { ms: 365 * DAY, label: (d) => String(d.getUTCFullYear()), major: () => true },
-];
+const STEPS: Array<{ ms: number; label: (date: Date) => string; major: (date: Date) => boolean }> =
+  [
+    { ms: HOUR, label: (d) => `${pad(d.getUTCHours())}:00`, major: (d) => d.getUTCHours() === 0 },
+    {
+      ms: 6 * HOUR,
+      label: (d) => `${pad(d.getUTCHours())}:00`,
+      major: (d) => d.getUTCHours() === 0,
+    },
+    {
+      ms: DAY,
+      label: (d) => `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}`,
+      major: (d) => d.getUTCDate() === 1,
+    },
+    {
+      ms: 2 * DAY,
+      label: (d) => `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}`,
+      major: (d) => d.getUTCDate() === 1,
+    },
+    {
+      ms: 7 * DAY,
+      label: (d) => `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}`,
+      major: (d) => d.getUTCDate() <= 7,
+    },
+    {
+      ms: 14 * DAY,
+      label: (d) => `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}`,
+      major: (d) => d.getUTCDate() <= 7,
+    },
+    {
+      ms: 30 * DAY,
+      label: (d) => `${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`,
+      major: (d) => d.getUTCMonth() === 0,
+    },
+    {
+      ms: 90 * DAY,
+      label: (d) => `${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`,
+      major: (d) => d.getUTCMonth() === 0,
+    },
+    { ms: 365 * DAY, label: (d) => String(d.getUTCFullYear()), major: () => true },
+  ];
 
 const MAX_TICKS = 14;
 
@@ -105,11 +134,14 @@ function pad(value: number): string {
 }
 
 /** Krok podziałki dla danego zakresu — najgęstszy, który nie zasypie osi. */
-export function pickTickStep(span: number): typeof STEPS[number] {
+export function pickTickStep(span: number): (typeof STEPS)[number] {
   return STEPS.find((step) => span / step.ms <= MAX_TICKS) ?? STEPS[STEPS.length - 1];
 }
 
-export function layoutGantt(schedule: GanttSchedule, options: GanttLayoutOptions = {}): GanttLayout {
+export function layoutGantt(
+  schedule: GanttSchedule,
+  options: GanttLayoutOptions = {}
+): GanttLayout {
   const labelWidth = options.labelWidth ?? 170;
   const rowHeight = options.rowHeight ?? 26;
   const chartWidth = options.chartWidth ?? 720;
@@ -179,9 +211,10 @@ export function layoutGantt(schedule: GanttSchedule, options: GanttLayoutOptions
   }
 
   const today = options.today?.getTime();
-  const todayX = span !== undefined && today !== undefined && today >= from! && today <= to!
-    ? scale(today)
-    : undefined;
+  const todayX =
+    span !== undefined && today !== undefined && today >= from! && today <= to!
+      ? scale(today)
+      : undefined;
 
   return {
     rows,

@@ -12,7 +12,7 @@ import { sampleSpline } from './spline';
  */
 export class BSplineTool implements Tool {
   name = 'bspline' as const;
-  private interpolating = false;  // false = by control points, true = by knots
+  private interpolating = false; // false = by control points, true = by knots
   private periodic = false;
   private points: Point2D[] = [];
   private cursor: Point2D | null = null;
@@ -44,7 +44,9 @@ export class BSplineTool implements Tool {
     this.cursor = point;
   }
 
-  onPointerMove(point: Point2D, _ctx: ToolContext): void { this.cursor = point; }
+  onPointerMove(point: Point2D, _ctx: ToolContext): void {
+    this.cursor = point;
+  }
   onPointerUp(_point: Point2D, _ctx: ToolContext): void {}
 
   commitDraft(ctx: ToolContext): boolean {
@@ -58,19 +60,36 @@ export class BSplineTool implements Tool {
 
   private finish(ctx: ToolContext): boolean {
     if (this.points.length < 2) return false;
-    const curve = sampleSpline(this.points, { interpolating: this.interpolating, periodic: this.periodic });
+    const curve = sampleSpline(this.points, {
+      interpolating: this.interpolating,
+      periodic: this.periodic,
+    });
     ctx.project.addEntity({
-      type: 'polyline', points: curve, closed: this.periodic,
-      construction: { kind: 'bspline', ctrl: this.points.map(p => ({ ...p })), interpolating: this.interpolating, periodic: this.periodic },
+      type: 'polyline',
+      points: curve,
+      closed: this.periodic,
+      construction: {
+        kind: 'bspline',
+        ctrl: this.points.map((p) => ({ ...p })),
+        interpolating: this.interpolating,
+        periodic: this.periodic,
+      },
       layerId: ctx.project.layerSystem.getActiveId(),
-      color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-      visible: true, locked: false, extrudeHeight: 0,
+      color: 'bylayer',
+      lineType: 'bylayer',
+      lineWidth: 'bylayer',
+      visible: true,
+      locked: false,
+      extrudeHeight: 0,
     });
     this.reset();
     return true;
   }
 
-  reset(): void { this.points = []; this.cursor = null; }
+  reset(): void {
+    this.points = [];
+    this.cursor = null;
+  }
 }
 /** A single instance, so the toolbar's submenu can set the mode before the tool starts. */
 export const bsplineTool = new BSplineTool();

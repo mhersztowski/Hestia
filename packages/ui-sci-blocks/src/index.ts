@@ -63,7 +63,20 @@ export { XYCanvas } from './XYCanvas';
 export type { XYCanvasProps } from './XYCanvas';
 export { scanFormulas, buildSimSetup } from './documentModel';
 export { CompareBlock } from './CompareBlock';
-export { registerSciBlocks, FORMULA_LANG, SIM_LANG, EXERCISE_LANG, SIMSCRIPT_LANG, COMPARE_LANG, FIGURE_LANG, TABLE_LANG, CALLOUT_LANG, LAW_LANG, setInkRecognizer, setCodeEditor } from './register';
+export {
+  registerSciBlocks,
+  FORMULA_LANG,
+  SIM_LANG,
+  EXERCISE_LANG,
+  SIMSCRIPT_LANG,
+  COMPARE_LANG,
+  FIGURE_LANG,
+  TABLE_LANG,
+  CALLOUT_LANG,
+  LAW_LANG,
+  setInkRecognizer,
+  setCodeEditor,
+} from './register';
 export type { HostBlockRenderer, HostBlockRendererProps } from './register';
 export type { SimSpec, SimSetup } from './documentModel';
 export { PlotStage, pointerWorld } from './PlotStage';

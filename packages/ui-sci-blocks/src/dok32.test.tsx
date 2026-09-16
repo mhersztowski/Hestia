@@ -5,19 +5,22 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-2-kinematyka.md';
-const pliki = [DOK, '3-1-mechanika.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-1-mechanika.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 
 describe('3-2 w czytniku', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
@@ -40,7 +43,7 @@ describe('3-2 w czytniku', () => {
   it('podpis rysunku przepisany dosłownie', () => {
     const { container } = widok();
     expect(container.textContent).toContain(
-      'Ruch postępowy może odbywać się w przestrzeni trójwymiarowej',
+      'Ruch postępowy może odbywać się w przestrzeni trójwymiarowej'
     );
   });
 
@@ -64,7 +67,9 @@ describe('3-2 w czytniku', () => {
 
   it('odsyłacz do rysunku prowadzi do tego samego dokumentu', () => {
     const cel = resolveReference(
-      'rh1-3-rys1', { anchors: index.anchors, formulaHome: index.formulaHome }, DOK,
+      'rh1-3-rys1',
+      { anchors: index.anchors, formulaHome: index.formulaHome },
+      DOK
     );
     expect(cel.found).toBe(true);
     expect(cel.kind).toBe('figure');

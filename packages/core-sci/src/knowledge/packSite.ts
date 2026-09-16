@@ -37,8 +37,14 @@ export interface PackPlan {
 function slug(title: string): string {
   const bez = title
     .toLowerCase()
-    .replace(/ą/g, 'a').replace(/ć/g, 'c').replace(/ę/g, 'e').replace(/ł/g, 'l')
-    .replace(/ń/g, 'n').replace(/ó/g, 'o').replace(/ś/g, 's').replace(/[żź]/g, 'z');
+    .replace(/ą/g, 'a')
+    .replace(/ć/g, 'c')
+    .replace(/ę/g, 'e')
+    .replace(/ł/g, 'l')
+    .replace(/ń/g, 'n')
+    .replace(/ó/g, 'o')
+    .replace(/ś/g, 's')
+    .replace(/[żź]/g, 'z');
   const oczyszczony = bez.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   return oczyszczony || 'baza-wiedzy';
 }
@@ -52,7 +58,7 @@ function slug(title: string): string {
 export function planPack(
   documents: SourceDocument[],
   assets: string[],
-  options: ExportOptions,
+  options: ExportOptions
 ): PackPlan {
   const issues: string[] = [];
   if (!documents.length) issues.push('Baza nie ma żadnego dokumentu — nie ma czego pakować.');
@@ -60,8 +66,8 @@ export function planPack(
   const bundel = assets.find((path) => path.endsWith('sci.js'));
   if (!bundel) {
     issues.push(
-      'Brakuje bundla sci.js — bez niego strony pokażą sam tekst, bez symulacji i wzorów. '
-      + 'Zbuduj go poleceniem `pnpm --filter @hestia/ui-core export:static`.',
+      'Brakuje bundla sci.js — bez niego strony pokażą sam tekst, bez symulacji i wzorów. ' +
+        'Zbuduj go poleceniem `pnpm --filter @hestia/ui-core export:static`.'
     );
   }
 
@@ -73,7 +79,11 @@ export function planPack(
 
   return {
     entries: [
-      ...strony.map((file): PackEntry => ({ path: file.path, kind: 'text', content: file.content })),
+      ...strony.map((file): PackEntry => ({
+        path: file.path,
+        kind: 'text',
+        content: file.content,
+      })),
       ...assets.map((path): PackEntry => ({ path, kind: 'fetch' })),
     ],
     filename: `${slug(options.title)}.zip`,

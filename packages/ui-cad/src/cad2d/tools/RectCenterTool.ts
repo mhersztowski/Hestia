@@ -26,7 +26,13 @@ export class RectCenterTool implements Tool {
     const { hw, hh } = this.half();
     if (hw < 0.005 || hh < 0.005) return null;
     const c = this.center;
-    return { type: 'rect', points: [{ x: c.x - hw, y: c.y - hh }, { x: c.x + hw, y: c.y + hh }] };
+    return {
+      type: 'rect',
+      points: [
+        { x: c.x - hw, y: c.y - hh },
+        { x: c.x + hw, y: c.y + hh },
+      ],
+    };
   }
 
   getDimensionLabels(): DimensionLabel[] {
@@ -36,21 +42,40 @@ export class RectCenterTool implements Tool {
     const c = this.center;
     return [
       {
-        id: 'width', worldX: c.x, worldY: c.y - hh, text: `W: ${(hw * 2).toFixed(2)}`,
-        offsetY: 16, variant: 'primary',
-        editable: true, onEdit: (v: number) => { this.lockW = v; },
+        id: 'width',
+        worldX: c.x,
+        worldY: c.y - hh,
+        text: `W: ${(hw * 2).toFixed(2)}`,
+        offsetY: 16,
+        variant: 'primary',
+        editable: true,
+        onEdit: (v: number) => {
+          this.lockW = v;
+        },
       },
       {
-        id: 'height', worldX: c.x + hw, worldY: c.y, text: `H: ${(hh * 2).toFixed(2)}`,
-        offsetX: 8, variant: 'secondary',
-        editable: true, onEdit: (v: number) => { this.lockH = v; },
+        id: 'height',
+        worldX: c.x + hw,
+        worldY: c.y,
+        text: `H: ${(hh * 2).toFixed(2)}`,
+        offsetX: 8,
+        variant: 'secondary',
+        editable: true,
+        onEdit: (v: number) => {
+          this.lockH = v;
+        },
       },
     ];
   }
 
   onPointerDown(point: Point2D, ctx: ToolContext): void {
-    if (!this.center) { this.center = point; this.cursor = point; }
-    else { this.cursor = point; this.commit(ctx); }
+    if (!this.center) {
+      this.center = point;
+      this.cursor = point;
+    } else {
+      this.cursor = point;
+      this.commit(ctx);
+    }
   }
 
   commitDraft(ctx: ToolContext): boolean {
@@ -64,20 +89,40 @@ export class RectCenterTool implements Tool {
   private commit(ctx: ToolContext): void {
     if (!this.center) return;
     const { hw, hh } = this.half();
-    if (hw < 0.005 || hh < 0.005) { this.reset(); return; }
+    if (hw < 0.005 || hh < 0.005) {
+      this.reset();
+      return;
+    }
     const c = this.center;
     ctx.project.addEntity({
-      type: 'rect', x: c.x - hw, y: c.y - hh, width: hw * 2, height: hh * 2,
+      type: 'rect',
+      x: c.x - hw,
+      y: c.y - hh,
+      width: hw * 2,
+      height: hh * 2,
       layerId: ctx.project.layerSystem.getActiveId(),
-      color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-      visible: true, locked: false, extrudeHeight: 0,
+      color: 'bylayer',
+      lineType: 'bylayer',
+      lineWidth: 'bylayer',
+      visible: true,
+      locked: false,
+      extrudeHeight: 0,
     });
     this.reset();
   }
 
-  onPointerMove(point: Point2D, _ctx: ToolContext): void { this.cursor = point; }
+  onPointerMove(point: Point2D, _ctx: ToolContext): void {
+    this.cursor = point;
+  }
   onPointerUp(_point: Point2D, _ctx: ToolContext): void {}
-  onKeyDown(key: string, _ctx: ToolContext): void { if (key === 'Escape') this.reset(); }
+  onKeyDown(key: string, _ctx: ToolContext): void {
+    if (key === 'Escape') this.reset();
+  }
 
-  reset(): void { this.center = null; this.cursor = { x: 0, y: 0 }; this.lockW = null; this.lockH = null; }
+  reset(): void {
+    this.center = null;
+    this.cursor = { x: 0, y: 0 };
+    this.lockW = null;
+    this.lockH = null;
+  }
 }

@@ -34,7 +34,13 @@ function zPolozeniem(link: Partial<DOMRect>) {
       return { top: 0, left: 0, right: 280, bottom: 200, width: 280, height: 200 } as DOMRect;
     }
     return {
-      top: 400, left: 100, right: 140, bottom: 420, width: 40, height: 20, ...link,
+      top: 400,
+      left: 100,
+      right: 140,
+      bottom: 420,
+      width: 40,
+      height: 20,
+      ...link,
     } as DOMRect;
   };
 }
@@ -44,13 +50,19 @@ const oryginalnyPomiar = Element.prototype.getBoundingClientRect;
 beforeEach(() => {
   ustawEkran(TELEFON);
   window.matchMedia = vi.fn().mockReturnValue({
-    matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn(),
+    matches: true,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
   }) as unknown as typeof window.matchMedia;
   (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
-    observe() {} disconnect() {} unobserve() {}
+    observe() {}
+    disconnect() {}
+    unobserve() {}
   };
 });
-afterEach(() => { Element.prototype.getBoundingClientRect = oryginalnyPomiar; });
+afterEach(() => {
+  Element.prototype.getBoundingClientRect = oryginalnyPomiar;
+});
 
 /** Otwiera dymek i zwraca jego element. */
 function otworz() {
@@ -87,7 +99,9 @@ describe('zmiana rozmiaru po otwarciu', () => {
     const obserwatorzy: Array<() => void> = [];
     (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
       constructor(private readonly cb: () => void) {}
-      observe() { obserwatorzy.push(this.cb); }
+      observe() {
+        obserwatorzy.push(this.cb);
+      }
       disconnect() {}
       unobserve() {}
     };
@@ -96,8 +110,14 @@ describe('zmiana rozmiaru po otwarciu', () => {
     let wysokoscDymka = 40;
     Element.prototype.getBoundingClientRect = function pomiar(this: Element) {
       if (this.getAttribute('role') === 'dialog') {
-        return { top: 0, left: 0, right: 280, bottom: wysokoscDymka,
-          width: 280, height: wysokoscDymka } as DOMRect;
+        return {
+          top: 0,
+          left: 0,
+          right: 280,
+          bottom: wysokoscDymka,
+          width: 280,
+          height: wysokoscDymka,
+        } as DOMRect;
       }
       return { top: 600, left: 100, right: 140, bottom: 620, width: 40, height: 20 } as DOMRect;
     };
@@ -110,7 +130,9 @@ describe('zmiana rozmiaru po otwarciu', () => {
 
     // Obraz się doładował: dymek ma teraz 400 px i pod odsyłaczem się nie mieści.
     wysokoscDymka = 400;
-    act(() => { obserwatorzy.forEach((f) => f()); });
+    act(() => {
+      obserwatorzy.forEach((f) => f());
+    });
 
     // Po urośnięciu dymek nadal musi mieścić się w ekranie — po którejkolwiek
     // stronie odsyłacza, z wysokością przyciętą do dostępnego miejsca.
@@ -187,8 +209,9 @@ describe('mieszczenie się w ekranie telefonu', () => {
       expect(left, `left dla ${JSON.stringify(miejsce)}`).toBeGreaterThanOrEqual(0);
       expect(left + 280, `prawa dla ${JSON.stringify(miejsce)}`).toBeLessThanOrEqual(TELEFON.width);
       expect(top, `top dla ${JSON.stringify(miejsce)}`).toBeGreaterThanOrEqual(0);
-      expect(top + Math.min(200, maxH), `dół dla ${JSON.stringify(miejsce)}`)
-        .toBeLessThanOrEqual(TELEFON.height);
+      expect(top + Math.min(200, maxH), `dół dla ${JSON.stringify(miejsce)}`).toBeLessThanOrEqual(
+        TELEFON.height
+      );
 
       unmount();
     }

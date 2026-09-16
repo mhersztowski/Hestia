@@ -5,8 +5,9 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '4-2-stale-przyspieszenie.md';
-const pliki = [DOK, '4-1-przemieszczenie.md', '3-8-przyspieszenie-stale.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '4-1-przemieszczenie.md', '3-8-przyspieszenie-stale.md', 'Slownik.md'].map(
+  (p) => ({ path: p, markdown: readDocument(p) })
+);
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const cel = (id: string) =>
@@ -14,12 +15,13 @@ const cel = (id: string) =>
 const resolveRef = (id: string) => {
   const c = cel(id);
   if (!c.found || !c.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[c.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[c.path] ?? ''
+  );
   return { code: m?.[1], kind: c.kind, sameDocument: c.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 const wyklad = () => bodies[DOK].split('## Uwagi redakcyjne')[0];
@@ -35,8 +37,9 @@ describe('4-2 w czytniku', () => {
     ]);
     expect(d!.formulas.flatMap((f) => f.issues)).toEqual([]);
     expect(resolveRef('rh1-4-eq5a')?.code).toContain('\\mathbf{v} = \\mathbf{v}_0+\\mathbf{a}t');
-    expect(resolveRef('rh1-4-eq5b')?.code)
-      .toContain('\\mathbf{r} = \\mathbf{r}_0+\\mathbf{v}_0 t+\\tfrac{1}{2}\\mathbf{a}t^2,');
+    expect(resolveRef('rh1-4-eq5b')?.code).toContain(
+      '\\mathbf{r} = \\mathbf{r}_0+\\mathbf{v}_0 t+\\tfrac{1}{2}\\mathbf{a}t^2,'
+    );
     for (const n of ['(4-5a)', '(4-5b)']) expect(tekst()).toContain(n);
   });
 
@@ -66,8 +69,8 @@ describe('4-2 w czytniku', () => {
    */
   it('dwie usterki druku w tablicy przetrwały', () => {
     const tab = resolveRef('rh1-4-tab1')?.code ?? '';
-    expect(tab).toContain('$x = v_0+\\tfrac{1}{2}(v_{x0}+v_x)t$');   // ma być x_0
-    expect(tab).toContain('$y = y_0+\\tfrac{1}{2}(v_{y0}+v_v)t$');   // ma być v_y
+    expect(tab).toContain('$x = v_0+\\tfrac{1}{2}(v_{x0}+v_x)t$'); // ma być x_0
+    expect(tab).toContain('$y = y_0+\\tfrac{1}{2}(v_{y0}+v_v)t$'); // ma być v_y
     // Pozostałe sześć równań jest bez zarzutu — wiersze c i d zgodne z (3-15) i (3-16).
     expect(tab).toContain('$x = x_0+v_{x0}t+\\tfrac{1}{2}a_x t^2$');
     expect(tab).toContain('$v_y^2 = v_{y0}^2+2a_y(y-y_0)$');

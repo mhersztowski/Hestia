@@ -7,8 +7,15 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  heliocentric, heliocentricDistance, distanceFromEarth, geocentricLongitude,
-  solveKepler, toJulianDate, centuriesSinceJ2000, KEPLER_J2000, BODIES,
+  heliocentric,
+  heliocentricDistance,
+  distanceFromEarth,
+  geocentricLongitude,
+  solveKepler,
+  toJulianDate,
+  centuriesSinceJ2000,
+  KEPLER_J2000,
+  BODIES,
 } from './ephemeris';
 
 const J2000 = new Date('2000-01-01T12:00:00Z');
@@ -35,7 +42,7 @@ describe('równanie Keplera', () => {
     const M = 30;
     const E = solveKepler(M, e);
     const eStar = (180 / Math.PI) * e;
-    expect(E - eStar * Math.sin(E * Math.PI / 180)).toBeCloseTo(M, 5);
+    expect(E - eStar * Math.sin((E * Math.PI) / 180)).toBeCloseTo(M, 5);
   });
 
   it('zbiega także dla dużego mimośrodu Merkurego', () => {
@@ -43,7 +50,7 @@ describe('równanie Keplera', () => {
     for (const M of [0, 45, 90, 179, -120]) {
       const E = solveKepler(M, e);
       const eStar = (180 / Math.PI) * e;
-      expect(E - eStar * Math.sin(E * Math.PI / 180)).toBeCloseTo(M, 4);
+      expect(E - eStar * Math.sin((E * Math.PI) / 180)).toBeCloseTo(M, 4);
     }
   });
 });
@@ -88,12 +95,20 @@ describe('położenia planet', () => {
       for (let dni = przybliżony * 0.9; dni < przybliżony * 1.1; dni += przybliżony * 0.001) {
         const p = heliocentric(planet, new Date(J2000.getTime() + dni * 86400_000))!;
         const odleglosc = Math.hypot(start.x - p.x, start.y - p.y, start.z - p.z);
-        if (odleglosc < najmniejsza) { najmniejsza = odleglosc; najlepszy = dni; }
+        if (odleglosc < najmniejsza) {
+          najmniejsza = odleglosc;
+          najlepszy = dni;
+        }
       }
       return najlepszy / 365.25;
     };
 
-    for (const [planet, lata] of [['Mercury', 0.241], ['Venus', 0.615], ['Mars', 1.881], ['Jupiter', 11.86]] as const) {
+    for (const [planet, lata] of [
+      ['Mercury', 0.241],
+      ['Venus', 0.615],
+      ['Mars', 1.881],
+      ['Jupiter', 11.86],
+    ] as const) {
       const a = KEPLER_J2000[planet].a[0];
       expect(okres(planet, lata * 365.25), planet).toBeCloseTo(Math.sqrt(a ** 3), 1);
     }
@@ -144,8 +159,10 @@ describe('zjawiska widoczne z Ziemi', () => {
       const ziemia = heliocentric('Earth', data)!;
       const doSlonca = Math.hypot(ziemia.x, ziemia.y);
       const doWenus = Math.hypot(wenus.x - ziemia.x, wenus.y - ziemia.y);
-      const cos = (doSlonca ** 2 + doWenus ** 2 - Math.hypot(wenus.x, wenus.y) ** 2) / (2 * doSlonca * doWenus);
-      maks = Math.max(maks, Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI);
+      const cos =
+        (doSlonca ** 2 + doWenus ** 2 - Math.hypot(wenus.x, wenus.y) ** 2) /
+        (2 * doSlonca * doWenus);
+      maks = Math.max(maks, (Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI);
     }
     expect(maks).toBeGreaterThan(44);
     expect(maks).toBeLessThan(49);

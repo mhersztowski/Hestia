@@ -10,8 +10,17 @@
 import type { Edge, Node } from '@xyflow/react';
 import {
   codemapFromDiagrams,
-  type Codemap, type CodemapCommit, type UmlDiagram, type UmlDoc, type UmlEdge, type UmlEdgeData,
-  type UmlKind, type UmlMember, type UmlNode, type UmlNodeData, type RelType,
+  type Codemap,
+  type CodemapCommit,
+  type UmlDiagram,
+  type UmlDoc,
+  type UmlEdge,
+  type UmlEdgeData,
+  type UmlKind,
+  type UmlMember,
+  type UmlNode,
+  type UmlNodeData,
+  type RelType,
 } from '@hestia/node-devtools/format';
 
 /** A class node as React Flow holds it (with `selected`, `measured`, …). */
@@ -19,7 +28,10 @@ export type UmlFlowNode = Node<UmlNodeData>;
 /** A relation as React Flow holds it. */
 export type UmlFlowEdge = Edge<UmlEdgeData>;
 
-export const KIND_META: Record<UmlKind, { stereotype: string | null; color: string; label: string }> = {
+export const KIND_META: Record<
+  UmlKind,
+  { stereotype: string | null; color: string; label: string }
+> = {
   class: { stereotype: null, color: '#1976d2', label: 'Class' },
   abstract: { stereotype: '«abstract»', color: '#6a1b9a', label: 'Abstract' },
   interface: { stereotype: '«interface»', color: '#00838f', label: 'Interface' },
@@ -28,7 +40,10 @@ export const KIND_META: Record<UmlKind, { stereotype: string | null; color: stri
   module: { stereotype: '«module»', color: '#37474f', label: 'Module' },
 };
 
-export const REL_META: Record<RelType, { label: string; markerStart?: string; markerEnd?: string; dashed?: boolean }> = {
+export const REL_META: Record<
+  RelType,
+  { label: string; markerStart?: string; markerEnd?: string; dashed?: boolean }
+> = {
   association: { label: 'Association' },
   directed: { label: 'Directed', markerEnd: 'url(#uml-arrow-open)' },
   dependency: { label: 'Dependency', markerEnd: 'url(#uml-arrow-open)', dashed: true },
@@ -38,43 +53,121 @@ export const REL_META: Record<RelType, { label: string; markerStart?: string; ma
   composition: { label: 'Composition', markerStart: 'url(#uml-diamond-filled)' },
 };
 
-export const REL_ORDER: RelType[] = ['association', 'directed', 'aggregation', 'composition', 'generalization', 'realization', 'dependency'];
+export const REL_ORDER: RelType[] = [
+  'association',
+  'directed',
+  'aggregation',
+  'composition',
+  'generalization',
+  'realization',
+  'dependency',
+];
 
 export const VIS_ORDER = ['+', '#', '~', '-'] as const;
-export const VIS_LABEL: Record<string, string> = { '+': 'public', '#': 'protected', '~': 'package', '-': 'private' };
-export const VIS_COLOR: Record<string, string> = { '+': '#4caf50', '#': '#ff9800', '~': '#2196f3', '-': '#f44336' };
+export const VIS_LABEL: Record<string, string> = {
+  '+': 'public',
+  '#': 'protected',
+  '~': 'package',
+  '-': 'private',
+};
+export const VIS_COLOR: Record<string, string> = {
+  '+': '#4caf50',
+  '#': '#ff9800',
+  '~': '#2196f3',
+  '-': '#f44336',
+};
 
-export const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x));
+export const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
 
 // ── Ids and factories ────────────────────────────────────────────────────────
 
 let idSeq = 1;
 export const nextId = (prefix: string) => `${prefix}_${Date.now().toString(36)}_${idSeq++}`;
-export const member = (kind: UmlMember['kind'], text: string, category?: string): UmlMember => ({ id: nextId('m'), kind, text, category });
+export const member = (kind: UmlMember['kind'], text: string, category?: string): UmlMember => ({
+  id: nextId('m'),
+  kind,
+  text,
+  category,
+});
 
 export function makeNode(kind: UmlKind, position: { x: number; y: number }): UmlNode {
-  const members = kind === 'enum'
-    ? [member('field', 'VALUE_A'), member('field', 'VALUE_B')]
-    : [member('field', '- field: type'), member('method', '+ method(): void')];
-  return { id: nextId('n'), type: 'umlClass', position, data: { kind, name: KIND_META[kind].label, members } };
+  const members =
+    kind === 'enum'
+      ? [member('field', 'VALUE_A'), member('field', 'VALUE_B')]
+      : [member('field', '- field: type'), member('method', '+ method(): void')];
+  return {
+    id: nextId('n'),
+    type: 'umlClass',
+    position,
+    data: { kind, name: KIND_META[kind].label, members },
+  };
 }
 
 /** A small example diagram — what a first visit shows instead of an empty canvas. */
 export function seedDiagram(name: string): UmlDiagram {
-  const animal: UmlNode = { id: nextId('n'), type: 'umlClass', position: { x: 220, y: 40 }, data: { kind: 'abstract', name: 'Animal', members: [member('field', '- name: string'), member('method', '+ makeSound(): void')] } };
-  const dog: UmlNode = { id: nextId('n'), type: 'umlClass', position: { x: 80, y: 280 }, data: { kind: 'class', name: 'Dog', members: [member('field', '- breed: string'), member('method', '+ makeSound(): void')] } };
-  const owner: UmlNode = { id: nextId('n'), type: 'umlClass', position: { x: 400, y: 280 }, data: { kind: 'class', name: 'Owner', members: [member('field', '- pets: Animal[]'), member('method', '+ adopt(a: Animal): void')] } };
+  const animal: UmlNode = {
+    id: nextId('n'),
+    type: 'umlClass',
+    position: { x: 220, y: 40 },
+    data: {
+      kind: 'abstract',
+      name: 'Animal',
+      members: [member('field', '- name: string'), member('method', '+ makeSound(): void')],
+    },
+  };
+  const dog: UmlNode = {
+    id: nextId('n'),
+    type: 'umlClass',
+    position: { x: 80, y: 280 },
+    data: {
+      kind: 'class',
+      name: 'Dog',
+      members: [member('field', '- breed: string'), member('method', '+ makeSound(): void')],
+    },
+  };
+  const owner: UmlNode = {
+    id: nextId('n'),
+    type: 'umlClass',
+    position: { x: 400, y: 280 },
+    data: {
+      kind: 'class',
+      name: 'Owner',
+      members: [member('field', '- pets: Animal[]'), member('method', '+ adopt(a: Animal): void')],
+    },
+  };
   return {
-    id: nextId('d'), name,
+    id: nextId('d'),
+    name,
     nodes: [animal, dog, owner],
     edges: [
-      { id: nextId('e'), source: dog.id, target: animal.id, sourceHandle: 't', targetHandle: 'b', type: 'uml', data: { relType: 'generalization' } },
-      { id: nextId('e'), source: owner.id, target: animal.id, sourceHandle: 'l', targetHandle: 'r', type: 'uml', data: { relType: 'aggregation' } },
+      {
+        id: nextId('e'),
+        source: dog.id,
+        target: animal.id,
+        sourceHandle: 't',
+        targetHandle: 'b',
+        type: 'uml',
+        data: { relType: 'generalization' },
+      },
+      {
+        id: nextId('e'),
+        source: owner.id,
+        target: animal.id,
+        sourceHandle: 'l',
+        targetHandle: 'r',
+        type: 'uml',
+        data: { relType: 'aggregation' },
+      },
     ],
   };
 }
 
-export const emptyDiagram = (name: string): UmlDiagram => ({ id: nextId('d'), name, nodes: [], edges: [] });
+export const emptyDiagram = (name: string): UmlDiagram => ({
+  id: nextId('d'),
+  name,
+  nodes: [],
+  edges: [],
+});
 
 /** A new codemap with one diagram — the example one, or empty. */
 export function newCodemap(name: string, seeded: boolean): Codemap {
@@ -86,14 +179,15 @@ export function newCodemap(name: string, seeded: boolean): Codemap {
 /** The leading visibility sigil of a member line (`+` when there is none). */
 export function memberSigil(text: string): string {
   const ch = text.trimStart()[0];
-  return (ch === '+' || ch === '-' || ch === '#' || ch === '~') ? ch : '+';
+  return ch === '+' || ch === '-' || ch === '#' || ch === '~' ? ch : '+';
 }
 
 /** Replaces (or prepends) the leading visibility sigil of a member line. */
 export function changeTextSigil(text: string, sig: string): string {
   const trimmed = text.trimStart();
   const first = trimmed[0];
-  if (first === '+' || first === '-' || first === '#' || first === '~') return sig + trimmed.slice(1);
+  if (first === '+' || first === '-' || first === '#' || first === '~')
+    return sig + trimmed.slice(1);
   return sig + ' ' + trimmed;
 }
 
@@ -135,7 +229,10 @@ export function normalizeOptional(c: Codemap): Codemap {
         data: {
           ...n.data,
           members: n.data.members.map((m) =>
-            (m.kind === 'field' && m.category !== 'optional' && fieldNameOptional(m.text) ? { ...m, category: 'optional' } : m)),
+            m.kind === 'field' && m.category !== 'optional' && fieldNameOptional(m.text)
+              ? { ...m, category: 'optional' }
+              : m
+          ),
         },
       })),
     })),
@@ -149,17 +246,21 @@ function normalizeNode(n: any): UmlNode {
   const data = n?.data ?? {};
   const members: UmlMember[] = Array.isArray(data.members)
     ? data.members.map((m: any) => ({
-      id: m?.id ?? nextId('m'),
-      kind: m?.kind === 'method' ? 'method' : 'field',
-      text: String(m?.text ?? ''),
-      ...(m?.category ? { category: String(m.category) } : {}),
-      ...(m?.doc ? { doc: m.doc as UmlDoc } : {}),
-    }))
-    // Old MyCastle nodes kept members as two string arrays.
-    : [
-      ...(Array.isArray(data.attributes) ? data.attributes : []).map((t: unknown) => member('field', String(t))),
-      ...(Array.isArray(data.methods) ? data.methods : []).map((t: unknown) => member('method', String(t))),
-    ];
+        id: m?.id ?? nextId('m'),
+        kind: m?.kind === 'method' ? 'method' : 'field',
+        text: String(m?.text ?? ''),
+        ...(m?.category ? { category: String(m.category) } : {}),
+        ...(m?.doc ? { doc: m.doc as UmlDoc } : {}),
+      }))
+    : // Old MyCastle nodes kept members as two string arrays.
+      [
+        ...(Array.isArray(data.attributes) ? data.attributes : []).map((t: unknown) =>
+          member('field', String(t))
+        ),
+        ...(Array.isArray(data.methods) ? data.methods : []).map((t: unknown) =>
+          member('method', String(t))
+        ),
+      ];
   return {
     id: String(n?.id ?? nextId('n')),
     type: 'umlClass',
@@ -181,7 +282,11 @@ function normalizeDiagram(d: any): UmlDiagram {
     id: String(d?.id ?? nextId('d')),
     name: String(d?.name ?? 'Diagram'),
     nodes: (Array.isArray(d?.nodes) ? d.nodes : []).map(normalizeNode),
-    edges: (Array.isArray(d?.edges) ? d.edges : []).map((e: any): UmlEdge => ({ ...e, type: 'uml', data: { relType: 'association', ...e?.data } })),
+    edges: (Array.isArray(d?.edges) ? d.edges : []).map((e: any): UmlEdge => ({
+      ...e,
+      type: 'uml',
+      data: { relType: 'association', ...e?.data },
+    })),
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -196,7 +301,14 @@ function normalizeDiagram(d: any): UmlDiagram {
 export function normalizeCodemap(c: Codemap): Codemap {
   const commits: Record<string, CodemapCommit> = {};
   for (const [id, commit] of Object.entries(c.history.commits)) {
-    commits[id] = { ...commit, parents: commit.parents ?? [], snapshot: { ...commit.snapshot, diagrams: (commit.snapshot?.diagrams ?? []).map(normalizeDiagram) } };
+    commits[id] = {
+      ...commit,
+      parents: commit.parents ?? [],
+      snapshot: {
+        ...commit.snapshot,
+        diagrams: (commit.snapshot?.diagrams ?? []).map(normalizeDiagram),
+      },
+    };
   }
   const diagrams = c.diagrams.map(normalizeDiagram);
   return {
@@ -215,9 +327,13 @@ export const cleanNodes = (nodes: UmlFlowNode[]): UmlNode[] =>
 
 export const cleanEdges = (edges: UmlFlowEdge[]): UmlEdge[] =>
   edges.map((e) => ({
-    id: e.id, source: e.source, target: e.target,
-    sourceHandle: e.sourceHandle ?? undefined, targetHandle: e.targetHandle ?? undefined,
-    type: 'uml', data: e.data ?? { relType: 'association' },
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    sourceHandle: e.sourceHandle ?? undefined,
+    targetHandle: e.targetHandle ?? undefined,
+    type: 'uml',
+    data: e.data ?? { relType: 'association' },
   }));
 
 // ── Documentation and categories ─────────────────────────────────────────────
@@ -230,7 +346,8 @@ export const cleanEdges = (edges: UmlFlowEdge[]): UmlEdge[] =>
 export function docTooltip(doc?: UmlDoc): string {
   if (!doc) return '';
   const lines: string[] = [];
-  if (doc.deprecated !== undefined) lines.push(`⚠ Deprecated${doc.deprecated ? `: ${doc.deprecated}` : ''}`);
+  if (doc.deprecated !== undefined)
+    lines.push(`⚠ Deprecated${doc.deprecated ? `: ${doc.deprecated}` : ''}`);
   if (doc.summary) lines.push(doc.summary);
   if (doc.remarks) lines.push(doc.remarks);
   const params = Object.entries(doc.params ?? {});
@@ -246,7 +363,10 @@ export function docTooltip(doc?: UmlDoc): string {
 
 /** Whether an element has any documentation at all (to mark it on the node). */
 export function hasDoc(doc?: UmlDoc): boolean {
-  return !!doc && Object.values(doc).some((v) => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== ''));
+  return (
+    !!doc &&
+    Object.values(doc).some((v) => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== ''))
+  );
 }
 
 /** A deterministic colour for a category dot — the same name, the same colour. */

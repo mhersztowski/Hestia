@@ -97,13 +97,21 @@ export function parseMemberLine(text: string): {
   let isAsync = false;
   // Modyfikatory mogą wystąpić w dowolnej kolejności — projekt bywa edytowany ręcznie.
   for (;;) {
-    if (s.startsWith('static ')) { isStatic = true; s = s.slice(7).trim(); continue; }
-    if (s.startsWith('async ')) { isAsync = true; s = s.slice(6).trim(); continue; }
+    if (s.startsWith('static ')) {
+      isStatic = true;
+      s = s.slice(7).trim();
+      continue;
+    }
+    if (s.startsWith('async ')) {
+      isAsync = true;
+      s = s.slice(6).trim();
+      continue;
+    }
     break;
   }
 
   const open = s.indexOf('(');
-  if (open < 0) return null;                      // pole, nie metoda
+  if (open < 0) return null; // pole, nie metoda
   const close = s.lastIndexOf(')');
   if (close < open) return null;
 
@@ -141,14 +149,20 @@ function splitParams(raw: string): string[] {
     const c = raw[i];
     if ('<([{'.includes(c)) depth++;
     else if ('>)]}'.includes(c)) depth--;
-    else if (c === ',' && depth === 0) { out.push(raw.slice(start, i)); start = i + 1; }
+    else if (c === ',' && depth === 0) {
+      out.push(raw.slice(start, i));
+      start = i + 1;
+    }
   }
   out.push(raw.slice(start));
   return out.map((p) => p.trim()).filter(Boolean);
 }
 
 /** Czy wiersz jest oznaczony jako asynchroniczny (kategoria z parsera albo słowo w tekście). */
-function memberIsAsync(member: { text?: string; category?: string }, parsedAsync: boolean): boolean {
+function memberIsAsync(
+  member: { text?: string; category?: string },
+  parsedAsync: boolean
+): boolean {
   return parsedAsync || member.category === 'async';
 }
 
@@ -224,7 +238,12 @@ export function importSpecifierFor(callable: UmlCallable, currentFile: string): 
   const targetParts = target.replace(/\.(ts|tsx|js|jsx|mts|cts)$/i, '').split('/');
 
   let common = 0;
-  while (common < fromDir.length && common < targetParts.length - 1 && fromDir[common] === targetParts[common]) common++;
+  while (
+    common < fromDir.length &&
+    common < targetParts.length - 1 &&
+    fromDir[common] === targetParts[common]
+  )
+    common++;
 
   const up = fromDir.length - common;
   const down = targetParts.slice(common);
@@ -233,7 +252,9 @@ export function importSpecifierFor(callable: UmlCallable, currentFile: string): 
 }
 
 function normalize(p: string): string {
-  return String(p ?? '').replace(/^\/+/, '').replace(/\\/g, '/');
+  return String(p ?? '')
+    .replace(/^\/+/, '')
+    .replace(/\\/g, '/');
 }
 
 /**
@@ -261,11 +282,18 @@ export function categoryFor(callable: UmlCallable): string {
 export function returnsValue(callable: UmlCallable): boolean {
   const t = (callable.returnType ?? '').replace(/\s+/g, '');
   if (!t) return false;
-  return !(t === 'void' || t === 'Promise<void>' || t === 'undefined' || t === 'Promise<undefined>');
+  return !(
+    t === 'void' ||
+    t === 'Promise<void>' ||
+    t === 'undefined' ||
+    t === 'Promise<undefined>'
+  );
 }
 
 /** Grupuje funkcje w kategorie toolboxa (posortowane, stabilne). */
-export function groupByCategory(callables: UmlCallable[]): Array<{ category: string; items: UmlCallable[] }> {
+export function groupByCategory(
+  callables: UmlCallable[]
+): Array<{ category: string; items: UmlCallable[] }> {
   const map = new Map<string, UmlCallable[]>();
   for (const c of callables) {
     const key = categoryFor(c);
@@ -273,7 +301,10 @@ export function groupByCategory(callables: UmlCallable[]): Array<{ category: str
     map.get(key)!.push(c);
   }
   return [...map.entries()]
-    .map(([category, items]) => ({ category, items: items.sort((a, b) => a.name.localeCompare(b.name)) }))
+    .map(([category, items]) => ({
+      category,
+      items: items.sort((a, b) => a.name.localeCompare(b.name)),
+    }))
     .sort((a, b) => a.category.localeCompare(b.category));
 }
 
@@ -311,7 +342,12 @@ export function extractTypes(project: UmlProjectLike, projectKey: string): UmlTy
       if (!data?.name || data.kind === 'module') continue;
       if (seen.has(data.name)) continue;
       seen.add(data.name);
-      out.push({ name: data.name, kind: data.kind ?? 'class', project: projectName, file: data.linkedFile });
+      out.push({
+        name: data.name,
+        kind: data.kind ?? 'class',
+        project: projectName,
+        file: data.linkedFile,
+      });
     }
   }
   return out.sort((a, b) => a.name.localeCompare(b.name));
@@ -320,7 +356,9 @@ export function extractTypes(project: UmlProjectLike, projectKey: string): UmlTy
 /** Czy funkcja ma jakąkolwiek dokumentację (decyduje o ikonie na bloczku). */
 export function hasDoc(doc?: UmlCallableDoc): boolean {
   if (!doc) return false;
-  return Object.values(doc).some((v) => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== ''));
+  return Object.values(doc).some((v) =>
+    Array.isArray(v) ? v.length > 0 : v !== undefined && v !== ''
+  );
 }
 
 /** Wiersze podpowiedzi dla funkcji — gotowe do wyświetlenia w popupie. */
@@ -365,7 +403,8 @@ export function docSections(callable: UmlCallable): DocSection[] {
     const text = [type, doc.returns].filter(Boolean).join(' — ');
     out.push({ title: 'Zwraca', lines: [text] });
   }
-  if (doc.examples?.length) out.push({ title: 'Przykład', lines: doc.examples[0].split('\n'), code: true });
+  if (doc.examples?.length)
+    out.push({ title: 'Przykład', lines: doc.examples[0].split('\n'), code: true });
   if (doc.see?.length) out.push({ title: 'Zobacz', lines: doc.see });
 
   return out;

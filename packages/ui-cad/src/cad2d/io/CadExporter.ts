@@ -27,7 +27,11 @@ function projectName(project: Project): string {
 
 export function exportJSON(project: Project): void {
   const data = project.toJSON();
-  downloadBlob(JSON.stringify(data, null, 2), `${projectName(project)}.cad.json`, 'application/json');
+  downloadBlob(
+    JSON.stringify(data, null, 2),
+    `${projectName(project)}.cad.json`,
+    'application/json'
+  );
 }
 
 /**
@@ -49,30 +53,61 @@ export function loadProjectFromText(jsonText: string, project: Project): void {
 
 export function shiftEntity(entity: Entity, dx: number, dy: number): Entity {
   switch (entity.type) {
-    case 'line': return { ...entity, x1: entity.x1 + dx, y1: entity.y1 + dy, x2: entity.x2 + dx, y2: entity.y2 + dy };
-    case 'circle': return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
-    case 'point': return { ...entity, x: entity.x + dx, y: entity.y + dy };
-    case 'arc': return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
-    case 'rect': return { ...entity, x: entity.x + dx, y: entity.y + dy };
-    case 'polyline': return { ...entity, points: entity.points.map(p => ({ x: p.x + dx, y: p.y + dy })) };
-    case 'freehand': return { ...entity, points: entity.points.map(p => ({ x: p.x + dx, y: p.y + dy })) };
-    case 'text': return { ...entity, x: entity.x + dx, y: entity.y + dy };
-    case 'image': return { ...entity, x: entity.x + dx, y: entity.y + dy };
-    case 'dimension': return { ...entity, x1: entity.x1 + dx, y1: entity.y1 + dy, x2: entity.x2 + dx, y2: entity.y2 + dy };
-    case 'box3d': return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
-    case 'cylinder3d': return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
-    case 'sphere3d': return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
-    default: return entity;
+    case 'line':
+      return {
+        ...entity,
+        x1: entity.x1 + dx,
+        y1: entity.y1 + dy,
+        x2: entity.x2 + dx,
+        y2: entity.y2 + dy,
+      };
+    case 'circle':
+      return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
+    case 'point':
+      return { ...entity, x: entity.x + dx, y: entity.y + dy };
+    case 'arc':
+      return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
+    case 'rect':
+      return { ...entity, x: entity.x + dx, y: entity.y + dy };
+    case 'polyline':
+      return { ...entity, points: entity.points.map((p) => ({ x: p.x + dx, y: p.y + dy })) };
+    case 'freehand':
+      return { ...entity, points: entity.points.map((p) => ({ x: p.x + dx, y: p.y + dy })) };
+    case 'text':
+      return { ...entity, x: entity.x + dx, y: entity.y + dy };
+    case 'image':
+      return { ...entity, x: entity.x + dx, y: entity.y + dy };
+    case 'dimension':
+      return {
+        ...entity,
+        x1: entity.x1 + dx,
+        y1: entity.y1 + dy,
+        x2: entity.x2 + dx,
+        y2: entity.y2 + dy,
+      };
+    case 'box3d':
+      return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
+    case 'cylinder3d':
+      return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
+    case 'sphere3d':
+      return { ...entity, cx: entity.cx + dx, cy: entity.cy + dy };
+    default:
+      return entity;
   }
 }
 
 export function computeEntitiesCentroid(entities: Entity[]): { x: number; y: number } {
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    maxX = -Infinity,
+    minY = Infinity,
+    maxY = -Infinity;
   for (const e of entities) {
     const bb = e.boundingBox;
     if (bb) {
-      minX = Math.min(minX, bb.minX); maxX = Math.max(maxX, bb.maxX);
-      minY = Math.min(minY, bb.minY); maxY = Math.max(maxY, bb.maxY);
+      minX = Math.min(minX, bb.minX);
+      maxX = Math.max(maxX, bb.maxX);
+      minY = Math.min(minY, bb.minY);
+      maxY = Math.max(maxY, bb.maxY);
     }
   }
   return isFinite(minX) ? { x: (minX + maxX) / 2, y: (minY + maxY) / 2 } : { x: 0, y: 0 };
@@ -121,12 +156,12 @@ export function importJSON(file: File, project: Project): Promise<void> {
 /** Convert a CSS hex color to the nearest DXF ACI color index (1–7, default 7=white). */
 function hexToAci(hex: string): number {
   const ACI: Array<[number, number, number, number]> = [
-    [255, 0, 0, 1],     // red
-    [255, 255, 0, 2],   // yellow
-    [0, 255, 0, 3],     // green
-    [0, 255, 255, 4],   // cyan
-    [0, 0, 255, 5],     // blue
-    [255, 0, 255, 6],   // magenta
+    [255, 0, 0, 1], // red
+    [255, 255, 0, 2], // yellow
+    [0, 255, 0, 3], // green
+    [0, 255, 255, 4], // cyan
+    [0, 0, 255, 5], // blue
+    [255, 0, 255, 6], // magenta
     [255, 255, 255, 7], // white
     [128, 128, 128, 8], // gray
   ];
@@ -134,10 +169,14 @@ function hexToAci(hex: string): number {
   const r = parseInt(h.slice(0, 2), 16) || 0;
   const g = parseInt(h.slice(2, 4), 16) || 0;
   const b = parseInt(h.slice(4, 6), 16) || 0;
-  let best = 7, bestDist = Infinity;
+  let best = 7,
+    bestDist = Infinity;
   for (const [cr, cg, cb, aci] of ACI) {
     const dist = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2;
-    if (dist < bestDist) { bestDist = dist; best = aci; }
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = aci;
+    }
   }
   return best;
 }
@@ -205,7 +244,8 @@ function dxfEntityLines(lines: string[], entity: Entity, layer: Layer | undefine
       const { x1, y1, x2, y2, offset } = entity;
       const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
       if (len < 0.001) break;
-      const nx = -(y2 - y1) / len, ny = (x2 - x1) / len;
+      const nx = -(y2 - y1) / len,
+        ny = (x2 - x1) / len;
       for (const [ax, ay, bx, by] of [
         [x1, y1, x1 + nx * offset, y1 + ny * offset],
         [x2, y2, x2 + nx * offset, y2 + ny * offset],
@@ -281,9 +321,8 @@ export function exportDXF(project: Project): void {
 // ── SVG export ─────────────────────────────────────────────────────────────────
 
 function entityToSvgElement(entity: Entity, layer: Layer | undefined): string {
-  const colorHex = entity.color !== 'bylayer'
-    ? (entity.color as string)
-    : (layer?.color ?? '#ffffff');
+  const colorHex =
+    entity.color !== 'bylayer' ? (entity.color as string) : (layer?.color ?? '#ffffff');
   const stroke = `stroke="${colorHex}" fill="none" stroke-width="1"`;
 
   switch (entity.type) {
@@ -320,7 +359,7 @@ function entityToSvgElement(entity: Entity, layer: Layer | undefined): string {
 
     case 'polyline': {
       if (entity.points.length < 2) return '';
-      const pts = entity.points.map(p => `${p.x},${p.y}`).join(' ');
+      const pts = entity.points.map((p) => `${p.x},${p.y}`).join(' ');
       const tag = entity.closed ? 'polygon' : 'polyline';
       return `<${tag} points="${pts}" ${stroke}/>`;
     }
@@ -329,9 +368,12 @@ function entityToSvgElement(entity: Entity, layer: Layer | undefined): string {
       const { x1, y1, x2, y2, offset } = entity;
       const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
       if (len < 0.001) return '';
-      const nx = -(y2 - y1) / len, ny = (x2 - x1) / len;
-      const d1x = x1 + nx * offset, d1y = y1 + ny * offset;
-      const d2x = x2 + nx * offset, d2y = y2 + ny * offset;
+      const nx = -(y2 - y1) / len,
+        ny = (x2 - x1) / len;
+      const d1x = x1 + nx * offset,
+        d1y = y1 + ny * offset;
+      const d2x = x2 + nx * offset,
+        d2y = y2 + ny * offset;
       return [
         `<line x1="${x1}" y1="${y1}" x2="${d1x}" y2="${d1y}" ${stroke}/>`,
         `<line x1="${x2}" y1="${y2}" x2="${d2x}" y2="${d2y}" ${stroke}/>`,
@@ -347,7 +389,7 @@ function entityToSvgElement(entity: Entity, layer: Layer | undefined): string {
 
 /** Build an SVG string from the project (no download — used by the read-only viewer). */
 export function buildSVGString(project: Project): string {
-  const entities = project.entityRegistry.getAll().filter(e => {
+  const entities = project.entityRegistry.getAll().filter((e) => {
     if (!e.visible) return false;
     const layer = project.layerSystem.get(e.layerId);
     return !layer || layer.visible;
@@ -357,10 +399,15 @@ export function buildSVGString(project: Project): string {
     return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" style="background:#1e1e1e"></svg>';
   }
 
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   for (const e of entities) {
-    minX = Math.min(minX, e.boundingBox.minX); minY = Math.min(minY, e.boundingBox.minY);
-    maxX = Math.max(maxX, e.boundingBox.maxX); maxY = Math.max(maxY, e.boundingBox.maxY);
+    minX = Math.min(minX, e.boundingBox.minX);
+    minY = Math.min(minY, e.boundingBox.minY);
+    maxX = Math.max(maxX, e.boundingBox.maxX);
+    maxY = Math.max(maxY, e.boundingBox.maxY);
   }
 
   const padding = 20;
@@ -383,19 +430,26 @@ export function buildSVGString(project: Project): string {
 }
 
 export function exportSVG(project: Project): void {
-  const entities = project.entityRegistry.getAll().filter(e => {
+  const entities = project.entityRegistry.getAll().filter((e) => {
     if (!e.visible) return false;
     const layer = project.layerSystem.get(e.layerId);
     return !layer || layer.visible;
   });
 
   if (entities.length === 0) {
-    downloadBlob('<svg xmlns="http://www.w3.org/2000/svg"></svg>', `${projectName(project)}.svg`, 'image/svg+xml');
+    downloadBlob(
+      '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+      `${projectName(project)}.svg`,
+      'image/svg+xml'
+    );
     return;
   }
 
   // Compute bounding box from entity bounding boxes
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   for (const e of entities) {
     const bb = e.boundingBox;
     minX = Math.min(minX, bb.minX);
@@ -465,7 +519,7 @@ export function exportGLTF(project: Project, binary = false): Promise<void> {
         resolve();
       },
       (error) => reject(error),
-      { binary },
+      { binary }
     );
   });
 }
@@ -511,9 +565,15 @@ function parseDxfEntities(text: string, project: Project): EntityInput[] {
 
     if (code === 0 && val === 'ENDSEC' && inEntities) break;
 
-    if (!inEntities) { ti++; continue; }
+    if (!inEntities) {
+      ti++;
+      continue;
+    }
 
-    if (code !== 0) { ti++; continue; }
+    if (code !== 0) {
+      ti++;
+      continue;
+    }
 
     const entityType = val.toUpperCase();
     ti++;
@@ -552,8 +612,11 @@ function parseDxfEntities(text: string, project: Project): EntityInput[] {
       result.push({ ...base, type: 'circle', cx: n(10), cy: n(20), radius: n(40) });
     } else if (entityType === 'ARC') {
       result.push({
-        ...base, type: 'arc',
-        cx: n(10), cy: n(20), radius: n(40),
+        ...base,
+        type: 'arc',
+        cx: n(10),
+        cy: n(20),
+        radius: n(40),
         startAngle: (n(50) * Math.PI) / 180,
         endAngle: (n(51) * Math.PI) / 180,
       });

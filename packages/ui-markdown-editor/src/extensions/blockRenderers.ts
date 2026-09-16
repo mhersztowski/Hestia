@@ -96,7 +96,9 @@ const listeners = new Set<() => void>();
  */
 export function subscribeBlockRenderers(listener: () => void): () => void {
   listeners.add(listener);
-  return () => { listeners.delete(listener); };
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 /** Wersja rejestru — rośnie przy każdej zmianie; do `useSyncExternalStore`. */

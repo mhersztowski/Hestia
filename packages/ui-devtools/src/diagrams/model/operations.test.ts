@@ -8,8 +8,21 @@
 import { describe, it, expect } from 'vitest';
 import { emptyDiagram, type DiagramDocument } from './diagram';
 import {
-  addNode, addGroup, baseNameFor, connect, moveNodeToGroup, removeEdge, removeGroup, renameNode,
-  setEdgeLabel, setGroupLabel, setGroupSize, setNodeLabel, resetLayout, mergeLayout, spotForNewNode,
+  addNode,
+  addGroup,
+  baseNameFor,
+  connect,
+  moveNodeToGroup,
+  removeEdge,
+  removeGroup,
+  renameNode,
+  setEdgeLabel,
+  setGroupLabel,
+  setGroupSize,
+  setNodeLabel,
+  resetLayout,
+  mergeLayout,
+  spotForNewNode,
 } from './operations';
 import { mermaidFormat } from '../formats/mermaid';
 import { autoLayout } from './layout';
@@ -78,7 +91,7 @@ describe('renameNode', () => {
 
   it('odmawia, gdy nazwa jest zajęta — inaczej dwa węzły skleiłyby się przy zapisie', () => {
     let doc = stateDoc();
-    doc = addNode(doc, 'rectangle');           // Stan1
+    doc = addNode(doc, 'rectangle'); // Stan1
     const before = JSON.parse(JSON.stringify(doc));
     expect(renameNode(doc, 'Stan1', 'Stan')).toEqual(before);
   });
@@ -114,14 +127,17 @@ describe('setNodeLabel', () => {
 describe('operacje na grupach', () => {
   function withGroup(): DiagramDocument {
     let doc = emptyDiagram('state');
-    doc = addNode(doc, 'rectangle');            // Stan
-    doc = addNode(doc, 'rectangle');            // Stan1
+    doc = addNode(doc, 'rectangle'); // Stan
+    doc = addNode(doc, 'rectangle'); // Stan1
     doc = addGroup(doc, { members: ['Stan'] });
     return doc;
   }
 
   it('nowa grupa dostaje wolny identyfikator i nazwę zależną od rodzaju diagramu', () => {
-    expect(addGroup(emptyDiagram('state')).groups[0]).toMatchObject({ id: 'StanZlozony', label: 'StanZlozony' });
+    expect(addGroup(emptyDiagram('state')).groups[0]).toMatchObject({
+      id: 'StanZlozony',
+      label: 'StanZlozony',
+    });
     expect(addGroup(emptyDiagram('flowchart')).groups[0].id).toBe('Grupa');
   });
 
@@ -162,8 +178,8 @@ describe('operacje na grupach', () => {
   });
 
   it('grupa zagnieżdżona awansuje do rodzica usuwanej', () => {
-    let doc = addGroup(emptyDiagram('state'));                       // StanZlozony
-    doc = addGroup(doc, { parentId: 'StanZlozony' });                // StanZlozony1
+    let doc = addGroup(emptyDiagram('state')); // StanZlozony
+    doc = addGroup(doc, { parentId: 'StanZlozony' }); // StanZlozony1
     doc = removeGroup(doc, 'StanZlozony');
     expect(doc.groups.map((g) => [g.id, g.parentId])).toEqual([['StanZlozony1', undefined]]);
   });
@@ -209,12 +225,16 @@ describe('resetLayout', () => {
 
 describe('mergeLayout', () => {
   it('przenosi pozycje węzłów o tych samych identyfikatorach', () => {
-    const previous = autoLayout(mermaidFormat.parse('stateDiagram-v2\n  [*] --> A\n  A --> B').document);
+    const previous = autoLayout(
+      mermaidFormat.parse('stateDiagram-v2\n  [*] --> A\n  A --> B').document
+    );
     const reparsed = mermaidFormat.parse('stateDiagram-v2\n  [*] --> A\n  A --> B').document;
 
     const merged = mergeLayout(reparsed, previous);
     for (const node of merged.nodes.filter((n) => n.id === 'A' || n.id === 'B')) {
-      expect(node.position, node.id).toEqual(previous.nodes.find((p) => p.id === node.id)!.position);
+      expect(node.position, node.id).toEqual(
+        previous.nodes.find((p) => p.id === node.id)!.position
+      );
     }
   });
 
@@ -222,7 +242,9 @@ describe('mergeLayout', () => {
     const previous = autoLayout(mermaidFormat.parse('stateDiagram-v2\n  A --> B').document);
     const reparsed = mermaidFormat.parse('stateDiagram-v2\n  A --> B\n  B --> C').document;
 
-    expect(mergeLayout(reparsed, previous).nodes.find((n) => n.id === 'C')?.position).toBeUndefined();
+    expect(
+      mergeLayout(reparsed, previous).nodes.find((n) => n.id === 'C')?.position
+    ).toBeUndefined();
   });
 
   it('przenosi pozycję i rozmiar ramek', () => {
@@ -254,7 +276,11 @@ describe('spotForNewNode', () => {
   });
 
   it('uwzględnia przewinięcie widoku — liczy od jego lewego górnego rogu', () => {
-    const spot = spotForNewNode(emptyDiagram('state'), { x: 1000, y: 500, width: 400, height: 200 }, { width: 100, height: 40 });
+    const spot = spotForNewNode(
+      emptyDiagram('state'),
+      { x: 1000, y: 500, width: 400, height: 200 },
+      { width: 100, height: 40 }
+    );
     expect(spot).toEqual({ x: 1150, y: 580 });
   });
 
@@ -271,14 +297,23 @@ describe('spotForNewNode', () => {
   it('pomija elementy wewnątrz ramek — ich pozycje są lokalne', () => {
     let doc = emptyDiagram('state');
     doc = addGroup(doc);
-    doc.nodes = [{ id: 'X', label: '', shape: 'rectangle', parentId: doc.groups[0].id, position: { x: 325, y: 275 } }];
+    doc.nodes = [
+      {
+        id: 'X',
+        label: '',
+        shape: 'rectangle',
+        parentId: doc.groups[0].id,
+        position: { x: 325, y: 275 },
+      },
+    ];
     // Węzeł w ramce stoi „lokalnie" na 325/275, co nie koliduje ze środkiem płótna.
     expect(spotForNewNode(doc, area, { width: 150, height: 50 })).toEqual({ x: 325, y: 275 });
   });
 
   it('znajduje miejsce nawet przy gęstym zagęszczeniu', () => {
     let doc = emptyDiagram('state');
-    for (let i = 0; i < 5; i++) doc = addNode(doc, 'rectangle', { position: { x: 325, y: 275 + i * 10 } });
+    for (let i = 0; i < 5; i++)
+      doc = addNode(doc, 'rectangle', { position: { x: 325, y: 275 + i * 10 } });
     const spot = spotForNewNode(doc, area);
     expect(Number.isFinite(spot.x) && Number.isFinite(spot.y)).toBe(true);
   });

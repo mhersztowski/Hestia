@@ -32,47 +32,52 @@ function flag(options: Record<string, unknown>, name: string, fallback = false):
 registerModel({
   name: 'oscylator',
   summary: 'Masa na sprężynie: ruch swobodny, tłumiony i wymuszony — zależnie od nastaw.',
-  build: () => defineModel({
-    parameters: [
-      { name: 'm', unit: 'kg', value: 1, min: 0.1, max: 5 },
-      { name: 'k', unit: 'N/m', value: 4, min: 0.1, max: 40 },
-      { name: 'c', unit: 'kg/s', value: 0, min: 0, max: 2 },
-      { name: 'F_0', unit: 'N', value: 0, min: 0, max: 5 },
-      { name: 'Omega', unit: 's^-1', value: 2, min: 0, max: 10 },
-      { name: 'x_0', unit: 'm', value: 0.1, min: -1, max: 1 },
-      { name: 'v_0', unit: 'm/s', value: 0, min: -5, max: 5 },
-    ],
-    observables: [
-      { name: 'x', unit: 'm' },
-      { name: 'v', unit: 'm/s' },
-      { name: 'E', unit: 'J' },
-    ],
-    derivativePairs: [['x', 'v']],
-    // Energia mechaniczna jest zachowana **tylko** przy c = 0 i F₀ = 0; przy
-    // pozostałych nastawach panel jakości pokaże jej ubytek albo przyrost.
-    // To nie jest ostrzeżenie o błędzie numerycznym, tylko fizyka układu —
-    // i dobrze, żeby czytelnik zobaczył jedno obok drugiego.
-    invariants: [{
-      name: 'E',
-      of: ([x, v], _t, { m, k }) => 0.5 * m * v * v + 0.5 * k * x * x,
-    }],
-    run: ({ m, k, c, F_0, Omega, x_0, v_0 }, tSpan, dt) => {
-      const trajektoria = dopri5(
-        (t, [x, v]) => [v, (F_0 * Math.cos(Omega * t) - c * v - k * x) / m],
-        [x_0, v_0], tSpan,
-        { rtol: 1e-9, atol: 1e-12, dt, stateNames: ['x', 'v'] },
-      );
-
-      return {
-        trajectory: trajektoria,
-        series: {
-          E: trajektoria.samples.map((s): [number, number] => [
-            s.t, 0.5 * m * s.y[1] * s.y[1] + 0.5 * k * s.y[0] * s.y[0],
-          ]),
+  build: () =>
+    defineModel({
+      parameters: [
+        { name: 'm', unit: 'kg', value: 1, min: 0.1, max: 5 },
+        { name: 'k', unit: 'N/m', value: 4, min: 0.1, max: 40 },
+        { name: 'c', unit: 'kg/s', value: 0, min: 0, max: 2 },
+        { name: 'F_0', unit: 'N', value: 0, min: 0, max: 5 },
+        { name: 'Omega', unit: 's^-1', value: 2, min: 0, max: 10 },
+        { name: 'x_0', unit: 'm', value: 0.1, min: -1, max: 1 },
+        { name: 'v_0', unit: 'm/s', value: 0, min: -5, max: 5 },
+      ],
+      observables: [
+        { name: 'x', unit: 'm' },
+        { name: 'v', unit: 'm/s' },
+        { name: 'E', unit: 'J' },
+      ],
+      derivativePairs: [['x', 'v']],
+      // Energia mechaniczna jest zachowana **tylko** przy c = 0 i F₀ = 0; przy
+      // pozostałych nastawach panel jakości pokaże jej ubytek albo przyrost.
+      // To nie jest ostrzeżenie o błędzie numerycznym, tylko fizyka układu —
+      // i dobrze, żeby czytelnik zobaczył jedno obok drugiego.
+      invariants: [
+        {
+          name: 'E',
+          of: ([x, v], _t, { m, k }) => 0.5 * m * v * v + 0.5 * k * x * x,
         },
-      };
-    },
-  }),
+      ],
+      run: ({ m, k, c, F_0, Omega, x_0, v_0 }, tSpan, dt) => {
+        const trajektoria = dopri5(
+          (t, [x, v]) => [v, (F_0 * Math.cos(Omega * t) - c * v - k * x) / m],
+          [x_0, v_0],
+          tSpan,
+          { rtol: 1e-9, atol: 1e-12, dt, stateNames: ['x', 'v'] }
+        );
+
+        return {
+          trajectory: trajektoria,
+          series: {
+            E: trajektoria.samples.map((s): [number, number] => [
+              s.t,
+              0.5 * m * s.y[1] * s.y[1] + 0.5 * k * s.y[0] * s.y[0],
+            ]),
+          },
+        };
+      },
+    }),
 });
 
 /**
@@ -85,7 +90,8 @@ registerModel({
  */
 registerModel({
   name: 'wahadlo',
-  summary: 'Wahadło matematyczne z pełnym równaniem ruchu; opcja „smallAngle" włącza przybliżenie sin θ ≈ θ.',
+  summary:
+    'Wahadło matematyczne z pełnym równaniem ruchu; opcja „smallAngle" włącza przybliżenie sin θ ≈ θ.',
   options: ['smallAngle'],
   build: (options) => {
     const małeKąty = flag(options, 'smallAngle');
@@ -105,8 +111,9 @@ registerModel({
       run: ({ L, g, theta_0 }, tSpan, dt) => {
         const trajektoria = dopri5(
           (_t, [theta, omega]) => [omega, -(g / L) * (małeKąty ? theta : Math.sin(theta))],
-          [theta_0, 0], tSpan,
-          { rtol: 1e-9, atol: 1e-12, dt, stateNames: ['theta', 'omega'] },
+          [theta_0, 0],
+          tSpan,
+          { rtol: 1e-9, atol: 1e-12, dt, stateNames: ['theta', 'omega'] }
         );
 
         // Położenie ciężarka liczymy z kąta: widok animacji potrzebuje punktu
@@ -218,17 +225,29 @@ registerModel({
         ]),
         { name: 'E', unit: 'J', kind: 'series' as const },
       ],
-      derivativePairs: ciała.flatMap((_, i) => [
-        [`x${i}`, `vx${i}`], [`y${i}`, `vy${i}`],
-      ] as Array<[string, string]>),
+      derivativePairs: ciała.flatMap(
+        (_, i) =>
+          [
+            [`x${i}`, `vx${i}`],
+            [`y${i}`, `vy${i}`],
+          ] as Array<[string, string]>
+      ),
       // Energia całkowita układu izolowanego jest zachowana — a że liczymy
       // Verletem, jej błąd ma **oscylować**, nie narastać. To jest jedyny
       // sposób, żeby czytelnik odróżnił orbitę stabilną od powoli zwężanej
       // przez numerykę, bo na wykresie wyglądają tak samo.
-      invariants: [{
-        name: 'E',
-        of: (state, _t, { G, softening }) => energiaUkladu(state, ciała.map((c) => c.mass), G, softening),
-      }],
+      invariants: [
+        {
+          name: 'E',
+          of: (state, _t, { G, softening }) =>
+            energiaUkladu(
+              state,
+              ciała.map((c) => c.mass),
+              G,
+              softening
+            ),
+        },
+      ],
       run: ({ G, softening }, tSpan, dt) => {
         const masy = ciała.map((c) => c.mass);
         const x0 = ciała.flatMap((c) => [c.x, c.y]);
@@ -267,7 +286,8 @@ registerModel({
           trajectory: trajektoria,
           series: {
             E: trajektoria.samples.map((s): [number, number] => [
-              s.t, energiaUkladu(s.y, masy, G, softening),
+              s.t,
+              energiaUkladu(s.y, masy, G, softening),
             ]),
           },
         };

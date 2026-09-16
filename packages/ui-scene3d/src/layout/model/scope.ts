@@ -35,7 +35,7 @@ export interface ResolveResult {
 }
 
 const POLA = ['x', 'y', 'w', 'h'] as const;
-type Pole = typeof POLA[number];
+type Pole = (typeof POLA)[number];
 
 /** Nazwa zmiennej w grafie zależności: `kształt.pole`. */
 const klucz = (id: string, pole: Pole) => `${id}.${pole}`;
@@ -48,13 +48,12 @@ const klucz = (id: string, pole: Pole) => `${id}.${pole}`;
  * rodzicach dzieliłyby jeden węzeł.
  */
 function zaleznosci(value: ParamValue, shape: Shape): string[] {
-  const nazwy = value.src === 'expr' ? exprDeps(value.code)
-    : value.src === 'ref' ? [value.name]
-      : [];
+  const nazwy =
+    value.src === 'expr' ? exprDeps(value.code) : value.src === 'ref' ? [value.name] : [];
 
-  return nazwy.map((n) => (n.startsWith('parent.') && shape.parent
-    ? `${shape.parent}.${n.slice('parent.'.length)}`
-    : n));
+  return nazwy.map((n) =>
+    n.startsWith('parent.') && shape.parent ? `${shape.parent}.${n.slice('parent.'.length)}` : n
+  );
 }
 
 export function resolveValues(doc: LayoutDoc): ResolveResult {
@@ -76,7 +75,9 @@ export function resolveValues(doc: LayoutDoc): ResolveResult {
   for (const shape of doc.shapes) {
     for (const pole of POLA) {
       zadania.set(klucz(shape.id, pole), {
-        shape, pole, deps: zaleznosci(shape[pole], shape),
+        shape,
+        pole,
+        deps: zaleznosci(shape[pole], shape),
       });
     }
   }
@@ -109,7 +110,9 @@ export function resolveValues(doc: LayoutDoc): ResolveResult {
       for (const nazwa of exprDeps(value.code)) {
         const pelna = nazwa.startsWith('parent.') ? nazwa : nazwa;
         if (!(pelna in zakres)) {
-          issues.push(`Kształt „${shape.id}": wyrażenie „${value.code}" używa nieznanej nazwy „${nazwa}".`);
+          issues.push(
+            `Kształt „${shape.id}": wyrażenie „${value.code}" używa nieznanej nazwy „${nazwa}".`
+          );
           return 0;
         }
       }

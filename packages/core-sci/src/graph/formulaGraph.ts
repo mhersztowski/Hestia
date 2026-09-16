@@ -160,8 +160,9 @@ export function buildGraph(blocks: FormulaBlock[], knownIds: string[] = []): For
       const declared = nodes.some((node) => parameter in node.block.vars);
       if (declared) continue;
       issues.push({
-        message: `Wielkość „${parameter}" nie jest przez nic liczona ani zadeklarowana w @vars. `
-          + 'Jeśli to zmienna stanu, sprawdź pisownię; jeśli parametr — dopisz jego jednostkę.',
+        message:
+          `Wielkość „${parameter}" nie jest przez nic liczona ani zadeklarowana w @vars. ` +
+          'Jeśli to zmienna stanu, sprawdź pisownię; jeśli parametr — dopisz jego jednostkę.',
       });
     }
   }
@@ -195,11 +196,14 @@ function dimensionIssues(node: GraphNode): GraphIssue[] {
 
   return sameDimension(dimension, targetUnit)
     ? []
-    : [{
-      message: `Wymiar prawej strony (${dimension}) nie zgadza się z zadeklarowanym `
-        + `dla „${block.target}" (${targetUnit}).`,
-      formulaId: block.id,
-    }];
+    : [
+        {
+          message:
+            `Wymiar prawej strony (${dimension}) nie zgadza się z zadeklarowanym ` +
+            `dla „${block.target}" (${targetUnit}).`,
+          formulaId: block.id,
+        },
+      ];
 }
 
 /**
@@ -269,11 +273,15 @@ function latexToMathjs(latex: string): string | undefined {
 /** Pierwszy znaleziony cykl w grafie zależności; `undefined`, gdy go nie ma. */
 function findCycle(graph: FormulaGraph): string[] | undefined {
   const producer = new Map<string, string>();
-  for (const node of graph.nodes) for (const output of node.outputs) producer.set(output, node.block.id);
+  for (const node of graph.nodes)
+    for (const output of node.outputs) producer.set(output, node.block.id);
 
   const dependencies = new Map<string, string[]>();
   for (const node of graph.nodes) {
-    dependencies.set(node.block.id, node.inputs.map((s) => producer.get(s)).filter((id): id is string => !!id));
+    dependencies.set(
+      node.block.id,
+      node.inputs.map((s) => producer.get(s)).filter((id): id is string => !!id)
+    );
   }
 
   const state = new Map<string, 'open' | 'done'>();
@@ -311,7 +319,8 @@ function findCycle(graph: FormulaGraph): string[] | undefined {
  */
 export function topologicalOrder(graph: FormulaGraph): string[] {
   const producer = new Map<string, string>();
-  for (const node of graph.nodes) for (const output of node.outputs) producer.set(output, node.block.id);
+  for (const node of graph.nodes)
+    for (const output of node.outputs) producer.set(output, node.block.id);
 
   const order: string[] = [];
   const state = new Map<string, 'open' | 'done'>();

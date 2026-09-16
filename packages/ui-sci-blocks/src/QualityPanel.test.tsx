@@ -17,7 +17,10 @@ const raport = (over: Partial<InvariantReport> = {}): InvariantReport => ({
   relative: 0.1,
   trend: 'drift',
   ratePerUnitTime: 0.002,
-  values: [[0, 0.5], [1, 0.51]],
+  values: [
+    [0, 0.5],
+    [1, 0.51],
+  ],
   issues: [],
   ...over,
 });
@@ -50,7 +53,9 @@ describe('co widzi czytelnik', () => {
   });
 
   it('przekazuje dalej uwagi z pomiaru', () => {
-    render(<QualityPanel invariants={[raport({ issues: ['Niezmiennik przestał być liczbą (NaN).'] })]} />);
+    render(
+      <QualityPanel invariants={[raport({ issues: ['Niezmiennik przestał być liczbą (NaN).'] })]} />
+    );
     expect(screen.getByText(/NaN/)).toBeTruthy();
   });
 });

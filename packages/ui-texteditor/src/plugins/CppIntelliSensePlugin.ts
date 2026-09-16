@@ -45,20 +45,72 @@ interface CppSymbol {
 // ── Source parser ─────────────────────────────────────────────────────────────
 
 const SKIP_KEYWORDS = new Set([
-  'if', 'while', 'for', 'switch', 'catch', 'return', 'else', 'do',
-  'case', 'default', 'break', 'continue', 'goto', 'sizeof', 'alignof',
-  'new', 'delete', 'throw', 'try', 'class', 'struct', 'enum', 'namespace',
-  'template', 'typename', 'typedef', 'using', 'static', 'inline', 'virtual',
-  'explicit', 'constexpr', 'const', 'volatile', 'mutable', 'extern',
-  'public', 'private', 'protected',
+  'if',
+  'while',
+  'for',
+  'switch',
+  'catch',
+  'return',
+  'else',
+  'do',
+  'case',
+  'default',
+  'break',
+  'continue',
+  'goto',
+  'sizeof',
+  'alignof',
+  'new',
+  'delete',
+  'throw',
+  'try',
+  'class',
+  'struct',
+  'enum',
+  'namespace',
+  'template',
+  'typename',
+  'typedef',
+  'using',
+  'static',
+  'inline',
+  'virtual',
+  'explicit',
+  'constexpr',
+  'const',
+  'volatile',
+  'mutable',
+  'extern',
+  'public',
+  'private',
+  'protected',
 ]);
 
 const PRIMITIVE_TYPES = new Set([
-  'int', 'float', 'double', 'char', 'bool', 'void', 'long', 'short',
-  'unsigned', 'signed', 'auto', 'size_t', 'wchar_t', 'nullptr',
-  'int8_t', 'int16_t', 'int32_t', 'int64_t',
-  'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t',
-  'string', 'wstring',
+  'int',
+  'float',
+  'double',
+  'char',
+  'bool',
+  'void',
+  'long',
+  'short',
+  'unsigned',
+  'signed',
+  'auto',
+  'size_t',
+  'wchar_t',
+  'nullptr',
+  'int8_t',
+  'int16_t',
+  'int32_t',
+  'int64_t',
+  'uint8_t',
+  'uint16_t',
+  'uint32_t',
+  'uint64_t',
+  'string',
+  'wstring',
 ]);
 
 export function parseCppSource(source: string, origin?: string): CppSymbol[] {
@@ -96,7 +148,13 @@ export function parseCppSource(source: string, origin?: string): CppSymbol[] {
       const name = defineMatch[1];
       if (name && !seen.has(name)) {
         seen.add(name);
-        symbols.push({ name, kind: monaco.languages.CompletionItemKind.Constant, detail: 'macro', doc, line: lineNum });
+        symbols.push({
+          name,
+          kind: monaco.languages.CompletionItemKind.Constant,
+          detail: 'macro',
+          doc,
+          line: lineNum,
+        });
       }
       continue;
     }
@@ -104,7 +162,9 @@ export function parseCppSource(source: string, origin?: string): CppSymbol[] {
     if (trimmed.startsWith('#')) continue;
 
     // ── class / struct ───────────────────────────────────────────────────────
-    const classMatch = trimmed.match(/^(?:template\s*<[^>]*>\s*)?(?:class|struct)\s+(\w+)\s*(?:[:{;]|$)/);
+    const classMatch = trimmed.match(
+      /^(?:template\s*<[^>]*>\s*)?(?:class|struct)\s+(\w+)\s*(?:[:{;]|$)/
+    );
     if (classMatch) {
       const name = classMatch[1];
       const isStruct = /\bstruct\b/.test(trimmed);
@@ -112,9 +172,13 @@ export function parseCppSource(source: string, origin?: string): CppSymbol[] {
         seen.add(name);
         const sym: CppSymbol = {
           name,
-          kind: isStruct ? monaco.languages.CompletionItemKind.Struct : monaco.languages.CompletionItemKind.Class,
+          kind: isStruct
+            ? monaco.languages.CompletionItemKind.Struct
+            : monaco.languages.CompletionItemKind.Class,
           detail: trimmed.replace(/\s*[{;].*$/, '').trim(),
-          doc, line: lineNum, members: [],
+          doc,
+          line: lineNum,
+          members: [],
         };
         symbols.push(sym);
         insideClass = { name, depth: braceDepth };
@@ -128,7 +192,13 @@ export function parseCppSource(source: string, origin?: string): CppSymbol[] {
       const name = enumMatch[1];
       if (!seen.has(name)) {
         seen.add(name);
-        symbols.push({ name, kind: monaco.languages.CompletionItemKind.Enum, detail: trimmed, doc, line: lineNum });
+        symbols.push({
+          name,
+          kind: monaco.languages.CompletionItemKind.Enum,
+          detail: trimmed,
+          doc,
+          line: lineNum,
+        });
       }
       continue;
     }
@@ -139,7 +209,13 @@ export function parseCppSource(source: string, origin?: string): CppSymbol[] {
       const name = typedefMatch[1] ?? typedefMatch[2];
       if (name && !seen.has(name)) {
         seen.add(name);
-        symbols.push({ name, kind: monaco.languages.CompletionItemKind.TypeParameter, detail: trimmed, doc, line: lineNum });
+        symbols.push({
+          name,
+          kind: monaco.languages.CompletionItemKind.TypeParameter,
+          detail: trimmed,
+          doc,
+          line: lineNum,
+        });
       }
       continue;
     }
@@ -161,7 +237,8 @@ export function parseCppSource(source: string, origin?: string): CppSymbol[] {
               name,
               kind: monaco.languages.CompletionItemKind.Method,
               detail: `${name}(${params})`,
-              doc, line: lineNum,
+              doc,
+              line: lineNum,
             });
           }
         }
@@ -187,34 +264,40 @@ export function parseCppSource(source: string, origin?: string): CppSymbol[] {
       const ret = funcMatch[1].trim();
       const name = funcMatch[2].trim();
       const params = funcMatch[3].trim();
-      if (!SKIP_KEYWORDS.has(name) && !PRIMITIVE_TYPES.has(name) && name.length > 1 && !seen.has(name)) {
+      if (
+        !SKIP_KEYWORDS.has(name) &&
+        !PRIMITIVE_TYPES.has(name) &&
+        name.length > 1 &&
+        !seen.has(name)
+      ) {
         seen.add(name);
         symbols.push({
-          name, kind: monaco.languages.CompletionItemKind.Function,
-          detail: `${ret} ${name}(${params})`, doc, line: lineNum,
+          name,
+          kind: monaco.languages.CompletionItemKind.Function,
+          detail: `${ret} ${name}(${params})`,
+          doc,
+          line: lineNum,
         });
       }
       continue;
     }
 
     // ── variable declarations ─────────────────────────────────────────────────
-    const varPatterns: [RegExp, (m: RegExpMatchArray) => { name: string; type: string } | null][] = [
-      // std::Type<...> name
+    const varPatterns: [RegExp, (m: RegExpMatchArray) => { name: string; type: string } | null][] =
       [
-        /^\s*(?:const\s+)?(?:static\s+)?std::(\w+)(?:<[^>]+>)?\s+(\w+)\s*(?:=|;|\(|\[)/,
-        (m) => ({ type: `std::${m[1]}`, name: m[2] }),
-      ],
-      // auto name =
-      [
-        /^\s*(?:const\s+)?auto\s+(\w+)\s*=/,
-        (m) => ({ type: 'auto', name: m[1] }),
-      ],
-      // Type[*&] name [= ; [ (]
-      [
-        /^\s*(?:const\s+)?(?:static\s+)?(\w[\w:<> ]*?)\s*[*&]?\s+(\w+)\s*(?:=|;|\[)/,
-        (m) => ({ type: m[1].trim(), name: m[2] }),
-      ],
-    ];
+        // std::Type<...> name
+        [
+          /^\s*(?:const\s+)?(?:static\s+)?std::(\w+)(?:<[^>]+>)?\s+(\w+)\s*(?:=|;|\(|\[)/,
+          (m) => ({ type: `std::${m[1]}`, name: m[2] }),
+        ],
+        // auto name =
+        [/^\s*(?:const\s+)?auto\s+(\w+)\s*=/, (m) => ({ type: 'auto', name: m[1] })],
+        // Type[*&] name [= ; [ (]
+        [
+          /^\s*(?:const\s+)?(?:static\s+)?(\w[\w:<> ]*?)\s*[*&]?\s+(\w+)\s*(?:=|;|\[)/,
+          (m) => ({ type: m[1].trim(), name: m[2] }),
+        ],
+      ];
 
     for (const [pat, extract] of varPatterns) {
       const m = line.match(pat);
@@ -222,11 +305,21 @@ export function parseCppSource(source: string, origin?: string): CppSymbol[] {
       const r = extract(m);
       if (!r) continue;
       const { name, type } = r;
-      if (!name || !type || SKIP_KEYWORDS.has(name) || PRIMITIVE_TYPES.has(name) || name.length <= 1) break;
+      if (
+        !name ||
+        !type ||
+        SKIP_KEYWORDS.has(name) ||
+        PRIMITIVE_TYPES.has(name) ||
+        name.length <= 1
+      )
+        break;
 
       const sym: CppSymbol = {
-        name, kind: monaco.languages.CompletionItemKind.Variable,
-        detail: type, doc, line: lineNum,
+        name,
+        kind: monaco.languages.CompletionItemKind.Variable,
+        detail: type,
+        doc,
+        line: lineNum,
       };
       if (insideClass) {
         const owner = symbols.find((s) => s.name === insideClass!.name);
@@ -267,9 +360,7 @@ export class CppIntelliSense {
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly fileCache = new Map<string, CppSymbol[]>();
 
-  constructor(
-    private readonly readIncludeFile: (relativePath: string) => Promise<string | null>
-  ) {}
+  constructor(private readonly readIncludeFile: (relativePath: string) => Promise<string | null>) {}
 
   /** Register Monaco completion + hover providers. Call once after Monaco is ready. */
   activate(): void {
@@ -301,9 +392,10 @@ export class CppIntelliSense {
 
           // Look up the variable's declared type
           const varSym = self.symbols.find(
-            (s) => s.name === varName &&
+            (s) =>
+              s.name === varName &&
               (s.kind === monaco.languages.CompletionItemKind.Variable ||
-               s.kind === monaco.languages.CompletionItemKind.Field)
+                s.kind === monaco.languages.CompletionItemKind.Field)
           );
           // Strip qualifiers like const, *, & and std:: prefix from type string
           const rawType = varSym?.detail ?? '';
@@ -316,9 +408,10 @@ export class CppIntelliSense {
           // Find the class/struct that owns these members
           const ownerClass = typeName
             ? self.symbols.find(
-                (s) => s.name === typeName &&
+                (s) =>
+                  s.name === typeName &&
                   (s.kind === monaco.languages.CompletionItemKind.Class ||
-                   s.kind === monaco.languages.CompletionItemKind.Struct) &&
+                    s.kind === monaco.languages.CompletionItemKind.Struct) &&
                   s.members
               )
             : null;
@@ -330,13 +423,16 @@ export class CppIntelliSense {
             : self.symbols.flatMap((s) => s.members ?? []);
 
           for (const m of members) {
-            const isMethod = m.kind === monaco.languages.CompletionItemKind.Method ||
-                             m.kind === monaco.languages.CompletionItemKind.Function;
+            const isMethod =
+              m.kind === monaco.languages.CompletionItemKind.Method ||
+              m.kind === monaco.languages.CompletionItemKind.Function;
             suggestions.push({
               label: m.name,
               kind: m.kind,
               insertText: isMethod ? `${m.name}($1)` : m.name,
-              insertTextRules: isMethod ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet : undefined,
+              insertTextRules: isMethod
+                ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                : undefined,
               detail: m.detail,
               documentation: m.doc,
               sortText: `0_${m.name}`,
@@ -348,13 +444,16 @@ export class CppIntelliSense {
 
         // Regular completions from current file + includes
         for (const sym of self.symbols) {
-          const isCallable = sym.kind === monaco.languages.CompletionItemKind.Function ||
-                             sym.kind === monaco.languages.CompletionItemKind.Method;
+          const isCallable =
+            sym.kind === monaco.languages.CompletionItemKind.Function ||
+            sym.kind === monaco.languages.CompletionItemKind.Method;
           suggestions.push({
             label: sym.name,
             kind: sym.kind,
             insertText: isCallable ? `${sym.name}($1)` : sym.name,
-            insertTextRules: isCallable ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet : undefined,
+            insertTextRules: isCallable
+              ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+              : undefined,
             detail: sym.detail,
             documentation: sym.doc,
             sortText: sym.line !== undefined ? `0_${sym.name}` : `1_${sym.name}`,
@@ -371,8 +470,9 @@ export class CppIntelliSense {
       provideHover(_model, position, _token) {
         const word = _model.getWordAtPosition(position);
         if (!word) return null;
-        const sym = self.symbols.find((s) => s.name === word.word)
-          ?? self.symbols.flatMap((s) => s.members ?? []).find((m) => m.name === word.word);
+        const sym =
+          self.symbols.find((s) => s.name === word.word) ??
+          self.symbols.flatMap((s) => s.members ?? []).find((m) => m.name === word.word);
         if (!sym) return null;
         return {
           contents: [
@@ -389,7 +489,10 @@ export class CppIntelliSense {
       signatureHelpTriggerCharacters: ['(', ','],
       signatureHelpRetriggerCharacters: [','],
 
-      provideSignatureHelp(model, position): monaco.languages.ProviderResult<monaco.languages.SignatureHelpResult> {
+      provideSignatureHelp(
+        model,
+        position
+      ): monaco.languages.ProviderResult<monaco.languages.SignatureHelpResult> {
         const lineContent = model.getLineContent(position.lineNumber);
         const textUntil = lineContent.substring(0, position.column - 1);
 
@@ -398,9 +501,15 @@ export class CppIntelliSense {
         let callStart = -1;
         for (let i = textUntil.length - 1; i >= 0; i--) {
           const ch = textUntil[i];
-          if (ch === ')') { depth++; continue; }
+          if (ch === ')') {
+            depth++;
+            continue;
+          }
           if (ch === '(') {
-            if (depth === 0) { callStart = i; break; }
+            if (depth === 0) {
+              callStart = i;
+              break;
+            }
             depth--;
           }
         }
@@ -423,15 +532,15 @@ export class CppIntelliSense {
         let ownerName: string | null = null;
 
         const memberCallMatch = beforeParen.match(/(\w+)\s*(?:\.|->)\s*(\w+)$/);
-        const scopeCallMatch  = beforeParen.match(/(\w+)\s*::\s*(\w+)$/);
-        const plainCallMatch  = beforeParen.match(/(\w+)$/);
+        const scopeCallMatch = beforeParen.match(/(\w+)\s*::\s*(\w+)$/);
+        const plainCallMatch = beforeParen.match(/(\w+)$/);
 
         if (memberCallMatch) {
           ownerName = memberCallMatch[1];
-          funcName  = memberCallMatch[2];
+          funcName = memberCallMatch[2];
         } else if (scopeCallMatch) {
-          ownerName = scopeCallMatch[1];   // class name (scope)
-          funcName  = scopeCallMatch[2];
+          ownerName = scopeCallMatch[1]; // class name (scope)
+          funcName = scopeCallMatch[2];
         } else if (plainCallMatch) {
           funcName = plainCallMatch[1];
         }
@@ -445,14 +554,20 @@ export class CppIntelliSense {
           // For member / scope call: look in the class's members first
           const varSym = self.symbols.find((s) => s.name === ownerName);
           // If it's a variable, resolve its type
-          const typeName = varSym?.kind === monaco.languages.CompletionItemKind.Variable
-            ? (varSym.detail ?? '').replace(/\bconst\b|\bstatic\b/g, '').replace(/std::/g, '').replace(/[*&<>[\] ]/g, '').trim()
-            : ownerName; // used directly as class name for scope calls
+          const typeName =
+            varSym?.kind === monaco.languages.CompletionItemKind.Variable
+              ? (varSym.detail ?? '')
+                  .replace(/\bconst\b|\bstatic\b/g, '')
+                  .replace(/std::/g, '')
+                  .replace(/[*&<>[\] ]/g, '')
+                  .trim()
+              : ownerName; // used directly as class name for scope calls
 
           const ownerClass = self.symbols.find(
-            (s) => s.name === typeName &&
+            (s) =>
+              s.name === typeName &&
               (s.kind === monaco.languages.CompletionItemKind.Class ||
-               s.kind === monaco.languages.CompletionItemKind.Struct)
+                s.kind === monaco.languages.CompletionItemKind.Struct)
           );
           sym = ownerClass?.members?.find((m) => m.name === funcName);
         }
@@ -460,9 +575,10 @@ export class CppIntelliSense {
         // Fallback: search in top-level symbols
         if (!sym) {
           sym = self.symbols.find(
-            (s) => s.name === funcName &&
+            (s) =>
+              s.name === funcName &&
               (s.kind === monaco.languages.CompletionItemKind.Function ||
-               s.kind === monaco.languages.CompletionItemKind.Method)
+                s.kind === monaco.languages.CompletionItemKind.Method)
           );
         }
 
@@ -481,11 +597,13 @@ export class CppIntelliSense {
 
         return {
           value: {
-            signatures: [{
-              label: sym.detail,
-              documentation: sym.doc,
-              parameters,
-            }],
+            signatures: [
+              {
+                label: sym.detail,
+                documentation: sym.doc,
+                parameters,
+              },
+            ],
             activeSignature: 0,
             activeParameter: Math.min(activeParam, Math.max(0, parameters.length - 1)),
           },
@@ -535,23 +653,38 @@ export class CppIntelliSense {
     for (const p of paths) {
       if (this.fileCache.has(p)) {
         for (const s of this.fileCache.get(p)!) {
-          if (!seen.has(s.name)) { seen.add(s.name); result.push(s); }
+          if (!seen.has(s.name)) {
+            seen.add(s.name);
+            result.push(s);
+          }
         }
         continue;
       }
       let includeContent: string | null = null;
-      try { includeContent = await this.readIncludeFile(p); } catch { /* ignore */ }
+      try {
+        includeContent = await this.readIncludeFile(p);
+      } catch {
+        /* ignore */
+      }
       if (!includeContent) continue;
 
       const fileSymbols = parseCppSource(includeContent, p);
       const nested = await this.loadIncludes(includeContent, depth + 1);
       const merged = [...fileSymbols];
       const fileNames = new Set(fileSymbols.map((s) => s.name));
-      for (const s of nested) { if (!fileNames.has(s.name)) { fileNames.add(s.name); merged.push(s); } }
+      for (const s of nested) {
+        if (!fileNames.has(s.name)) {
+          fileNames.add(s.name);
+          merged.push(s);
+        }
+      }
 
       this.fileCache.set(p, merged);
       for (const s of merged) {
-        if (!seen.has(s.name)) { seen.add(s.name); result.push(s); }
+        if (!seen.has(s.name)) {
+          seen.add(s.name);
+          result.push(s);
+        }
       }
     }
     return result;

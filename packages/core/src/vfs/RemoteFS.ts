@@ -65,16 +65,16 @@ export class RemoteFS implements FileSystemProvider {
   }
 
   async stat(path: string): Promise<FileStat> {
-    return await this.get('/stat', path) as FileStat;
+    return (await this.get('/stat', path)) as FileStat;
   }
 
   async readDirectory(path: string): Promise<DirectoryEntry[]> {
-    const data = await this.get('/readdir', path) as { entries: DirectoryEntry[] };
+    const data = (await this.get('/readdir', path)) as { entries: DirectoryEntry[] };
     return data.entries;
   }
 
   async readFile(path: string): Promise<Uint8Array> {
-    const data = await this.get('/readFile', path) as { data: string };
+    const data = (await this.get('/readFile', path)) as { data: string };
     return base64ToUint8Array(data.data);
   }
 
@@ -156,11 +156,7 @@ export class RemoteFS implements FileSystemProvider {
     }
 
     if (errorData?.code) {
-      throw new VfsError(
-        errorData.code as VfsErrorCode,
-        errorData.error,
-        errorData.path,
-      );
+      throw new VfsError(errorData.code as VfsErrorCode, errorData.error, errorData.path);
     }
 
     // Generic HTTP error

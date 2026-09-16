@@ -18,7 +18,11 @@ function reId(data: SceneNodeData): SceneNodeData {
 
 export class PrefabStore {
   /** Creates a PrefabEntry from a scene node (does not mutate anything). */
-  static create(name: string, node: SceneNode, opts?: { version?: string; author?: string }): PrefabEntry {
+  static create(
+    name: string,
+    node: SceneNode,
+    opts?: { version?: string; author?: string }
+  ): PrefabEntry {
     const nodeData = node.toData();
     return {
       id: crypto.randomUUID(),

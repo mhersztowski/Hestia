@@ -48,7 +48,12 @@ describe('obrazek w trybie czytania', () => {
   });
 
   it('przepuszcza zwykły adres http i ścieżkę względną', () => {
-    render(<ReaderView markdown={dokument('![a](https://example.test/a.png)\n\n![b](rys/b.png)')} path="t.md" />);
+    render(
+      <ReaderView
+        markdown={dokument('![a](https://example.test/a.png)\n\n![b](rys/b.png)')}
+        path="t.md"
+      />
+    );
     expect(screen.getAllByRole('img')).toHaveLength(2);
   });
 
@@ -63,7 +68,9 @@ describe('obrazek w trybie czytania', () => {
   it('nie myli obrazka ze zwykłym odsyłaczem w nawiasach', () => {
     // `[tekst](url)` bez wykrzyknika to link, nie obrazek — nie wolno go
     // zamienić w <img> z pustym alt-em.
-    render(<ReaderView markdown={dokument('[nie obrazek](https://example.test/a.png)')} path="t.md" />);
+    render(
+      <ReaderView markdown={dokument('[nie obrazek](https://example.test/a.png)')} path="t.md" />
+    );
     expect(screen.queryByRole('img')).toBeNull();
   });
 });

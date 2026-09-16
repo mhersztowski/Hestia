@@ -34,83 +34,104 @@ function entityToOccShape(oc: any, entity: Entity, sc: OccScope): unknown | null
   try {
     if (entity.type === 'box3d') {
       const { cx, cy, width: w, depth: d, height: h } = entity;
-      const box = sc.track(new oc.BRepPrimAPI_MakeBox_3(
-        sc.track(new oc.gp_Pnt_3(cx - w / 2, cy - d / 2, 0)), w, d, h,
-      ));
+      const box = sc.track(
+        new oc.BRepPrimAPI_MakeBox_3(sc.track(new oc.gp_Pnt_3(cx - w / 2, cy - d / 2, 0)), w, d, h)
+      );
       box.Build(sc.track(new oc.Message_ProgressRange_1()));
       return box.IsDone() ? box.Shape() : null;
     }
 
     if (entity.type === 'cylinder3d') {
       const { cx, cy, radius, height } = entity;
-      const cyl = sc.track(new oc.BRepPrimAPI_MakeCylinder_3(
-        sc.track(new oc.gp_Ax2_3(
-          sc.track(new oc.gp_Pnt_3(cx, cy, 0)),
-          sc.track(new oc.gp_Dir_4(0, 0, 1)),
-        )),
-        radius, height,
-      ));
+      const cyl = sc.track(
+        new oc.BRepPrimAPI_MakeCylinder_3(
+          sc.track(
+            new oc.gp_Ax2_3(
+              sc.track(new oc.gp_Pnt_3(cx, cy, 0)),
+              sc.track(new oc.gp_Dir_4(0, 0, 1))
+            )
+          ),
+          radius,
+          height
+        )
+      );
       cyl.Build(sc.track(new oc.Message_ProgressRange_1()));
       return cyl.IsDone() ? cyl.Solid() : null;
     }
 
     if (entity.type === 'sphere3d') {
       const { cx, cy, radius } = entity;
-      const sph = sc.track(new oc.BRepPrimAPI_MakeSphere_5(
-        sc.track(new oc.gp_Pnt_3(cx, cy, 0)), radius,
-      ));
+      const sph = sc.track(
+        new oc.BRepPrimAPI_MakeSphere_5(sc.track(new oc.gp_Pnt_3(cx, cy, 0)), radius)
+      );
       sph.Build(sc.track(new oc.Message_ProgressRange_1()));
       return sph.IsDone() ? sph.Solid() : null;
     }
 
     // 2D entities with extrusion height → extruded solid
-    if (entity.extrudeHeight > 0 && (
-      entity.type === 'line' || entity.type === 'circle' || entity.type === 'arc' ||
-      entity.type === 'rect' || entity.type === 'polyline'
-    )) {
+    if (
+      entity.extrudeHeight > 0 &&
+      (entity.type === 'line' ||
+        entity.type === 'circle' ||
+        entity.type === 'arc' ||
+        entity.type === 'rect' ||
+        entity.type === 'polyline')
+    ) {
       const wires = entitiesToWires(oc, [entity as unknown as Record<string, unknown>], sc);
       const face = wiresToFace(oc, wires, sc);
       if (!face) return null;
-      const prism = sc.track(new oc.BRepPrimAPI_MakePrism_1(
-        face as object,
-        sc.track(new oc.gp_Vec_4(0, 0, entity.extrudeHeight)),
-        false, true,
-      ));
+      const prism = sc.track(
+        new oc.BRepPrimAPI_MakePrism_1(
+          face as object,
+          sc.track(new oc.gp_Vec_4(0, 0, entity.extrudeHeight)),
+          false,
+          true
+        )
+      );
       prism.Build(sc.track(new oc.Message_ProgressRange_1()));
       return prism.IsDone() ? prism.Shape() : null;
     }
 
     // Flat 2D entities → edges / wires
     if (entity.type === 'line') {
-      return sc.track(new oc.BRepBuilderAPI_MakeEdge_3(
-        sc.track(new oc.gp_Pnt_3(entity.x1, entity.y1, 0)),
-        sc.track(new oc.gp_Pnt_3(entity.x2, entity.y2, 0)),
-      )).Edge();
+      return sc
+        .track(
+          new oc.BRepBuilderAPI_MakeEdge_3(
+            sc.track(new oc.gp_Pnt_3(entity.x1, entity.y1, 0)),
+            sc.track(new oc.gp_Pnt_3(entity.x2, entity.y2, 0))
+          )
+        )
+        .Edge();
     }
 
     if (entity.type === 'circle') {
-      const ax2 = sc.track(new oc.gp_Ax2_3(
-        sc.track(new oc.gp_Pnt_3(entity.cx, entity.cy, 0)),
-        sc.track(new oc.gp_Dir_4(0, 0, 1)),
-      ));
+      const ax2 = sc.track(
+        new oc.gp_Ax2_3(
+          sc.track(new oc.gp_Pnt_3(entity.cx, entity.cy, 0)),
+          sc.track(new oc.gp_Dir_4(0, 0, 1))
+        )
+      );
       const circ = sc.track(new oc.gp_Circ_2(ax2, entity.radius));
       const edge = sc.track(new oc.BRepBuilderAPI_MakeEdge_8(circ)).Edge();
       return sc.track(new oc.BRepBuilderAPI_MakeWire_2(edge)).Wire();
     }
 
     if (entity.type === 'arc') {
-      const ax2 = sc.track(new oc.gp_Ax2_3(
-        sc.track(new oc.gp_Pnt_3(entity.cx, entity.cy, 0)),
-        sc.track(new oc.gp_Dir_4(0, 0, 1)),
-      ));
+      const ax2 = sc.track(
+        new oc.gp_Ax2_3(
+          sc.track(new oc.gp_Pnt_3(entity.cx, entity.cy, 0)),
+          sc.track(new oc.gp_Dir_4(0, 0, 1))
+        )
+      );
       const circ = sc.track(new oc.gp_Circ_2(ax2, entity.radius));
-      return sc.track(new oc.BRepBuilderAPI_MakeEdge_9(circ, entity.startAngle, entity.endAngle)).Edge();
+      return sc
+        .track(new oc.BRepBuilderAPI_MakeEdge_9(circ, entity.startAngle, entity.endAngle))
+        .Edge();
     }
 
     // rect, polyline (flat) → closed wire via entitiesToWires
     const wires = entitiesToWires(oc, [entity as unknown as Record<string, unknown>], sc);
     return wires.length > 0 ? wires[0] : null;
-
   } catch {
     return null;
   }
@@ -139,13 +160,14 @@ export async function exportSTEP(project: Project): Promise<void> {
       }
     }
 
-    if (!hasShapes) throw new Error('No exportable entities — add 3D objects or set extrude height on 2D shapes');
+    if (!hasShapes)
+      throw new Error('No exportable entities — add 3D objects or set extrude height on 2D shapes');
 
     writer.Transfer(
       compound,
       oc.STEPControl_StepModelType.STEPControl_AsIs,
       true,
-      sc.track(new oc.Message_ProgressRange_1()),
+      sc.track(new oc.Message_ProgressRange_1())
     );
     writer.Write('/export.step');
     const content: string = oc.FS.readFile('/export.step', { encoding: 'utf8' });

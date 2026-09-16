@@ -5,19 +5,22 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-9-zgodnosc-jednostek.md';
-const pliki = [DOK, '3-8-przyspieszenie-stale.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-8-przyspieszenie-stale.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 
@@ -40,7 +43,11 @@ describe('3-9 w czytniku', () => {
 
   it('wszystkie odesłania trafiają w 3-8', () => {
     for (const id of ['rh1-3-eq12', 'rh1-3-eq14', 'rh1-3-eq15', 'rh1-3-eq16', 'rh1-3-tab1']) {
-      const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
+      const cel = resolveReference(
+        id,
+        { anchors: index.anchors, formulaHome: index.formulaHome },
+        DOK
+      );
       expect(cel.found, id).toBe(true);
       expect(cel.path, id).toBe('3-8-przyspieszenie-stale.md');
       expect(cel.sameDocument, id).toBe(false);
@@ -51,7 +58,9 @@ describe('3-9 w czytniku', () => {
   // wskazuje stronę, na której definicji nie ma — definiuje ją s. 14.
   it('wprowadza hasło „wymiar" i tylko je', () => {
     const cel = resolveReference(
-      'rh1-poj-wymiar', { anchors: index.anchors, formulaHome: index.formulaHome }, DOK,
+      'rh1-poj-wymiar',
+      { anchors: index.anchors, formulaHome: index.formulaHome },
+      DOK
     );
     expect(cel.found).toBe(true);
     expect(cel.path).toBe('Slownik.md');
@@ -97,8 +106,9 @@ describe('3-9 w czytniku', () => {
    * wprowadzane pojęcie i regułę. Zjadło ją już raz łamanie akapitu w 15-1.
    */
   it('wyróżnienia druku zostają wyróżnieniami', () => {
-    const em = [...widok().container.querySelectorAll('em')]
-      .map((e) => (e.textContent ?? '').replace(/\s+/g, ' '));
+    const em = [...widok().container.querySelectorAll('em')].map((e) =>
+      (e.textContent ?? '').replace(/\s+/g, ' ')
+    );
     expect(em).toContain('dowolne jednostki');
     expect(em).toContain('wymiarów');
     expect(em.some((t) => t.startsWith('W każdym poprawnym równaniu fizycznym'))).toBe(true);

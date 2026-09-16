@@ -48,7 +48,10 @@ describe('pickVector', () => {
 });
 
 describe('alignment — jak blisko kierunku własnego', () => {
-  const SKALOWANIE: Matrix2 = [[3, 0], [0, 2]];
+  const SKALOWANIE: Matrix2 = [
+    [3, 0],
+    [0, 2],
+  ];
 
   it('daje jedynkę, gdy obraz leży na wektorze', () => {
     expect(alignment(SKALOWANIE, [1, 0])).toBeCloseTo(1, 10);
@@ -69,7 +72,10 @@ describe('alignment — jak blisko kierunku własnego', () => {
     // Obraz skierowany przeciwnie leży na tej samej prostej — kierunek jest
     // własny, choć zwrot się odwraca. Miara musi to uznać, bo inaczej
     // odbicie „nie miałoby" wektorów własnych, a ma dwa.
-    const odbicie: Matrix2 = [[1, 0], [0, -1]];
+    const odbicie: Matrix2 = [
+      [1, 0],
+      [0, -1],
+    ];
     expect(alignment(odbicie, [0, 1])).toBeCloseTo(1, 10);
   });
 
@@ -79,7 +85,10 @@ describe('alignment — jak blisko kierunku własnego', () => {
 });
 
 describe('snapToEigen', () => {
-  const SKALOWANIE: Matrix2 = [[3, 0], [0, 2]];
+  const SKALOWANIE: Matrix2 = [
+    [3, 0],
+    [0, 2],
+  ];
 
   it('przyciąga do kierunku własnego, gdy jesteśmy blisko', () => {
     const przyciagniety = snapToEigen(SKALOWANIE, [1, 0.05], 0.15);
@@ -94,7 +103,10 @@ describe('snapToEigen', () => {
   });
 
   it('nie przyciąga, gdy macierz nie ma kierunków własnych', () => {
-    const obrot: Matrix2 = [[0, -1], [1, 0]];
+    const obrot: Matrix2 = [
+      [0, -1],
+      [1, 0],
+    ];
     expect(snapToEigen(obrot, [1, 0.01], 0.5)).toBeNull();
   });
 });

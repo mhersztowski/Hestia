@@ -21,7 +21,11 @@ const RYS6B = [
 ].join('\n');
 
 /** Współrzędne `y` ze ścieżki SVG. */
-const ygreki = (d: string) => d.split(/[ML]/).slice(1).map((p) => Number(p.split(',')[1]));
+const ygreki = (d: string) =>
+  d
+    .split(/[ML]/)
+    .slice(1)
+    .map((p) => Number(p.split(',')[1]));
 
 describe('PlotFigure', () => {
   it('rysuje po jednej ścieżce na krzywą', () => {
@@ -33,8 +37,9 @@ describe('PlotFigure', () => {
     // To jest cała treść rys. 15-6b. Wspólna skala panelu decyduje o tym,
     // czy różnica jest w ogóle widoczna.
     const { container } = render(<PlotFigure spec={spec(RYS6B)} />);
-    const [pelna, polowa] = Array.from(container.querySelectorAll('path'))
-      .map((p) => ygreki(p.getAttribute('d')!));
+    const [pelna, polowa] = Array.from(container.querySelectorAll('path')).map((p) =>
+      ygreki(p.getAttribute('d')!)
+    );
 
     const rozpietosc = (ys: number[]) => Math.max(...ys) - Math.min(...ys);
     expect(rozpietosc(polowa) / rozpietosc(pelna)).toBeCloseTo(0.5, 1);
@@ -47,14 +52,18 @@ describe('PlotFigure', () => {
   });
 
   it('przesunięcie fazy przesuwa krzywą', () => {
-    const przesuniete = spec([
-      '@domain t: 0..2.2',
-      '@panel a',
-      '@curve I: \\cos(2\\pi t)',
-      '@curve II: \\cos(2\\pi t + \\pi/4) | dashed',
-    ].join('\n'));
+    const przesuniete = spec(
+      [
+        '@domain t: 0..2.2',
+        '@panel a',
+        '@curve I: \\cos(2\\pi t)',
+        '@curve II: \\cos(2\\pi t + \\pi/4) | dashed',
+      ].join('\n')
+    );
     const { container } = render(<PlotFigure spec={przesuniete} />);
-    const [a, b] = Array.from(container.querySelectorAll('path')).map((p) => ygreki(p.getAttribute('d')!));
+    const [a, b] = Array.from(container.querySelectorAll('path')).map((p) =>
+      ygreki(p.getAttribute('d')!)
+    );
 
     // Ta sama amplituda, ale inny przebieg — inaczej faza byłaby niewidoczna.
     expect(a[0]).toBeCloseTo(b[0] - (b[0] - a[0]), 5);
@@ -69,12 +78,17 @@ describe('PlotFigure', () => {
   });
 
   it('każdy panel dostaje własny wykres', () => {
-    const trzy = spec([
-      '@domain t: 0..2',
-      '@panel a', '@curve I: \\cos(t)',
-      '@panel b', '@curve I: \\cos(t)',
-      '@panel c', '@curve I: \\cos(t)',
-    ].join('\n'));
+    const trzy = spec(
+      [
+        '@domain t: 0..2',
+        '@panel a',
+        '@curve I: \\cos(t)',
+        '@panel b',
+        '@curve I: \\cos(t)',
+        '@panel c',
+        '@curve I: \\cos(t)',
+      ].join('\n')
+    );
     expect(render(<PlotFigure spec={trzy} />).container.querySelectorAll('svg')).toHaveLength(3);
   });
 

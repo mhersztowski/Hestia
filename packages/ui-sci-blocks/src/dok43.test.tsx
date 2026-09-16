@@ -5,9 +5,13 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '4-3-rzut-ukosny.md';
-const pliki = [DOK, '4-1-przemieszczenie.md', '4-2-stale-przyspieszenie.md',
-  '3-10-spadek-swobodny.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [
+  DOK,
+  '4-1-przemieszczenie.md',
+  '4-2-stale-przyspieszenie.md',
+  '3-10-spadek-swobodny.md',
+  'Slownik.md',
+].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const cel = (id: string) =>
@@ -15,12 +19,13 @@ const cel = (id: string) =>
 const resolveRef = (id: string) => {
   const c = cel(id);
   if (!c.found || !c.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[c.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[c.path] ?? ''
+  );
   return { code: m?.[1], kind: c.kind, sameDocument: c.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 const wyklad = () => bodies[DOK].split('## Uwagi redakcyjne')[0];
@@ -99,7 +104,9 @@ describe('4-3 w czytniku', () => {
    */
   it('ma własną notkę o Galileuszu, obok tej z 3-10', () => {
     const d = index.documents.find((x) => x.path === DOK);
-    expect(d?.callouts.map((c) => [c.id, c.kind])).toEqual([['rh1-nota-tor-paraboliczny', 'person']]);
+    expect(d?.callouts.map((c) => [c.id, c.kind])).toEqual([
+      ['rh1-nota-tor-paraboliczny', 'person'],
+    ]);
     expect(resolveRef('rh1-nota-tor-paraboliczny')?.code).toContain('@source 4-3');
     // Tamta notka dalej mieszka w 3-10 i nie jest tu powtórzona.
     expect(cel('rh1-nota-galileusz').path).toBe('3-10-spadek-swobodny.md');
@@ -114,7 +121,7 @@ describe('4-3 w czytniku', () => {
   it('dwa przypisy, rozróżnione mimo jednej gwiazdki w druku', () => {
     const t = tekst();
     expect(t).toContain('* Patrz Galileo Galilei, Dialogues Concerning Two New Sciences');
-    expect(t).toContain("** Patrz: \u201eGalileo's Discovery of the Parabolic Trajectory\"");
+    expect(t).toContain('** Patrz: \u201eGalileo\'s Discovery of the Parabolic Trajectory"');
     // Escape musi działać: gwiazdka nie otwiera kursywy.
     expect(t).not.toContain('\\*');
   });

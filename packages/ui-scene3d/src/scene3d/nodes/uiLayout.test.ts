@@ -15,8 +15,24 @@ function warstwa(mode: 'static' | 'anchor' | 'flow' | 'constraint' = 'static') {
 describe('graf sceny → dokument layoutu', () => {
   it('nazwa węzła jest identyfikatorem, po którym odwołują się wyrażenia', () => {
     const { root } = warstwa();
-    const naglowek = new UiWidgetNode({ id: 'n1', name: 'naglowek', kind: 'label', x: '10', y: '10', w: '200', h: '24' });
-    const guzik = new UiWidgetNode({ id: 'n2', name: 'guzik', kind: 'button', x: 'naglowek.x', y: 'naglowek.y + naglowek.h + 8', w: '120', h: '32' });
+    const naglowek = new UiWidgetNode({
+      id: 'n1',
+      name: 'naglowek',
+      kind: 'label',
+      x: '10',
+      y: '10',
+      w: '200',
+      h: '24',
+    });
+    const guzik = new UiWidgetNode({
+      id: 'n2',
+      name: 'guzik',
+      kind: 'button',
+      x: 'naglowek.x',
+      y: 'naglowek.y + naglowek.h + 8',
+      w: '120',
+      h: '32',
+    });
     root.addChild(naglowek);
     root.addChild(guzik);
 
@@ -48,33 +64,83 @@ describe('graf sceny → dokument layoutu', () => {
 
   it('zagnieżdżenie w drzewie jest zagnieżdżeniem w layoucie', () => {
     const { root } = warstwa();
-    const panel = new UiWidgetNode({ id: 'p', name: 'panel', kind: 'panel', x: '0', y: '0', w: '400', h: '300' });
-    const dziecko = new UiWidgetNode({ id: 'd', name: 'dziecko', kind: 'button', x: 'parent.w / 2', y: '0', w: '10', h: '10' });
+    const panel = new UiWidgetNode({
+      id: 'p',
+      name: 'panel',
+      kind: 'panel',
+      x: '0',
+      y: '0',
+      w: '400',
+      h: '300',
+    });
+    const dziecko = new UiWidgetNode({
+      id: 'd',
+      name: 'dziecko',
+      kind: 'button',
+      x: 'parent.w / 2',
+      y: '0',
+      w: '10',
+      h: '10',
+    });
     root.addChild(panel);
     panel.addChild(dziecko);
 
-    expect(buildUiDoc(root, OBSZAR).doc.shapes.find((s) => s.id === 'dziecko')?.parent).toBe('panel');
+    expect(buildUiDoc(root, OBSZAR).doc.shapes.find((s) => s.id === 'dziecko')?.parent).toBe(
+      'panel'
+    );
     expect(solveUiLayout(root, OBSZAR).rectsByNodeId.d.x).toBe(200);
   });
 
   it('obszar jest rodzicem widżetów najwyższego poziomu', () => {
     const { root } = warstwa();
-    root.addChild(new UiWidgetNode({ id: 'x', name: 'pas', kind: 'panel', x: '0', y: '0', w: 'parent.w', h: '40' }));
+    root.addChild(
+      new UiWidgetNode({
+        id: 'x',
+        name: 'pas',
+        kind: 'panel',
+        x: '0',
+        y: '0',
+        w: 'parent.w',
+        h: '40',
+      })
+    );
     expect(solveUiLayout(root, OBSZAR).rectsByNodeId.x.w).toBe(800);
   });
 
   it('parametry warstwy widać w polach widżetów', () => {
     const { root } = warstwa();
     root.vars = { margines: 16 };
-    root.addChild(new UiWidgetNode({ id: 'x', name: 'p', kind: 'panel', x: 'margines', y: 'margines * 2', w: '10', h: '10' }));
+    root.addChild(
+      new UiWidgetNode({
+        id: 'x',
+        name: 'p',
+        kind: 'panel',
+        x: 'margines',
+        y: 'margines * 2',
+        w: '10',
+        h: '10',
+      })
+    );
     const r = solveUiLayout(root, OBSZAR).rectsByNodeId.x;
     expect([r.x, r.y]).toEqual([16, 32]);
   });
 
   it('więzy odwołują się do widżetów tak samo jak wyrażenia', () => {
     const { root } = warstwa('constraint');
-    root.addChild(new UiWidgetNode({ id: 'a', name: 'a', kind: 'panel', x: '0', y: '0', w: '100', h: '40' }));
-    root.addChild(new UiWidgetNode({ id: 'b', name: 'b', kind: 'button', x: '300', y: '200', w: '100', h: '40' }));
+    root.addChild(
+      new UiWidgetNode({ id: 'a', name: 'a', kind: 'panel', x: '0', y: '0', w: '100', h: '40' })
+    );
+    root.addChild(
+      new UiWidgetNode({
+        id: 'b',
+        name: 'b',
+        kind: 'button',
+        x: '300',
+        y: '200',
+        w: '100',
+        h: '40',
+      })
+    );
     root.constraints = [
       { id: 'c0', type: 'fixed', refs: ['a'] },
       { id: 'c1', type: 'alignLeft', refs: ['a', 'b'] },
@@ -87,7 +153,19 @@ describe('graf sceny → dokument layoutu', () => {
 
   it('rodzaj widżetu jedzie obok layoutu i nie wpływa na pozycję', () => {
     const { root } = warstwa();
-    root.addChild(new UiWidgetNode({ id: 'x', name: 'g', kind: 'bar', x: '5', y: '5', w: '80', h: '12', value: 0.5, color: '#abc' }));
+    root.addChild(
+      new UiWidgetNode({
+        id: 'x',
+        name: 'g',
+        kind: 'bar',
+        x: '5',
+        y: '5',
+        w: '80',
+        h: '12',
+        value: 0.5,
+        color: '#abc',
+      })
+    );
     const shape = buildUiDoc(root, OBSZAR).doc.shapes[0];
     expect(shape.data).toMatchObject({ kind: 'bar', value: 0.5, color: '#abc' });
     expect(shape.x).toEqual({ src: 'literal', value: 5 });
@@ -95,13 +173,23 @@ describe('graf sceny → dokument layoutu', () => {
 
   it('puste pole nie wywraca dokumentu — czytamy je jako zero', () => {
     const { root } = warstwa();
-    root.addChild(new UiWidgetNode({ id: 'x', name: 'g', kind: 'panel', x: '', y: '0', w: '10', h: '10' }));
+    root.addChild(
+      new UiWidgetNode({ id: 'x', name: 'g', kind: 'panel', x: '', y: '0', w: '10', h: '10' })
+    );
     expect(solveUiLayout(root, OBSZAR).rectsByNodeId.x.x).toBe(0);
   });
 
   it('niewidoczny widżet nie wchodzi do układu', () => {
     const { root } = warstwa('flow');
-    const panel = new UiWidgetNode({ id: 'p', name: 'p', kind: 'panel', x: '0', y: '0', w: '300', h: '100' });
+    const panel = new UiWidgetNode({
+      id: 'p',
+      name: 'p',
+      kind: 'panel',
+      x: '0',
+      y: '0',
+      w: '300',
+      h: '100',
+    });
     panel.container = { direction: 'row', gap: 10, padding: 0 };
     root.addChild(panel);
     const a = new UiWidgetNode({ id: 'a', name: 'a', kind: 'button', w: '50', h: '20' });
@@ -176,7 +264,16 @@ describe('przeciąganie widżetu zapisuje się do węzłów', () => {
   it('przy kotwicach zmienia odstępy, a przypięcie zostaje przypięciem', () => {
     const { root } = warstwa('anchor');
     const w = widzet('a');
-    w.anchor = { minX: 1, maxX: 1, minY: 0, maxY: 0, offsetLeft: -120, offsetTop: 10, offsetRight: -20, offsetBottom: 50 };
+    w.anchor = {
+      minX: 1,
+      maxX: 1,
+      minY: 0,
+      maxY: 0,
+      offsetLeft: -120,
+      offsetTop: 10,
+      offsetRight: -20,
+      offsetBottom: 50,
+    };
     root.addChild(w);
 
     applyUiDrag(root, 'a', { x: 600, y: 80 }, OBSZAR);

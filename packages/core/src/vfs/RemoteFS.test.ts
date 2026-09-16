@@ -1,10 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { RemoteFS } from './RemoteFS';
 import { FileType, FileChangeType } from './types';
 import { VfsErrorCode } from './errors';
 import { encodeText } from './utils';
 
-function mockFetch(handler: (url: string, init?: RequestInit) => { status: number; body: unknown }) {
+function mockFetch(
+  handler: (url: string, init?: RequestInit) => { status: number; body: unknown }
+) {
   return vi.fn(async (url: string, init?: RequestInit) => {
     const result = handler(url, init);
     return {
@@ -101,9 +103,7 @@ describe('RemoteFS', () => {
       await fs.writeFile!('/new.txt', encodeText('new content'));
 
       expect(fetch).toHaveBeenCalledTimes(1);
-      expect(listener).toHaveBeenCalledWith([
-        { type: FileChangeType.Changed, path: '/new.txt' },
-      ]);
+      expect(listener).toHaveBeenCalledWith([{ type: FileChangeType.Changed, path: '/new.txt' }]);
     });
 
     it('should pass options through', async () => {
@@ -132,9 +132,7 @@ describe('RemoteFS', () => {
       fs.onDidChangeFile(listener);
       await fs.delete!('/bye.txt');
 
-      expect(listener).toHaveBeenCalledWith([
-        { type: FileChangeType.Deleted, path: '/bye.txt' },
-      ]);
+      expect(listener).toHaveBeenCalledWith([{ type: FileChangeType.Deleted, path: '/bye.txt' }]);
     });
   });
 
@@ -225,7 +223,9 @@ describe('RemoteFS', () => {
       const fetch = mockFetch((_url, init) => {
         callCount++;
         if (callCount === 2) {
-          expect((init?.headers as Record<string, string>)['Authorization']).toBe('Bearer new-token');
+          expect((init?.headers as Record<string, string>)['Authorization']).toBe(
+            'Bearer new-token'
+          );
         }
         return { status: 200, body: { type: FileType.Directory, size: 0, ctime: 0, mtime: 0 } };
       });

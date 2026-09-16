@@ -19,7 +19,7 @@ export class GLTFExporter {
           }
         },
         reject,
-        { binary: false },
+        { binary: false }
       );
     });
   }

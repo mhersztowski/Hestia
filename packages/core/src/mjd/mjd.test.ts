@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  createMjdDocument,
-  createMjdField,
-  createMjdView,
-  getFieldsForView,
-} from './helpers';
+import { createMjdDocument, createMjdField, createMjdView, getFieldsForView } from './helpers';
 import { mjdDocumentSchema, mjdFieldDefSchema } from './schemas';
 import { generateJsonSchema } from './jsonSchema';
 import type { MjdDocument } from './types';
@@ -77,13 +72,20 @@ describe('mjd schemas', () => {
   });
 
   it('enum field requires at least one option', () => {
-    expect(mjdFieldDefSchema.safeParse({ name: 'e', type: 'enum', tags: [], options: [] }).success).toBe(false);
-    expect(mjdFieldDefSchema.safeParse({ name: 'e', type: 'enum', tags: [], options: ['x'] }).success).toBe(true);
+    expect(
+      mjdFieldDefSchema.safeParse({ name: 'e', type: 'enum', tags: [], options: [] }).success
+    ).toBe(false);
+    expect(
+      mjdFieldDefSchema.safeParse({ name: 'e', type: 'enum', tags: [], options: ['x'] }).success
+    ).toBe(true);
   });
 
   it('array field requires an itemType', () => {
     expect(mjdFieldDefSchema.safeParse({ name: 'a', type: 'array', tags: [] }).success).toBe(false);
-    expect(mjdFieldDefSchema.safeParse({ name: 'a', type: 'array', tags: [], itemType: 'number' }).success).toBe(true);
+    expect(
+      mjdFieldDefSchema.safeParse({ name: 'a', type: 'array', tags: [], itemType: 'number' })
+        .success
+    ).toBe(true);
   });
 
   it('validates a full document round-trip via helpers', () => {
@@ -119,7 +121,9 @@ describe('generateJsonSchema', () => {
 
   it('omits required key when no field is required', () => {
     const doc: MjdDocument = {
-      version: '1.0', tags: [], views: [],
+      version: '1.0',
+      tags: [],
+      views: [],
       fields: [{ name: 'x', type: 'string', tags: [] }],
     };
     expect(generateJsonSchema(doc).required).toBeUndefined();
@@ -127,9 +131,18 @@ describe('generateJsonSchema', () => {
 
   it('emits enum values and includes description/default', () => {
     const doc: MjdDocument = {
-      version: '1.0', tags: [], views: [],
+      version: '1.0',
+      tags: [],
+      views: [],
       fields: [
-        { name: 'color', type: 'enum', tags: [], options: ['red', 'blue'], description: 'a color', defaultValue: 'red' },
+        {
+          name: 'color',
+          type: 'enum',
+          tags: [],
+          options: ['red', 'blue'],
+          description: 'a color',
+          defaultValue: 'red',
+        },
       ],
     };
     const prop = generateJsonSchema(doc).properties.color as Record<string, unknown>;
@@ -141,7 +154,9 @@ describe('generateJsonSchema', () => {
 
   it('emits array with typed items', () => {
     const doc: MjdDocument = {
-      version: '1.0', tags: [], views: [],
+      version: '1.0',
+      tags: [],
+      views: [],
       fields: [{ name: 'nums', type: 'array', tags: [], itemType: 'number' }],
     };
     const prop = generateJsonSchema(doc).properties.nums as Record<string, unknown>;

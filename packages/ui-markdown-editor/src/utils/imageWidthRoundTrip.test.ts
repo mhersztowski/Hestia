@@ -38,7 +38,9 @@ describe('zapis szerokości do markdownu', () => {
   });
 
   it('szerokość nie gubi wyrównania ani tekstu alternatywnego', () => {
-    const md = htmlToMarkdown(`<img src="${OBRAZ}" alt="Po lewej" style="width: 30%; float: left" />`);
+    const md = htmlToMarkdown(
+      `<img src="${OBRAZ}" alt="Po lewej" style="width: 30%; float: left" />`
+    );
 
     expect(md).toContain('width: 30%');
     expect(md).toContain('float: left');

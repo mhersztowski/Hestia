@@ -12,7 +12,9 @@ import { compilePde, parseFormulaBlock, parseStrokes } from '@hestia/core-sci';
 import { FieldBlock } from './FieldBlock';
 
 const POLE = [
-  '@pde', '@field u', '@grid 24 x 24',
+  '@pde',
+  '@field u',
+  '@grid 24 x 24',
   '@domain x: 0..1 m, y: 0..1 m',
   '@d u = \\alpha \\cdot \\Delta u',
   '@init u = 0',

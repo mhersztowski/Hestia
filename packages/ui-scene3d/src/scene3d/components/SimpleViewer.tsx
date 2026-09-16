@@ -1,12 +1,41 @@
-import { useRef, useMemo, useEffect, useCallback, useState, MutableRefObject, useLayoutEffect } from 'react';
+import {
+  useRef,
+  useMemo,
+  useEffect,
+  useCallback,
+  useState,
+  MutableRefObject,
+  useLayoutEffect,
+} from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls, TransformControls, GizmoHelper, GizmoViewport, GizmoViewcube, Edges, PerspectiveCamera as DreiPerspectiveCamera, OrthographicCamera as DreiOrthographicCamera, Environment, Html } from '@react-three/drei';
+import {
+  OrbitControls,
+  TransformControls,
+  GizmoHelper,
+  GizmoViewport,
+  GizmoViewcube,
+  Edges,
+  PerspectiveCamera as DreiPerspectiveCamera,
+  OrthographicCamera as DreiOrthographicCamera,
+  Environment,
+  Html,
+} from '@react-three/drei';
 import * as THREE from 'three';
 import type { SceneGraph } from '../scene/SceneGraph';
 import type { SceneNode } from '../scene/SceneNode';
-import type { MeshNode, BufferGeometryData, MaterialDescriptor, TextureSettings } from '../nodes/MeshNode';
+import type {
+  MeshNode,
+  BufferGeometryData,
+  MaterialDescriptor,
+  TextureSettings,
+} from '../nodes/MeshNode';
 import { zastosujUstawienia } from '../io/textureSettings';
-import type { GeometryPointNode, GeometrySegmentNode, GeometryLineNode, GeometryAngleNode } from '../nodes/GeometryNodes';
+import type {
+  GeometryPointNode,
+  GeometrySegmentNode,
+  GeometryLineNode,
+  GeometryAngleNode,
+} from '../nodes/GeometryNodes';
 import type { GeoNodeGraph } from '../geometry-nodes/types';
 import { evaluateGeoNodeGraph } from '../geometry-nodes/evaluate';
 import type { LightNode } from '../nodes/LightNode';
@@ -43,7 +72,7 @@ function useTeksturaZeZrodla(
   zrodlo: string | undefined,
   resolveTextureSrc?: (src: string) => Promise<string>,
   sRGB = false,
-  ustawienia?: TextureSettings,
+  ustawienia?: TextureSettings
 ): THREE.Texture | null {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
@@ -57,7 +86,10 @@ function useTeksturaZeZrodla(
   ostatnieUstawienia.current = ustawienia;
 
   useEffect(() => {
-    if (!zrodlo) { setTexture(null); return; }
+    if (!zrodlo) {
+      setTexture(null);
+      return;
+    }
 
     let active = true;
 
@@ -67,7 +99,10 @@ function useTeksturaZeZrodla(
       new THREE.TextureLoader().load(
         url,
         (t) => {
-          if (!active) { t.dispose(); return; }
+          if (!active) {
+            t.dispose();
+            return;
+          }
           // Kolor i emisja są w przestrzeni sRGB; mapy techniczne (normalne,
           // chropowatość) niosą **liczby**, nie barwy — przepuszczenie ich przez
           // korekcję gamma rozjaśniłoby je i zepsuło oświetlenie.
@@ -81,9 +116,8 @@ function useTeksturaZeZrodla(
         },
         undefined,
         () => {
-          // eslint-disable-next-line no-console
           console.warn('[SimpleViewer] Nie udało się wczytać tekstury:', url.slice(0, 80));
-        },
+        }
       );
     };
 
@@ -91,9 +125,10 @@ function useTeksturaZeZrodla(
     const zDysku = !/^(https?:|data:|blob:)/.test(zrodlo);
     if (zDysku && resolveTextureSrc) {
       void resolveTextureSrc(zrodlo)
-        .then((url) => { if (active) zaladuj(url); })
+        .then((url) => {
+          if (active) zaladuj(url);
+        })
         .catch((e: unknown) => {
-          // eslint-disable-next-line no-console
           console.warn('[SimpleViewer] Nie udało się odczytać tekstury z dysku:', zrodlo, e);
         });
     } else {
@@ -108,7 +143,9 @@ function useTeksturaZeZrodla(
       poddrzewa), a model wracał do bieli mimo poprawnie wczytanego pliku.
       Teksturę zwalnia Three przy usuwaniu materiału.
     */
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [zrodlo, resolveTextureSrc, sRGB, kluczUstawien]);
 
   return texture;
@@ -143,19 +180,31 @@ function useShaderPoDojsciuMap(mapy: MapyMaterialu) {
   useEffect(() => {
     if (!ref.current) return;
     ref.current.needsUpdate = true;
-  }, [mapy.map, mapy.normalMap, mapy.roughnessMap, mapy.metalnessMap, mapy.emissiveMap, mapy.aoMap]);
+  }, [
+    mapy.map,
+    mapy.normalMap,
+    mapy.roughnessMap,
+    mapy.metalnessMap,
+    mapy.emissiveMap,
+    mapy.aoMap,
+  ]);
   return ref;
 }
 
 /** Komplet map materiału — kolor i mapy techniczne. */
 function useMaterialMaps(
   mat: MaterialDescriptor,
-  resolveTextureSrc?: (src: string) => Promise<string>,
+  resolveTextureSrc?: (src: string) => Promise<string>
 ) {
   // Ścieżka w VFS ma pierwszeństwo przed gotowym adresem: to ona przeżywa zapis
   // sceny, a `textureDataUrl` bywa `blob:` ważnym tylko w tej karcie.
   const u = mat.textureSettings;
-  const map = useTeksturaZeZrodla(mat.texturePath || mat.textureDataUrl, resolveTextureSrc, true, u);
+  const map = useTeksturaZeZrodla(
+    mat.texturePath || mat.textureDataUrl,
+    resolveTextureSrc,
+    true,
+    u
+  );
   const normalMap = useTeksturaZeZrodla(mat.maps?.normal, resolveTextureSrc, false, u);
   const roughnessMap = useTeksturaZeZrodla(mat.maps?.roughness, resolveTextureSrc, false, u);
   const metalnessMap = useTeksturaZeZrodla(mat.maps?.metalness, resolveTextureSrc, false, u);
@@ -173,7 +222,12 @@ function useMaterialMaps(
  * i dwa razy trafiał na kartę graficzną.
  */
 function TexturedStandardMat({
-  mat, selEmissive, selEmissiveIntensity, side, blending, mapy,
+  mat,
+  selEmissive,
+  selEmissiveIntensity,
+  side,
+  blending,
+  mapy,
 }: {
   mat: MaterialDescriptor;
   selEmissive: string;
@@ -212,7 +266,11 @@ function TexturedStandardMat({
   );
 }
 
-function RealisticMaterial({ mat, isSelected, resolveTextureSrc }: {
+function RealisticMaterial({
+  mat,
+  isSelected,
+  resolveTextureSrc,
+}: {
   mat: MaterialDescriptor;
   isSelected: boolean;
   resolveTextureSrc?: (src: string) => Promise<string>;
@@ -252,23 +310,28 @@ function RealisticMaterial({ mat, isSelected, resolveTextureSrc }: {
         />
       );
 
-    case 'MeshDepthMaterial':
+    case 'MeshDepthMaterial': {
+      // The depth-packing constants are missing from some `three` typings we build
+      // against, so they are read off an untyped view with the upstream values as
+      // the fallback.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const three = THREE as any;
       return (
         <meshDepthMaterial
           wireframe={mat.wireframe}
           side={side}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          depthPacking={mat.depthPacking === 'rgba' ? (THREE as any).RGBADepthPacking ?? 3201 : (THREE as any).BasicDepthPacking ?? 3200}
+          depthPacking={
+            mat.depthPacking === 'rgba'
+              ? (three.RGBADepthPacking ?? 3201)
+              : (three.BasicDepthPacking ?? 3200)
+          }
         />
       );
+    }
 
     case 'MeshNormalMaterial':
       return (
-        <meshNormalMaterial
-          wireframe={mat.wireframe}
-          side={side}
-          flatShading={mat.flatShading}
-        />
+        <meshNormalMaterial wireframe={mat.wireframe} side={side} flatShading={mat.flatShading} />
       );
 
     case 'MeshLambertMaterial':
@@ -373,7 +436,10 @@ function RealisticMaterial({ mat, isSelected, resolveTextureSrc }: {
           clearcoatRoughness={mat.clearcoatRoughness ?? 0}
           iridescence={mat.iridescence ?? 0}
           iridescenceIOR={mat.iridescenceIOR ?? 1.3}
-          iridescenceThicknessRange={[mat.thinFilmThicknessMin ?? 100, mat.thinFilmThicknessMax ?? 400]}
+          iridescenceThicknessRange={[
+            mat.thinFilmThicknessMin ?? 100,
+            mat.thinFilmThicknessMax ?? 400,
+          ]}
           sheen={mat.sheen ?? 0}
           sheenRoughness={mat.sheenRoughness ?? 1}
           sheenColor={mat.sheenColor ?? '#000000'}
@@ -513,7 +579,11 @@ export interface SimpleViewerProps {
   /** Size of the transform gizmo handles. Default 0.7. */
   gizmoSize?: number;
   /** Called when a gizmo drag ends — useful for animation recording. */
-  onGizmoTransformEnd?: (nodeId: string, mode: 'translate' | 'rotate' | 'scale', value: [number, number, number]) => void;
+  onGizmoTransformEnd?: (
+    nodeId: string,
+    mode: 'translate' | 'rotate' | 'scale',
+    value: [number, number, number]
+  ) => void;
   /** Active geometry-point gizmo edit (e.g. dragging a segment endpoint). When set
    *  for the selected node, a point gizmo replaces the whole-node gizmo. */
   geoPointEdit?: { nodeId: string; fieldKey: string } | null;
@@ -524,7 +594,8 @@ export interface SimpleViewerProps {
 function SelectableMesh({
   node,
   meshNode,
-  isSelected,  renderMode = 'realistic',
+  isSelected,
+  renderMode = 'realistic',
   edges = false,
   resolveTextureSrc,
 }: {
@@ -540,7 +611,9 @@ function SelectableMesh({
 
   useEffect(() => {
     node._threeObject = meshRef.current;
-    return () => { node._threeObject = null; };
+    return () => {
+      node._threeObject = null;
+    };
   }, [node, meshNode]);
 
   return (
@@ -552,24 +625,29 @@ function SelectableMesh({
       rotation={node.rotation}
       scale={node.scale}
     >
-      <MeshGeometry type={meshNode.geometry.type} params={meshNode.geometry.params} bufferData={meshNode.geometry.bufferData} code={meshNode.geometry.code} nodesGraph={meshNode.geometry.nodesGraph} />
-      {renderMode === 'solid' && (
-        <meshLambertMaterial color={isSelected ? '#4fc3f7' : '#888888'} />
-      )}
-      {renderMode === 'normal' && (
-        <meshNormalMaterial />
-      )}
+      <MeshGeometry
+        type={meshNode.geometry.type}
+        params={meshNode.geometry.params}
+        bufferData={meshNode.geometry.bufferData}
+        code={meshNode.geometry.code}
+        nodesGraph={meshNode.geometry.nodesGraph}
+      />
+      {renderMode === 'solid' && <meshLambertMaterial color={isSelected ? '#4fc3f7' : '#888888'} />}
+      {renderMode === 'normal' && <meshNormalMaterial />}
       {renderMode === 'wireframe' && (
         <meshBasicMaterial wireframe color={isSelected ? '#4fc3f7' : '#aaaaaa'} />
       )}
       {(renderMode === 'realistic' || renderMode == null) && (
-        <RealisticMaterial mat={meshNode.material} isSelected={isSelected} resolveTextureSrc={resolveTextureSrc} />
+        <RealisticMaterial
+          mat={meshNode.material}
+          isSelected={isSelected}
+          resolveTextureSrc={resolveTextureSrc}
+        />
       )}
       {edges && <Edges threshold={20} color={isSelected ? '#4fc3f7' : '#0b0b0b'} />}
     </mesh>
   );
 }
-
 
 /** Wireframe bounding box(es) around the selected node(s), kept in sync each frame
  *  (so it follows a gizmo drag). Resolves objects by node id from the live scene. */
@@ -584,7 +662,12 @@ function SelectionBoxes({ ids, color = 0x4fc3f7 }: { ids: string[]; color?: numb
     if (!g) return;
     const map = helpersRef.current;
     for (const [id, h] of map) {
-      if (!ids.includes(id)) { g.remove(h); h.geometry.dispose(); (h.material as THREE.Material).dispose(); map.delete(id); }
+      if (!ids.includes(id)) {
+        g.remove(h);
+        h.geometry.dispose();
+        (h.material as THREE.Material).dispose();
+        map.delete(id);
+      }
     }
     for (const id of ids) {
       if (map.has(id)) continue;
@@ -596,16 +679,25 @@ function SelectionBoxes({ ids, color = 0x4fc3f7 }: { ids: string[]; color?: numb
       map.set(id, h);
       g.add(h);
     }
-    return () => { /* helpers cleaned on id change above / unmount below */ };
+    return () => {
+      /* helpers cleaned on id change above / unmount below */
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idsKey, scene, color]);
 
   // Dispose everything on unmount.
-  useEffect(() => () => {
-    const g = groupRef.current;
-    for (const h of helpersRef.current.values()) { g?.remove(h); h.geometry.dispose(); (h.material as THREE.Material).dispose(); }
-    helpersRef.current.clear();
-  }, []);
+  useEffect(
+    () => () => {
+      const g = groupRef.current;
+      for (const h of helpersRef.current.values()) {
+        g?.remove(h);
+        h.geometry.dispose();
+        (h.material as THREE.Material).dispose();
+      }
+      helpersRef.current.clear();
+    },
+    []
+  );
 
   useFrame(() => {
     for (const [id, h] of helpersRef.current) {
@@ -637,7 +729,11 @@ function GizmoControls({
   translationSnap?: number | null;
   rotationSnap?: number | null;
   onObjectChange?: (obj: THREE.Object3D) => void;
-  onTransformEnd?: (nodeId: string, mode: 'translate' | 'rotate' | 'scale', value: [number, number, number]) => void;
+  onTransformEnd?: (
+    nodeId: string,
+    mode: 'translate' | 'rotate' | 'scale',
+    value: [number, number, number]
+  ) => void;
   isDraggingGizmoRef?: MutableRefObject<boolean>;
   addLog?: (msg: string) => void;
   gizmoSize?: number;
@@ -657,7 +753,10 @@ function GizmoControls({
       // _threeObject can be stale/detached after a reparent, which makes
       // TransformControls throw "must be part of the scene graph" every frame.
       const node = sceneGraph.findNode(selectedNodeId);
-      const obj = scene.getObjectByName(selectedNodeId) ?? (node?._threeObject as THREE.Object3D | null) ?? null;
+      const obj =
+        scene.getObjectByName(selectedNodeId) ??
+        (node?._threeObject as THREE.Object3D | null) ??
+        null;
       setTargetObject((prev) => (prev === obj ? prev : obj));
       if (!obj) raf = requestAnimationFrame(resolve);
     };
@@ -695,7 +794,10 @@ function GizmoControls({
   useEffect(() => {
     const controls = controlsRef.current;
     if (!controls) return;
-    const callback = () => { addLog?.('gizmo mouseUp'); handleDragEnd(); };
+    const callback = () => {
+      addLog?.('gizmo mouseUp');
+      handleDragEnd();
+    };
     controls.addEventListener('mouseUp', callback);
     return () => controls.removeEventListener('mouseUp', callback);
   }, [handleDragEnd, addLog]);
@@ -731,7 +833,9 @@ function GizmoControls({
   useEffect(() => {
     const controls = controlsRef.current;
     if (!controls) return;
-    const callback = () => { if (targetObject) onObjectChange?.(targetObject); };
+    const callback = () => {
+      if (targetObject) onObjectChange?.(targetObject);
+    };
     controls.addEventListener('change', callback);
     return () => controls.removeEventListener('change', callback);
   }, [onObjectChange, targetObject]);
@@ -744,10 +848,13 @@ function GizmoControls({
     if (!controls) return;
     const onDraggingChanged = (e: { value: boolean }) => {
       addLog?.(`dragging-changed ${e.value}`);
-      // eslint-disable-next-line no-console
+
       console.log(`[GEO] gizmo dragging=${e.value} node=${selectedNodeId.slice(0, 8)}`);
       if (e.value) {
-        if (dragEndTimerRef.current) { clearTimeout(dragEndTimerRef.current); dragEndTimerRef.current = null; }
+        if (dragEndTimerRef.current) {
+          clearTimeout(dragEndTimerRef.current);
+          dragEndTimerRef.current = null;
+        }
         if (isDraggingGizmoRef) isDraggingGizmoRef.current = true;
       } else {
         // Delay clearing so a stylus re-contact within 250ms doesn't fire onPointerMissed
@@ -761,13 +868,17 @@ function GizmoControls({
     controls.addEventListener('dragging-changed', onDraggingChanged);
     return () => {
       controls.removeEventListener('dragging-changed', onDraggingChanged);
-      if (dragEndTimerRef.current) { clearTimeout(dragEndTimerRef.current); dragEndTimerRef.current = null; }
+      if (dragEndTimerRef.current) {
+        clearTimeout(dragEndTimerRef.current);
+        dragEndTimerRef.current = null;
+      }
       if (isDraggingGizmoRef) isDraggingGizmoRef.current = false;
     };
   }, [isDraggingGizmoRef, addLog]);
 
-  // eslint-disable-next-line no-console
-  console.log(`[GEO] gizmo render node=${selectedNodeId.slice(0, 8)} mode=${transformMode} targetFound=${!!targetObject}`);
+  console.log(
+    `[GEO] gizmo render node=${selectedNodeId.slice(0, 8)} mode=${transformMode} targetFound=${!!targetObject}`
+  );
 
   if (!targetObject) return null;
 
@@ -810,7 +921,9 @@ function PointEditGizmo({
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const inv = useMemo(() => new THREE.Matrix4(), []);
 
-  useEffect(() => { setAnchor(anchorRef.current); }, []);
+  useEffect(() => {
+    setAnchor(anchorRef.current);
+  }, []);
 
   const groupOf = useCallback((): THREE.Object3D | null => {
     const node = sceneGraph.findNode(nodeId);
@@ -826,7 +939,9 @@ function PointEditGizmo({
   // Keep the anchor parked at the point's world position while not dragging.
   useFrame(() => {
     if (draggingRef.current) return;
-    const a = anchorRef.current; const g = groupOf(); const lp = localPoint();
+    const a = anchorRef.current;
+    const g = groupOf();
+    const lp = localPoint();
     if (!a || !g || !lp) return;
     g.updateWorldMatrix(true, false);
     tmp.set(lp[0], lp[1], lp[2]).applyMatrix4(g.matrixWorld);
@@ -834,7 +949,8 @@ function PointEditGizmo({
   });
 
   const commit = useCallback(() => {
-    const a = anchorRef.current; const g = groupOf();
+    const a = anchorRef.current;
+    const g = groupOf();
     if (!a || !g) return;
     g.updateWorldMatrix(true, false);
     inv.copy(g.matrixWorld).invert();
@@ -845,7 +961,9 @@ function PointEditGizmo({
   useEffect(() => {
     const c = controlsRef.current;
     if (!c) return;
-    const onObj = () => { if (draggingRef.current) commit(); };
+    const onObj = () => {
+      if (draggingRef.current) commit();
+    };
     const onDrag = (e: { value: boolean }) => {
       draggingRef.current = e.value;
       if (isDraggingGizmoRef) isDraggingGizmoRef.current = e.value;
@@ -862,7 +980,9 @@ function PointEditGizmo({
   return (
     <>
       <object3D ref={anchorRef} />
-      {anchor && <TransformControls ref={controlsRef} object={anchor} mode="translate" size={gizmoSize} />}
+      {anchor && (
+        <TransformControls ref={controlsRef} object={anchor} mode="translate" size={gizmoSize} />
+      )}
     </>
   );
 }
@@ -893,32 +1013,104 @@ function CameraGizmoShape({
     let fL: number, fR: number, fT: number, fB: number;
 
     if (cameraType === 'orthographic') {
-      nL = left;  nR = right; nT = top;   nB = bottom;
-      fL = left;  fR = right; fT = top;   fB = bottom;
+      nL = left;
+      nR = right;
+      nT = top;
+      nB = bottom;
+      fL = left;
+      fR = right;
+      fT = top;
+      fB = bottom;
     } else {
       const aspect = 16 / 9;
-      const tanV = Math.tan((fov * Math.PI / 180) / 2);
+      const tanV = Math.tan((fov * Math.PI) / 180 / 2);
       const tanH = tanV * aspect;
-      nL = -near * tanH; nR = near * tanH; nT = near * tanV; nB = -near * tanV;
-      fL = -far * tanH;  fR = far * tanH;  fT = far * tanV;  fB = -far * tanV;
+      nL = -near * tanH;
+      nR = near * tanH;
+      nT = near * tanV;
+      nB = -near * tanV;
+      fL = -far * tanH;
+      fR = far * tanH;
+      fT = far * tanV;
+      fB = -far * tanV;
     }
 
     const verts = new Float32Array([
       // 4 corner rays near → far
-      nR, nT, -near,  fR, fT, -far,
-      nL, nT, -near,  fL, fT, -far,
-      nR, nB, -near,  fR, fB, -far,
-      nL, nB, -near,  fL, fB, -far,
+      nR,
+      nT,
+      -near,
+      fR,
+      fT,
+      -far,
+      nL,
+      nT,
+      -near,
+      fL,
+      fT,
+      -far,
+      nR,
+      nB,
+      -near,
+      fR,
+      fB,
+      -far,
+      nL,
+      nB,
+      -near,
+      fL,
+      fB,
+      -far,
       // near rect
-      nR, nT, -near,  nL, nT, -near,
-      nL, nT, -near,  nL, nB, -near,
-      nL, nB, -near,  nR, nB, -near,
-      nR, nB, -near,  nR, nT, -near,
+      nR,
+      nT,
+      -near,
+      nL,
+      nT,
+      -near,
+      nL,
+      nT,
+      -near,
+      nL,
+      nB,
+      -near,
+      nL,
+      nB,
+      -near,
+      nR,
+      nB,
+      -near,
+      nR,
+      nB,
+      -near,
+      nR,
+      nT,
+      -near,
       // far rect
-      fR, fT, -far,   fL, fT, -far,
-      fL, fT, -far,   fL, fB, -far,
-      fL, fB, -far,   fR, fB, -far,
-      fR, fB, -far,   fR, fT, -far,
+      fR,
+      fT,
+      -far,
+      fL,
+      fT,
+      -far,
+      fL,
+      fT,
+      -far,
+      fL,
+      fB,
+      -far,
+      fL,
+      fB,
+      -far,
+      fR,
+      fB,
+      -far,
+      fR,
+      fB,
+      -far,
+      fR,
+      fT,
+      -far,
     ]);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
@@ -947,7 +1139,8 @@ function CameraGizmoShape({
 function SceneCamera({
   node,
   cameraNode,
-  isSelected,}: {
+  isSelected,
+}: {
   node: SceneNode;
   cameraNode: CameraNode;
   isSelected: boolean;
@@ -957,7 +1150,9 @@ function SceneCamera({
 
   useEffect(() => {
     node._threeObject = groupRef.current;
-    return () => { node._threeObject = null; };
+    return () => {
+      node._threeObject = null;
+    };
   }, [node]);
 
   return (
@@ -984,20 +1179,16 @@ function SceneCamera({
   );
 }
 
-function SceneLight({
-  node,
-  lightNode,
-}: {
-  node: SceneNode;
-  lightNode: LightNode;
-}) {
+function SceneLight({ node, lightNode }: { node: SceneNode; lightNode: LightNode }) {
   const ref = useRef<THREE.Light>(null);
 
   useEffect(() => {
     node._threeObject = ref.current;
     // Name the light so the transform gizmo can target it via getObjectByName.
     if (ref.current) ref.current.name = node.id;
-    return () => { node._threeObject = null; };
+    return () => {
+      node._threeObject = null;
+    };
   }, [node]);
 
   // Sync shadow sub-properties imperatively after every render (point / directional lights)
@@ -1082,7 +1273,9 @@ function AudioListenerEffect() {
   useEffect(() => {
     const listener = getSharedAudioListener();
     camera.add(listener);
-    return () => { camera.remove(listener); };
+    return () => {
+      camera.remove(listener);
+    };
   }, [camera]);
   return null;
 }
@@ -1090,7 +1283,8 @@ function AudioListenerEffect() {
 function SceneAudio({
   node,
   audioNode,
-  isSelected,  resolveAudioSrc,
+  isSelected,
+  resolveAudioSrc,
 }: {
   node: SceneNode;
   audioNode: SceneAudioNode;
@@ -1102,7 +1296,9 @@ function SceneAudio({
 
   useEffect(() => {
     node._threeObject = groupRef.current;
-    return () => { node._threeObject = null; };
+    return () => {
+      node._threeObject = null;
+    };
   }, [node]);
 
   useEffect(() => {
@@ -1125,34 +1321,46 @@ function SceneAudio({
           const resolved = await resolveAudioSrc(url);
           if (resolved.startsWith('blob:')) blobRef.url = resolved;
           url = resolved;
-        } catch { /* fallback to original src */ }
+        } catch {
+          /* fallback to original src */
+        }
       }
       if (!mounted) {
-        if (blobRef.url) { URL.revokeObjectURL(blobRef.url); blobRef.url = null; }
+        if (blobRef.url) {
+          URL.revokeObjectURL(blobRef.url);
+          blobRef.url = null;
+        }
         return;
       }
       const loader = new THREE.AudioLoader();
-      loader.load(url, (buffer: AudioBuffer) => {
-        if (!mounted) return;
-        sound.setBuffer(buffer);
-        sound.setVolume(audioNode.volume);
-        sound.setLoop(audioNode.loop);
-        if (positional) {
-          const ps = sound as unknown as THREE.PositionalAudio;
-          ps.setRefDistance(audioNode.refDistance);
-          ps.setRolloffFactor(audioNode.rolloffFactor);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (ps as any).setDistanceModel?.(audioNode.distanceModel);
-          ps.setMaxDistance(audioNode.maxDistance);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const pa = ps as any;
-          pa.setConeInnerAngle?.(audioNode.coneInnerAngle);
-          pa.setConeOuterAngle?.(audioNode.coneOuterAngle);
-          pa.setConeOuterGain?.(audioNode.coneOuterGain);
+      loader.load(
+        url,
+        (buffer: AudioBuffer) => {
+          if (!mounted) return;
+          sound.setBuffer(buffer);
+          sound.setVolume(audioNode.volume);
+          sound.setLoop(audioNode.loop);
+          if (positional) {
+            const ps = sound as unknown as THREE.PositionalAudio;
+            ps.setRefDistance(audioNode.refDistance);
+            ps.setRolloffFactor(audioNode.rolloffFactor);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (ps as any).setDistanceModel?.(audioNode.distanceModel);
+            ps.setMaxDistance(audioNode.maxDistance);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const pa = ps as any;
+            pa.setConeInnerAngle?.(audioNode.coneInnerAngle);
+            pa.setConeOuterAngle?.(audioNode.coneOuterAngle);
+            pa.setConeOuterGain?.(audioNode.coneOuterGain);
+          }
+          group.add(sound);
+          if (audioNode.autoplay) sound.play();
+        },
+        undefined,
+        () => {
+          /* ignore load errors */
         }
-        group.add(sound);
-        if (audioNode.autoplay) sound.play();
-      }, undefined, () => { /* ignore load errors */ });
+      );
     };
 
     doLoad();
@@ -1160,15 +1368,32 @@ function SceneAudio({
     return () => {
       mounted = false;
       if (sound.isPlaying) sound.stop();
-      try { sound.disconnect(); } catch { /* ignore */ }
+      try {
+        sound.disconnect();
+      } catch {
+        /* ignore */
+      }
       group.remove(sound);
-      if (blobRef.url) { URL.revokeObjectURL(blobRef.url); blobRef.url = null; }
+      if (blobRef.url) {
+        URL.revokeObjectURL(blobRef.url);
+        blobRef.url = null;
+      }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioNode.src, audioNode.positional, audioNode.refDistance, audioNode.distanceModel,
-      audioNode.maxDistance, audioNode.rolloffFactor, audioNode.volume, audioNode.loop,
-      audioNode.autoplay, audioNode.coneInnerAngle, audioNode.coneOuterAngle,
-      audioNode.coneOuterGain, resolveAudioSrc]);
+  }, [
+    audioNode.src,
+    audioNode.positional,
+    audioNode.refDistance,
+    audioNode.distanceModel,
+    audioNode.maxDistance,
+    audioNode.rolloffFactor,
+    audioNode.volume,
+    audioNode.loop,
+    audioNode.autoplay,
+    audioNode.coneInnerAngle,
+    audioNode.coneOuterAngle,
+    audioNode.coneOuterGain,
+    resolveAudioSrc,
+  ]);
 
   return (
     <group
@@ -1195,7 +1420,8 @@ function SceneAudio({
 
 function SceneGroup({
   node,
-  isSelected,  children,
+  isSelected,
+  children,
 }: {
   node: SceneNode;
   isSelected: boolean;
@@ -1205,7 +1431,9 @@ function SceneGroup({
   const groupRef = useRef<THREE.Group>(null);
   useEffect(() => {
     node._threeObject = groupRef.current;
-    return () => { node._threeObject = null; };
+    return () => {
+      node._threeObject = null;
+    };
   }, [node]);
   return (
     <group
@@ -1217,7 +1445,11 @@ function SceneGroup({
       userData={{ pickNodeId: node.id }}
     >
       {/* invisible hit target so the group itself is clickable */}
-      {isSelected && <mesh visible={false}><sphereGeometry args={[0.001]} /></mesh>}
+      {isSelected && (
+        <mesh visible={false}>
+          <sphereGeometry args={[0.001]} />
+        </mesh>
+      )}
       {children}
     </group>
   );
@@ -1274,7 +1506,11 @@ function ScreenSized({
     g.scale.setScalar(s > 1e-9 ? s : 1e-9);
   });
 
-  return <group ref={ref} position={position}>{children}</group>;
+  return (
+    <group ref={ref} position={position}>
+      {children}
+    </group>
+  );
 }
 
 /** Screen-facing, constant-size text label rendered as a DOM overlay. */
@@ -1319,7 +1555,12 @@ function GlLine({ geometry, color }: { geometry: THREE.BufferGeometry; color: st
     const mat = new THREE.LineBasicMaterial({ color, depthTest: false, toneMapped: false });
     return new THREE.Line(geometry, mat);
   }, [geometry, color]);
-  useEffect(() => () => { (obj.material as THREE.Material).dispose(); }, [obj]);
+  useEffect(
+    () => () => {
+      (obj.material as THREE.Material).dispose();
+    },
+    [obj]
+  );
   return <primitive object={obj} />;
 }
 
@@ -1337,8 +1578,14 @@ const _htScale = new THREE.Vector3();
  * it follows live-updating (e.g. bound) endpoints. Tube meshes are tagged
  * `__geoHelper` + `pickNodeId` by the caller.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function updateHitTube(tube: THREE.Mesh, s: THREE.Vector3, e: THREE.Vector3, state: any, pixels = 16): void {
+function updateHitTube(
+  tube: THREE.Mesh,
+  s: THREE.Vector3,
+  e: THREE.Vector3,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  state: any,
+  pixels = 16
+): void {
   _htDir.copy(e).sub(s);
   const len = _htDir.length() || 1e-6;
   tube.position.set((s.x + e.x) / 2, (s.y + e.y) / 2, (s.z + e.z) / 2);
@@ -1348,17 +1595,34 @@ function updateHitTube(tube: THREE.Mesh, s: THREE.Vector3, e: THREE.Vector3, sta
   const cam = state.camera;
   let wpp: number;
   if (cam.isPerspectiveCamera) {
-    wpp = (2 * Math.tan((cam.fov * Math.PI) / 360) * cam.position.distanceTo(_htWorld)) / state.size.height;
+    wpp =
+      (2 * Math.tan((cam.fov * Math.PI) / 360) * cam.position.distanceTo(_htWorld)) /
+      state.size.height;
   } else {
     wpp = (cam.top - cam.bottom) / (cam.zoom || 1) / state.size.height;
   }
   let ps = 1;
-  if (tube.parent) { tube.parent.getWorldScale(_htScale); ps = _htScale.x || 1; }
+  if (tube.parent) {
+    tube.parent.getWorldScale(_htScale);
+    ps = _htScale.x || 1;
+  }
   const r = Math.max((wpp * pixels) / ps, 1e-6);
   tube.scale.set(r, len, r);
 }
 
-function GeoDot({ pixels, position, color, nodeId, selected }: { pixels: number; position: [number, number, number]; color: string; nodeId: string; selected?: boolean }) {
+function GeoDot({
+  pixels,
+  position,
+  color,
+  nodeId,
+  selected,
+}: {
+  pixels: number;
+  position: [number, number, number];
+  color: string;
+  nodeId: string;
+  selected?: boolean;
+}) {
   const hit = Math.max(pixels + 20, 28);
   const visPx = selected ? Math.max(pixels * 1.6 + 4, 12) : pixels;
   return (
@@ -1368,7 +1632,13 @@ function GeoDot({ pixels, position, color, nodeId, selected }: { pixels: number;
         <ScreenSized pixels={visPx + 10} position={position}>
           <mesh userData={{ __geoHelper: true }}>
             <sphereGeometry args={[0.5, 16, 16]} />
-            <meshBasicMaterial color="#ffffff" transparent opacity={0.22} depthTest={false} toneMapped={false} />
+            <meshBasicMaterial
+              color="#ffffff"
+              transparent
+              opacity={0.22}
+              depthTest={false}
+              toneMapped={false}
+            />
           </mesh>
         </ScreenSized>
       )}
@@ -1392,23 +1662,57 @@ function GeoDot({ pixels, position, color, nodeId, selected }: { pixels: number;
 }
 
 function GeometryPointObj({
-  node, geo, isSelected,
-}: { node: SceneNode; geo: GeometryPointNode; isSelected: boolean; onSelect?: (id: string) => void }) {
+  node,
+  geo,
+  isSelected,
+}: {
+  node: SceneNode;
+  geo: GeometryPointNode;
+  isSelected: boolean;
+  onSelect?: (id: string) => void;
+}) {
   const ref = useRef<THREE.Group>(null);
-  useEffect(() => { node._threeObject = ref.current; return () => { node._threeObject = null; }; }, [node]);
+  useEffect(() => {
+    node._threeObject = ref.current;
+    return () => {
+      node._threeObject = null;
+    };
+  }, [node]);
   const color = isSelected ? GEO_SELECT_COLOR : geo.color;
-  const label = geo.label || `${node.position[0].toFixed(2)}, ${node.position[1].toFixed(2)}, ${node.position[2].toFixed(2)}`;
+  const label =
+    geo.label ||
+    `${node.position[0].toFixed(2)}, ${node.position[1].toFixed(2)}, ${node.position[2].toFixed(2)}`;
   return (
-    <group ref={ref} name={node.id} userData={{ pickNodeId: node.id }} position={node.position} rotation={node.rotation as [number, number, number]} scale={node.scale}>
-      <GeoDot pixels={geo.pixelSize} position={[0, 0, 0]} color={color} nodeId={node.id} selected={isSelected} />
+    <group
+      ref={ref}
+      name={node.id}
+      userData={{ pickNodeId: node.id }}
+      position={node.position}
+      rotation={node.rotation as [number, number, number]}
+      scale={node.scale}
+    >
+      <GeoDot
+        pixels={geo.pixelSize}
+        position={[0, 0, 0]}
+        color={color}
+        nodeId={node.id}
+        selected={isSelected}
+      />
       {geo.showLabel && <GeoLabel position={[0, 0, 0]} text={label} color={color} offsetY={-16} />}
     </group>
   );
 }
 
 function GeometrySegmentObj({
-  node, geo, isSelected,
-}: { node: SceneNode; geo: GeometrySegmentNode; isSelected: boolean; onSelect?: (id: string) => void }) {
+  node,
+  geo,
+  isSelected,
+}: {
+  node: SceneNode;
+  geo: GeometrySegmentNode;
+  isSelected: boolean;
+  onSelect?: (id: string) => void;
+}) {
   const { scene } = useThree();
   const ref = useRef<THREE.Group>(null);
   const startGrp = useRef<THREE.Group>(null);
@@ -1424,7 +1728,12 @@ function GeometrySegmentObj({
     return g;
   }, []);
   useEffect(() => () => lineGeo.dispose(), [lineGeo]);
-  useEffect(() => { node._threeObject = ref.current; return () => { node._threeObject = null; }; }, [node]);
+  useEffect(() => {
+    node._threeObject = ref.current;
+    return () => {
+      node._threeObject = null;
+    };
+  }, [node]);
 
   const tmpA = useMemo(() => new THREE.Vector3(), []);
   const tmpB = useMemo(() => new THREE.Vector3(), []);
@@ -1441,10 +1750,18 @@ function GeometrySegmentObj({
     const g = ref.current;
     if (!g) return;
     g.updateWorldMatrix(true, false);
-    const resolve = (binding: string | null, fallback: [number, number, number], out: THREE.Vector3) => {
+    const resolve = (
+      binding: string | null,
+      fallback: [number, number, number],
+      out: THREE.Vector3
+    ) => {
       if (binding) {
         const t = scene.getObjectByName(binding);
-        if (t) { t.getWorldPosition(tmpW); g.worldToLocal(tmpW); return out.copy(tmpW); }
+        if (t) {
+          t.getWorldPosition(tmpW);
+          g.worldToLocal(tmpW);
+          return out.copy(tmpW);
+        }
       }
       return out.set(fallback[0], fallback[1], fallback[2]);
     };
@@ -1471,33 +1788,75 @@ function GeometrySegmentObj({
       const cam = state.camera as THREE.PerspectiveCamera & THREE.OrthographicCamera;
       let wpp: number;
       if ((cam as THREE.PerspectiveCamera).isPerspectiveCamera) {
-        wpp = (2 * Math.tan((cam.fov * Math.PI) / 360) * cam.position.distanceTo(tmpW)) / state.size.height;
+        wpp =
+          (2 * Math.tan((cam.fov * Math.PI) / 360) * cam.position.distanceTo(tmpW)) /
+          state.size.height;
       } else {
         wpp = (cam.top - cam.bottom) / (cam.zoom || 1) / state.size.height;
       }
       let ps = 1;
-      if (tube.parent) { tube.parent.getWorldScale(tmpS); ps = tmpS.x || 1; }
+      if (tube.parent) {
+        tube.parent.getWorldScale(tmpS);
+        ps = tmpS.x || 1;
+      }
       const r = Math.max((wpp * 16) / ps, 1e-6);
       tube.scale.set(r, len, r);
     }
 
-    if (labelGrp.current) labelGrp.current.position.set((s.x + e.x) / 2, (s.y + e.y) / 2, (s.z + e.z) / 2);
+    if (labelGrp.current)
+      labelGrp.current.position.set((s.x + e.x) / 2, (s.y + e.y) / 2, (s.z + e.z) / 2);
     if (labelSpan.current) labelSpan.current.textContent = s.distanceTo(e).toFixed(2);
   });
 
   return (
-    <group ref={ref} name={node.id} userData={{ pickNodeId: node.id }} position={node.position} rotation={node.rotation as [number, number, number]} scale={node.scale}>
+    <group
+      ref={ref}
+      name={node.id}
+      userData={{ pickNodeId: node.id }}
+      position={node.position}
+      rotation={node.rotation as [number, number, number]}
+      scale={node.scale}
+    >
       <GlLine geometry={lineGeo} color={color} />
       <mesh ref={tubeRef} userData={{ __geoHelper: true, pickNodeId: node.id }}>
         <cylinderGeometry args={[1, 1, 1, 10, 1, false]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} depthTest={false} />
       </mesh>
-      <group ref={startGrp}><GeoDot pixels={geo.pixelSize} position={[0, 0, 0]} color={color} nodeId={node.id} selected={isSelected} /></group>
-      <group ref={endGrp}><GeoDot pixels={geo.pixelSize} position={[0, 0, 0]} color={color} nodeId={node.id} selected={isSelected} /></group>
+      <group ref={startGrp}>
+        <GeoDot
+          pixels={geo.pixelSize}
+          position={[0, 0, 0]}
+          color={color}
+          nodeId={node.id}
+          selected={isSelected}
+        />
+      </group>
+      <group ref={endGrp}>
+        <GeoDot
+          pixels={geo.pixelSize}
+          position={[0, 0, 0]}
+          color={color}
+          nodeId={node.id}
+          selected={isSelected}
+        />
+      </group>
       {geo.showLength && (
         <group ref={labelGrp}>
           <Html center zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 11, lineHeight: '14px', color: '#fff', background: 'rgba(0,0,0,0.62)', border: `1px solid ${color}`, borderRadius: 4, padding: '1px 5px', whiteSpace: 'nowrap', userSelect: 'none' }}>
+            <div
+              style={{
+                fontFamily: 'monospace',
+                fontSize: 11,
+                lineHeight: '14px',
+                color: '#fff',
+                background: 'rgba(0,0,0,0.62)',
+                border: `1px solid ${color}`,
+                borderRadius: 4,
+                padding: '1px 5px',
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+              }}
+            >
               <span ref={labelSpan}>0</span>
             </div>
           </Html>
@@ -1508,8 +1867,15 @@ function GeometrySegmentObj({
 }
 
 function GeometryLineObj({
-  node, geo, isSelected,
-}: { node: SceneNode; geo: GeometryLineNode; isSelected: boolean; onSelect?: (id: string) => void }) {
+  node,
+  geo,
+  isSelected,
+}: {
+  node: SceneNode;
+  geo: GeometryLineNode;
+  isSelected: boolean;
+  onSelect?: (id: string) => void;
+}) {
   const { scene } = useThree();
   const ref = useRef<THREE.Group>(null);
   const originGrp = useRef<THREE.Group>(null);
@@ -1523,7 +1889,12 @@ function GeometryLineObj({
     return g;
   }, []);
   useEffect(() => () => lineGeo.dispose(), [lineGeo]);
-  useEffect(() => { node._threeObject = ref.current; return () => { node._threeObject = null; }; }, [node]);
+  useEffect(() => {
+    node._threeObject = ref.current;
+    return () => {
+      node._threeObject = null;
+    };
+  }, [node]);
 
   const o = useMemo(() => new THREE.Vector3(), []);
   const d = useMemo(() => new THREE.Vector3(), []);
@@ -1537,8 +1908,11 @@ function GeometryLineObj({
     g.updateWorldMatrix(true, false);
     if (geo.originBinding) {
       const t = scene.getObjectByName(geo.originBinding);
-      if (t) { t.getWorldPosition(tmpW); g.worldToLocal(tmpW); o.copy(tmpW); }
-      else o.set(geo.origin[0], geo.origin[1], geo.origin[2]);
+      if (t) {
+        t.getWorldPosition(tmpW);
+        g.worldToLocal(tmpW);
+        o.copy(tmpW);
+      } else o.set(geo.origin[0], geo.origin[1], geo.origin[2]);
     } else {
       o.set(geo.origin[0], geo.origin[1], geo.origin[2]);
     }
@@ -1559,21 +1933,47 @@ function GeometryLineObj({
   });
 
   return (
-    <group ref={ref} name={node.id} userData={{ pickNodeId: node.id }} position={node.position} rotation={node.rotation as [number, number, number]} scale={node.scale}>
+    <group
+      ref={ref}
+      name={node.id}
+      userData={{ pickNodeId: node.id }}
+      position={node.position}
+      rotation={node.rotation as [number, number, number]}
+      scale={node.scale}
+    >
       <GlLine geometry={lineGeo} color={color} />
       <mesh ref={tubeRef} userData={{ __geoHelper: true, pickNodeId: node.id }}>
         <cylinderGeometry args={[1, 1, 1, 10, 1, false]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} depthTest={false} />
       </mesh>
-      <group ref={originGrp}><GeoDot pixels={8} position={[0, 0, 0]} color={color} nodeId={node.id} selected={isSelected} /></group>
-      {geo.showLabel && <group ref={labelGrp}><GeoLabel position={[0, 0, 0]} text={geo.label || 'line'} color={color} offsetY={-16} /></group>}
+      <group ref={originGrp}>
+        <GeoDot
+          pixels={8}
+          position={[0, 0, 0]}
+          color={color}
+          nodeId={node.id}
+          selected={isSelected}
+        />
+      </group>
+      {geo.showLabel && (
+        <group ref={labelGrp}>
+          <GeoLabel position={[0, 0, 0]} text={geo.label || 'line'} color={color} offsetY={-16} />
+        </group>
+      )}
     </group>
   );
 }
 
 function GeometryAngleObj({
-  node, geo, isSelected,
-}: { node: SceneNode; geo: GeometryAngleNode; isSelected: boolean; onSelect?: (id: string) => void }) {
+  node,
+  geo,
+  isSelected,
+}: {
+  node: SceneNode;
+  geo: GeometryAngleNode;
+  isSelected: boolean;
+  onSelect?: (id: string) => void;
+}) {
   const { scene } = useThree();
   const ref = useRef<THREE.Group>(null);
   const vertexGrp = useRef<THREE.Group>(null);
@@ -1595,8 +1995,19 @@ function GeometryAngleObj({
     g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array((N + 1) * 3), 3));
     return g;
   }, []);
-  useEffect(() => () => { armsGeo.dispose(); arcGeo.dispose(); }, [armsGeo, arcGeo]);
-  useEffect(() => { node._threeObject = ref.current; return () => { node._threeObject = null; }; }, [node]);
+  useEffect(
+    () => () => {
+      armsGeo.dispose();
+      arcGeo.dispose();
+    },
+    [armsGeo, arcGeo]
+  );
+  useEffect(() => {
+    node._threeObject = ref.current;
+    return () => {
+      node._threeObject = null;
+    };
+  }, [node]);
 
   const V = useMemo(() => new THREE.Vector3(), []);
   const P1 = useMemo(() => new THREE.Vector3(), []);
@@ -1614,7 +2025,11 @@ function GeometryAngleObj({
     const resolve = (binding: string | null, fb: [number, number, number], out: THREE.Vector3) => {
       if (binding) {
         const t = scene.getObjectByName(binding);
-        if (t) { t.getWorldPosition(tmpW); g.worldToLocal(tmpW); return out.copy(tmpW); }
+        if (t) {
+          t.getWorldPosition(tmpW);
+          g.worldToLocal(tmpW);
+          return out.copy(tmpW);
+        }
       }
       return out.set(fb[0], fb[1], fb[2]);
     };
@@ -1623,22 +2038,34 @@ function GeometryAngleObj({
     resolve(geo.p2Binding, geo.p2, P2);
 
     const ap = armsGeo.attributes.position as THREE.BufferAttribute;
-    ap.setXYZ(0, V.x, V.y, V.z); ap.setXYZ(1, P1.x, P1.y, P1.z);
-    ap.setXYZ(2, V.x, V.y, V.z); ap.setXYZ(3, P2.x, P2.y, P2.z);
-    ap.needsUpdate = true; armsGeo.computeBoundingSphere();
+    ap.setXYZ(0, V.x, V.y, V.z);
+    ap.setXYZ(1, P1.x, P1.y, P1.z);
+    ap.setXYZ(2, V.x, V.y, V.z);
+    ap.setXYZ(3, P2.x, P2.y, P2.z);
+    ap.needsUpdate = true;
+    armsGeo.computeBoundingSphere();
 
     if (tube1.current) updateHitTube(tube1.current, V, P1, state, 16);
     if (tube2.current) updateHitTube(tube2.current, V, P2, state, 16);
 
-    u.copy(P1).sub(V); w.copy(P2).sub(V);
+    u.copy(P1).sub(V);
+    w.copy(P2).sub(V);
     const arcp = arcGeo.attributes.position as THREE.BufferAttribute;
-    let degrees = 0, mdx = 1, mdy = 0, mdz = 0;
+    let degrees = 0,
+      mdx = 1,
+      mdy = 0,
+      mdz = 0;
     if (u.lengthSq() > 1e-9 && w.lengthSq() > 1e-9) {
-      u.normalize(); w.normalize();
+      u.normalize();
+      w.normalize();
       const cos = Math.max(-1, Math.min(1, u.dot(w)));
-      const ang = Math.acos(cos); degrees = (ang * 180) / Math.PI;
+      const ang = Math.acos(cos);
+      degrees = (ang * 180) / Math.PI;
       e2.copy(w).addScaledVector(u, -cos);
-      if (e2.lengthSq() < 1e-9) { e2.set(1, 0, 0).cross(u); if (e2.lengthSq() < 1e-9) e2.set(0, 1, 0).cross(u); }
+      if (e2.lengthSq() < 1e-9) {
+        e2.set(1, 0, 0).cross(u);
+        if (e2.lengthSq() < 1e-9) e2.set(0, 1, 0).cross(u);
+      }
       e2.normalize();
       for (let i = 0; i <= N; i++) {
         const t = (ang * i) / N;
@@ -1652,7 +2079,8 @@ function GeometryAngleObj({
     } else {
       for (let i = 0; i <= N; i++) arcp.setXYZ(i, 0, 0, 0);
     }
-    arcp.needsUpdate = true; arcGeo.computeBoundingSphere();
+    arcp.needsUpdate = true;
+    arcGeo.computeBoundingSphere();
 
     arcAnchor.current?.position.copy(V);
     vertexGrp.current?.position.copy(V);
@@ -1661,7 +2089,14 @@ function GeometryAngleObj({
   });
 
   return (
-    <group ref={ref} name={node.id} userData={{ pickNodeId: node.id }} position={node.position} rotation={node.rotation as [number, number, number]} scale={node.scale}>
+    <group
+      ref={ref}
+      name={node.id}
+      userData={{ pickNodeId: node.id }}
+      position={node.position}
+      rotation={node.rotation as [number, number, number]}
+      scale={node.scale}
+    >
       <lineSegments geometry={armsGeo}>
         <lineBasicMaterial color={color} depthTest={false} toneMapped={false} />
       </lineSegments>
@@ -1679,7 +2114,20 @@ function GeometryAngleObj({
           {geo.showLabel && (
             <group ref={labelGrp}>
               <Html center zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
-                <div style={{ fontFamily: 'monospace', fontSize: 11, lineHeight: '14px', color: '#fff', background: 'rgba(0,0,0,0.62)', border: `1px solid ${color}`, borderRadius: 4, padding: '1px 5px', whiteSpace: 'nowrap', userSelect: 'none' }}>
+                <div
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: 11,
+                    lineHeight: '14px',
+                    color: '#fff',
+                    background: 'rgba(0,0,0,0.62)',
+                    border: `1px solid ${color}`,
+                    borderRadius: 4,
+                    padding: '1px 5px',
+                    whiteSpace: 'nowrap',
+                    userSelect: 'none',
+                  }}
+                >
                   <span ref={labelSpan}>0°</span>
                 </div>
               </Html>
@@ -1687,7 +2135,15 @@ function GeometryAngleObj({
           )}
         </ScreenSized>
       </group>
-      <group ref={vertexGrp}><GeoDot pixels={7} position={[0, 0, 0]} color={color} nodeId={node.id} selected={isSelected} /></group>
+      <group ref={vertexGrp}>
+        <GeoDot
+          pixels={7}
+          position={[0, 0, 0]}
+          color={color}
+          nodeId={node.id}
+          selected={isSelected}
+        />
+      </group>
     </group>
   );
 }
@@ -1714,17 +2170,25 @@ function renderSceneNode(node: SceneNode, ctx: RenderCtx): ReactElement | null {
     // A highlighted group propagates the highlight to its descendant meshes.
     if (grpSel) childCtx = { ...childCtx, forceSelected: true };
     const children = node.children
-      .map(child => renderSceneNode(child, childCtx))
+      .map((child) => renderSceneNode(child, childCtx))
       .filter((el): el is ReactElement => el !== null);
     return (
-      <SceneGroup key={node.id} node={node} isSelected={node.id === ctx.selectedNodeId || grpSel} onSelect={ctx.onNodeSelect}>
+      <SceneGroup
+        key={node.id}
+        node={node}
+        isSelected={node.id === ctx.selectedNodeId || grpSel}
+        onSelect={ctx.onNodeSelect}
+      >
         {children}
       </SceneGroup>
     );
   }
 
   if (node.type === 'mesh') {
-    const sel = node.id === ctx.selectedNodeId || (ctx.forceSelected ?? false) || (ctx.selectedIds?.has(node.id) ?? false);
+    const sel =
+      node.id === ctx.selectedNodeId ||
+      (ctx.forceSelected ?? false) ||
+      (ctx.selectedIds?.has(node.id) ?? false);
     return (
       <SelectableMesh
         key={node.id}
@@ -1740,13 +2204,7 @@ function renderSceneNode(node: SceneNode, ctx: RenderCtx): ReactElement | null {
   }
 
   if (node.type === 'light') {
-    return (
-      <SceneLight
-        key={node.id}
-        node={node}
-        lightNode={node as unknown as LightNode}
-      />
-    );
+    return <SceneLight key={node.id} node={node} lightNode={node as unknown as LightNode} />;
   }
 
   if (node.type === 'camera') {
@@ -1775,16 +2233,48 @@ function renderSceneNode(node: SceneNode, ctx: RenderCtx): ReactElement | null {
   }
 
   if (node.type === 'geometry-point') {
-    return <GeometryPointObj key={node.id} node={node} geo={node as unknown as GeometryPointNode} isSelected={node.id === ctx.selectedNodeId} onSelect={ctx.onNodeSelect} />;
+    return (
+      <GeometryPointObj
+        key={node.id}
+        node={node}
+        geo={node as unknown as GeometryPointNode}
+        isSelected={node.id === ctx.selectedNodeId}
+        onSelect={ctx.onNodeSelect}
+      />
+    );
   }
   if (node.type === 'geometry-segment') {
-    return <GeometrySegmentObj key={node.id} node={node} geo={node as unknown as GeometrySegmentNode} isSelected={node.id === ctx.selectedNodeId} onSelect={ctx.onNodeSelect} />;
+    return (
+      <GeometrySegmentObj
+        key={node.id}
+        node={node}
+        geo={node as unknown as GeometrySegmentNode}
+        isSelected={node.id === ctx.selectedNodeId}
+        onSelect={ctx.onNodeSelect}
+      />
+    );
   }
   if (node.type === 'geometry-line') {
-    return <GeometryLineObj key={node.id} node={node} geo={node as unknown as GeometryLineNode} isSelected={node.id === ctx.selectedNodeId} onSelect={ctx.onNodeSelect} />;
+    return (
+      <GeometryLineObj
+        key={node.id}
+        node={node}
+        geo={node as unknown as GeometryLineNode}
+        isSelected={node.id === ctx.selectedNodeId}
+        onSelect={ctx.onNodeSelect}
+      />
+    );
   }
   if (node.type === 'geometry-angle') {
-    return <GeometryAngleObj key={node.id} node={node} geo={node as unknown as GeometryAngleNode} isSelected={node.id === ctx.selectedNodeId} onSelect={ctx.onNodeSelect} />;
+    return (
+      <GeometryAngleObj
+        key={node.id}
+        node={node}
+        geo={node as unknown as GeometryAngleNode}
+        isSelected={node.id === ctx.selectedNodeId}
+        onSelect={ctx.onNodeSelect}
+      />
+    );
   }
 
   return null;
@@ -1822,13 +2312,32 @@ function SceneRenderer({
   const idsKey = (selectedNodeIds ?? []).join(',');
   const objects = useMemo(() => {
     if (!sceneGraph) return [];
-    const selectedIds = selectedNodeIds && selectedNodeIds.length ? new Set(selectedNodeIds) : undefined;
-    const ctx: RenderCtx = { selectedNodeId, selectedIds, onNodeSelect, renderMode, resolveAudioSrc, resolveTextureSrc, edges };
+    const selectedIds =
+      selectedNodeIds && selectedNodeIds.length ? new Set(selectedNodeIds) : undefined;
+    const ctx: RenderCtx = {
+      selectedNodeId,
+      selectedIds,
+      onNodeSelect,
+      renderMode,
+      resolveAudioSrc,
+      resolveTextureSrc,
+      edges,
+    };
     return sceneGraph.root.children
-      .map(child => renderSceneNode(child, ctx))
+      .map((child) => renderSceneNode(child, ctx))
       .filter((el): el is ReactElement => el !== null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sceneGraph, version, selectedNodeId, idsKey, onNodeSelect, renderMode, resolveAudioSrc, resolveTextureSrc, edges]);
+  }, [
+    sceneGraph,
+    version,
+    selectedNodeId,
+    idsKey,
+    onNodeSelect,
+    renderMode,
+    resolveAudioSrc,
+    resolveTextureSrc,
+    edges,
+  ]);
 
   return <group>{objects}</group>;
 }
@@ -1841,7 +2350,6 @@ function GeoNodesGeometry({ graph }: { graph: GeoNodeGraph }) {
 function ProceduralGeometry({ code }: { code: string }) {
   const geometry = useMemo(() => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
       const fn = new Function('THREE', code);
       const result = fn(THREE);
       if (result instanceof THREE.BufferGeometry) return result;
@@ -1900,7 +2408,15 @@ function MeshGeometry({
       if (!bufferData) return <boxGeometry />;
       return <CustomBufferGeometry data={bufferData} />;
     case 'sphere':
-      return <sphereGeometry args={[params?.['radius'] ?? 1, params?.['widthSegments'] ?? 32, params?.['heightSegments'] ?? 32]} />;
+      return (
+        <sphereGeometry
+          args={[
+            params?.['radius'] ?? 1,
+            params?.['widthSegments'] ?? 32,
+            params?.['heightSegments'] ?? 32,
+          ]}
+        />
+      );
     case 'cylinder':
       return (
         <cylinderGeometry
@@ -1914,16 +2430,34 @@ function MeshGeometry({
       );
     case 'plane':
       return (
-        <planeGeometry args={[params?.['width'] ?? 10, params?.['height'] ?? 10, params?.['widthSegments'] ?? 1, params?.['heightSegments'] ?? 1]} />
+        <planeGeometry
+          args={[
+            params?.['width'] ?? 10,
+            params?.['height'] ?? 10,
+            params?.['widthSegments'] ?? 1,
+            params?.['heightSegments'] ?? 1,
+          ]}
+        />
       );
     case 'cone':
       return (
-        <coneGeometry args={[params?.['radius'] ?? 1, params?.['height'] ?? 2, params?.['radialSegments'] ?? 32]} />
+        <coneGeometry
+          args={[
+            params?.['radius'] ?? 1,
+            params?.['height'] ?? 2,
+            params?.['radialSegments'] ?? 32,
+          ]}
+        />
       );
     case 'torus':
       return (
         <torusGeometry
-          args={[params?.['radius'] ?? 1, params?.['tube'] ?? 0.4, params?.['radialSegments'] ?? 16, params?.['tubularSegments'] ?? 100]}
+          args={[
+            params?.['radius'] ?? 1,
+            params?.['tube'] ?? 0.4,
+            params?.['radialSegments'] ?? 16,
+            params?.['tubularSegments'] ?? 100,
+          ]}
         />
       );
     case 'box':
@@ -1960,35 +2494,46 @@ function FitCameraEffect({
   // World-space bounding-box size of a node's subtree, resolved from the live
   // three object (accurate for baked/custom LDraw meshes too). __geoHelper meshes
   // are transient editing proxies and must not inflate the box.
-  const getBounds = useCallback((nodeId: string): [number, number, number] | null => {
-    const obj = scene.getObjectByName(nodeId);
-    if (!obj) return null;
-    obj.updateWorldMatrix(true, true);
-    const box = new THREE.Box3();
-    obj.traverse((o) => {
-      const mesh = o as THREE.Mesh;
-      // Skip helpers and invisible meshes — notably a group's invisible origin
-      // hit-target sphere, which would otherwise stretch the box to the pivot.
-      if (!mesh.isMesh || !mesh.visible || mesh.userData?.__geoHelper) return;
-      mesh.geometry.computeBoundingBox();
-      if (mesh.geometry.boundingBox) box.union(mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld));
-    });
-    if (box.isEmpty()) return null;
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    return [size.x, size.y, size.z];
-  }, [scene]);
+  const getBounds = useCallback(
+    (nodeId: string): [number, number, number] | null => {
+      const obj = scene.getObjectByName(nodeId);
+      if (!obj) return null;
+      obj.updateWorldMatrix(true, true);
+      const box = new THREE.Box3();
+      obj.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        // Skip helpers and invisible meshes — notably a group's invisible origin
+        // hit-target sphere, which would otherwise stretch the box to the pivot.
+        if (!mesh.isMesh || !mesh.visible || mesh.userData?.__geoHelper) return;
+        mesh.geometry.computeBoundingBox();
+        if (mesh.geometry.boundingBox)
+          box.union(mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld));
+      });
+      if (box.isEmpty()) return null;
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      return [size.x, size.y, size.z];
+    },
+    [scene]
+  );
 
   useEffect(() => {
     if (boundsRef) boundsRef.current = getBounds;
-    return () => { if (boundsRef) boundsRef.current = null; };
+    return () => {
+      if (boundsRef) boundsRef.current = null;
+    };
   }, [boundsRef, getBounds]);
 
   const doFit = useCallback(() => {
     const box = new THREE.Box3();
     let hasMesh = false;
-    scene.traverse(obj => {
-      if ((obj instanceof THREE.Mesh || obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.__geoHelper) {
+    scene.traverse((obj) => {
+      if (
+        (obj instanceof THREE.Mesh ||
+          obj instanceof THREE.LineSegments ||
+          obj instanceof THREE.Line) &&
+        !obj.userData.__geoHelper
+      ) {
         // ensure world matrices are up to date
         obj.updateWorldMatrix(true, false);
         obj.geometry.computeBoundingBox();
@@ -2020,7 +2565,6 @@ function FitCameraEffect({
     camera.updateProjectionMatrix();
 
     if (controls && 'target' in controls) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const orbitControls = controls as unknown as { target: THREE.Vector3; update(): void };
       orbitControls.target.copy(center);
       orbitControls.update();
@@ -2030,7 +2574,9 @@ function FitCameraEffect({
   // Expose imperative handle to parent
   useEffect(() => {
     if (fitSceneRef) fitSceneRef.current = doFit;
-    return () => { if (fitSceneRef) fitSceneRef.current = null; };
+    return () => {
+      if (fitSceneRef) fitSceneRef.current = null;
+    };
   }, [fitSceneRef, doFit]);
 
   // Auto-fit when sceneGraph is loaded or changes
@@ -2098,7 +2644,6 @@ function ActiveSceneCamera({
   );
 }
 
-
 function PlacementPlane({ onPlaneClick }: { onPlaneClick: (wx: number, wz: number) => void }) {
   return (
     <mesh
@@ -2128,95 +2673,135 @@ function PlacementPlane({ onPlaneClick }: { onPlaneClick: (wx: number, wz: numbe
 function GpuPicker({ onPick }: { onPick?: (id: string | null) => void }) {
   const { gl, scene, camera } = useThree();
   const target = useMemo(() => new THREE.WebGLRenderTarget(1, 1), []);
-  const reg = useMemo(() => ({
-    next: 1,
-    toInt: new Map<string, number>(),
-    toId: new Map<number, string>(),
-    mats: new Map<number, THREE.MeshBasicMaterial>(),
-  }), []);
+  const reg = useMemo(
+    () => ({
+      next: 1,
+      toInt: new Map<string, number>(),
+      toId: new Map<number, string>(),
+      mats: new Map<number, THREE.MeshBasicMaterial>(),
+    }),
+    []
+  );
 
-  useEffect(() => () => { target.dispose(); reg.mats.forEach((m) => m.dispose()); }, [target, reg]);
+  useEffect(
+    () => () => {
+      target.dispose();
+      reg.mats.forEach((m) => m.dispose());
+    },
+    [target, reg]
+  );
 
-  const matFor = useCallback((nodeId: string) => {
-    let v = reg.toInt.get(nodeId);
-    if (!v) { v = reg.next++; reg.toInt.set(nodeId, v); reg.toId.set(v, nodeId); }
-    let m = reg.mats.get(v);
-    if (!m) {
-      m = new THREE.MeshBasicMaterial({ toneMapped: false });
-      // Treat the value as already-linear so output bytes equal the encoded int exactly.
-      m.color.setHex(v, THREE.LinearSRGBColorSpace);
-      reg.mats.set(v, m);
-    }
-    return m;
-  }, [reg]);
-
-  const pickAt = useCallback((clientX: number, clientY: number): string | null => {
-    const rect = gl.domElement.getBoundingClientRect();
-    const px = clientX - rect.left;
-    const py = clientY - rect.top;
-    if (px < 0 || py < 0 || px >= rect.width || py >= rect.height) return null;
-
-    // Resolve a node id from the object or any ancestor (roots are tagged).
-    const resolveId = (o: THREE.Object3D): string | null => {
-      let c: THREE.Object3D | null = o;
-      while (c) { const id = c.userData?.pickNodeId as string | undefined; if (id) return id; c = c.parent; }
-      return null;
-    };
-
-    const swapped: Array<[THREE.Mesh, THREE.Material | THREE.Material[] | null, boolean]> = [];
-    scene.traverse((o) => {
-      const mesh = o as THREE.Mesh & { isLine?: boolean; isLineSegments?: boolean; isPoints?: boolean; isSprite?: boolean };
-      const renderable = mesh.isMesh || mesh.isLine || mesh.isLineSegments || mesh.isPoints || mesh.isSprite;
-      if (!renderable) return;
-      const id = mesh.isMesh ? resolveId(o) : null;
-      if (id) {
-        // selectable solid → render in its unique pick color
-        swapped.push([mesh, mesh.material, mesh.visible]);
-        mesh.material = matFor(id);
-        mesh.visible = true;
-      } else {
-        // non-selectable (gizmo, grid, visible lines…) hidden so it can't
-        // contaminate the single-pixel readback
-        swapped.push([mesh, null, mesh.visible]);
-        mesh.visible = false;
+  const matFor = useCallback(
+    (nodeId: string) => {
+      let v = reg.toInt.get(nodeId);
+      if (!v) {
+        v = reg.next++;
+        reg.toInt.set(nodeId, v);
+        reg.toId.set(v, nodeId);
       }
-    });
+      let m = reg.mats.get(v);
+      if (!m) {
+        m = new THREE.MeshBasicMaterial({ toneMapped: false });
+        // Treat the value as already-linear so output bytes equal the encoded int exactly.
+        m.color.setHex(v, THREE.LinearSRGBColorSpace);
+        reg.mats.set(v, m);
+      }
+      return m;
+    },
+    [reg]
+  );
 
-    const prevTarget = gl.getRenderTarget();
-    const prevClear = new THREE.Color();
-    gl.getClearColor(prevClear);
-    const prevAlpha = gl.getClearAlpha();
+  const pickAt = useCallback(
+    (clientX: number, clientY: number): string | null => {
+      const rect = gl.domElement.getBoundingClientRect();
+      const px = clientX - rect.left;
+      const py = clientY - rect.top;
+      if (px < 0 || py < 0 || px >= rect.width || py >= rect.height) return null;
 
-    camera.setViewOffset(rect.width, rect.height, px, py, 1, 1);
-    gl.setRenderTarget(target);
-    gl.setClearColor(0x000000, 1);
-    gl.clear();
-    gl.render(scene, camera);
+      // Resolve a node id from the object or any ancestor (roots are tagged).
+      const resolveId = (o: THREE.Object3D): string | null => {
+        let c: THREE.Object3D | null = o;
+        while (c) {
+          const id = c.userData?.pickNodeId as string | undefined;
+          if (id) return id;
+          c = c.parent;
+        }
+        return null;
+      };
 
-    const buf = new Uint8Array(4);
-    gl.readRenderTargetPixels(target, 0, 0, 1, 1, buf);
+      const swapped: Array<[THREE.Mesh, THREE.Material | THREE.Material[] | null, boolean]> = [];
+      scene.traverse((o) => {
+        const mesh = o as THREE.Mesh & {
+          isLine?: boolean;
+          isLineSegments?: boolean;
+          isPoints?: boolean;
+          isSprite?: boolean;
+        };
+        const renderable =
+          mesh.isMesh || mesh.isLine || mesh.isLineSegments || mesh.isPoints || mesh.isSprite;
+        if (!renderable) return;
+        const id = mesh.isMesh ? resolveId(o) : null;
+        if (id) {
+          // selectable solid → render in its unique pick color
+          swapped.push([mesh, mesh.material, mesh.visible]);
+          mesh.material = matFor(id);
+          mesh.visible = true;
+        } else {
+          // non-selectable (gizmo, grid, visible lines…) hidden so it can't
+          // contaminate the single-pixel readback
+          swapped.push([mesh, null, mesh.visible]);
+          mesh.visible = false;
+        }
+      });
 
-    camera.clearViewOffset();
-    gl.setRenderTarget(prevTarget);
-    gl.setClearColor(prevClear, prevAlpha);
-    swapped.forEach(([o, m, v]) => { if (m !== null) o.material = m; o.visible = v; });
+      const prevTarget = gl.getRenderTarget();
+      const prevClear = new THREE.Color();
+      gl.getClearColor(prevClear);
+      const prevAlpha = gl.getClearAlpha();
 
-    const value = (buf[0] << 16) | (buf[1] << 8) | buf[2];
-    return value ? (reg.toId.get(value) ?? null) : null;
-  }, [gl, scene, camera, target, matFor, reg]);
+      camera.setViewOffset(rect.width, rect.height, px, py, 1, 1);
+      gl.setRenderTarget(target);
+      gl.setClearColor(0x000000, 1);
+      gl.clear();
+      gl.render(scene, camera);
+
+      const buf = new Uint8Array(4);
+      gl.readRenderTargetPixels(target, 0, 0, 1, 1, buf);
+
+      camera.clearViewOffset();
+      gl.setRenderTarget(prevTarget);
+      gl.setClearColor(prevClear, prevAlpha);
+      swapped.forEach(([o, m, v]) => {
+        if (m !== null) o.material = m;
+        o.visible = v;
+      });
+
+      const value = (buf[0] << 16) | (buf[1] << 8) | buf[2];
+      return value ? (reg.toId.get(value) ?? null) : null;
+    },
+    [gl, scene, camera, target, matFor, reg]
+  );
 
   useEffect(() => {
     if (!onPick) return;
     const el = gl.domElement;
-    let downX = 0, downY = 0, downBtn = -1;
-    const onDown = (e: PointerEvent) => { downX = e.clientX; downY = e.clientY; downBtn = e.button; };
+    let downX = 0,
+      downY = 0,
+      downBtn = -1;
+    const onDown = (e: PointerEvent) => {
+      downX = e.clientX;
+      downY = e.clientY;
+      downBtn = e.button;
+    };
     const onUp = (e: PointerEvent) => {
       if (downBtn !== 0 || e.button !== 0) return;
       // Ignore drags (camera orbit / gizmo drag) — only a click selects.
       if (Math.hypot(e.clientX - downX, e.clientY - downY) > 5) return;
       const hit = pickAt(e.clientX, e.clientY);
-      // eslint-disable-next-line no-console
-      console.log(`[GEO] gpu-pick client=(${Math.round(e.clientX)},${Math.round(e.clientY)}) -> ${hit ? hit.slice(0, 8) : 'null'}`);
+
+      console.log(
+        `[GEO] gpu-pick client=(${Math.round(e.clientX)},${Math.round(e.clientY)}) -> ${hit ? hit.slice(0, 8) : 'null'}`
+      );
       onPick(hit);
     };
     el.addEventListener('pointerdown', onDown, true);
@@ -2287,7 +2872,11 @@ function SceneContent({
   showBoundingBox?: boolean;
   sceneSettings?: SceneSettings;
   onObjectChange?: (obj: THREE.Object3D) => void;
-  onTransformEnd?: (nodeId: string, mode: 'translate' | 'rotate' | 'scale', value: [number, number, number]) => void;
+  onTransformEnd?: (
+    nodeId: string,
+    mode: 'translate' | 'rotate' | 'scale',
+    value: [number, number, number]
+  ) => void;
   onPlaneClick?: (wx: number, wz: number) => void;
   isDraggingGizmoRef?: MutableRefObject<boolean>;
   addLog?: (msg: string) => void;
@@ -2299,7 +2888,11 @@ function SceneContent({
 }) {
   const selectedNode = selectedNodeId && sceneGraph ? sceneGraph.findNode(selectedNodeId) : null;
   const showGizmo = supportsGizmo(selectedNode?.type);
-  const pointEditActive = !!(geoPointEdit && selectedNodeId && geoPointEdit.nodeId === selectedNodeId);
+  const pointEditActive = !!(
+    geoPointEdit &&
+    selectedNodeId &&
+    geoPointEdit.nodeId === selectedNodeId
+  );
   const presetConfig = CAMERA_PRESETS[cameraPreset];
 
   // Log showGizmo state changes
@@ -2313,18 +2906,32 @@ function SceneContent({
 
   return (
     <>
-      {activeCameraNodeId && sceneGraph
-        ? <ActiveSceneCamera sceneGraph={sceneGraph} activeCameraNodeId={activeCameraNodeId} />
-        : null}
+      {activeCameraNodeId && sceneGraph ? (
+        <ActiveSceneCamera sceneGraph={sceneGraph} activeCameraNodeId={activeCameraNodeId} />
+      ) : null}
       {/* Orbit stays enabled even with a selection/gizmo — TransformControls auto-disables
           it only while a gizmo handle is actively dragged (via its 'dragging-changed').
           Disabling it on mere selection froze the camera ("kamera się blokuje"). */}
-      <OrbitControls makeDefault={!activeCameraNodeId} enabled={!activeCameraNodeId} enableDamping={false} mouseButtons={presetConfig.mouseButtons as Partial<{ LEFT: THREE.MOUSE; MIDDLE: THREE.MOUSE; RIGHT: THREE.MOUSE }>} />
+      <OrbitControls
+        makeDefault={!activeCameraNodeId}
+        enabled={!activeCameraNodeId}
+        enableDamping={false}
+        mouseButtons={
+          presetConfig.mouseButtons as Partial<{
+            LEFT: THREE.MOUSE;
+            MIDDLE: THREE.MOUSE;
+            RIGHT: THREE.MOUSE;
+          }>
+        }
+      />
       {sceneSettings?.backgroundType === 'solid' && (
         <color attach="background" args={[sceneSettings.backgroundColor]} />
       )}
       {sceneSettings?.fogType === 'linear' && (
-        <fog attach="fog" args={[sceneSettings.fogColor, sceneSettings.fogNear, sceneSettings.fogFar]} />
+        <fog
+          attach="fog"
+          args={[sceneSettings.fogColor, sceneSettings.fogNear, sceneSettings.fogFar]}
+        />
       )}
       {sceneSettings?.fogType === 'exp2' && (
         <fogExp2 attach="fog" args={[sceneSettings.fogColor, sceneSettings.fogDensity]} />
@@ -2347,11 +2954,17 @@ function SceneContent({
         </>
       )}
       {showGrid && <gridHelper args={[20, 20, '#444444', '#333333']} />}
-      {(Array.isArray(extraObjects) ? extraObjects : extraObjects ? [extraObjects] : []).map((o) => (
-        <primitive key={o.uuid} object={o} />
-      ))}
+      {(Array.isArray(extraObjects) ? extraObjects : extraObjects ? [extraObjects] : []).map(
+        (o) => (
+          <primitive key={o.uuid} object={o} />
+        )
+      )}
       {showBoundingBox && (selectedNodeId || (selectedNodeIds?.length ?? 0) > 0) && (
-        <SelectionBoxes ids={Array.from(new Set([...(selectedNodeId ? [selectedNodeId] : []), ...(selectedNodeIds ?? [])]))} />
+        <SelectionBoxes
+          ids={Array.from(
+            new Set([...(selectedNodeId ? [selectedNodeId] : []), ...(selectedNodeIds ?? [])])
+          )}
+        />
       )}
       <SceneRenderer
         sceneGraph={sceneGraph}
@@ -2374,22 +2987,31 @@ function SceneContent({
           isDraggingGizmoRef={isDraggingGizmoRef}
           gizmoSize={gizmoSize}
         />
-      ) : showGizmo && sceneGraph && selectedNodeId && (
-        <GizmoControls
-          sceneGraph={sceneGraph}
-          selectedNodeId={selectedNodeId}
-          version={version}
-          transformMode={transformMode}
-          translationSnap={translationSnap}
-          rotationSnap={rotationSnap}
-          onObjectChange={onObjectChange}
-          onTransformEnd={onTransformEnd}
-          isDraggingGizmoRef={isDraggingGizmoRef}
-          addLog={addLog}
-          gizmoSize={gizmoSize}
-        />
+      ) : (
+        showGizmo &&
+        sceneGraph &&
+        selectedNodeId && (
+          <GizmoControls
+            sceneGraph={sceneGraph}
+            selectedNodeId={selectedNodeId}
+            version={version}
+            transformMode={transformMode}
+            translationSnap={translationSnap}
+            rotationSnap={rotationSnap}
+            onObjectChange={onObjectChange}
+            onTransformEnd={onTransformEnd}
+            isDraggingGizmoRef={isDraggingGizmoRef}
+            addLog={addLog}
+            gizmoSize={gizmoSize}
+          />
+        )
       )}
-      <FitCameraEffect sceneGraph={sceneGraph} autoFit={autoFit} fitSceneRef={fitSceneRef} boundsRef={boundsRef} />
+      <FitCameraEffect
+        sceneGraph={sceneGraph}
+        autoFit={autoFit}
+        fitSceneRef={fitSceneRef}
+        boundsRef={boundsRef}
+      />
       <Scene3dDebugProbe />
       {onPlaneClick && <PlacementPlane onPlaneClick={onPlaneClick} />}
       {viewCube ? (
@@ -2397,15 +3019,15 @@ function SceneContent({
           <GizmoViewcube
             font="16px Inter, sans-serif"
             faces={['Right', 'Left', 'Top', 'Bottom', 'Front', 'Back']}
-            color="#3a3f45" hoverColor="#4fc3f7" textColor="#e8e8e8" strokeColor="#22262b"
+            color="#3a3f45"
+            hoverColor="#4fc3f7"
+            textColor="#e8e8e8"
+            strokeColor="#22262b"
           />
         </GizmoHelper>
       ) : showAxesGizmo !== false ? (
         <GizmoHelper alignment="bottom-left" margin={[72, 72]}>
-          <GizmoViewport
-            axisColors={['#e05555', '#55cc55', '#4488ff']}
-            labelColor="white"
-          />
+          <GizmoViewport axisColors={['#e05555', '#55cc55', '#4488ff']} labelColor="white" />
         </GizmoHelper>
       ) : null}
     </>
@@ -2462,15 +3084,18 @@ export function SimpleViewer({
   const pendingSendRef = useRef<string[]>([]);
   const debugSessionRef = useRef(`s${Date.now().toString(36)}`);
 
-  const addLog = useCallback((msg: string) => {
-    if (!debugLog) return;
-    const now = new Date();
-    const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}.${String(now.getMilliseconds()).padStart(3,'0')}`;
-    const line = `${ts} ${msg}`;
-    debugLinesRef.current = [...debugLinesRef.current.slice(-(DEBUG_MAX - 1)), line];
-    pendingSendRef.current.push(`[${debugSessionRef.current}] ${line}`);
-    setDebugVer(v => v + 1);
-  }, [debugLog]);
+  const addLog = useCallback(
+    (msg: string) => {
+      if (!debugLog) return;
+      const now = new Date();
+      const ts = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}`;
+      const line = `${ts} ${msg}`;
+      debugLinesRef.current = [...debugLinesRef.current.slice(-(DEBUG_MAX - 1)), line];
+      pendingSendRef.current.push(`[${debugSessionRef.current}] ${line}`);
+      setDebugVer((v) => v + 1);
+    },
+    [debugLog]
+  );
 
   // Auto-flush pending lines to cad-backend every 2s
   useEffect(() => {
@@ -2482,7 +3107,9 @@ export function SimpleViewer({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lines }),
-      }).catch(() => { /* ignore network errors */ });
+      }).catch(() => {
+        /* ignore network errors */
+      });
     }, 2000);
     return () => clearInterval(id);
   }, [debugLog]);
@@ -2507,31 +3134,39 @@ export function SimpleViewer({
   // Pointers currently in contact (between pointerdown and pointerup/cancel).
   // A pointer in this set is dragging and its moves must NEVER be filtered.
   const activePointerDownRef = useRef<Set<number>>(new Set());
-  const filterPenHover = useCallback((e: PointerEvent) => {
-    // Never touch a pointer that is currently down — that's a drag, not hover.
-    // This is the authoritative guard; buttons/pressure are only a fallback for
-    // the very first move that may arrive before our pointerdown tracker, since
-    // some digitizers report a tip-down drag as buttons===0 AND pressure===0.
-    if (activePointerDownRef.current.has(e.pointerId)) return;
-    // True hover = tip NOT touching the surface. Some digitizers report a
-    // tip-down drag as buttons===0 with pressure>0 (buttons is unreliable for
-    // pens), so requiring pressure===0 as well is essential — otherwise this
-    // filter stopImmediatePropagation()s every move during a pen drag and
-    // OrbitControls never sees it (camera rotation silently dies with a pen).
-    if (e.pointerType === 'pen' && e.buttons === 0 && e.pressure === 0 && !isDraggingGizmoRef.current) {
-      hoverBlockCountRef.current++;
-      // Only show every 20th hover-blocked event in the overlay, never send to server
-      if (debugLog && hoverBlockCountRef.current % 20 === 1) {
-        const now = new Date();
-        const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}.${String(now.getMilliseconds()).padStart(3,'0')}`;
-        const line = `${ts} hover blocked ×${hoverBlockCountRef.current}`;
-        debugLinesRef.current = [...debugLinesRef.current.slice(-(DEBUG_MAX - 1)), line];
-        setDebugVer(v => v + 1);
-        // NOT pushed to pendingSendRef — don't flood server buffer
+  const filterPenHover = useCallback(
+    (e: PointerEvent) => {
+      // Never touch a pointer that is currently down — that's a drag, not hover.
+      // This is the authoritative guard; buttons/pressure are only a fallback for
+      // the very first move that may arrive before our pointerdown tracker, since
+      // some digitizers report a tip-down drag as buttons===0 AND pressure===0.
+      if (activePointerDownRef.current.has(e.pointerId)) return;
+      // True hover = tip NOT touching the surface. Some digitizers report a
+      // tip-down drag as buttons===0 with pressure>0 (buttons is unreliable for
+      // pens), so requiring pressure===0 as well is essential — otherwise this
+      // filter stopImmediatePropagation()s every move during a pen drag and
+      // OrbitControls never sees it (camera rotation silently dies with a pen).
+      if (
+        e.pointerType === 'pen' &&
+        e.buttons === 0 &&
+        e.pressure === 0 &&
+        !isDraggingGizmoRef.current
+      ) {
+        hoverBlockCountRef.current++;
+        // Only show every 20th hover-blocked event in the overlay, never send to server
+        if (debugLog && hoverBlockCountRef.current % 20 === 1) {
+          const now = new Date();
+          const ts = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}`;
+          const line = `${ts} hover blocked ×${hoverBlockCountRef.current}`;
+          debugLinesRef.current = [...debugLinesRef.current.slice(-(DEBUG_MAX - 1)), line];
+          setDebugVer((v) => v + 1);
+          // NOT pushed to pendingSendRef — don't flood server buffer
+        }
+        e.stopImmediatePropagation();
       }
-      e.stopImmediatePropagation();
-    }
-  }, [debugLog]);
+    },
+    [debugLog]
+  );
 
   // WebGL context loss/restore — preventDefault on lost is REQUIRED for the browser
   // to later fire 'restored'; without it the viewport stays frozen permanently
@@ -2541,11 +3176,10 @@ export function SimpleViewer({
     const el = glInstance.domElement;
     const onLost = (e: Event) => {
       e.preventDefault();
-      // eslint-disable-next-line no-console
+
       console.warn('[GEO] WebGL context LOST — viewport frozen until restored');
     };
     const onRestored = () => {
-      // eslint-disable-next-line no-console
       console.warn('[GEO] WebGL context RESTORED');
       setDebugVer((v) => v + 1); // nudge a re-render
     };
@@ -2564,8 +3198,9 @@ export function SimpleViewer({
     if (!glInstance) return;
     const el = glInstance.domElement;
     const onDown = (e: PointerEvent) => {
-      // eslint-disable-next-line no-console
-      console.log(`[GEO] RAW down client=(${e.clientX},${e.clientY}) btn=${e.button} type=${e.pointerType}`);
+      console.log(
+        `[GEO] RAW down client=(${e.clientX},${e.clientY}) btn=${e.button} type=${e.pointerType}`
+      );
     };
     el.addEventListener('pointerdown', onDown, true);
     return () => el.removeEventListener('pointerdown', onDown, true);
@@ -2579,16 +3214,20 @@ export function SimpleViewer({
     const onCancel = (e: PointerEvent) => {
       addLog?.(`✕ ${e.pointerType} cancel pid=${e.pointerId}`);
       try {
-        el.dispatchEvent(new PointerEvent('pointerup', {
-          pointerId: e.pointerId,
-          pointerType: e.pointerType,
-          button: 0,
-          clientX: e.clientX,
-          clientY: e.clientY,
-          bubbles: true,
-          cancelable: false,
-        }));
-      } catch { /* ignore */ }
+        el.dispatchEvent(
+          new PointerEvent('pointerup', {
+            pointerId: e.pointerId,
+            pointerType: e.pointerType,
+            button: 0,
+            clientX: e.clientX,
+            clientY: e.clientY,
+            bubbles: true,
+            cancelable: false,
+          })
+        );
+      } catch {
+        /* ignore */
+      }
     };
     el.addEventListener('pointercancel', onCancel);
     return () => el.removeEventListener('pointercancel', onCancel);
@@ -2599,13 +3238,18 @@ export function SimpleViewer({
     if (!glInstance || !debugLog) return;
     const el = glInstance.domElement;
     const onDown = (e: PointerEvent) => {
-      addLog(`↓ ${e.pointerType} btn=${e.button} p=${e.pressure.toFixed(2)} (${e.offsetX.toFixed(0)},${e.offsetY.toFixed(0)})`);
+      addLog(
+        `↓ ${e.pointerType} btn=${e.button} p=${e.pressure.toFixed(2)} (${e.offsetX.toFixed(0)},${e.offsetY.toFixed(0)})`
+      );
     };
     const onUp = (e: PointerEvent) => {
       addLog(`↑ ${e.pointerType} btn=${e.button} p=${e.pressure.toFixed(2)}`);
     };
     const onMove = (e: PointerEvent) => {
-      if (e.pressure > 0) addLog(`→ ${e.pointerType} p=${e.pressure.toFixed(2)} (${e.offsetX.toFixed(0)},${e.offsetY.toFixed(0)})`);
+      if (e.pressure > 0)
+        addLog(
+          `→ ${e.pointerType} p=${e.pressure.toFixed(2)} (${e.offsetX.toFixed(0)},${e.offsetY.toFixed(0)})`
+        );
     };
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointerup', onUp);
@@ -2624,8 +3268,12 @@ export function SimpleViewer({
     if (!glInstance) return;
     const el = glInstance.domElement;
     const set = activePointerDownRef.current;
-    const onDown = (e: PointerEvent) => { set.add(e.pointerId); };
-    const onUp = (e: PointerEvent) => { set.delete(e.pointerId); };
+    const onDown = (e: PointerEvent) => {
+      set.add(e.pointerId);
+    };
+    const onUp = (e: PointerEvent) => {
+      set.delete(e.pointerId);
+    };
     el.addEventListener('pointerdown', onDown, { capture: true });
     el.addEventListener('pointerup', onUp, { capture: true });
     el.addEventListener('pointercancel', onUp, { capture: true });
@@ -2683,11 +3331,15 @@ export function SimpleViewer({
         onPointerMissed={(e) => {
           const drag = isDraggingGizmoRef.current;
           const type = (e as unknown as PointerEvent).pointerType ?? 'mouse';
-          addLog(`miss ${type} drag=${drag} gizmo=${showGizmo} → ${!drag ? 'DESELECT' : 'blocked'}`);
+          addLog(
+            `miss ${type} drag=${drag} gizmo=${showGizmo} → ${!drag ? 'DESELECT' : 'blocked'}`
+          );
           // Deselect is handled by GpuPicker (click-miss → onPick(null)); this path
           // only logs now, since with GPU picking there are no R3F interaction objects.
-          // eslint-disable-next-line no-console
-          console.log(`[GEO] pointerMissed type=${type} client=(${(e as unknown as MouseEvent).clientX},${(e as unknown as MouseEvent).clientY}) drag=${drag}`);
+
+          console.log(
+            `[GEO] pointerMissed type=${type} client=(${(e as unknown as MouseEvent).clientX},${(e as unknown as MouseEvent).clientY}) drag=${drag}`
+          );
         }}
         onCreated={({ gl }) => {
           // Stop the browser turning pen/touch drags into scroll/zoom gestures.
@@ -2750,7 +3402,17 @@ export function SimpleViewer({
             zIndex: 10,
           }}
         >
-          <div style={{ color: '#777', fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 1 }}>Scale</div>
+          <div
+            style={{
+              color: '#777',
+              fontSize: 9,
+              letterSpacing: 1,
+              textTransform: 'uppercase',
+              marginBottom: 1,
+            }}
+          >
+            Scale
+          </div>
           <div>
             <span style={{ color: '#e05555', marginRight: 6 }}>X</span>
             <span ref={scaleXRef}>{selectedNode.scale[0].toFixed(3)}</span>
@@ -2784,21 +3446,58 @@ export function SimpleViewer({
             flexDirection: 'column',
           }}
         >
-          <div style={{ fontFamily: 'monospace', fontSize: 9, color: '#4fc3f7', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2, flexShrink: 0 }}>
+          <div
+            style={{
+              fontFamily: 'monospace',
+              fontSize: 9,
+              color: '#4fc3f7',
+              letterSpacing: 1,
+              textTransform: 'uppercase',
+              marginBottom: 2,
+              flexShrink: 0,
+            }}
+          >
             DEBUG LOG
           </div>
           <div
             ref={debugScrollRef}
-            style={{ overflowY: 'auto', fontFamily: 'monospace', fontSize: 10, lineHeight: '15px', color: '#ccc', wordBreak: 'break-all' }}
+            style={{
+              overflowY: 'auto',
+              fontFamily: 'monospace',
+              fontSize: 10,
+              lineHeight: '15px',
+              color: '#ccc',
+              wordBreak: 'break-all',
+            }}
           >
             {debugLinesRef.current.map((line, i) => (
-              <div key={i} style={{ color: line.includes('DESELECT') ? '#ff7070' : line.includes('blocked') ? '#7fc97f' : line.includes('↓') ? '#ffe082' : '#ccc' }}>
+              <div
+                key={i}
+                style={{
+                  color: line.includes('DESELECT')
+                    ? '#ff7070'
+                    : line.includes('blocked')
+                      ? '#7fc97f'
+                      : line.includes('↓')
+                        ? '#ffe082'
+                        : '#ccc',
+                }}
+              >
                 {line}
               </div>
             ))}
           </div>
-          <div style={{ fontFamily: 'monospace', fontSize: 9, color: '#555', marginTop: 2, flexShrink: 0 }}>
-            selected: {selectedNodeId?.slice(0,8) ?? 'none'} | gizmo: {String(showGizmo)} | drag: {String(isDraggingGizmoRef.current)}
+          <div
+            style={{
+              fontFamily: 'monospace',
+              fontSize: 9,
+              color: '#555',
+              marginTop: 2,
+              flexShrink: 0,
+            }}
+          >
+            selected: {selectedNodeId?.slice(0, 8) ?? 'none'} | gizmo: {String(showGizmo)} | drag:{' '}
+            {String(isDraggingGizmoRef.current)}
           </div>
         </div>
       )}

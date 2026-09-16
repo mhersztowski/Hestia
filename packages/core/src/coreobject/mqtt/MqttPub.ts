@@ -1,5 +1,5 @@
 import { Signal } from '../Signal';
-import { TreeNode } from '../TreeNode';
+import { CoreObject } from '../CoreObject';
 import { MqttConn } from './MqttConn';
 
 /**
@@ -14,7 +14,7 @@ import { MqttConn } from './MqttConn';
  *   pub.publish({ brightness: 80 });
  *   pub.publish('raw string');
  */
-export class MqttPub extends TreeNode {
+export class MqttPub extends CoreObject {
   /** Emitted after each successful publish. */
   readonly published = new Signal<[topic: string]>();
   /** Emitted when publish fails (no connection, not connected, etc.). */
@@ -24,11 +24,7 @@ export class MqttPub extends TreeNode {
   #qos: 0 | 1 | 2;
   #retain: boolean;
 
-  constructor(
-    topic: string,
-    parent?: TreeNode,
-    opts?: { qos?: 0 | 1 | 2; retain?: boolean },
-  ) {
+  constructor(topic: string, parent?: CoreObject, opts?: { qos?: 0 | 1 | 2; retain?: boolean }) {
     super(parent, 'MqttPub');
     this.#topic = topic;
     this.#qos = opts?.qos ?? 0;
@@ -71,8 +67,7 @@ export class MqttPub extends TreeNode {
       this.error.emit(new Error('MqttPub: not connected'));
       return;
     }
-    const body =
-      typeof payload === 'string' ? payload : JSON.stringify(payload);
+    const body = typeof payload === 'string' ? payload : JSON.stringify(payload);
     try {
       conn.publish(this.#topic, body, { qos: this.#qos, retain: this.#retain });
       this.published.emit(this.#topic);

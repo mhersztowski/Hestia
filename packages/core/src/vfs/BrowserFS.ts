@@ -92,7 +92,7 @@ export class BrowserFS implements FileSystemProvider {
     const name = basename(p);
 
     // Check if file exists
-    let exists = false;
+    let exists: boolean;
     try {
       const handle = await this.resolveHandle(p);
       if (handle.kind === 'directory') throw VfsError.isADirectory(p);
@@ -116,10 +116,12 @@ export class BrowserFS implements FileSystemProvider {
     await writable.write(content as unknown as ArrayBuffer);
     await writable.close();
 
-    this.emitter.fire([{
-      type: exists ? FileChangeType.Changed : FileChangeType.Created,
-      path: p,
-    }]);
+    this.emitter.fire([
+      {
+        type: exists ? FileChangeType.Changed : FileChangeType.Created,
+        path: p,
+      },
+    ]);
   }
 
   async delete(path: string, options?: DeleteOptions): Promise<void> {
@@ -153,7 +155,9 @@ export class BrowserFS implements FileSystemProvider {
     try {
       await this.resolveHandle(np);
       targetExists = true;
-    } catch { /* target doesn't exist — OK */ }
+    } catch {
+      /* target doesn't exist — OK */
+    }
 
     if (targetExists && !options?.overwrite) throw VfsError.fileExists(np);
 

@@ -52,34 +52,56 @@ const FileNodeView: React.FC<NodeViewProps> = ({ node, editor, updateAttributes 
           const res = await readFile(p);
           if (res && typeof res.content === 'string') {
             if (alive) {
-              try { mdEnv.set(env, JSON.parse(res.content)); }
-              catch (pe) { console.warn(`[mdenv] env "${env}": "${p}" is not valid JSON:`, pe); }
+              try {
+                mdEnv.set(env, JSON.parse(res.content));
+              } catch (pe) {
+                console.warn(`[mdenv] env "${env}": "${p}" is not valid JSON:`, pe);
+              }
             }
             return; // file existed & was read — don't fall through to the sibling
           }
-        } catch (e) { lastErr = e; }
+        } catch (e) {
+          lastErr = e;
+        }
       }
       // Nothing readable at any candidate — leave env unset but log for diagnosis.
-      // eslint-disable-next-line no-console
-      console.warn(`[mdenv] failed to load env "${env}" from ${candidates.map(c => `"${c}"`).join(' / ')}:`, lastErr);
+
+      console.warn(
+        `[mdenv] failed to load env "${env}" from ${candidates.map((c) => `"${c}"`).join(' / ')}:`,
+        lastErr
+      );
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [path, env, format, readFile, mdEnv]);
 
   return (
     <NodeViewWrapper as="span" className="md-fileref">
       <Box component="span" className="md-fileref-chip" contentEditable={false}>
         <InsertDriveFileOutlinedIcon className="md-fileref-icon" sx={{ fontSize: 15 }} />
-        <a href={path} data-wikilink="true" className="md-fileref-name" title={path}>{basename(path)}</a>
+        <a href={path} data-wikilink="true" className="md-fileref-name" title={path}>
+          {basename(path)}
+        </a>
         {editor.isEditable && (
           <>
             <Tooltip title="Otwórz">
-              <IconButton size="small" component="a" href={path} {...{ 'data-wikilink': 'true' }} className="md-fileref-btn">
+              <IconButton
+                size="small"
+                component="a"
+                href={path}
+                {...{ 'data-wikilink': 'true' }}
+                className="md-fileref-btn"
+              >
                 <LaunchIcon sx={{ fontSize: 14 }} />
               </IconButton>
             </Tooltip>
             <Tooltip title="Opcje">
-              <IconButton size="small" className="md-fileref-btn" onClick={(e) => setAnchor(e.currentTarget)}>
+              <IconButton
+                size="small"
+                className="md-fileref-btn"
+                onClick={(e) => setAnchor(e.currentTarget)}
+              >
                 <SettingsIcon sx={{ fontSize: 14 }} />
               </IconButton>
             </Tooltip>
@@ -94,9 +116,15 @@ const FileNodeView: React.FC<NodeViewProps> = ({ node, editor, updateAttributes 
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Box sx={{ p: 1.5, width: 300 }} contentEditable={false}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>Opcje pliku</Typography>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Opcje pliku
+          </Typography>
           <TextField
-            select fullWidth size="small" label="Format" value={format}
+            select
+            fullWidth
+            size="small"
+            label="Format"
+            value={format}
             onChange={(e) => updateAttributes({ format: e.target.value })}
             sx={{ mb: 1.5 }}
           >
@@ -105,7 +133,9 @@ const FileNodeView: React.FC<NodeViewProps> = ({ node, editor, updateAttributes 
           </TextField>
           {format === 'json' && (
             <TextField
-              fullWidth size="small" label="Zmienna env (dane pliku)"
+              fullWidth
+              size="small"
+              label="Zmienna env (dane pliku)"
               placeholder="np. config"
               value={env}
               onChange={(e) => updateAttributes({ env: e.target.value.replace(/[^\w]/g, '') })}
@@ -127,15 +157,33 @@ export const FileRef = Node.create({
 
   addAttributes() {
     return {
-      path: { default: '', parseHTML: (el) => el.getAttribute('data-path') || '', renderHTML: (a) => ({ 'data-path': a.path }) },
-      env: { default: '', parseHTML: (el) => el.getAttribute('data-env') || '', renderHTML: (a) => (a.env ? { 'data-env': a.env } : {}) },
-      format: { default: '', parseHTML: (el) => el.getAttribute('data-format') || '', renderHTML: (a) => (a.format ? { 'data-format': a.format } : {}) },
+      path: {
+        default: '',
+        parseHTML: (el) => el.getAttribute('data-path') || '',
+        renderHTML: (a) => ({ 'data-path': a.path }),
+      },
+      env: {
+        default: '',
+        parseHTML: (el) => el.getAttribute('data-env') || '',
+        renderHTML: (a) => (a.env ? { 'data-env': a.env } : {}),
+      },
+      format: {
+        default: '',
+        parseHTML: (el) => el.getAttribute('data-format') || '',
+        renderHTML: (a) => (a.format ? { 'data-format': a.format } : {}),
+      },
     };
   },
 
-  parseHTML() { return [{ tag: 'span[data-type="file-ref"]' }]; },
-  renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes(HTMLAttributes, { 'data-type': 'file-ref' })]; },
-  addNodeView() { return ReactNodeViewRenderer(FileNodeView); },
+  parseHTML() {
+    return [{ tag: 'span[data-type="file-ref"]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['span', mergeAttributes(HTMLAttributes, { 'data-type': 'file-ref' })];
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(FileNodeView);
+  },
 });
 
 export default FileRef;

@@ -64,5 +64,5 @@ export const WordCountPluginV2 = defineEditorPlugin(
   () => {
     // All disposables (statusItem, commands, subscriptions) are automatically
     // cleaned up by the PluginRegistry via api._disposeAll().
-  },
+  }
 );

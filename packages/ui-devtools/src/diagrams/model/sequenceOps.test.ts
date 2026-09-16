@@ -9,8 +9,18 @@
 import { describe, it, expect } from 'vitest';
 import { mermaidFormat } from '../formats/mermaid';
 import {
-  insertStep, insertIntoSection, removeStep, updateStep, moveStep, newBlock, addSection,
-  addParticipant, updateParticipant, renameParticipant, removeParticipant, setAutonumber,
+  insertStep,
+  insertIntoSection,
+  removeStep,
+  updateStep,
+  moveStep,
+  newBlock,
+  addSection,
+  addParticipant,
+  updateParticipant,
+  renameParticipant,
+  removeParticipant,
+  setAutonumber,
 } from './sequenceOps';
 import { isBlock, type SequenceBlock, type SequenceMessage } from './sequence';
 import type { DiagramDocument } from './diagram';
@@ -18,8 +28,13 @@ import type { DiagramDocument } from './diagram';
 const parse = (text: string) => mermaidFormat.parse(text).document;
 const zapis = (doc: DiagramDocument) => mermaidFormat.serialize(doc);
 const kroki = (doc: DiagramDocument) => doc.sequence!.steps;
-const wiadomosc = (from: string, to: string, text: string): SequenceMessage =>
-  ({ kind: 'message', from, to, arrow: 'solidArrow', text });
+const wiadomosc = (from: string, to: string, text: string): SequenceMessage => ({
+  kind: 'message',
+  from,
+  to,
+  arrow: 'solidArrow',
+  text,
+});
 
 const PROSTY = 'sequenceDiagram\n    A->>B: raz\n    B->>A: dwa';
 const ZAGNIEZDZONY = [
@@ -62,7 +77,9 @@ describe('operacje sięgają w głąb zagnieżdżenia', () => {
   const SCIEZKA_W_ELSE = [0, 0, 0, 1, 0];
 
   it('zmienia treść kroku w sekcji `else`', () => {
-    const after = updateStep(parse(ZAGNIEZDZONY), SCIEZKA_W_ELSE, { text: 'zmienione' } as Partial<SequenceMessage>);
+    const after = updateStep(parse(ZAGNIEZDZONY), SCIEZKA_W_ELSE, {
+      text: 'zmienione',
+    } as Partial<SequenceMessage>);
     expect(zapis(after)).toContain('A->>B: zmienione');
     expect(zapis(after)).toContain('A->>B: tak');
   });
@@ -75,7 +92,9 @@ describe('operacje sięgają w głąb zagnieżdżenia', () => {
   });
 
   it('zagnieżdżenie przeżywa operację', () => {
-    const after = updateStep(parse(ZAGNIEZDZONY), SCIEZKA_W_ELSE, { text: 'x' } as Partial<SequenceMessage>);
+    const after = updateStep(parse(ZAGNIEZDZONY), SCIEZKA_W_ELSE, {
+      text: 'x',
+    } as Partial<SequenceMessage>);
     const loop = kroki(after)[0] as SequenceBlock;
     expect(isBlock(loop.sections[0].steps[0])).toBe(true);
   });
@@ -93,7 +112,9 @@ describe('kolejność', () => {
   });
 
   it('kolejność w zapisie odpowiada kolejności kroków', () => {
-    const lines = zapis(moveStep(parse(PROSTY), [1], -1)).split('\n').map((l) => l.trim());
+    const lines = zapis(moveStep(parse(PROSTY), [1], -1))
+      .split('\n')
+      .map((l) => l.trim());
     expect(lines.indexOf('B->>A: dwa')).toBeLessThan(lines.indexOf('A->>B: raz'));
   });
 });

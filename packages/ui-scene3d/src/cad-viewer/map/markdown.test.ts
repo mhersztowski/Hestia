@@ -18,7 +18,7 @@ describe('renderMarkdown', () => {
 
   it('renders links and images with safe attributes', () => {
     expect(renderMarkdown('[t](http://x)')).toBe(
-      '<p><a href="http://x" target="_blank" rel="noopener noreferrer">t</a></p>',
+      '<p><a href="http://x" target="_blank" rel="noopener noreferrer">t</a></p>'
     );
     expect(renderMarkdown('![alt](http://img)')).toBe('<p><img alt="alt" src="http://img" /></p>');
   });

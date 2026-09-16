@@ -10,12 +10,21 @@ import { computeRequest, handleWorkerMessage, modelFromSource, restoreResult } f
 const WAHADLO = {
   kind: 'graph' as const,
   formulas: [
-    { id: 'ode', body: [
-      '@ode', '@state theta, omega', '@d theta = \\omega',
-      '@d omega = -\\frac{g}{L}\\sin(\\theta)', '@init theta = \\theta_0, omega = 0',
-      '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s',
-    ].join('\n') },
-    { id: 'okres', body: ['T = 2\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s, L: m, g: m/s^2'].join('\n') },
+    {
+      id: 'ode',
+      body: [
+        '@ode',
+        '@state theta, omega',
+        '@d theta = \\omega',
+        '@d omega = -\\frac{g}{L}\\sin(\\theta)',
+        '@init theta = \\theta_0, omega = 0',
+        '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s',
+      ].join('\n'),
+    },
+    {
+      id: 'okres',
+      body: ['T = 2\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s, L: m, g: m/s^2'].join('\n'),
+    },
   ],
 };
 
@@ -100,7 +109,11 @@ describe('przenoszenie wyniku przez granicę wątku', () => {
     // `trajectory.value()` przestałoby istnieć dokładnie tam, gdzie animacja
     // go potrzebuje.
     const response = computeRequest({
-      id: 1, source: WAHADLO, values: { L: 1, g: 9.81, theta_0: 0.2 }, tSpan: [0, 2], dt: 0.005,
+      id: 1,
+      source: WAHADLO,
+      values: { L: 1, g: 9.81, theta_0: 0.2 },
+      tSpan: [0, 2],
+      dt: 0.005,
     });
 
     const klon = JSON.parse(JSON.stringify(response));
@@ -112,7 +125,13 @@ describe('przenoszenie wyniku przez granicę wątku', () => {
   });
 
   it('model bez trajektorii nie udaje, że ją ma', () => {
-    const response = computeRequest({ id: 1, source: SKRYPT, values: { a: 2 }, tSpan: [0, 3], dt: 0.01 });
+    const response = computeRequest({
+      id: 1,
+      source: SKRYPT,
+      values: { a: 2 },
+      tSpan: [0, 3],
+      dt: 0.01,
+    });
     expect(response.trajectory).toBeUndefined();
     expect(restoreResult(response).trajectory).toBeUndefined();
   });
@@ -121,7 +140,11 @@ describe('przenoszenie wyniku przez granicę wątku', () => {
     // To jest dokładnie to, co robi `postMessage` — jeśli w wyniku zostanie
     // funkcja albo klasa, klonowanie rzuci wyjątek.
     const response = computeRequest({
-      id: 1, source: WAHADLO, values: { L: 1, g: 9.81, theta_0: 0.1 }, tSpan: [0, 1], dt: 0.01,
+      id: 1,
+      source: WAHADLO,
+      values: { L: 1, g: 9.81, theta_0: 0.1 },
+      tSpan: [0, 1],
+      dt: 0.01,
     });
     expect(() => structuredClone(response)).not.toThrow();
   });
@@ -130,7 +153,11 @@ describe('przenoszenie wyniku przez granicę wątku', () => {
 describe('obsługa po stronie workera', () => {
   it('sprowadza się do jednego wywołania', () => {
     const response = handleWorkerMessage({
-      id: 3, source: SKRYPT, values: { a: 4 }, tSpan: [0, 2], dt: 0.01,
+      id: 3,
+      source: SKRYPT,
+      values: { a: 4 },
+      tSpan: [0, 2],
+      dt: 0.01,
     });
     expect(response.id).toBe(3);
     expect(response.scalars.droga).toBeCloseTo(8, 6);

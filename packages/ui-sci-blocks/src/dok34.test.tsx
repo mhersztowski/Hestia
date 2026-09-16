@@ -5,27 +5,32 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-4-predkosc-chwilowa.md';
-const pliki = [DOK, '3-3-predkosc-srednia.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-3-predkosc-srednia.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 
 describe('3-4 w czytniku', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
 
   it('dwa wzory numerowane, oba jako relacje', () => {
     const d = index.documents.find((x) => x.path === DOK);
-    expect(d?.formulas.map((f) => [f.id, f.kind]))
-      .toEqual([['rh1-3-eq2', 'relation'], ['rh1-3-eq3', 'relation']]);
+    expect(d?.formulas.map((f) => [f.id, f.kind])).toEqual([
+      ['rh1-3-eq2', 'relation'],
+      ['rh1-3-eq3', 'relation'],
+    ]);
     for (const f of d!.formulas) expect(f.issues, f.id).toEqual([]);
   });
 
@@ -36,9 +41,13 @@ describe('3-4 w czytniku', () => {
    * rodzaju nie wypadła przy jakiejś późniejszej poprawce.
    */
   it('(3-3) bez @relation cicho staje się wyrażeniem do policzenia', () => {
-    const bezRelacji = bodies[DOK].replace(/```formula:rh1-3-eq3\n@relation\n/, '```formula:rh1-3-eq3\n');
-    const f = buildIndex([{ path: DOK, markdown: bezRelacji }]).documents[0]
-      .formulas.find((x) => x.id === 'rh1-3-eq3')!;
+    const bezRelacji = bodies[DOK].replace(
+      /```formula:rh1-3-eq3\n@relation\n/,
+      '```formula:rh1-3-eq3\n'
+    );
+    const f = buildIndex([{ path: DOK, markdown: bezRelacji }]).documents[0].formulas.find(
+      (x) => x.id === 'rh1-3-eq3'
+    )!;
     expect(f.kind).not.toBe('relation');
     expect(f.issues).toEqual([]); // nikt nie ostrzeże — dlatego deklarujemy jawnie
   });
@@ -46,7 +55,9 @@ describe('3-4 w czytniku', () => {
   // Granica `v = lim Δr/Δt` jest w druku wyświetlona, ale nie ma numeru na
   // marginesie, więc nie ma z czego zrobić identyfikatora — zostaje LaTeX-em.
   it('wzór bez numeru nie dostaje identyfikatora', () => {
-    expect(bodies[DOK]).toContain('$$\\mathbf{v} = \\lim_{\\Delta t \\to 0} \\frac{\\Delta\\mathbf{r}}{\\Delta t}.$$');
+    expect(bodies[DOK]).toContain(
+      '$$\\mathbf{v} = \\lim_{\\Delta t \\to 0} \\frac{\\Delta\\mathbf{r}}{\\Delta t}.$$'
+    );
     expect(index.documents.find((x) => x.path === DOK)?.formulas).toHaveLength(2);
   });
 
@@ -58,7 +69,9 @@ describe('3-4 w czytniku', () => {
   // Rys. 3-2 mieszka w 3-3 — odsyłacz przez granicę pliku jest sednem indeksu.
   it('odsyłacz do rys. 3-2 trafia do dokumentu 3-3', () => {
     const cel = resolveReference(
-      'rh1-3-rys2', { anchors: index.anchors, formulaHome: index.formulaHome }, DOK,
+      'rh1-3-rys2',
+      { anchors: index.anchors, formulaHome: index.formulaHome },
+      DOK
     );
     expect(cel.found).toBe(true);
     expect(cel.sameDocument).toBe(false);

@@ -17,8 +17,26 @@ type Token =
   | { t: 'op'; v: string };
 
 const OPERATORS = [
-  '<=', '>=', '==', '!=', '&&', '||',
-  '+', '-', '*', '/', '%', '^', '(', ')', ',', '<', '>', '?', ':', '!',
+  '<=',
+  '>=',
+  '==',
+  '!=',
+  '&&',
+  '||',
+  '+',
+  '-',
+  '*',
+  '/',
+  '%',
+  '^',
+  '(',
+  ')',
+  ',',
+  '<',
+  '>',
+  '?',
+  ':',
+  '!',
 ];
 
 export class ExprError extends Error {}
@@ -28,7 +46,10 @@ function tokenize(src: string): Token[] {
   let i = 0;
   while (i < src.length) {
     const c = src[i];
-    if (/\s/.test(c)) { i++; continue; }
+    if (/\s/.test(c)) {
+      i++;
+      continue;
+    }
     if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(src[i + 1] ?? ''))) {
       const m = /^[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?/.exec(src.slice(i));
       if (!m) throw new ExprError(`Nieprawidłowa liczba na pozycji ${i}`);
@@ -40,7 +61,11 @@ function tokenize(src: string): Token[] {
       let j = i + 1;
       let v = '';
       while (j < src.length && src[j] !== c) {
-        if (src[j] === '\\') { v += src[j + 1] ?? ''; j += 2; continue; }
+        if (src[j] === '\\') {
+          v += src[j + 1] ?? '';
+          j += 2;
+          continue;
+        }
         v += src[j];
         j++;
       }
@@ -55,7 +80,7 @@ function tokenize(src: string): Token[] {
       i += m[0].length;
       continue;
     }
-    const op = OPERATORS.find(o => src.startsWith(o, i));
+    const op = OPERATORS.find((o) => src.startsWith(o, i));
     if (!op) throw new ExprError(`Nieznany znak „${c}” na pozycji ${i}`);
     out.push({ t: 'op', v: op });
     i += op.length;
@@ -74,10 +99,19 @@ type Node =
   | { n: 'call'; name: string; args: Node[] };
 
 const BINARY_PRECEDENCE: Record<string, number> = {
-  '||': 1, '&&': 2,
-  '==': 3, '!=': 3, '<': 4, '>': 4, '<=': 4, '>=': 4,
-  '+': 5, '-': 5,
-  '*': 6, '/': 6, '%': 6,
+  '||': 1,
+  '&&': 2,
+  '==': 3,
+  '!=': 3,
+  '<': 4,
+  '>': 4,
+  '<=': 4,
+  '>=': 4,
+  '+': 5,
+  '-': 5,
+  '*': 6,
+  '/': 6,
+  '%': 6,
   '^': 7,
 };
 
@@ -91,11 +125,16 @@ class Parser {
     return node;
   }
 
-  private peek(): Token | undefined { return this.tokens[this.i]; }
+  private peek(): Token | undefined {
+    return this.tokens[this.i];
+  }
 
   private eatOp(op: string): boolean {
     const t = this.peek();
-    if (t && t.t === 'op' && t.v === op) { this.i++; return true; }
+    if (t && t.t === 'op' && t.v === op) {
+      this.i++;
+      return true;
+    }
     return false;
   }
 
@@ -136,8 +175,14 @@ class Parser {
   private parsePrimary(): Node {
     const t = this.peek();
     if (!t) throw new ExprError('Nieoczekiwany koniec wyrażenia');
-    if (t.t === 'num') { this.i++; return { n: 'lit', v: t.v }; }
-    if (t.t === 'str') { this.i++; return { n: 'lit', v: t.v }; }
+    if (t.t === 'num') {
+      this.i++;
+      return { n: 'lit', v: t.v };
+    }
+    if (t.t === 'str') {
+      this.i++;
+      return { n: 'lit', v: t.v };
+    }
     if (t.t === 'id') {
       this.i++;
       if (t.v === 'true') return { n: 'lit', v: true };
@@ -145,7 +190,9 @@ class Parser {
       if (this.eatOp('(')) {
         const args: Node[] = [];
         if (!this.eatOp(')')) {
-          do { args.push(this.parseExpr(0)); } while (this.eatOp(','));
+          do {
+            args.push(this.parseExpr(0));
+          } while (this.eatOp(','));
           this.expectOp(')');
         }
         return { n: 'call', name: t.v, args };
@@ -170,7 +217,10 @@ export const EXPR_FUNCTIONS: Record<string, (...args: number[]) => number> = {
   abs: Math.abs,
   min: Math.min,
   max: Math.max,
-  round: (x, d = 0) => { const f = 10 ** d; return Math.round(x * f) / f; },
+  round: (x, d = 0) => {
+    const f = 10 ** d;
+    return Math.round(x * f) / f;
+  },
   floor: Math.floor,
   ceil: Math.ceil,
   sqrt: Math.sqrt,
@@ -184,17 +234,17 @@ export const EXPR_FUNCTIONS: Record<string, (...args: number[]) => number> = {
   acos: Math.acos,
   atan: Math.atan,
   atan2: Math.atan2,
-  sind: x => Math.sin(x * DEG),
-  cosd: x => Math.cos(x * DEG),
-  deg: x => x / DEG,
-  rad: x => x * DEG,
+  sind: (x) => Math.sin(x * DEG),
+  cosd: (x) => Math.cos(x * DEG),
+  deg: (x) => x / DEG,
+  rad: (x) => x * DEG,
   clamp: (x, lo, hi) => Math.min(Math.max(x, lo), hi),
   lerp: (a, b, t) => a + (b - a) * t,
   sign: Math.sign,
   mod: (a, b) => ((a % b) + b) % b,
   /** Przybliżona wysokość Słońca [deg] — pomocnicza dla scen terenu. */
   solarElevation: (dayOfYear, hour, lat) => {
-    const decl = 23.45 * Math.sin(((360 / 365) * (dayOfYear - 81)) * DEG);
+    const decl = 23.45 * Math.sin((360 / 365) * (dayOfYear - 81) * DEG);
     const ha = (hour - 12) * 15;
     const s =
       Math.sin(lat * DEG) * Math.sin(decl * DEG) +
@@ -228,11 +278,23 @@ export function exprDeps(code: string): string[] {
       case 'var':
         if (!(node.name in EXPR_CONSTANTS)) seen.add(node.name);
         break;
-      case 'un': walk(node.a); break;
-      case 'bin': walk(node.a); walk(node.b); break;
-      case 'cond': walk(node.c); walk(node.a); walk(node.b); break;
-      case 'call': node.args.forEach(walk); break;
-      default: break;
+      case 'un':
+        walk(node.a);
+        break;
+      case 'bin':
+        walk(node.a);
+        walk(node.b);
+        break;
+      case 'cond':
+        walk(node.c);
+        walk(node.a);
+        walk(node.b);
+        break;
+      case 'call':
+        node.args.forEach(walk);
+        break;
+      default:
+        break;
     }
   };
   try {
@@ -244,7 +306,12 @@ export function exprDeps(code: string): string[] {
 }
 
 export function isValidExpr(code: string): boolean {
-  try { compile(code); return true; } catch { return false; }
+  try {
+    compile(code);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function evalExpr(code: string, scope: Record<string, ExprValue> = {}): ExprValue {
@@ -272,28 +339,43 @@ function evalNode(node: Node, scope: Record<string, ExprValue>): ExprValue {
     case 'call': {
       const fn = EXPR_FUNCTIONS[node.name];
       if (!fn) throw new ExprError(`Nieznana funkcja „${node.name}”`);
-      return fn(...node.args.map(a => num(evalNode(a, scope))));
+      return fn(...node.args.map((a) => num(evalNode(a, scope))));
     }
   }
 }
 
 function evalBin(op: string, a: ExprValue, b: ExprValue): ExprValue {
   switch (op) {
-    case '+': return typeof a === 'string' || typeof b === 'string' ? `${a}${b}` : num(a) + num(b);
-    case '-': return num(a) - num(b);
-    case '*': return num(a) * num(b);
-    case '/': return num(a) / num(b);
-    case '%': return num(a) % num(b);
-    case '^': return num(a) ** num(b);
-    case '==': return a === b;
-    case '!=': return a !== b;
-    case '<': return num(a) < num(b);
-    case '>': return num(a) > num(b);
-    case '<=': return num(a) <= num(b);
-    case '>=': return num(a) >= num(b);
-    case '&&': return truthy(a) ? b : a;
-    case '||': return truthy(a) ? a : b;
-    default: throw new ExprError(`Nieznany operator „${op}”`);
+    case '+':
+      return typeof a === 'string' || typeof b === 'string' ? `${a}${b}` : num(a) + num(b);
+    case '-':
+      return num(a) - num(b);
+    case '*':
+      return num(a) * num(b);
+    case '/':
+      return num(a) / num(b);
+    case '%':
+      return num(a) % num(b);
+    case '^':
+      return num(a) ** num(b);
+    case '==':
+      return a === b;
+    case '!=':
+      return a !== b;
+    case '<':
+      return num(a) < num(b);
+    case '>':
+      return num(a) > num(b);
+    case '<=':
+      return num(a) <= num(b);
+    case '>=':
+      return num(a) >= num(b);
+    case '&&':
+      return truthy(a) ? b : a;
+    case '||':
+      return truthy(a) ? a : b;
+    default:
+      throw new ExprError(`Nieznany operator „${op}”`);
   }
 }
 

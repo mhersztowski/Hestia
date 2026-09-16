@@ -17,35 +17,38 @@ import { DjvuViewContent } from './DjvuView';
 export const VIEWER_EXTENSIONS = ['pdf', 'djvu', 'djv'] as const;
 
 const extensionOf = (name: string) => {
-    const i = name.lastIndexOf('.');
-    return i <= 0 ? '' : name.slice(i + 1).toLowerCase();
+  const i = name.lastIndexOf('.');
+  return i <= 0 ? '' : name.slice(i + 1).toLowerCase();
 };
 
 export interface DriveViewersOptions {
-    /**
-     * Reads a file as bytes. The drive's own store hands out text, so this is
-     * given separately: a PDF read as text is a PDF destroyed.
-     */
-    readBytes: (path: string) => Promise<Uint8Array>;
-    /** Which formats to offer. Both by default. */
-    kinds?: readonly string[];
+  /**
+   * Reads a file as bytes. The drive's own store hands out text, so this is
+   * given separately: a PDF read as text is a PDF destroyed.
+   */
+  readBytes: (path: string) => Promise<Uint8Array>;
+  /** Which formats to offer. Both by default. */
+  kinds?: readonly string[];
 }
 
-export function driveViewers({ readBytes, kinds = VIEWER_EXTENSIONS }: DriveViewersOptions): DriveViewers {
-    const offers = new Set(kinds.map((k) => k.toLowerCase()));
-    return {
-        canView: (file: DriveFileRef) => offers.has(extensionOf(file.name)),
-        render: (file: DriveFileRef): ReactNode => {
-            const ext = extensionOf(file.name);
-            // The page number stays at 1: the drive shows a file, and paging
-            // through it is what the bar inside the viewer is for.
-            const props = {
-                fileKey: file.path,
-                read: () => readBytes(file.path),
-                page: 1,
-                showNavigation: true,
-            };
-            return createElement(ext === 'pdf' ? PdfViewContent : DjvuViewContent, props);
-        },
-    };
+export function driveViewers({
+  readBytes,
+  kinds = VIEWER_EXTENSIONS,
+}: DriveViewersOptions): DriveViewers {
+  const offers = new Set(kinds.map((k) => k.toLowerCase()));
+  return {
+    canView: (file: DriveFileRef) => offers.has(extensionOf(file.name)),
+    render: (file: DriveFileRef): ReactNode => {
+      const ext = extensionOf(file.name);
+      // The page number stays at 1: the drive shows a file, and paging
+      // through it is what the bar inside the viewer is for.
+      const props = {
+        fileKey: file.path,
+        read: () => readBytes(file.path),
+        page: 1,
+        showNavigation: true,
+      };
+      return createElement(ext === 'pdf' ? PdfViewContent : DjvuViewContent, props);
+    },
+  };
 }

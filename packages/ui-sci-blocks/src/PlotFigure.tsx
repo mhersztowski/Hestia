@@ -42,28 +42,29 @@ function probkuj(expression: string, variable: string, from: number, to: number)
 
 export function PlotFigure({ spec, compact }: PlotFigureProps) {
   const panele = useMemo(
-    () => spec.panels.map((panel) => {
-      const krzywe = panel.curves.map((c) => ({
-        ...c,
-        y: probkuj(c.expression, spec.variable, spec.from, spec.to),
-      }));
-      // Skala wspólna dla panelu — inaczej krzywa o połowie amplitudy
-      // wyglądałaby tak samo jak pełna, a to jest właśnie treść rys. 15-6b.
-      const wartosci = krzywe.flatMap((k) => k.y).filter(Number.isFinite);
-      // Zakres bierzemy z danych, a nie symetrycznie wokół zera: energia jest
-      // nieujemna (rys. 15-9), więc oś w połowie wysokości zostawiłaby dolną
-      // połowę pustą i przesunęła krzywe tam, gdzie ich w druku nie ma.
-      const min = Math.min(...wartosci, 0);
-      const max = Math.max(...wartosci, 0);
-      return { panel, krzywe, min, max: max > min ? max : min + 1e-9 };
-    }),
-    [spec],
+    () =>
+      spec.panels.map((panel) => {
+        const krzywe = panel.curves.map((c) => ({
+          ...c,
+          y: probkuj(c.expression, spec.variable, spec.from, spec.to),
+        }));
+        // Skala wspólna dla panelu — inaczej krzywa o połowie amplitudy
+        // wyglądałaby tak samo jak pełna, a to jest właśnie treść rys. 15-6b.
+        const wartosci = krzywe.flatMap((k) => k.y).filter(Number.isFinite);
+        // Zakres bierzemy z danych, a nie symetrycznie wokół zera: energia jest
+        // nieujemna (rys. 15-9), więc oś w połowie wysokości zostawiłaby dolną
+        // połowę pustą i przesunęła krzywe tam, gdzie ich w druku nie ma.
+        const min = Math.min(...wartosci, 0);
+        const max = Math.max(...wartosci, 0);
+        return { panel, krzywe, min, max: max > min ? max : min + 1e-9 };
+      }),
+    [spec]
   );
 
   const W = compact ? 260 : 560;
   const H = compact ? 70 : 150;
   const marginesL = compact ? 18 : 34;
-  const marginesP = compact ? 8 : 74;   // miejsce na podpis krzywej po prawej
+  const marginesP = compact ? 8 : 74; // miejsce na podpis krzywej po prawej
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? 2 : 8 }}>
@@ -83,14 +84,32 @@ export function PlotFigure({ spec, compact }: PlotFigureProps) {
             aria-label={panel.name ? `panel ${panel.name}` : 'wykres'}
           >
             {/* Oś czasu i oś pionowa — bez podziałki, jak w książce. */}
-            <line x1={marginesL} y1={srodek} x2={W - marginesP} y2={srodek} stroke="#0f172a" strokeWidth={1} />
-            <line x1={marginesL} y1={8} x2={marginesL} y2={H - 8} stroke="#0f172a" strokeWidth={1} />
+            <line
+              x1={marginesL}
+              y1={srodek}
+              x2={W - marginesP}
+              y2={srodek}
+              stroke="#0f172a"
+              strokeWidth={1}
+            />
+            <line
+              x1={marginesL}
+              y1={8}
+              x2={marginesL}
+              y2={H - 8}
+              stroke="#0f172a"
+              strokeWidth={1}
+            />
 
             {spec.axisY && !compact && (
-              <text x={marginesL - 6} y={14} fontSize={11} textAnchor="end" fontStyle="italic">{spec.axisY}</text>
+              <text x={marginesL - 6} y={14} fontSize={11} textAnchor="end" fontStyle="italic">
+                {spec.axisY}
+              </text>
             )}
             {spec.axisX && !compact && (
-              <text x={W - marginesP + 6} y={srodek + 4} fontSize={11} fontStyle="italic">{spec.axisX}</text>
+              <text x={W - marginesP + 6} y={srodek + 4} fontSize={11} fontStyle="italic">
+                {spec.axisX}
+              </text>
             )}
 
             {krzywe.map((k) => {
@@ -109,20 +128,23 @@ export function PlotFigure({ spec, compact }: PlotFigureProps) {
               );
             })}
 
-            {!compact && krzywe.map((k, i) => (
-              <text
-                key={`${k.label}-podpis`}
-                x={W - marginesP + 6}
-                y={srodek - 18 + i * 15}
-                fontSize={11}
-                fontStyle="italic"
-              >
-                {k.label}
-              </text>
-            ))}
+            {!compact &&
+              krzywe.map((k, i) => (
+                <text
+                  key={`${k.label}-podpis`}
+                  x={W - marginesP + 6}
+                  y={srodek - 18 + i * 15}
+                  fontSize={11}
+                  fontStyle="italic"
+                >
+                  {k.label}
+                </text>
+              ))}
 
             {panel.name && !compact && (
-              <text x={4} y={H - 6} fontSize={12} fontStyle="italic">{panel.name})</text>
+              <text x={4} y={H - 6} fontSize={12} fontStyle="italic">
+                {panel.name})
+              </text>
             )}
           </svg>
         );

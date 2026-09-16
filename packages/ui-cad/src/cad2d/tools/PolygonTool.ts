@@ -10,17 +10,19 @@ import type { DimensionLabel, PreviewGeometry, Tool, ToolContext } from './types
  */
 export class PolygonTool implements Tool {
   name = 'polygon' as const;
-  private sides = 6;                    // konfigurowane z pod-menu, edytowalne z klawiatury
+  private sides = 6; // konfigurowane z pod-menu, edytowalne z klawiatury
   private center: Point2D | null = null;
   private cursor: Point2D = { x: 0, y: 0 };
-  private lockR: number | null = null;  // the typed radius
+  private lockR: number | null = null; // the typed radius
 
   /** Sets the number of sides, from the submenu or from the keyboard. */
   setSides(n: number): void {
     this.sides = Math.max(3, Math.min(64, Math.round(n)));
   }
 
-  getSides(): number { return this.sides; }
+  getSides(): number {
+    return this.sides;
+  }
 
   private effR(): number {
     if (this.lockR != null) return this.lockR;
@@ -59,15 +61,30 @@ export class PolygonTool implements Tool {
     return [
       {
         id: 'radius',
-        worldX: vs[0].x, worldY: vs[0].y, text: `R: ${r.toFixed(2)}`,
-        offsetX: 22, offsetY: -12, variant: 'primary',
-        editable: true, onEdit: (v: number) => { this.lockR = v; },
+        worldX: vs[0].x,
+        worldY: vs[0].y,
+        text: `R: ${r.toFixed(2)}`,
+        offsetX: 22,
+        offsetY: -12,
+        variant: 'primary',
+        editable: true,
+        onEdit: (v: number) => {
+          this.lockR = v;
+        },
       },
       {
         id: 'sides',
-        worldX: this.center.x, worldY: this.center.y, text: `${this.sides}`,
-        offsetX: 0, offsetY: -18, variant: 'secondary', unit: 'sides',
-        editable: true, onEdit: (v: number) => { this.setSides(v); },
+        worldX: this.center.x,
+        worldY: this.center.y,
+        text: `${this.sides}`,
+        offsetX: 0,
+        offsetY: -18,
+        variant: 'secondary',
+        unit: 'sides',
+        editable: true,
+        onEdit: (v: number) => {
+          this.setSides(v);
+        },
       },
     ];
   }
@@ -90,15 +107,22 @@ export class PolygonTool implements Tool {
 
   private commit(ctx: ToolContext): void {
     const r = this.effR();
-    if (!this.center || r < 0.01) { this.reset(); return; }
+    if (!this.center || r < 0.01) {
+      this.reset();
+      return;
+    }
     const vs = this.vertices(r, this.rot());
     ctx.project.addEntity({
       type: 'polyline',
       points: vs,
       closed: true,
       layerId: ctx.project.layerSystem.getActiveId(),
-      color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-      visible: true, locked: false, extrudeHeight: 0,
+      color: 'bylayer',
+      lineType: 'bylayer',
+      lineWidth: 'bylayer',
+      visible: true,
+      locked: false,
+      extrudeHeight: 0,
     });
     this.reset();
   }

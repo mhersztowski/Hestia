@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { GitHubFS } from './GitHubFS';
 import { FileType, FileChangeType } from './types';
 import { VfsErrorCode } from './errors';
@@ -13,7 +13,13 @@ function mockFetch(responses: Record<string, { status: number; body: unknown }>)
     const entry = responses[key] ?? Object.entries(responses).find(([k]) => key.startsWith(k))?.[1];
 
     if (!entry) {
-      return { ok: false, status: 404, statusText: 'Not Found', json: async () => ({}), text: async () => '' } as Response;
+      return {
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: async () => ({}),
+        text: async () => '',
+      } as Response;
     }
 
     return {
@@ -88,7 +94,15 @@ describe('GitHubFS', () => {
       const fetch = mockFetch({
         'GET https://api.github.com/repos/user/repo/contents/file.txt': {
           status: 200,
-          body: { name: 'file.txt', path: 'file.txt', sha: 'abc', size: 11, type: 'file', content, encoding: 'base64' },
+          body: {
+            name: 'file.txt',
+            path: 'file.txt',
+            sha: 'abc',
+            size: 11,
+            type: 'file',
+            content,
+            encoding: 'base64',
+          },
         },
       });
       const fs = new GitHubFS({ owner: 'user', repo: 'repo', fetch });
@@ -135,22 +149,27 @@ describe('GitHubFS', () => {
       await fs.writeFile!('/new.txt', encodeText('hello'));
 
       // Verify PUT was called with correct body
-      const putCall = fetch.mock.calls.find(c => c[1]?.method === 'PUT')!;
+      const putCall = fetch.mock.calls.find((c) => c[1]?.method === 'PUT')!;
       const body = JSON.parse(putCall[1]!.body as string);
       expect(body.message).toBe('Create new.txt');
       expect(body.branch).toBe('main');
       expect(body.sha).toBeUndefined(); // new file, no SHA
 
-      expect(listener).toHaveBeenCalledWith([
-        { type: FileChangeType.Created, path: '/new.txt' },
-      ]);
+      expect(listener).toHaveBeenCalledWith([{ type: FileChangeType.Created, path: '/new.txt' }]);
     });
 
     it('should update an existing file with SHA', async () => {
       const fetch = mockFetch({
         'GET https://api.github.com/repos/user/repo/contents/existing.txt': {
           status: 200,
-          body: { name: 'existing.txt', sha: 'old-sha', size: 5, type: 'file', content: btoa('old'), encoding: 'base64' },
+          body: {
+            name: 'existing.txt',
+            sha: 'old-sha',
+            size: 5,
+            type: 'file',
+            content: btoa('old'),
+            encoding: 'base64',
+          },
         },
         'PUT https://api.github.com/repos/user/repo/contents/existing.txt': {
           status: 200,
@@ -161,7 +180,7 @@ describe('GitHubFS', () => {
 
       await fs.writeFile!('/existing.txt', encodeText('new content'), { overwrite: true });
 
-      const putCall = fetch.mock.calls.find(c => c[1]?.method === 'PUT')!;
+      const putCall = fetch.mock.calls.find((c) => c[1]?.method === 'PUT')!;
       const body = JSON.parse(putCall[1]!.body as string);
       expect(body.sha).toBe('old-sha');
       expect(body.message).toBe('Update existing.txt');
@@ -171,19 +190,28 @@ describe('GitHubFS', () => {
       const fetch = mockFetch({
         'GET https://api.github.com/repos/user/repo/contents/exists.txt': {
           status: 200,
-          body: { name: 'exists.txt', sha: 'sha', size: 5, type: 'file', content: btoa('x'), encoding: 'base64' },
+          body: {
+            name: 'exists.txt',
+            sha: 'sha',
+            size: 5,
+            type: 'file',
+            content: btoa('x'),
+            encoding: 'base64',
+          },
         },
       });
       const fs = new GitHubFS({ owner: 'user', repo: 'repo', token: 'ghp_test', fetch });
 
-      await expect(fs.writeFile!('/exists.txt', encodeText(''), { overwrite: false }))
-        .rejects.toMatchObject({ code: VfsErrorCode.FileExists });
+      await expect(
+        fs.writeFile!('/exists.txt', encodeText(''), { overwrite: false })
+      ).rejects.toMatchObject({ code: VfsErrorCode.FileExists });
     });
 
     it('should throw NoPermissions without token', async () => {
       const fs = new GitHubFS({ owner: 'user', repo: 'repo' });
-      await expect(fs.writeFile!('/f.txt', encodeText('')))
-        .rejects.toMatchObject({ code: VfsErrorCode.NoPermissions });
+      await expect(fs.writeFile!('/f.txt', encodeText(''))).rejects.toMatchObject({
+        code: VfsErrorCode.NoPermissions,
+      });
     });
   });
 
@@ -206,19 +234,18 @@ describe('GitHubFS', () => {
 
       await fs.delete!('/del.txt');
 
-      const delCall = fetch.mock.calls.find(c => c[1]?.method === 'DELETE')!;
+      const delCall = fetch.mock.calls.find((c) => c[1]?.method === 'DELETE')!;
       const body = JSON.parse(delCall[1]!.body as string);
       expect(body.sha).toBe('file-sha');
 
-      expect(listener).toHaveBeenCalledWith([
-        { type: FileChangeType.Deleted, path: '/del.txt' },
-      ]);
+      expect(listener).toHaveBeenCalledWith([{ type: FileChangeType.Deleted, path: '/del.txt' }]);
     });
 
     it('should throw NoPermissions without token', async () => {
       const fs = new GitHubFS({ owner: 'user', repo: 'repo' });
-      await expect(fs.delete!('/f.txt'))
-        .rejects.toMatchObject({ code: VfsErrorCode.NoPermissions });
+      await expect(fs.delete!('/f.txt')).rejects.toMatchObject({
+        code: VfsErrorCode.NoPermissions,
+      });
     });
   });
 

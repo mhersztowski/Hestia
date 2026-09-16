@@ -7,25 +7,31 @@ import { suggestViews } from './visualization';
 const modelOf = (...defs: Array<[string, string]>) =>
   compileGraph(buildGraph(defs.map(([id, body]) => parseFormulaBlock(id, body))));
 
-const PENDULUM: [string, string] = ['ode', [
-  '@ode',
-  '@state theta, omega',
-  '@d theta = \\omega',
-  '@d omega = -\\frac{g}{L}\\sin(\\theta)',
-  '@init theta = \\theta_0, omega = 0',
-  '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s',
-].join('\n')];
+const PENDULUM: [string, string] = [
+  'ode',
+  [
+    '@ode',
+    '@state theta, omega',
+    '@d theta = \\omega',
+    '@d omega = -\\frac{g}{L}\\sin(\\theta)',
+    '@init theta = \\theta_0, omega = 0',
+    '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s',
+  ].join('\n'),
+];
 
-const PROJECTILE: [string, string] = ['ode', [
-  '@ode',
-  '@state x, y, vx, vy',
-  '@d x = v_x',
-  '@d y = v_y',
-  '@d vx = 0',
-  '@d vy = -g',
-  '@init x = 0, y = 0, vx = v_0, vy = v_0',
-  '@vars g: m/s^2, x: m, y: m, vx: m/s, vy: m/s, v_0: m/s',
-].join('\n')];
+const PROJECTILE: [string, string] = [
+  'ode',
+  [
+    '@ode',
+    '@state x, y, vx, vy',
+    '@d x = v_x',
+    '@d y = v_y',
+    '@d vx = 0',
+    '@d vy = -g',
+    '@init x = 0, y = 0, vx = v_0, vy = v_0',
+    '@vars g: m/s^2, x: m, y: m, vx: m/s, vy: m/s, v_0: m/s',
+  ].join('\n'),
+];
 
 describe('widok wynika z rodzaju wielkości, nie z nazwy zjawiska', () => {
   it('zmienna kątowa i długość dają widok ramienia obrotowego', () => {
@@ -54,43 +60,67 @@ describe('widok wynika z rodzaju wielkości, nie z nazwy zjawiska', () => {
   });
 
   it('model bez dynamiki dostaje same wartości', () => {
-    const views = suggestViews(modelOf(['t', ['T = 2\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s, L: m, g: m/s^2'].join('\n')]));
+    const views = suggestViews(
+      modelOf(['t', ['T = 2\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s, L: m, g: m/s^2'].join('\n')])
+    );
     expect(views.map((v) => v.kind)).toEqual(['scalars']);
   });
 
   it('wielkości skalarne pojawiają się obok wykresu, gdy są', () => {
-    const views = suggestViews(modelOf(PENDULUM, ['t', ['T = 2\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s'].join('\n')]));
+    const views = suggestViews(
+      modelOf(PENDULUM, ['t', ['T = 2\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s'].join('\n')])
+    );
     expect(views.some((v) => v.kind === 'scalars')).toBe(true);
   });
 });
 
 describe('trzeci wymiar', () => {
   it('trzy zmienne o wymiarze długości dają tor w przestrzeni', () => {
-    const orbit = modelOf(['ode', [
-      '@ode', '@state x, y, z, v_x, v_y, v_z',
-      '@d x = v_x', '@d y = v_y', '@d z = v_z',
-      '@d v_x = -x', '@d v_y = -y', '@d v_z = -z',
-      '@init x = 1, y = 0, z = 0, v_x = 0, v_y = 1, v_z = 0',
-      '@vars x: m, y: m, z: m, v_x: m/s, v_y: m/s, v_z: m/s',
-    ].join('\n')]);
+    const orbit = modelOf([
+      'ode',
+      [
+        '@ode',
+        '@state x, y, z, v_x, v_y, v_z',
+        '@d x = v_x',
+        '@d y = v_y',
+        '@d z = v_z',
+        '@d v_x = -x',
+        '@d v_y = -y',
+        '@d v_z = -z',
+        '@init x = 1, y = 0, z = 0, v_x = 0, v_y = 1, v_z = 0',
+        '@vars x: m, y: m, z: m, v_x: m/s, v_y: m/s, v_z: m/s',
+      ].join('\n'),
+    ]);
 
-    expect(suggestViews(orbit).find((v) => v.kind === 'path3d')).toMatchObject({ x: 'x', y: 'y', z: 'z' });
+    expect(suggestViews(orbit).find((v) => v.kind === 'path3d')).toMatchObject({
+      x: 'x',
+      y: 'y',
+      z: 'z',
+    });
     expect(suggestViews(orbit).some((v) => v.kind === 'path2d')).toBe(false);
   });
 
   it('układ bezwymiarowy o trzech zmiennych też dostaje tor 3D', () => {
     // Lorenz nie ma jednostek, ale jego wykres w przestrzeni jest sednem.
-    const lorenz = modelOf(['ode', [
-      '@ode', '@state x, y, z',
-      '@d x = \\sigma \\cdot (y - x)',
-      '@d y = x \\cdot (\\rho - z) - y',
-      '@d z = x \\cdot y - \\beta \\cdot z',
-      '@init x = 1, y = 1, z = 1',
-      '@vars x: 1, y: 1, z: 1, sigma: 1, rho: 1, beta: 1',
-    ].join('\n')]);
+    const lorenz = modelOf([
+      'ode',
+      [
+        '@ode',
+        '@state x, y, z',
+        '@d x = \\sigma \\cdot (y - x)',
+        '@d y = x \\cdot (\\rho - z) - y',
+        '@d z = x \\cdot y - \\beta \\cdot z',
+        '@init x = 1, y = 1, z = 1',
+        '@vars x: 1, y: 1, z: 1, sigma: 1, rho: 1, beta: 1',
+      ].join('\n'),
+    ]);
 
     expect(lorenz.issues).toEqual([]);
-    expect(suggestViews(lorenz).find((v) => v.kind === 'path3d')).toMatchObject({ x: 'x', y: 'y', z: 'z' });
+    expect(suggestViews(lorenz).find((v) => v.kind === 'path3d')).toMatchObject({
+      x: 'x',
+      y: 'y',
+      z: 'z',
+    });
   });
 });
 

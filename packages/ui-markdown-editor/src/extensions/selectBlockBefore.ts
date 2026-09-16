@@ -23,7 +23,10 @@ export interface BlockBeforeTarget {
  *
  * @param typeNames typy bloków objęte tym zachowaniem
  */
-export function blockBeforeCursor(state: EditorState, typeNames: string[]): BlockBeforeTarget | null {
+export function blockBeforeCursor(
+  state: EditorState,
+  typeNames: string[]
+): BlockBeforeTarget | null {
   const { selection, doc } = state;
   if (!selection.empty) return null;
 

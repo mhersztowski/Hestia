@@ -66,8 +66,9 @@ export function suggestViews(model: PhenomenonModel, requested?: string[]): View
   const views: ViewSpec[] = [];
 
   const stateNames = model.observables.filter((o) => o.fromState).map((o) => o.name);
-  const unitOf = (name: string) => model.observables.find((o) => o.name === name)?.unit
-    ?? model.parameters.find((p) => p.name === name)?.unit;
+  const unitOf = (name: string) =>
+    model.observables.find((o) => o.name === name)?.unit ??
+    model.parameters.find((p) => p.name === name)?.unit;
 
   // Ramię obrotowe: kąt jest zmienną stanu, a promień — stałą długością, którą
   // da się pokazać na rysunku.
@@ -82,7 +83,8 @@ export function suggestViews(model: PhenomenonModel, requested?: string[]): View
   const lengths = stateNames.filter((name) => isLength(unitOf(name)));
   const dimensionless = stateNames.filter((name) => !unitOf(name) || unitOf(name) === '1');
 
-  if (lengths.length >= 3) views.push({ kind: 'path3d', x: lengths[0], y: lengths[1], z: lengths[2] });
+  if (lengths.length >= 3)
+    views.push({ kind: 'path3d', x: lengths[0], y: lengths[1], z: lengths[2] });
   else if (lengths.length === 2) views.push({ kind: 'path2d', x: lengths[0], y: lengths[1] });
   else if (dimensionless.length === 3 && dimensionless.length === stateNames.length) {
     views.push({ kind: 'path3d', x: dimensionless[0], y: dimensionless[1], z: dimensionless[2] });

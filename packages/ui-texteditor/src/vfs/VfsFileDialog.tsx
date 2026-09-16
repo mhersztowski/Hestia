@@ -54,33 +54,36 @@ export function VfsFileDialog({
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   // Load directory contents
-  const loadDirectory = useCallback(async (dirPath: string) => {
-    setLoading(true);
-    setError(null);
-    setSelectedFile(null);
-    try {
-      const raw = await provider.readDirectory(dirPath);
-      // Sort: directories first, then files, alphabetically
-      const sorted = [...raw].sort((a, b) => {
-        if (a.type !== b.type) return a.type === FileType.Directory ? -1 : 1;
-        return a.name.localeCompare(b.name);
-      });
-      // Filter files by extension if specified
-      const filtered = extensions
-        ? sorted.filter((e) => {
-            if (e.type === FileType.Directory) return true;
-            return extensions.some((ext) => e.name.toLowerCase().endsWith(ext.toLowerCase()));
-          })
-        : sorted;
-      setEntries(filtered);
-      setCurrentPath(dirPath);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to read directory');
-      setEntries([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [provider, extensions]);
+  const loadDirectory = useCallback(
+    async (dirPath: string) => {
+      setLoading(true);
+      setError(null);
+      setSelectedFile(null);
+      try {
+        const raw = await provider.readDirectory(dirPath);
+        // Sort: directories first, then files, alphabetically
+        const sorted = [...raw].sort((a, b) => {
+          if (a.type !== b.type) return a.type === FileType.Directory ? -1 : 1;
+          return a.name.localeCompare(b.name);
+        });
+        // Filter files by extension if specified
+        const filtered = extensions
+          ? sorted.filter((e) => {
+              if (e.type === FileType.Directory) return true;
+              return extensions.some((ext) => e.name.toLowerCase().endsWith(ext.toLowerCase()));
+            })
+          : sorted;
+        setEntries(filtered);
+        setCurrentPath(dirPath);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to read directory');
+        setEntries([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [provider, extensions]
+  );
 
   // Load initial directory when dialog opens
   useEffect(() => {
@@ -98,9 +101,7 @@ export function VfsFileDialog({
     } else {
       setSelectedFile(entryPath);
       // Set filename from selected file (strip extension for save mode)
-      const name = mode === 'save'
-        ? entry.name.replace(/\.[^.]+$/, '')
-        : entry.name;
+      const name = mode === 'save' ? entry.name.replace(/\.[^.]+$/, '') : entry.name;
       setFileName(name);
     }
   };
@@ -130,15 +131,19 @@ export function VfsFileDialog({
   };
 
   // Build breadcrumb segments
-  const pathSegments = currentPath === '/'
-    ? [{ name: '/', path: '/' }]
-    : [
-        { name: '/', path: '/' },
-        ...currentPath.split('/').filter(Boolean).map((seg, i, arr) => ({
-          name: seg,
-          path: '/' + arr.slice(0, i + 1).join('/'),
-        })),
-      ];
+  const pathSegments =
+    currentPath === '/'
+      ? [{ name: '/', path: '/' }]
+      : [
+          { name: '/', path: '/' },
+          ...currentPath
+            .split('/')
+            .filter(Boolean)
+            .map((seg, i, arr) => ({
+              name: seg,
+              path: '/' + arr.slice(0, i + 1).join('/'),
+            })),
+        ];
 
   const defaultTitle = mode === 'load' ? 'Open File' : 'Save File';
   const confirmLabel = mode === 'load' ? 'Open' : 'Save';
@@ -152,7 +157,9 @@ export function VfsFileDialog({
         <Breadcrumbs sx={{ py: 0.5 }}>
           {pathSegments.map((seg, i) =>
             i === pathSegments.length - 1 ? (
-              <Typography key={seg.path} variant="body2" color="text.primary">{seg.name}</Typography>
+              <Typography key={seg.path} variant="body2" color="text.primary">
+                {seg.name}
+              </Typography>
             ) : (
               <Link
                 key={seg.path}
@@ -163,7 +170,7 @@ export function VfsFileDialog({
               >
                 {seg.name}
               </Link>
-            ),
+            )
           )}
         </Breadcrumbs>
 
@@ -174,19 +181,20 @@ export function VfsFileDialog({
               <CircularProgress size={24} />
             </Box>
           ) : error ? (
-            <Typography color="error" sx={{ p: 2 }}>{error}</Typography>
+            <Typography color="error" sx={{ p: 2 }}>
+              {error}
+            </Typography>
           ) : (
             <List dense disablePadding>
               {currentPath !== '/' && (
                 <ListItemButton onClick={handleNavigateUp}>
-                  <ListItemIcon sx={{ minWidth: 28 }}>
-                    {getFileIcon('..', true)}
-                  </ListItemIcon>
+                  <ListItemIcon sx={{ minWidth: 28 }}>{getFileIcon('..', true)}</ListItemIcon>
                   <ListItemText primary=".." />
                 </ListItemButton>
               )}
               {entries.map((entry) => {
-                const entryPath = currentPath === '/' ? `/${entry.name}` : `${currentPath}/${entry.name}`;
+                const entryPath =
+                  currentPath === '/' ? `/${entry.name}` : `${currentPath}/${entry.name}`;
                 const isDir = entry.type === FileType.Directory;
                 return (
                   <ListItemButton
@@ -195,7 +203,9 @@ export function VfsFileDialog({
                     onClick={() => handleEntryClick(entry)}
                     onDoubleClick={() => {
                       if (isDir) return; // single click already navigates dirs
-                      if (mode === 'load') { onSelect(entryPath); }
+                      if (mode === 'load') {
+                        onSelect(entryPath);
+                      }
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 28 }}>
@@ -222,7 +232,9 @@ export function VfsFileDialog({
             fullWidth
             value={fileName}
             onChange={(e) => setFileName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && canConfirm) handleConfirm(); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && canConfirm) handleConfirm();
+            }}
             helperText={extensions ? `Extension: ${extensions.join(', ')}` : undefined}
           />
         )}

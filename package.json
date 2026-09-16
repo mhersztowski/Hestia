@@ -36,6 +36,10 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "pnpm -r run typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "docs": "pnpm docs:api && pnpm docs:full",
     "docs:api": "typedoc --options typedoc.json",
     "docs:api:md": "typedoc --options typedoc.json --out ./docs-site/api/markdown",
@@ -48,11 +52,18 @@
     "clean:deps": "find . -name node_modules -type d -prune -exec rm -rf {} + && echo 'run: pnpm install'"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@vitest/coverage-v8": "^4.0.18",
     "concurrently": "^9.1.2",
+    "eslint": "^9.39.5",
+    "eslint-plugin-check-file": "^3.3.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.6",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.13.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.0",
     "vitest": "^4.0.18"
   },
   "engines": {

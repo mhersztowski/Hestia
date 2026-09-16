@@ -28,7 +28,10 @@ export { periodOf, periodFromCrossings } from './analysis/period';
 export type { PeriodResult } from './analysis/period';
 export { studyConvergence, richardson } from './numeric/convergence';
 export type {
-  ConvergenceReport, ConvergenceOptions, ConvergenceLevel, VariableError,
+  ConvergenceReport,
+  ConvergenceOptions,
+  ConvergenceLevel,
+  VariableError,
 } from './numeric/convergence';
 export { measureInvariant, describeInvariant } from './numeric/invariants';
 export type { InvariantReport, InvariantOptions, InvariantTrend } from './numeric/invariants';
@@ -38,12 +41,22 @@ export type { ParsedQuantity } from './units/quantity';
 export { CONSTANTS, constantValue } from './units/constants';
 export type { PhysicalConstant } from './units/constants';
 
-export { parseFormulaBlock, serializeFormulaBlock, symbolName, FORMULA_FENCE } from './formula/parseFormula';
+export {
+  parseFormulaBlock,
+  serializeFormulaBlock,
+  symbolName,
+  FORMULA_FENCE,
+} from './formula/parseFormula';
 // Katalog dyrektyw — ściąga w edytorze i jedno źródło prawdy o składni bloków.
 export { FORMULA_DIRECTIVES, EXERCISE_DIRECTIVES, suggestDirectives } from './formula/directives';
 export type { DirectiveInfo, DirectiveScope } from './formula/directives';
 export type { FormulaBlock, FormulaKind, FormulaIssue, FormulaEvent } from './formula/parseFormula';
-export { compileExpression, compileCondition, compileComparison, evaluateOnce } from './formula/expression';
+export {
+  compileExpression,
+  compileCondition,
+  compileComparison,
+  evaluateOnce,
+} from './formula/expression';
 export type { CompiledComparison } from './formula/expression';
 export { RESERVED_SYMBOLS, reservedSymbol } from './formula/reservedSymbols';
 export type { ReservedSymbol } from './formula/reservedSymbols';
@@ -58,9 +71,18 @@ export type { ComparisonRun, ComparisonOptions, ComparisonResult } from './graph
 export { suggestViews } from './graph/visualization';
 export { walkthrough, knownAfter } from './graph/walkthrough';
 
-export { parseExerciseBlock, serializeExerciseBlock, EXERCISE_FENCE } from './exercise/parseExercise';
+export {
+  parseExerciseBlock,
+  serializeExerciseBlock,
+  EXERCISE_FENCE,
+} from './exercise/parseExercise';
 export type { ExerciseBlock, GivenRange, AnswerKind } from './exercise/parseExercise';
-export { exerciseVariant, statedVariant, checkNumeric, checkSymbolic } from './exercise/solveExercise';
+export {
+  exerciseVariant,
+  statedVariant,
+  checkNumeric,
+  checkSymbolic,
+} from './exercise/solveExercise';
 export type { ExerciseVariant, CheckResult, CheckVerdict } from './exercise/solveExercise';
 export { buildHints } from './exercise/hints';
 
@@ -75,13 +97,24 @@ export type { ManualModelSpec } from './model/defineModel';
 export { runScript, stripTypes, SCRIPT_API_TYPES } from './model/runScript';
 
 export {
-  computeRequest, handleWorkerMessage, modelFromSource, restoreResult,
+  computeRequest,
+  handleWorkerMessage,
+  modelFromSource,
+  restoreResult,
 } from './worker/protocol';
 export type { ModelSource, ComputeRequest, ComputeResponse } from './worker/protocol';
 
 export {
-  heliocentric, heliocentricDistance, distanceFromEarth, geocentricLongitude,
-  solveKepler, toJulianDate, centuriesSinceJ2000, KEPLER_J2000, BODIES, AU,
+  heliocentric,
+  heliocentricDistance,
+  distanceFromEarth,
+  geocentricLongitude,
+  solveKepler,
+  toJulianDate,
+  centuriesSinceJ2000,
+  KEPLER_J2000,
+  BODIES,
+  AU,
 } from './astro/ephemeris';
 export type { KeplerElements, BodyData, HeliocentricPosition } from './astro/ephemeris';
 export type { ScriptApi, ScriptResult } from './model/runScript';
@@ -97,29 +130,59 @@ export type { TermBlock, TermIssue } from './knowledge/glossary';
 export type { CalloutBlock, CalloutIssue, CalloutKind } from './knowledge/callout';
 export type { LawBlock, LawIssue } from './knowledge/law';
 export {
-  buildIndex, readDocument, parseFrontMatter, learningGraph,
-  allExercises, exercisesFor, documentsByTag,
+  buildIndex,
+  readDocument,
+  parseFrontMatter,
+  learningGraph,
+  allExercises,
+  exercisesFor,
+  documentsByTag,
 } from './knowledge/index';
 export type {
-  KnowledgeIndex, KnowledgeDocument, KnowledgeIssue, DocumentMeta, LearningEdge,
-  Anchor, AnchorKind,
+  KnowledgeIndex,
+  KnowledgeDocument,
+  KnowledgeIssue,
+  DocumentMeta,
+  LearningEdge,
+  Anchor,
+  AnchorKind,
 } from './knowledge/index';
-export { search, layoutKnowledgeGraph, learningOrder, tagCounts, odmiana } from './knowledge/catalog';
 export {
-  parseReferences, resolveReference, splitByReferences, danglingReferences,
+  search,
+  layoutKnowledgeGraph,
+  learningOrder,
+  tagCounts,
+  odmiana,
+} from './knowledge/catalog';
+export {
+  parseReferences,
+  resolveReference,
+  splitByReferences,
+  danglingReferences,
 } from './knowledge/references';
-export type { Reference, ReferenceIndex, ResolvedReference, ReferenceKind, TextPart } from './knowledge/references';
+export type {
+  Reference,
+  ReferenceIndex,
+  ResolvedReference,
+  ReferenceKind,
+  TextPart,
+} from './knowledge/references';
 export { exportSite, pagePath } from './knowledge/exportSite';
 export type { SourceDocument, SiteFile, ExportOptions } from './knowledge/exportSite';
 export { planPack } from './knowledge/packSite';
 export type { PdeSpec } from './formula/parseFormula';
-export {
-  apply, compose, det, eigen, identity, interpolate, inverse, rank,
-} from './linalg/matrix';
+export { apply, compose, det, eigen, identity, interpolate, inverse, rank } from './linalg/matrix';
 export type { Matrix2, Vector2, EigenPair, EigenResult } from './linalg/matrix';
 export {
-  applyM3, composeM3, detM3, eigenM3, identityM3, interpolateM3, inverseM3,
-  kernelBasis, rankM3,
+  applyM3,
+  composeM3,
+  detM3,
+  eigenM3,
+  identityM3,
+  interpolateM3,
+  inverseM3,
+  kernelBasis,
+  rankM3,
 } from './linalg/matrix3';
 export type { Matrix3, Vector3, EigenPair3, EigenResult3 } from './linalg/matrix3';
 export { alignment, pickVector, snapToEigen } from './linalg/interaction';
@@ -149,13 +212,27 @@ export type { PdeModel, PdeResult, PdeFrame } from './pde/grid2d';
 export { emptyProgress, recordAttempt, dueFor, qualityOf, summarize } from './progress/schedule';
 export { markRead, unmarkRead, isRead, readingStats } from './progress/read';
 export {
-  planRevision, defaultRevisionSettings, dueCount, ACTIVITY_KINDS, DAY,
+  planRevision,
+  defaultRevisionSettings,
+  dueCount,
+  ACTIVITY_KINDS,
+  DAY,
 } from './progress/revision';
 export type {
-  ActivityKind, RevisionSettings, RevisionSource, RevisionCandidate,
-  RevisionItem, RevisionPlan, ProgressWithRevision,
+  ActivityKind,
+  RevisionSettings,
+  RevisionSource,
+  RevisionCandidate,
+  RevisionItem,
+  RevisionPlan,
+  ProgressWithRevision,
 } from './progress/revision';
-export { recordSolution, solutionsFor, pruneSolutions, SOLUTION_HISTORY_LIMIT } from './progress/solutions';
+export {
+  recordSolution,
+  solutionsFor,
+  pruneSolutions,
+  SOLUTION_HISTORY_LIMIT,
+} from './progress/solutions';
 export type { Solution, SolutionMode, ProgressWithSolutions } from './progress/solutions';
 export type { ProgressWithReading, ReadMark, ReadingStats } from './progress/read';
 export type { Progress, ProgressItem, Quality, Attempt } from './progress/schedule';
@@ -164,7 +241,12 @@ export type { SearchHit, MatchKind, GraphLayout, GraphNodePosition } from './kno
 export type { Hint } from './exercise/hints';
 export type { WalkthroughStep } from './graph/walkthrough';
 export type { ViewSpec, ViewKind } from './graph/visualization';
-export type { PhenomenonModel, PhenomenonResult, ParamSchema, ObservableDef } from './graph/compileGraph';
+export type {
+  PhenomenonModel,
+  PhenomenonResult,
+  ParamSchema,
+  ObservableDef,
+} from './graph/compileGraph';
 
 // --- wykres interaktywny (SciPlot) ---
 export { splitRelation } from './plot/relation';
@@ -175,14 +257,36 @@ export { sampleSurface } from './plot/surface';
 export type { SurfaceGrid, SurfaceRange } from './plot/surface';
 export type { PlotRowKind, ParsedPlotRow, PlotPoint } from './plot/parseRow';
 export {
-  createPlotDocument, parsePlotDocument, serializePlotDocument,
-  addRow, removeRow, updateRow,
-  DEFAULT_VIEWPORT, DEFAULT_SETTINGS, DEFAULT_SLIDER, ROW_COLORS, PLOT_FORMAT_VERSION,
+  createPlotDocument,
+  parsePlotDocument,
+  serializePlotDocument,
+  addRow,
+  removeRow,
+  updateRow,
+  DEFAULT_VIEWPORT,
+  DEFAULT_SETTINGS,
+  DEFAULT_SLIDER,
+  ROW_COLORS,
+  PLOT_FORMAT_VERSION,
 } from './plot/document';
-export type { PlotDocument, PlotRow, PlotSettings, Viewport, RowStyle, SliderSpec } from './plot/document';
+export type {
+  PlotDocument,
+  PlotRow,
+  PlotSettings,
+  Viewport,
+  RowStyle,
+  SliderSpec,
+} from './plot/document';
 export {
-  worldToScreen, screenToWorld, unitsPerPixel, panByPixels, zoomAt, fitAspect,
-  niceStep, niceTicks, minorStep,
+  worldToScreen,
+  screenToWorld,
+  unitsPerPixel,
+  panByPixels,
+  zoomAt,
+  fitAspect,
+  niceStep,
+  niceTicks,
+  minorStep,
 } from './plot/viewport';
 export type { Size, Point } from './plot/viewport';
 export type { AngularUnit } from './formula/expression';

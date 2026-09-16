@@ -93,7 +93,7 @@ function slopeOf(points: Array<[number, number]>): number {
 export function measureInvariant(
   trajectory: Trajectory,
   evaluate: (state: State, t: number) => number,
-  options: InvariantOptions = {},
+  options: InvariantOptions = {}
 ): InvariantReport {
   const { name = 'niezmiennik', samples = 2000, tolerance = 1e-9 } = options;
   const issues: string[] = [];
@@ -104,7 +104,8 @@ export function measureInvariant(
   const all = trajectory.samples;
   const stride = Math.max(1, Math.ceil(all.length / Math.max(2, samples)));
   const picked = all.filter((_, i) => i % stride === 0);
-  if (all.length && picked[picked.length - 1] !== all[all.length - 1]) picked.push(all[all.length - 1]);
+  if (all.length && picked[picked.length - 1] !== all[all.length - 1])
+    picked.push(all[all.length - 1]);
 
   const values: Array<[number, number]> = [];
   let broken: number | undefined;
@@ -119,25 +120,37 @@ export function measureInvariant(
 
   if (broken !== undefined) {
     issues.push(
-      `Niezmiennik „${name}" przestał być liczbą (NaN) w chwili t ≈ ${broken.toPrecision(3)}`
-      + ' — dalszy pomiar dotyczy tylko tej części przebiegu, w której dało się go policzyć.',
+      `Niezmiennik „${name}" przestał być liczbą (NaN) w chwili t ≈ ${broken.toPrecision(3)}` +
+        ' — dalszy pomiar dotyczy tylko tej części przebiegu, w której dało się go policzyć.'
     );
   }
 
   if (!values.length) {
     return {
-      name, initial: Number.NaN, maxDeviation: Number.NaN, relative: Number.NaN,
-      trend: 'stable', ratePerUnitTime: 0, values: [], issues: [...issues, `Nie udało się policzyć „${name}" ani razu.`],
+      name,
+      initial: Number.NaN,
+      maxDeviation: Number.NaN,
+      relative: Number.NaN,
+      trend: 'stable',
+      ratePerUnitTime: 0,
+      values: [],
+      issues: [...issues, `Nie udało się policzyć „${name}" ani razu.`],
     };
   }
 
   const initial = values[0][1];
-  const maxDeviation = values.reduce((biggest, [, v]) => Math.max(biggest, Math.abs(v - initial)), 0);
+  const maxDeviation = values.reduce(
+    (biggest, [, v]) => Math.max(biggest, Math.abs(v - initial)),
+    0
+  );
 
   // Skala z całego przebiegu, nie z samej wartości początkowej: niezmiennik
   // startujący z zera (pęd układu w spoczynku) miałby inaczej nieskończony
   // błąd względny przy pierwszym drgnięciu.
-  const scale = values.reduce((biggest, [, v]) => Math.max(biggest, Math.abs(v)), Math.abs(initial));
+  const scale = values.reduce(
+    (biggest, [, v]) => Math.max(biggest, Math.abs(v)),
+    Math.abs(initial)
+  );
   const relative = scale > 0 ? maxDeviation / scale : 0;
 
   const span = values[values.length - 1][0] - values[0][0];
@@ -148,9 +161,8 @@ export function measureInvariant(
   // sam trend. Gdy prosta wyjaśnia większość — błąd ucieka; gdy prawie nic —
   // niezmiennik krąży wokół swojej wartości i wróci.
   const explained = Math.abs(slope * span);
-  const trend: InvariantTrend = relative <= tolerance
-    ? 'stable'
-    : (explained >= 0.5 * maxDeviation ? 'drift' : 'oscillation');
+  const trend: InvariantTrend =
+    relative <= tolerance ? 'stable' : explained >= 0.5 * maxDeviation ? 'drift' : 'oscillation';
 
   return { name, initial, maxDeviation, relative, trend, ratePerUnitTime, values, issues };
 }
@@ -165,8 +177,10 @@ export function describeInvariant(report: InvariantReport): string {
       return `${report.name}: waha się o ${procent} %, ale nie ucieka — błąd jest ograniczony.`;
     default: {
       const naCzas = (report.ratePerUnitTime * 100).toPrecision(2);
-      return `${report.name}: ${report.ratePerUnitTime > 0 ? 'narasta' : 'maleje'} o ${naCzas} % na jednostkę czasu`
-        + ' — w długiej symulacji wynik przestanie znaczyć to, co miał znaczyć.';
+      return (
+        `${report.name}: ${report.ratePerUnitTime > 0 ? 'narasta' : 'maleje'} o ${naCzas} % na jednostkę czasu` +
+        ' — w długiej symulacji wynik przestanie znaczyć to, co miał znaczyć.'
+      );
     }
   }
 }

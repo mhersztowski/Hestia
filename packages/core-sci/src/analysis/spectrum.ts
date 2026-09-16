@@ -104,7 +104,10 @@ function powerOfTwoBelow(n: number): number {
  * punktów bierze się z liczby próbek, a te solver zostawił tam, gdzie coś się
  * działo. Wyższy rząd interpolacji nie doda informacji, której w próbkach nie ma.
  */
-function resample(samples: Array<[number, number]>, count: number): { values: number[]; dt: number } {
+function resample(
+  samples: Array<[number, number]>,
+  count: number
+): { values: number[]; dt: number } {
   const t0 = samples[0][0];
   const t1 = samples[samples.length - 1][0];
   const dt = (t1 - t0) / (count - 1);
@@ -126,14 +129,16 @@ function resample(samples: Array<[number, number]>, count: number): { values: nu
 /** Widmo amplitudowe przebiegu podanego jako pary [czas, wartość]. */
 export function spectrum(
   samples: Array<[number, number]>,
-  options: SpectrumOptions = {},
+  options: SpectrumOptions = {}
 ): Spectrum {
   const { removeMean = true, window = true } = options;
   const issues: string[] = [];
 
   if (samples.length < 8) {
     return {
-      freq: [], amplitude: [], dt: 0,
+      freq: [],
+      amplitude: [],
+      dt: 0,
       issues: ['Za mało próbek na widmo — potrzeba co najmniej ośmiu, a najlepiej kilkuset.'],
     };
   }
@@ -142,7 +147,12 @@ export function spectrum(
   const { values, dt } = resample(samples, count);
 
   if (!(dt > 0)) {
-    return { freq: [], amplitude: [], dt: 0, issues: ['Przebieg ma zerową długość — nie ma czego analizować.'] };
+    return {
+      freq: [],
+      amplitude: [],
+      dt: 0,
+      issues: ['Przebieg ma zerową długość — nie ma czego analizować.'],
+    };
   }
 
   const re = [...values];

@@ -11,11 +11,10 @@ import { describe, it, expect } from 'vitest';
 import { parseFigureBlock } from './blocks';
 import { setFigureWidth } from './figureWidth';
 
-const RYSUNEK = (extra: string[]) => [
-  '![Rys. 15-1](data:image/png;base64,AAAA)',
-  '@caption Wahadło matematyczne.',
-  ...extra,
-].join('\n');
+const RYSUNEK = (extra: string[]) =>
+  ['![Rys. 15-1](data:image/png;base64,AAAA)', '@caption Wahadło matematyczne.', ...extra].join(
+    '\n'
+  );
 
 describe('odczyt szerokości', () => {
   it('czyta wartość procentową', () => {
@@ -89,7 +88,9 @@ describe('zapis szerokości do bloku', () => {
 
     const blok = parseFigureBlock('r', setFigureWidth(zŁamaniem, '40%'));
     expect(blok.width).toBe('40%');
-    expect(blok.caption).toBe('Bardzo długi podpis, który nie mieści się w jednym wierszu i jest łamany z wcięciem.');
+    expect(blok.caption).toBe(
+      'Bardzo długi podpis, który nie mieści się w jednym wierszu i jest łamany z wcięciem.'
+    );
   });
 
   it('normalizuje gołą liczbę przy zapisie', () => {

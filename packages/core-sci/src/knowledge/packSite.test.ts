@@ -52,8 +52,9 @@ describe('planPack', () => {
   });
 
   it('bez dokumentów nie ma czego pakować', () => {
-    expect(planPack([], ASSETS, { title: 'B' }).issues)
-      .toContainEqual(expect.stringMatching(/dokument/i));
+    expect(planPack([], ASSETS, { title: 'B' }).issues).toContainEqual(
+      expect.stringMatching(/dokument/i)
+    );
   });
 
   it('nazwa archiwum nie zawiera znaków, których nie zniesie system plików', () => {

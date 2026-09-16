@@ -101,7 +101,13 @@ const TEMPLATES_DIR = '/home/editorsnippets/templates';
 function langFromUri(uri: string): string {
   const lower = uri.toLowerCase();
   if (lower.endsWith('.py')) return 'python';
-  if (lower.endsWith('.ino') || lower.endsWith('.cpp') || lower.endsWith('.c') || lower.endsWith('.h')) return 'cpp';
+  if (
+    lower.endsWith('.ino') ||
+    lower.endsWith('.cpp') ||
+    lower.endsWith('.c') ||
+    lower.endsWith('.h')
+  )
+    return 'cpp';
   if (lower.endsWith('.ts') || lower.endsWith('.tsx')) return 'typescript';
   if (lower.endsWith('.js') || lower.endsWith('.jsx')) return 'javascript';
   if (lower.endsWith('.md')) return 'markdown';
@@ -110,13 +116,21 @@ function langFromUri(uri: string): string {
 }
 
 const LANG_LABEL: Record<string, string> = {
-  python: 'Python', cpp: 'C/C++', typescript: 'TypeScript',
-  javascript: 'JavaScript', markdown: 'Markdown', json: 'JSON',
+  python: 'Python',
+  cpp: 'C/C++',
+  typescript: 'TypeScript',
+  javascript: 'JavaScript',
+  markdown: 'Markdown',
+  json: 'JSON',
 };
 
 const LANG_COLOR: Record<string, string> = {
-  python: '#3572a5', cpp: '#f34b7d', typescript: '#3178c6',
-  javascript: '#f0db4f', markdown: '#083fa1', json: '#cb7a35',
+  python: '#3572a5',
+  cpp: '#f34b7d',
+  typescript: '#3178c6',
+  javascript: '#f0db4f',
+  markdown: '#083fa1',
+  json: '#cb7a35',
 };
 
 /* ── Category helpers ─────────────────────────────────────────────────────────*/
@@ -137,10 +151,10 @@ function resolveCategory(snippet: EditorSnippet, groupName: string): string {
 }
 
 const CATEGORY_COLOR: Record<string, string> = {
-  'Arduino':     '#00979d',
-  'MicroPython': '#2b5b84',
-  'Python':      '#3572a5',
-  'Node.js':     '#68a063',
+  Arduino: '#00979d',
+  MicroPython: '#2b5b84',
+  Python: '#3572a5',
+  'Node.js': '#68a063',
 };
 
 /* ── Placeholder parsing ──────────────────────────────────────────────────────*/
@@ -160,9 +174,7 @@ function parsePlaceholders(body: string): SnippetField[] {
     const idx = Number(m[1]);
     if (!seen.has(idx)) seen.set(idx, m[2]);
   }
-  return [...seen.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([index, label]) => ({ index, label }));
+  return [...seen.entries()].sort(([a], [b]) => a - b).map(([index, label]) => ({ index, label }));
 }
 
 /** Fill a snippet body by replacing all `${N:...}` with the provided values map. */
@@ -187,9 +199,8 @@ function insertIntoEditor(editor: monaco.editor.ICodeEditor | null, text: string
   if (model) {
     const lines = text.split('\n');
     const endLine = range.startLineNumber + lines.length - 1;
-    const endCol = lines.length === 1
-      ? range.startColumn + text.length
-      : lines[lines.length - 1].length + 1;
+    const endCol =
+      lines.length === 1 ? range.startColumn + text.length : lines[lines.length - 1].length + 1;
     editor.setPosition({ lineNumber: endLine, column: endCol });
   }
   editor.focus();
@@ -203,28 +214,42 @@ async function readTextFile(vfs: FileSystemProvider, path: string): Promise<stri
 }
 
 async function ensureDir(vfs: FileSystemProvider, path: string): Promise<void> {
-  try { await vfs.stat(path); } catch {
-    try { await vfs.mkdir?.(path); } catch { /* ignore */ }
+  try {
+    await vfs.stat(path);
+  } catch {
+    try {
+      await vfs.mkdir?.(path);
+    } catch {
+      /* ignore */
+    }
   }
 }
 
 /** Recursively list all file entries under `dir`, returning relative paths. */
 async function listFilesRecursive(
-  vfs: FileSystemProvider, dir: string, prefix = '',
+  vfs: FileSystemProvider,
+  dir: string,
+  prefix = ''
 ): Promise<{ rel: string; bytes: Uint8Array }[]> {
   const result: { rel: string; bytes: Uint8Array }[] = [];
-  let entries: DirectoryEntry[] = [];
-  try { entries = await vfs.readDirectory(dir); } catch { return result; }
+  let entries: DirectoryEntry[];
+  try {
+    entries = await vfs.readDirectory(dir);
+  } catch {
+    return result;
+  }
   for (const { name, type } of entries) {
     const rel = prefix ? `${prefix}/${name}` : name;
     const full = `${dir}/${name}`;
     if (type === FileType.Directory) {
-      result.push(...await listFilesRecursive(vfs, full, rel));
+      result.push(...(await listFilesRecursive(vfs, full, rel)));
     } else {
       try {
         const bytes = await vfs.readFile(full);
         result.push({ rel, bytes });
-      } catch { /* skip unreadable */ }
+      } catch {
+        /* skip unreadable */
+      }
     }
   }
   return result;
@@ -267,7 +292,7 @@ const SEED_FILES: Record<string, EditorSnippet[]> = {
       description: 'Run a function on a periodic timer',
       category: 'MicroPython',
       language: 'python',
-      body: "from machine import Timer\n\ndef on_tick(t):\n    ${1:pass}\n\ntim = Timer(${2:0})\ntim.init(period=${3:1000}, mode=Timer.PERIODIC, callback=on_tick)",
+      body: 'from machine import Timer\n\ndef on_tick(t):\n    ${1:pass}\n\ntim = Timer(${2:0})\ntim.init(period=${3:1000}, mode=Timer.PERIODIC, callback=on_tick)',
     },
     {
       name: 'SSD1306 OLED Hello',
@@ -281,7 +306,7 @@ const SEED_FILES: Record<string, EditorSnippet[]> = {
       description: 'Enter deep sleep for N seconds',
       category: 'MicroPython',
       language: 'python',
-      body: "import machine\n\nmachine.deepsleep(${1:10} * 1000)  # ms",
+      body: 'import machine\n\nmachine.deepsleep(${1:10} * 1000)  # ms',
     },
   ],
 
@@ -291,21 +316,21 @@ const SEED_FILES: Record<string, EditorSnippet[]> = {
       description: 'Arduino sketch skeleton',
       category: 'Arduino',
       language: 'cpp',
-      body: "void setup() {\n  Serial.begin(115200);\n  ${1:// init}\n}\n\nvoid loop() {\n  ${2:// main code}\n}",
+      body: 'void setup() {\n  Serial.begin(115200);\n  ${1:// init}\n}\n\nvoid loop() {\n  ${2:// main code}\n}',
     },
     {
       name: 'WiFi Connect (ESP32)',
       description: 'Connect to WiFi on ESP32',
       category: 'Arduino',
       language: 'cpp',
-      body: "#include <WiFi.h>\n\nconst char* ssid     = \"${1:SSID}\";\nconst char* password = \"${2:PASSWORD}\";\n\nvoid connectWifi() {\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED) {\n    delay(500);\n    Serial.print(\".\");\n  }\n  Serial.println();\n  Serial.print(\"IP: \");\n  Serial.println(WiFi.localIP());\n}",
+      body: '#include <WiFi.h>\n\nconst char* ssid     = "${1:SSID}";\nconst char* password = "${2:PASSWORD}";\n\nvoid connectWifi() {\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED) {\n    delay(500);\n    Serial.print(".");\n  }\n  Serial.println();\n  Serial.print("IP: ");\n  Serial.println(WiFi.localIP());\n}',
     },
     {
       name: 'Blink LED',
       description: 'Blink onboard LED',
       category: 'Arduino',
       language: 'cpp',
-      body: "const int LED_PIN = ${1:2};\n\nvoid setup() {\n  pinMode(LED_PIN, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED_PIN, HIGH);\n  delay(${2:500});\n  digitalWrite(LED_PIN, LOW);\n  delay(${2});\n}",
+      body: 'const int LED_PIN = ${1:2};\n\nvoid setup() {\n  pinMode(LED_PIN, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED_PIN, HIGH);\n  delay(${2:500});\n  digitalWrite(LED_PIN, LOW);\n  delay(${2});\n}',
     },
     {
       name: 'Serial Debug',
@@ -319,21 +344,21 @@ const SEED_FILES: Record<string, EditorSnippet[]> = {
       description: 'Read analog pin and map to range',
       category: 'Arduino',
       language: 'cpp',
-      body: "int   raw    = analogRead(${1:34});                     // 0-4095\nfloat volt   = raw * (3.3f / 4095.0f);                // voltage\nint   mapped = map(raw, 0, 4095, ${2:0}, ${3:100});    // mapped value",
+      body: 'int   raw    = analogRead(${1:34});                     // 0-4095\nfloat volt   = raw * (3.3f / 4095.0f);                // voltage\nint   mapped = map(raw, 0, 4095, ${2:0}, ${3:100});    // mapped value',
     },
     {
       name: 'MQTT Publish (PubSubClient)',
       description: 'Publish to MQTT broker with PubSubClient',
       category: 'Arduino',
       language: 'cpp',
-      body: "#include <PubSubClient.h>\n#include <WiFi.h>\n\nWiFiClient wifiClient;\nPubSubClient mqtt(wifiClient);\n\nvoid setupMqtt() {\n  mqtt.setServer(\"${1:broker}\", ${2:1883});\n}\n\nvoid publishValue(float val) {\n  if (!mqtt.connected()) {\n    mqtt.connect(\"${3:device_id}\");\n  }\n  char buf[16];\n  snprintf(buf, sizeof(buf), \"%.2f\", val);\n  mqtt.publish(\"${4:topic}\", buf);\n}",
+      body: '#include <PubSubClient.h>\n#include <WiFi.h>\n\nWiFiClient wifiClient;\nPubSubClient mqtt(wifiClient);\n\nvoid setupMqtt() {\n  mqtt.setServer("${1:broker}", ${2:1883});\n}\n\nvoid publishValue(float val) {\n  if (!mqtt.connected()) {\n    mqtt.connect("${3:device_id}");\n  }\n  char buf[16];\n  snprintf(buf, sizeof(buf), "%.2f", val);\n  mqtt.publish("${4:topic}", buf);\n}',
     },
     {
       name: 'millis() Timer',
       description: 'Non-blocking interval using millis()',
       category: 'Arduino',
       language: 'cpp',
-      body: "unsigned long lastMs = 0;\nconst unsigned long INTERVAL = ${1:1000};\n\nvoid loop() {\n  if (millis() - lastMs >= INTERVAL) {\n    lastMs = millis();\n    ${2:// do something}\n  }\n}",
+      body: 'unsigned long lastMs = 0;\nconst unsigned long INTERVAL = ${1:1000};\n\nvoid loop() {\n  if (millis() - lastMs >= INTERVAL) {\n    lastMs = millis();\n    ${2:// do something}\n  }\n}',
     },
   ],
 
@@ -378,14 +403,14 @@ const SEED_FILES: Record<string, EditorSnippet[]> = {
       description: 'Custom context manager class',
       category: 'Python',
       language: 'python',
-      body: "class ${1:Resource}:\n    def __enter__(self):\n        ${2:# setup}\n        return self\n\n    def __exit__(self, exc_type, exc_val, exc_tb):\n        ${3:# teardown}\n        return False",
+      body: 'class ${1:Resource}:\n    def __enter__(self):\n        ${2:# setup}\n        return self\n\n    def __exit__(self, exc_type, exc_val, exc_tb):\n        ${3:# teardown}\n        return False',
     },
     {
       name: 'Dataclass',
       description: 'Python dataclass with type hints',
       category: 'Python',
       language: 'python',
-      body: "from dataclasses import dataclass, field\n\n@dataclass\nclass ${1:MyData}:\n    ${2:name}: str\n    ${3:value}: float = 0.0\n    tags: list[str] = field(default_factory=list)",
+      body: 'from dataclasses import dataclass, field\n\n@dataclass\nclass ${1:MyData}:\n    ${2:name}: str\n    ${3:value}: float = 0.0\n    tags: list[str] = field(default_factory=list)',
     },
     {
       name: 'Async Main',
@@ -430,7 +455,7 @@ const SEED_FILES: Record<string, EditorSnippet[]> = {
       description: 'Run async tasks in parallel',
       category: 'Node.js',
       language: 'javascript',
-      body: "const [${1:result1}, ${2:result2}] = await Promise.all([\n  ${3:task1()},\n  ${4:task2()},\n]);",
+      body: 'const [${1:result1}, ${2:result2}] = await Promise.all([\n  ${3:task1()},\n  ${4:task2()},\n]);',
     },
     {
       name: 'Child Process (spawn)',
@@ -475,8 +500,14 @@ const SEED_TEMPLATES: SeedTemplate[] = [
       {
         rel: 'project.json',
         content: JSON.stringify(
-          { id: '', name: 'MicroPython Sensor', platform: 'uPython', boardProfileKey: 'esp32s3_pico' },
-          null, 2,
+          {
+            id: '',
+            name: 'MicroPython Sensor',
+            platform: 'uPython',
+            boardProfileKey: 'esp32s3_pico',
+          },
+          null,
+          2
         ),
       },
       {
@@ -509,7 +540,7 @@ const SEED_TEMPLATES: SeedTemplate[] = [
           '    adc.atten(ADC.ATTN_11DB)',
           '    while True:',
           '        raw = adc.read()',
-          "        client.publish(TOPIC, str(raw).encode())",
+          '        client.publish(TOPIC, str(raw).encode())',
           '        time.sleep(5)',
           '',
           'main()',
@@ -540,8 +571,14 @@ const SEED_TEMPLATES: SeedTemplate[] = [
       {
         rel: 'project.json',
         content: JSON.stringify(
-          { id: '', name: 'Arduino ESP32 Starter', platform: 'Arduino', boardProfileKey: 'esp32s3_pico' },
-          null, 2,
+          {
+            id: '',
+            name: 'Arduino ESP32 Starter',
+            platform: 'Arduino',
+            boardProfileKey: 'esp32s3_pico',
+          },
+          null,
+          2
         ),
       },
       {
@@ -599,10 +636,7 @@ const SEED_TEMPLATES: SeedTemplate[] = [
     files: [
       {
         rel: 'project.json',
-        content: JSON.stringify(
-          { id: '', name: 'Python Script', platform: 'Python' },
-          null, 2,
-        ),
+        content: JSON.stringify({ id: '', name: 'Python Script', platform: 'Python' }, null, 2),
       },
       {
         rel: 'sketches/main/main.py',
@@ -614,10 +648,10 @@ const SEED_TEMPLATES: SeedTemplate[] = [
           'from pathlib import Path',
           '',
           'logging.basicConfig(',
-          "    level=logging.INFO,",
+          '    level=logging.INFO,',
           "    format='%(asctime)s %(levelname)-8s %(name)s: %(message)s',",
           ')',
-          "log = logging.getLogger(__name__)",
+          'log = logging.getLogger(__name__)',
           '',
           '',
           'def main(args: argparse.Namespace) -> None:',
@@ -626,7 +660,7 @@ const SEED_TEMPLATES: SeedTemplate[] = [
           '',
           '',
           'if __name__ == "__main__":',
-          "    parser = argparse.ArgumentParser(description=__doc__)",
+          '    parser = argparse.ArgumentParser(description=__doc__)',
           "    parser.add_argument('input', nargs='?', help='Input file')",
           "    parser.add_argument('--verbose', '-v', action='store_true')",
           '    _args = parser.parse_args()',
@@ -657,19 +691,29 @@ async function seedExamplesToVfs(vfs: FileSystemProvider): Promise<void> {
   const enc = new TextEncoder();
   for (const [filename, snippets] of Object.entries(SEED_FILES)) {
     const path = `${SNIPPETS_DIR}/${filename}`;
-    await vfs.writeFile?.(path, enc.encode(JSON.stringify(snippets, null, 2)), { create: true, overwrite: true });
+    await vfs.writeFile?.(path, enc.encode(JSON.stringify(snippets, null, 2)), {
+      create: true,
+      overwrite: true,
+    });
   }
   await ensureDir(vfs, TEMPLATES_DIR);
   for (const tmpl of SEED_TEMPLATES) {
     const base = `${TEMPLATES_DIR}/${tmpl.dirName}`;
     await ensureDir(vfs, base);
-    await vfs.writeFile?.(`${base}/template.json`, enc.encode(JSON.stringify(tmpl.manifest, null, 2)), { create: true, overwrite: true });
+    await vfs.writeFile?.(
+      `${base}/template.json`,
+      enc.encode(JSON.stringify(tmpl.manifest, null, 2)),
+      { create: true, overwrite: true }
+    );
     for (const file of tmpl.files) {
       const parts = file.rel.split('/');
       for (let i = 1; i < parts.length; i++) {
         await ensureDir(vfs, `${base}/${parts.slice(0, i).join('/')}`);
       }
-      await vfs.writeFile?.(`${base}/${file.rel}`, enc.encode(file.content), { create: true, overwrite: true });
+      await vfs.writeFile?.(`${base}/${file.rel}`, enc.encode(file.content), {
+        create: true,
+        overwrite: true,
+      });
     }
   }
 }
@@ -677,8 +721,12 @@ async function seedExamplesToVfs(vfs: FileSystemProvider): Promise<void> {
 /* ── VFS loader ───────────────────────────────────────────────────────────────*/
 
 async function loadSnippetsFromVfs(vfs: FileSystemProvider): Promise<SnippetGroup[]> {
-  let entries: DirectoryEntry[] = [];
-  try { entries = await vfs.readDirectory(SNIPPETS_DIR); } catch { return []; }
+  let entries: DirectoryEntry[];
+  try {
+    entries = await vfs.readDirectory(SNIPPETS_DIR);
+  } catch {
+    return [];
+  }
   const groups: SnippetGroup[] = [];
   for (const { name, type } of entries) {
     if (type !== FileType.File || !name.endsWith('.json')) continue;
@@ -688,14 +736,20 @@ async function loadSnippetsFromVfs(vfs: FileSystemProvider): Promise<SnippetGrou
       if (Array.isArray(data)) {
         groups.push({ file: name.replace(/\.json$/, ''), snippets: data as EditorSnippet[] });
       }
-    } catch { /* skip malformed */ }
+    } catch {
+      /* skip malformed */
+    }
   }
   return groups;
 }
 
 async function loadTemplatesFromVfs(vfs: FileSystemProvider): Promise<Template[]> {
-  let entries: DirectoryEntry[] = [];
-  try { entries = await vfs.readDirectory(TEMPLATES_DIR); } catch { return []; }
+  let entries: DirectoryEntry[];
+  try {
+    entries = await vfs.readDirectory(TEMPLATES_DIR);
+  } catch {
+    return [];
+  }
   const templates: Template[] = [];
   for (const { name, type } of entries) {
     if (type !== FileType.Directory) continue;
@@ -704,7 +758,9 @@ async function loadTemplatesFromVfs(vfs: FileSystemProvider): Promise<Template[]
     try {
       const txt = await readTextFile(vfs, `${base}/template.json`);
       manifest = JSON.parse(txt) as TemplateManifest;
-    } catch { /* use defaults */ }
+    } catch {
+      /* use defaults */
+    }
     const rawFiles = await listFilesRecursive(vfs, base);
     const files = rawFiles
       .filter(({ rel }) => rel !== 'template.json')
@@ -728,10 +784,12 @@ function SnippetFormDialog({
   onClose: () => void;
 }) {
   const [values, setValues] = useState<Map<number, string>>(
-    () => new Map(fields.map((f) => [f.index, f.label])),
+    () => new Map(fields.map((f) => [f.index, f.label]))
   );
   const firstRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { setTimeout(() => firstRef.current?.focus(), 50); }, []);
+  useEffect(() => {
+    setTimeout(() => firstRef.current?.focus(), 50);
+  }, []);
 
   const handleSubmit = () => {
     onInsert(fillSnippet(snippet.body, values));
@@ -739,8 +797,11 @@ function SnippetFormDialog({
   };
 
   return (
-    <Dialog open onClose={onClose}
-      PaperProps={{ sx: { background: '#1e1e2e', border: '1px solid #313244', minWidth: 360 } }}>
+    <Dialog
+      open
+      onClose={onClose}
+      PaperProps={{ sx: { background: '#1e1e2e', border: '1px solid #313244', minWidth: 360 } }}
+    >
       <DialogTitle sx={{ fontSize: 13, fontWeight: 600, color: '#cba6f7', pb: 0.5 }}>
         {snippet.name}
       </DialogTitle>
@@ -757,21 +818,41 @@ function SnippetFormDialog({
               fullWidth
               value={values.get(f.index) ?? ''}
               onChange={(e) => setValues((prev) => new Map(prev).set(f.index, e.target.value))}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); if (e.key === 'Escape') onClose(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSubmit();
+                if (e.key === 'Escape') onClose();
+              }}
               sx={{
                 '& .MuiInputBase-root': { fontSize: 12, background: '#13131e', color: '#cdd6f4' },
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#313244' },
-                '& .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#cba6f7' },
+                '& .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#cba6f7',
+                },
               }}
             />
           </Box>
         ))}
       </DialogContent>
       <DialogActions sx={{ px: 2, pb: 1.5 }}>
-        <Button size="small" onClick={onClose}
-          sx={{ fontSize: 11, color: '#6c7086', textTransform: 'none' }}>Cancel</Button>
-        <Button size="small" variant="contained" onClick={handleSubmit}
-          sx={{ fontSize: 11, textTransform: 'none', bgcolor: '#cba6f7', color: '#1e1e2e', '&:hover': { bgcolor: '#b894f5' } }}>
+        <Button
+          size="small"
+          onClick={onClose}
+          sx={{ fontSize: 11, color: '#6c7086', textTransform: 'none' }}
+        >
+          Cancel
+        </Button>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={handleSubmit}
+          sx={{
+            fontSize: 11,
+            textTransform: 'none',
+            bgcolor: '#cba6f7',
+            color: '#1e1e2e',
+            '&:hover': { bgcolor: '#b894f5' },
+          }}
+        >
           Insert
         </Button>
       </DialogActions>
@@ -802,7 +883,10 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
   const [seeded, setSeeded] = useState(false);
   const [createDlg, setCreateDlg] = useState<CreateDialogState | null>(null);
   const [copyLabel, setCopyLabel] = useState<string>('');
-  const [formSnippet, setFormSnippet] = useState<{ snippet: EditorSnippet; fields: SnippetField[] } | null>(null);
+  const [formSnippet, setFormSnippet] = useState<{
+    snippet: EditorSnippet;
+    fields: SnippetField[];
+  } | null>(null);
   const targetEditorRef = useRef<monaco.editor.ICodeEditor | null>(null);
 
   // Subscribe to model changes so language filter stays in sync
@@ -828,7 +912,9 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
     }
   }, [vfsProvider]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleSeed = useCallback(async () => {
     setSeeding(true);
@@ -875,7 +961,7 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
   const handleCreate = useCallback(async () => {
     if (!createDlg) return;
     const { template, dest } = createDlg;
-    setCreateDlg((d) => d ? { ...d, creating: true, error: '' } : d);
+    setCreateDlg((d) => (d ? { ...d, creating: true, error: '' } : d));
     const enc = new TextEncoder();
     try {
       await ensureDir(vfsProvider, dest);
@@ -887,12 +973,12 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
         await vfsProvider.writeFile?.(
           `${dest}/${file.relativePath}`,
           file.content.length ? file.content : enc.encode(''),
-          { create: true, overwrite: false },
+          { create: true, overwrite: false }
         );
       }
       setCreateDlg(null);
     } catch (err) {
-      setCreateDlg((d) => d ? { ...d, creating: false, error: String(err) } : d);
+      setCreateDlg((d) => (d ? { ...d, creating: false, error: String(err) } : d));
     }
   }, [vfsProvider, createDlg]);
 
@@ -920,7 +1006,13 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
         } else if (language && s.language && s.language !== '*' && s.language !== language) {
           continue;
         }
-        if (q && !s.name.toLowerCase().includes(q) && !(s.description ?? '').toLowerCase().includes(q) && !s.body.toLowerCase().includes(q)) continue;
+        if (
+          q &&
+          !s.name.toLowerCase().includes(q) &&
+          !(s.description ?? '').toLowerCase().includes(q) &&
+          !s.body.toLowerCase().includes(q)
+        )
+          continue;
         result.push({ group: g.file, snippet: s, category: cat });
       }
     }
@@ -930,24 +1022,63 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#181825', color: '#cdd6f4', fontSize: 11 }}>
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#181825',
+        color: '#cdd6f4',
+        fontSize: 11,
+      }}
+    >
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', px: 1, py: 0.5, gap: 0.5, borderBottom: '1px solid #313244', background: '#13131e' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          px: 1,
+          py: 0.5,
+          gap: 0.5,
+          borderBottom: '1px solid #313244',
+          background: '#13131e',
+        }}
+      >
         <CodeIcon sx={{ fontSize: 14, color: '#cba6f7' }} />
-        <Typography sx={{ flex: 1, fontSize: 11, fontWeight: 600, color: '#cba6f7' }}>Snippets</Typography>
+        <Typography sx={{ flex: 1, fontSize: 11, fontWeight: 600, color: '#cba6f7' }}>
+          Snippets
+        </Typography>
         {language && (
-          <Chip label={LANG_LABEL[language] ?? language} size="small"
-            sx={{ fontSize: 9, height: 16, bgcolor: (LANG_COLOR[language] ?? '#444') + '33',
-              color: LANG_COLOR[language] ?? '#cdd6f4', border: 'none' }} />
+          <Chip
+            label={LANG_LABEL[language] ?? language}
+            size="small"
+            sx={{
+              fontSize: 9,
+              height: 16,
+              bgcolor: (LANG_COLOR[language] ?? '#444') + '33',
+              color: LANG_COLOR[language] ?? '#cdd6f4',
+              border: 'none',
+            }}
+          />
         )}
         <Tooltip title="Reload from VFS">
-          <IconButton size="small" onClick={load} disabled={loading} sx={{ p: 0.25, color: '#6c7086' }}>
+          <IconButton
+            size="small"
+            onClick={load}
+            disabled={loading}
+            sx={{ p: 0.25, color: '#6c7086' }}
+          >
             <RefreshIcon sx={{ fontSize: 13 }} />
           </IconButton>
         </Tooltip>
         {!seeded && (
           <Tooltip title="Seed example snippets & templates to /home/editorsnippets/">
-            <IconButton size="small" onClick={handleSeed} disabled={seeding} sx={{ p: 0.25, color: '#a6e3a1' }}>
+            <IconButton
+              size="small"
+              onClick={handleSeed}
+              disabled={seeding}
+              sx={{ p: 0.25, color: '#a6e3a1' }}
+            >
               <SeedIcon sx={{ fontSize: 13 }} />
             </IconButton>
           </Tooltip>
@@ -956,16 +1087,28 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
 
       {/* Tabs */}
       <Tabs
-        value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth"
+        value={tab}
+        onChange={(_, v) => setTab(v)}
+        variant="fullWidth"
         sx={{
-          minHeight: 28, borderBottom: '1px solid #313244',
-          '& .MuiTab-root': { minHeight: 28, fontSize: 10, textTransform: 'none', color: '#6c7086', py: 0 },
+          minHeight: 28,
+          borderBottom: '1px solid #313244',
+          '& .MuiTab-root': {
+            minHeight: 28,
+            fontSize: 10,
+            textTransform: 'none',
+            color: '#6c7086',
+            py: 0,
+          },
           '& .Mui-selected': { color: '#cba6f7' },
           '& .MuiTabs-indicator': { backgroundColor: '#cba6f7', height: 2 },
         }}
       >
         <Tab value="snippets" label={`Snippets${groups.length ? ` (${filtered.length})` : ''}`} />
-        <Tab value="templates" label={`Templates${templates.length ? ` (${templates.length})` : ''}`} />
+        <Tab
+          value="templates"
+          label={`Templates${templates.length ? ` (${templates.length})` : ''}`}
+        />
       </Tabs>
 
       {/* Loading */}
@@ -980,12 +1123,22 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
         <>
           <Box sx={{ px: 1, py: 0.5, borderBottom: '1px solid #1e1e2e' }}>
             <TextField
-              size="small" fullWidth placeholder="Search snippets…"
-              value={search} onChange={(e) => setSearch(e.target.value)}
+              size="small"
+              fullWidth
+              placeholder="Search snippets…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               sx={{
-                '& .MuiInputBase-root': { fontSize: 11, background: '#1e1e2e', color: '#cdd6f4', height: 26 },
+                '& .MuiInputBase-root': {
+                  fontSize: 11,
+                  background: '#1e1e2e',
+                  color: '#cdd6f4',
+                  height: 26,
+                },
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#313244' },
-                '& .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#585b70' },
+                '& .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#585b70',
+                },
                 '& input': { py: 0, px: 1 },
               }}
             />
@@ -993,19 +1146,28 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
 
           {/* Category filter chips */}
           {allCategories.length > 0 && (
-            <Box sx={{
-              display: 'flex', gap: 0.5, px: 1, py: 0.5,
-              overflowX: 'auto', borderBottom: '1px solid #1e1e2e',
-              flexShrink: 0,
-              '&::-webkit-scrollbar': { height: 3 },
-              '&::-webkit-scrollbar-thumb': { background: '#313244', borderRadius: 2 },
-            }}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 0.5,
+                px: 1,
+                py: 0.5,
+                overflowX: 'auto',
+                borderBottom: '1px solid #1e1e2e',
+                flexShrink: 0,
+                '&::-webkit-scrollbar': { height: 3 },
+                '&::-webkit-scrollbar-thumb': { background: '#313244', borderRadius: 2 },
+              }}
+            >
               <Chip
                 label="All"
                 size="small"
                 onClick={() => setSelectedCategory(null)}
                 sx={{
-                  fontSize: 9, height: 18, cursor: 'pointer', flexShrink: 0,
+                  fontSize: 9,
+                  height: 18,
+                  cursor: 'pointer',
+                  flexShrink: 0,
                   bgcolor: selectedCategory === null ? '#cba6f733' : '#1e1e2e',
                   color: selectedCategory === null ? '#cba6f7' : '#585b70',
                   border: selectedCategory === null ? '1px solid #cba6f755' : '1px solid #313244',
@@ -1022,7 +1184,10 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
                     size="small"
                     onClick={() => setSelectedCategory(active ? null : cat)}
                     sx={{
-                      fontSize: 9, height: 18, cursor: 'pointer', flexShrink: 0,
+                      fontSize: 9,
+                      height: 18,
+                      cursor: 'pointer',
+                      flexShrink: 0,
                       bgcolor: active ? color + '33' : '#1e1e2e',
                       color: active ? color : '#585b70',
                       border: active ? `1px solid ${color}55` : '1px solid #313244',
@@ -1037,11 +1202,17 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
           {groups.length === 0 ? (
             <Box sx={{ p: 2, textAlign: 'center' }}>
               <Typography sx={{ fontSize: 11, color: '#6c7086', mb: 1 }}>
-                No snippets found in<br />
+                No snippets found in
+                <br />
                 <code style={{ color: '#cba6f7' }}>/home/editorsnippets/</code>
               </Typography>
-              <Button size="small" startIcon={<SeedIcon />} onClick={handleSeed} disabled={seeding}
-                sx={{ fontSize: 10, color: '#a6e3a1', textTransform: 'none' }}>
+              <Button
+                size="small"
+                startIcon={<SeedIcon />}
+                onClick={handleSeed}
+                disabled={seeding}
+                sx={{ fontSize: 10, color: '#a6e3a1', textTransform: 'none' }}
+              >
                 {seeding ? 'Seeding…' : 'Seed examples'}
               </Button>
             </Box>
@@ -1064,7 +1235,9 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
                   copied={copyLabel === snippet.name}
                   onInsert={() => handleInsert(snippet)}
                   onCopy={() => handleCopy(snippet)}
-                  onCategoryClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+                  onCategoryClick={() =>
+                    setSelectedCategory(selectedCategory === category ? null : category)
+                  }
                 />
               ))}
             </Box>
@@ -1078,18 +1251,28 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
           {templates.length === 0 ? (
             <Box sx={{ p: 2, textAlign: 'center' }}>
               <Typography sx={{ fontSize: 11, color: '#6c7086', mb: 1 }}>
-                No templates found in<br />
+                No templates found in
+                <br />
                 <code style={{ color: '#cba6f7' }}>/home/editorsnippets/templates/</code>
               </Typography>
-              <Button size="small" startIcon={<SeedIcon />} onClick={handleSeed} disabled={seeding}
-                sx={{ fontSize: 10, color: '#a6e3a1', textTransform: 'none' }}>
+              <Button
+                size="small"
+                startIcon={<SeedIcon />}
+                onClick={handleSeed}
+                disabled={seeding}
+                sx={{ fontSize: 10, color: '#a6e3a1', textTransform: 'none' }}
+              >
                 {seeding ? 'Seeding…' : 'Seed examples'}
               </Button>
             </Box>
           ) : (
             <Box sx={{ flex: 1, overflowY: 'auto' }}>
               {templates.map((t) => (
-                <TemplateCard key={t.dirName} template={t} onCreate={() => handleOpenCreateDialog(t)} />
+                <TemplateCard
+                  key={t.dirName}
+                  template={t}
+                  onCreate={() => handleOpenCreateDialog(t)}
+                />
               ))}
             </Box>
           )}
@@ -1117,8 +1300,11 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
 
       {/* Create-from-template dialog */}
       {createDlg && (
-        <Dialog open onClose={() => !createDlg.creating && setCreateDlg(null)}
-          PaperProps={{ sx: { background: '#1e1e2e', border: '1px solid #313244', minWidth: 360 } }}>
+        <Dialog
+          open
+          onClose={() => !createDlg.creating && setCreateDlg(null)}
+          PaperProps={{ sx: { background: '#1e1e2e', border: '1px solid #313244', minWidth: 360 } }}
+        >
           <DialogTitle sx={{ fontSize: 13, fontWeight: 600, color: '#cba6f7', pb: 0.5 }}>
             Create from template
           </DialogTitle>
@@ -1126,35 +1312,61 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
             <Typography sx={{ fontSize: 11, color: '#a6adc8', mb: 1.5 }}>
               <strong style={{ color: '#cdd6f4' }}>{createDlg.template.manifest.name}</strong>
               {createDlg.template.manifest.description && (
-                <><br />{createDlg.template.manifest.description}</>
+                <>
+                  <br />
+                  {createDlg.template.manifest.description}
+                </>
               )}
             </Typography>
             <Typography sx={{ fontSize: 10, color: '#6c7086', mb: 0.5 }}>
               Destination path (VFS)
             </Typography>
             <TextField
-              size="small" fullWidth autoFocus
+              size="small"
+              fullWidth
+              autoFocus
               value={createDlg.dest}
-              onChange={(e) => setCreateDlg((d) => d ? { ...d, dest: e.target.value, error: '' } : d)}
+              onChange={(e) =>
+                setCreateDlg((d) => (d ? { ...d, dest: e.target.value, error: '' } : d))
+              }
               placeholder="/home/Projects/my-project"
-              helperText={createDlg.error || `${createDlg.template.files.length} file(s) will be created`}
+              helperText={
+                createDlg.error || `${createDlg.template.files.length} file(s) will be created`
+              }
               error={!!createDlg.error}
               sx={{
                 '& .MuiInputBase-root': { fontSize: 11, background: '#13131e', color: '#cdd6f4' },
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#313244' },
-                '& .MuiFormHelperText-root': { fontSize: 9, color: createDlg.error ? '#f38ba8' : '#6c7086' },
+                '& .MuiFormHelperText-root': {
+                  fontSize: 9,
+                  color: createDlg.error ? '#f38ba8' : '#6c7086',
+                },
               }}
             />
           </DialogContent>
           <DialogActions sx={{ px: 2, pb: 1.5 }}>
-            <Button size="small" onClick={() => setCreateDlg(null)} disabled={createDlg.creating}
-              sx={{ fontSize: 11, color: '#6c7086', textTransform: 'none' }}>
+            <Button
+              size="small"
+              onClick={() => setCreateDlg(null)}
+              disabled={createDlg.creating}
+              sx={{ fontSize: 11, color: '#6c7086', textTransform: 'none' }}
+            >
               Cancel
             </Button>
-            <Button size="small" variant="contained" startIcon={<AddIcon />}
-              onClick={handleCreate} disabled={createDlg.creating || !createDlg.dest.trim()}
-              sx={{ fontSize: 11, textTransform: 'none', bgcolor: '#cba6f7', color: '#1e1e2e',
-                '&:hover': { bgcolor: '#b894f5' } }}>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreate}
+              disabled={createDlg.creating || !createDlg.dest.trim()}
+              sx={{
+                fontSize: 11,
+                textTransform: 'none',
+                bgcolor: '#cba6f7',
+                color: '#1e1e2e',
+                '&:hover': { bgcolor: '#b894f5' },
+              }}
+            >
               {createDlg.creating ? 'Creating…' : 'Create'}
             </Button>
           </DialogActions>
@@ -1167,7 +1379,12 @@ function SnippetsPanel({ vfsProvider }: { vfsProvider: FileSystemProvider }) {
 /* ── Sub-components ───────────────────────────────────────────────────────────*/
 
 function SnippetCard({
-  snippet, category, copied, onInsert, onCopy, onCategoryClick,
+  snippet,
+  category,
+  copied,
+  onInsert,
+  onCopy,
+  onCategoryClick,
 }: {
   snippet: EditorSnippet;
   category: string;
@@ -1191,9 +1408,21 @@ function SnippetCard({
       }}
       onClick={onInsert}
     >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', px: 1.5, pt: 0.75, pb: 0.25, gap: 0.5 }}>
+      <Box
+        sx={{ display: 'flex', alignItems: 'flex-start', px: 1.5, pt: 0.75, pb: 0.25, gap: 0.5 }}
+      >
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: 11, fontWeight: 600, color: '#cdd6f4', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <Typography
+            sx={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#cdd6f4',
+              lineHeight: 1.4,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
             {snippet.name}
           </Typography>
           {snippet.description && (
@@ -1204,25 +1433,50 @@ function SnippetCard({
         </Box>
         <Box sx={{ display: 'flex', gap: 0.25, alignItems: 'center', flexShrink: 0 }}>
           {lang && (
-            <Chip label={LANG_LABEL[lang] ?? lang} size="small"
-              sx={{ fontSize: 8, height: 14, bgcolor: (LANG_COLOR[lang] ?? '#444') + '22',
-                color: LANG_COLOR[lang] ?? '#cdd6f4', border: 'none' }} />
+            <Chip
+              label={LANG_LABEL[lang] ?? lang}
+              size="small"
+              sx={{
+                fontSize: 8,
+                height: 14,
+                bgcolor: (LANG_COLOR[lang] ?? '#444') + '22',
+                color: LANG_COLOR[lang] ?? '#cdd6f4',
+                border: 'none',
+              }}
+            />
           )}
           <Tooltip title={`Filter: ${category}`}>
             <Chip
-              label={category} size="small"
-              onClick={(e) => { e.stopPropagation(); onCategoryClick(); }}
+              label={category}
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCategoryClick();
+              }}
               sx={{
-                fontSize: 8, height: 14, cursor: 'pointer',
-                bgcolor: catColor + '22', color: catColor,
+                fontSize: 8,
+                height: 14,
+                cursor: 'pointer',
+                bgcolor: catColor + '22',
+                color: catColor,
                 border: `1px solid ${catColor}44`,
                 '&:hover': { bgcolor: catColor + '44' },
               }}
             />
           </Tooltip>
           <Tooltip title={copied ? 'Copied!' : 'Copy to clipboard'}>
-            <IconButton size="small" onClick={(e) => { e.stopPropagation(); onCopy(); }}
-              sx={{ p: 0.25, color: copied ? '#a6e3a1' : '#45475a', '&:hover': { color: '#cdd6f4' } }}>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCopy();
+              }}
+              sx={{
+                p: 0.25,
+                color: copied ? '#a6e3a1' : '#45475a',
+                '&:hover': { color: '#cdd6f4' },
+              }}
+            >
               <ContentCopyIcon sx={{ fontSize: 11 }} />
             </IconButton>
           </Tooltip>
@@ -1230,11 +1484,32 @@ function SnippetCard({
       </Box>
       {/* Code preview */}
       <Box
-        onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-        sx={{ mx: 1.5, mb: 0.75, borderRadius: 0.5, background: '#13131e', px: 1, py: 0.5, cursor: 'pointer' }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setExpanded((v) => !v);
+        }}
+        sx={{
+          mx: 1.5,
+          mb: 0.75,
+          borderRadius: 0.5,
+          background: '#13131e',
+          px: 1,
+          py: 0.5,
+          cursor: 'pointer',
+        }}
       >
-        <pre style={{ margin: 0, fontSize: 9, fontFamily: '"Fira Code","Cascadia Code",monospace', color: '#a6adc8', whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.5 }}>
-          {expanded ? snippet.body : (hasMore ? previewLines + '\n…' : previewLines)}
+        <pre
+          style={{
+            margin: 0,
+            fontSize: 9,
+            fontFamily: '"Fira Code","Cascadia Code",monospace',
+            color: '#a6adc8',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+            lineHeight: 1.5,
+          }}
+        >
+          {expanded ? snippet.body : hasMore ? previewLines + '\n…' : previewLines}
         </pre>
       </Box>
     </Box>
@@ -1249,8 +1524,11 @@ function TemplateCard({ template, onCreate }: { template: Template; onCreate: ()
         <Typography sx={{ fontSize: 11, fontWeight: 600, color: '#cdd6f4', flex: 1 }}>
           {template.manifest.name}
         </Typography>
-        <Chip label={`${template.files.length} files`} size="small"
-          sx={{ fontSize: 8, height: 14, bgcolor: '#313244', color: '#6c7086', border: 'none' }} />
+        <Chip
+          label={`${template.files.length} files`}
+          size="small"
+          sx={{ fontSize: 8, height: 14, bgcolor: '#313244', color: '#6c7086', border: 'none' }}
+        />
       </Box>
       {template.manifest.description && (
         <Typography sx={{ fontSize: 10, color: '#6c7086', mb: 0.75 }}>
@@ -1259,19 +1537,46 @@ function TemplateCard({ template, onCreate }: { template: Template; onCreate: ()
       )}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.25, mb: 0.5 }}>
         {template.files.slice(0, 6).map((f) => (
-          <Chip key={f.relativePath} label={f.relativePath.split('/').pop()} size="small"
-            sx={{ fontSize: 8, height: 14, bgcolor: '#1e1e2e', color: '#45475a', border: '1px solid #313244' }} />
+          <Chip
+            key={f.relativePath}
+            label={f.relativePath.split('/').pop()}
+            size="small"
+            sx={{
+              fontSize: 8,
+              height: 14,
+              bgcolor: '#1e1e2e',
+              color: '#45475a',
+              border: '1px solid #313244',
+            }}
+          />
         ))}
         {template.files.length > 6 && (
-          <Chip label={`+${template.files.length - 6}`} size="small"
-            sx={{ fontSize: 8, height: 14, bgcolor: '#1e1e2e', color: '#45475a', border: '1px solid #313244' }} />
+          <Chip
+            label={`+${template.files.length - 6}`}
+            size="small"
+            sx={{
+              fontSize: 8,
+              height: 14,
+              bgcolor: '#1e1e2e',
+              color: '#45475a',
+              border: '1px solid #313244',
+            }}
+          />
         )}
       </Box>
-      <Button size="small" startIcon={<AddIcon />} onClick={onCreate} fullWidth
+      <Button
+        size="small"
+        startIcon={<AddIcon />}
+        onClick={onCreate}
+        fullWidth
         sx={{
-          fontSize: 10, textTransform: 'none', color: '#cba6f7',
-          border: '1px solid #cba6f744', '&:hover': { background: '#2d2040', border: '1px solid #cba6f7' },
-        }}>
+          fontSize: 10,
+          textTransform: 'none',
+          color: '#cba6f7',
+          border: '1px solid #cba6f744',
+          '&:hover': { background: '#2d2040', border: '1px solid #cba6f7' },
+        }}
+      >
         Create from template…
       </Button>
     </Box>
@@ -1325,6 +1630,8 @@ export function createSnippetsPlugin(vfsProvider: FileSystemProvider) {
       api.logger.info('Snippets plugin activated');
     },
 
-    () => { /* disposables handled by PluginRegistry */ },
+    () => {
+      /* disposables handled by PluginRegistry */
+    }
   );
 }

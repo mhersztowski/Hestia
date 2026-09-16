@@ -15,7 +15,10 @@ function editorWith(content: object[]) {
   return new Editor({ extensions: [StarterKit], content: { type: 'doc', content } });
 }
 
-const codeBlock = { type: 'codeBlock', content: [{ type: 'text', text: 'flowchart TD\n  A --> B' }] };
+const codeBlock = {
+  type: 'codeBlock',
+  content: [{ type: 'text', text: 'flowchart TD\n  A --> B' }],
+};
 
 describe('blockBeforeCursor', () => {
   it('wskazuje blok kodu, gdy kursor stoi na początku akapitu pod nim', () => {
@@ -38,7 +41,10 @@ describe('blockBeforeCursor', () => {
   });
 
   it('milczy w środku akapitu — tam Backspace ma kasować znak', () => {
-    const editor = editorWith([codeBlock, { type: 'paragraph', content: [{ type: 'text', text: 'abc' }] }]);
+    const editor = editorWith([
+      codeBlock,
+      { type: 'paragraph', content: [{ type: 'text', text: 'abc' }] },
+    ]);
     editor.commands.setTextSelection(editor.state.doc.content.size - 2);
 
     expect(blockBeforeCursor(editor.state, TYPES)).toBeNull();
@@ -46,7 +52,10 @@ describe('blockBeforeCursor', () => {
   });
 
   it('milczy przy zaznaczeniu — jest co kasować bez sięgania wyżej', () => {
-    const editor = editorWith([codeBlock, { type: 'paragraph', content: [{ type: 'text', text: 'abc' }] }]);
+    const editor = editorWith([
+      codeBlock,
+      { type: 'paragraph', content: [{ type: 'text', text: 'abc' }] },
+    ]);
     const end = editor.state.doc.content.size - 1;
     editor.commands.setTextSelection({ from: end - 3, to: end });
 

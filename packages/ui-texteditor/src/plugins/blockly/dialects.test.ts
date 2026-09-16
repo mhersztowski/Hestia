@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
-  dialectForPath, dialectById, allDialects, callExpressionIn, statementIn, commentIn,
+  dialectForPath,
+  dialectById,
+  allDialects,
+  callExpressionIn,
+  statementIn,
+  commentIn,
 } from './dialects';
 
 describe('dialectForPath — rozpoznanie po rozszerzeniu', () => {
@@ -61,8 +66,19 @@ describe('dialectById', () => {
 });
 
 describe('callExpressionIn — składnia wywołania', () => {
-  const callable = (over: Partial<{ callee: string; owner: string; ownerKind: 'class' | 'module'; isAsync: boolean }> = {}) => ({
-    callee: 'Api.load', owner: 'Api', ownerKind: 'class' as const, isAsync: false, ...over,
+  const callable = (
+    over: Partial<{
+      callee: string;
+      owner: string;
+      ownerKind: 'class' | 'module';
+      isAsync: boolean;
+    }> = {}
+  ) => ({
+    callee: 'Api.load',
+    owner: 'Api',
+    ownerKind: 'class' as const,
+    isAsync: false,
+    ...over,
   });
 
   it('JavaScript: kropka i await', () => {
@@ -80,7 +96,9 @@ describe('callExpressionIn — składnia wywołania', () => {
 
   it('C++: funkcja globalna zostaje bez kwalifikatora', () => {
     const cpp = dialectById('cpp')!;
-    expect(callExpressionIn(cpp, callable({ callee: 'setup', ownerKind: 'module' }), [])).toBe('setup()');
+    expect(callExpressionIn(cpp, callable({ callee: 'setup', ownerKind: 'module' }), [])).toBe(
+      'setup()'
+    );
   });
 
   it('C++ nie zna await — asynchroniczność jest pojęciem języka, nie UML-a', () => {
@@ -99,8 +117,12 @@ describe('callExpressionIn — składnia wywołania', () => {
   });
 
   it('Python zna await, Lua nie', () => {
-    expect(callExpressionIn(dialectById('python')!, callable({ isAsync: true }), [])).toBe('await Api.load()');
-    expect(callExpressionIn(dialectById('lua')!, callable({ isAsync: true }), [])).toBe('Api.load()');
+    expect(callExpressionIn(dialectById('python')!, callable({ isAsync: true }), [])).toBe(
+      'await Api.load()'
+    );
+    expect(callExpressionIn(dialectById('lua')!, callable({ isAsync: true }), [])).toBe(
+      'Api.load()'
+    );
   });
 });
 

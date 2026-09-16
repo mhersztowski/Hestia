@@ -21,10 +21,26 @@ export interface DiagramStarter {
 }
 
 export const DIAGRAM_STARTERS: DiagramStarter[] = [
-  { kind: 'flowchart', label: 'Schemat blokowy', description: 'Kroki, decyzje i przepływ — flowchart' },
-  { kind: 'state', label: 'Diagram stanów', description: 'Stany i przejścia automatu — stateDiagram' },
-  { kind: 'class', label: 'Diagram klas', description: 'Klasy, pola, metody i relacje — classDiagram' },
-  { kind: 'sequence', label: 'Diagram sekwencji', description: 'Kto z kim rozmawia i w jakiej kolejności — sequenceDiagram' },
+  {
+    kind: 'flowchart',
+    label: 'Schemat blokowy',
+    description: 'Kroki, decyzje i przepływ — flowchart',
+  },
+  {
+    kind: 'state',
+    label: 'Diagram stanów',
+    description: 'Stany i przejścia automatu — stateDiagram',
+  },
+  {
+    kind: 'class',
+    label: 'Diagram klas',
+    description: 'Klasy, pola, metody i relacje — classDiagram',
+  },
+  {
+    kind: 'sequence',
+    label: 'Diagram sekwencji',
+    description: 'Kto z kim rozmawia i w jakiej kolejności — sequenceDiagram',
+  },
   { kind: 'er', label: 'Diagram ER', description: 'Encje, atrybuty i związki — erDiagram' },
   { kind: 'packet', label: 'Mapa bitów', description: 'Pola nagłówka protokołu — packet' },
   { kind: 'kanban', label: 'Tablica kanban', description: 'Kolumny i karty zadań — kanban' },
@@ -41,16 +57,56 @@ export function starterDiagram(kind: DiagramKind): DiagramDocument {
     doc.meta = { c4Kind: 'C4Context', title: 'Kontekst systemu' };
     doc.groups = [{ id: 'granica', label: 'Nasza organizacja', c4: { kind: 'enterprise' } }];
     doc.nodes = [
-      { id: 'klient', label: 'Klient', shape: 'rectangle', parentId: 'granica',
-        c4: { kind: 'person', variant: 'plain', external: false, description: 'Użytkownik systemu' } },
-      { id: 'system', label: 'Nasz system', shape: 'rectangle', parentId: 'granica',
-        c4: { kind: 'system', variant: 'plain', external: false, description: 'To, co budujemy' } },
-      { id: 'poczta', label: 'System pocztowy', shape: 'rectangle',
-        c4: { kind: 'system', variant: 'plain', external: true, description: 'Wysyła powiadomienia' } },
+      {
+        id: 'klient',
+        label: 'Klient',
+        shape: 'rectangle',
+        parentId: 'granica',
+        c4: {
+          kind: 'person',
+          variant: 'plain',
+          external: false,
+          description: 'Użytkownik systemu',
+        },
+      },
+      {
+        id: 'system',
+        label: 'Nasz system',
+        shape: 'rectangle',
+        parentId: 'granica',
+        c4: { kind: 'system', variant: 'plain', external: false, description: 'To, co budujemy' },
+      },
+      {
+        id: 'poczta',
+        label: 'System pocztowy',
+        shape: 'rectangle',
+        c4: {
+          kind: 'system',
+          variant: 'plain',
+          external: true,
+          description: 'Wysyła powiadomienia',
+        },
+      },
     ];
     doc.edges = [
-      { id: 'klient__system__0', source: 'klient', target: 'system', label: 'Używa', lineStyle: 'solid', arrow: 'arrow', c4: {} },
-      { id: 'system__poczta__1', source: 'system', target: 'poczta', label: 'Wysyła pocztę', lineStyle: 'solid', arrow: 'arrow', c4: { technology: 'SMTP' } },
+      {
+        id: 'klient__system__0',
+        source: 'klient',
+        target: 'system',
+        label: 'Używa',
+        lineStyle: 'solid',
+        arrow: 'arrow',
+        c4: {},
+      },
+      {
+        id: 'system__poczta__1',
+        source: 'system',
+        target: 'poczta',
+        label: 'Wysyła pocztę',
+        lineStyle: 'solid',
+        arrow: 'arrow',
+        c4: { technology: 'SMTP' },
+      },
     ];
     return doc;
   }
@@ -61,10 +117,13 @@ export function starterDiagram(kind: DiagramKind): DiagramDocument {
       title: 'Nowa oś wydarzeń',
       unknown: [],
       sections: [
-        { label: 'Pierwsza sekcja', periods: [
-          { label: '2023', events: ['Pierwsze wydarzenie'] },
-          { label: '2024', events: ['Drugie wydarzenie', 'Trzecie wydarzenie'] },
-        ] },
+        {
+          label: 'Pierwsza sekcja',
+          periods: [
+            { label: '2023', events: ['Pierwsze wydarzenie'] },
+            { label: '2024', events: ['Drugie wydarzenie', 'Trzecie wydarzenie'] },
+          ],
+        },
       ],
     };
     return doc;
@@ -80,15 +139,39 @@ export function starterDiagram(kind: DiagramKind): DiagramDocument {
         {
           label: 'Przygotowanie',
           tasks: [
-            { label: 'Analiza', tags: [], id: 'a1', start: { kind: 'date', value: '2024-01-01' }, end: { kind: 'duration', value: '5d' } },
-            { label: 'Projekt', tags: [], id: 'a2', start: { kind: 'after', ids: ['a1'] }, end: { kind: 'duration', value: '3d' } },
+            {
+              label: 'Analiza',
+              tags: [],
+              id: 'a1',
+              start: { kind: 'date', value: '2024-01-01' },
+              end: { kind: 'duration', value: '5d' },
+            },
+            {
+              label: 'Projekt',
+              tags: [],
+              id: 'a2',
+              start: { kind: 'after', ids: ['a1'] },
+              end: { kind: 'duration', value: '3d' },
+            },
           ],
         },
         {
           label: 'Wykonanie',
           tasks: [
-            { label: 'Budowa', tags: ['active'], id: 'b1', start: { kind: 'after', ids: ['a2'] }, end: { kind: 'duration', value: '10d' } },
-            { label: 'Odbiór', tags: ['milestone'], id: 'm1', start: { kind: 'after', ids: ['b1'] }, end: { kind: 'duration', value: '0d' } },
+            {
+              label: 'Budowa',
+              tags: ['active'],
+              id: 'b1',
+              start: { kind: 'after', ids: ['a2'] },
+              end: { kind: 'duration', value: '10d' },
+            },
+            {
+              label: 'Odbiór',
+              tags: ['milestone'],
+              id: 'm1',
+              start: { kind: 'after', ids: ['b1'] },
+              end: { kind: 'duration', value: '0d' },
+            },
           ],
         },
       ],
@@ -134,25 +217,37 @@ export function starterDiagram(kind: DiagramKind): DiagramDocument {
     const doc = emptyDiagram('er');
     doc.nodes = [
       {
-        id: 'KLIENT', label: 'KLIENT', shape: 'rectangle',
+        id: 'KLIENT',
+        label: 'KLIENT',
+        shape: 'rectangle',
         attributes: [
           { raw: 'string numer PK', type: 'string', name: 'numer', keys: ['PK'] },
           { raw: 'string nazwa', type: 'string', name: 'nazwa' },
         ],
       },
       {
-        id: 'ZAMOWIENIE', label: 'ZAMOWIENIE', shape: 'rectangle',
+        id: 'ZAMOWIENIE',
+        label: 'ZAMOWIENIE',
+        shape: 'rectangle',
         attributes: [
           { raw: 'int nr PK', type: 'int', name: 'nr', keys: ['PK'] },
           { raw: 'string klientNumer FK', type: 'string', name: 'klientNumer', keys: ['FK'] },
         ],
       },
     ];
-    doc.edges = [{
-      id: 'KLIENT__ZAMOWIENIE', source: 'KLIENT', target: 'ZAMOWIENIE',
-      lineStyle: 'solid', arrow: 'none',
-      erFrom: 'exactlyOne', erTo: 'zeroOrMore', erIdentifying: true, label: 'sklada',
-    }];
+    doc.edges = [
+      {
+        id: 'KLIENT__ZAMOWIENIE',
+        source: 'KLIENT',
+        target: 'ZAMOWIENIE',
+        lineStyle: 'solid',
+        arrow: 'none',
+        erFrom: 'exactlyOne',
+        erTo: 'zeroOrMore',
+        erIdentifying: true,
+        label: 'sklada',
+      },
+    ];
     return doc;
   }
 
@@ -162,10 +257,27 @@ export function starterDiagram(kind: DiagramKind): DiagramDocument {
     // Identyfikatory mówiące, bez aliasu: w szkielecie `participant A as Klient`
     // to tylko szum — nazwa uczestnika może od razu być czytelna.
     doc.sequence = {
-      participants: [{ id: 'Klient', label: '' }, { id: 'Serwer', label: '' }],
+      participants: [
+        { id: 'Klient', label: '' },
+        { id: 'Serwer', label: '' },
+      ],
       steps: [
-        { kind: 'message', from: 'Klient', to: 'Serwer', arrow: 'solidArrow', text: 'pytanie', activate: true },
-        { kind: 'message', from: 'Serwer', to: 'Klient', arrow: 'dottedArrow', text: 'odpowiedź', deactivate: true },
+        {
+          kind: 'message',
+          from: 'Klient',
+          to: 'Serwer',
+          arrow: 'solidArrow',
+          text: 'pytanie',
+          activate: true,
+        },
+        {
+          kind: 'message',
+          from: 'Serwer',
+          to: 'Klient',
+          arrow: 'dottedArrow',
+          text: 'odpowiedź',
+          deactivate: true,
+        },
       ],
     };
     return doc;
@@ -177,21 +289,51 @@ export function starterDiagram(kind: DiagramKind): DiagramDocument {
     const doc = emptyDiagram('class');
     doc.nodes = [
       {
-        id: 'Zwierze', label: 'Zwierze', shape: 'rectangle',
+        id: 'Zwierze',
+        label: 'Zwierze',
+        shape: 'rectangle',
         members: [
-          { raw: '+String imie', kind: 'field', visibility: 'public', type: 'String', name: 'imie' },
-          { raw: '+opis() String', kind: 'method', visibility: 'public', name: 'opis', type: 'String' },
+          {
+            raw: '+String imie',
+            kind: 'field',
+            visibility: 'public',
+            type: 'String',
+            name: 'imie',
+          },
+          {
+            raw: '+opis() String',
+            kind: 'method',
+            visibility: 'public',
+            name: 'opis',
+            type: 'String',
+          },
         ],
       },
       {
-        id: 'Pies', label: 'Pies', shape: 'rectangle',
-        members: [{ raw: '+szczekaj() void', kind: 'method', visibility: 'public', name: 'szczekaj', type: 'void' }],
+        id: 'Pies',
+        label: 'Pies',
+        shape: 'rectangle',
+        members: [
+          {
+            raw: '+szczekaj() void',
+            kind: 'method',
+            visibility: 'public',
+            name: 'szczekaj',
+            type: 'void',
+          },
+        ],
       },
     ];
-    doc.edges = [{
-      id: 'Zwierze__Pies', source: 'Zwierze', target: 'Pies',
-      lineStyle: 'solid', arrow: 'none', meta: { startArrow: 'triangle' },
-    }];
+    doc.edges = [
+      {
+        id: 'Zwierze__Pies',
+        source: 'Zwierze',
+        target: 'Pies',
+        lineStyle: 'solid',
+        arrow: 'none',
+        meta: { startArrow: 'triangle' },
+      },
+    ];
     return doc;
   }
 

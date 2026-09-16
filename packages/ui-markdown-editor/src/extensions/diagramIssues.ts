@@ -35,8 +35,7 @@ export function issueSummary(issues: DiagramIssue[]): string | undefined {
 
   const ostatnia = n % 10;
   const dziesiatki = n % 100;
-  const forma = ostatnia >= 2 && ostatnia <= 4 && !(dziesiatki >= 12 && dziesiatki <= 14)
-    ? 'uwagi'
-    : 'uwag';
+  const forma =
+    ostatnia >= 2 && ostatnia <= 4 && !(dziesiatki >= 12 && dziesiatki <= 14) ? 'uwagi' : 'uwag';
   return `${n} ${forma}`;
 }

@@ -60,12 +60,14 @@ export interface ReaderViewProps {
    * innych dokumentów pokazują się jako nieznane. Odsyłacze w obrębie
    * dokumentu działają zawsze — na jego własnych wzorach.
    */
-  resolveRef?: (id: string) => {
-    code?: string;
-    kind?: ReferenceKind;
-    documentTitle?: string;
-    sameDocument: boolean;
-  } | undefined;
+  resolveRef?: (id: string) =>
+    | {
+        code?: string;
+        kind?: ReferenceKind;
+        documentTitle?: string;
+        sameDocument: boolean;
+      }
+    | undefined;
   /** Przejście do celu odsyłacza; brak = odsyłacz tylko pokazuje podgląd. */
   onNavigate?: (id: string) => void;
   /**
@@ -197,34 +199,46 @@ function parseStageSetup(body: string) {
 const text: CSSProperties = { fontSize: 15, lineHeight: 1.65, color: '#1e293b' };
 
 export function ReaderView({
-  markdown, maxWidth = 720, workerFactory, onAttempt, path, resolveRef, onNavigate, paged,
-  onRead, read, solutionStore,
+  markdown,
+  maxWidth = 720,
+  workerFactory,
+  onAttempt,
+  path,
+  resolveRef,
+  onNavigate,
+  paged,
+  onRead,
+  read,
+  solutionStore,
 }: ReaderViewProps) {
   const segments = useMemo(() => splitDocument(markdown), [markdown]);
   // Bloki `formula` z dyrektywą `@pde` opisują pola; blok `field` tylko je
   // uruchamia, tak jak `sim` uruchamia graf wzorów.
   const pola = useMemo(
-    () => segments
-      .filter((s): s is Extract<Segment, { kind: 'formula' }> => s.kind === 'formula')
-      .filter((s) => /^\s*@pde\b/m.test(s.body)),
-    [segments],
+    () =>
+      segments
+        .filter((s): s is Extract<Segment, { kind: 'formula' }> => s.kind === 'formula')
+        .filter((s) => /^\s*@pde\b/m.test(s.body)),
+    [segments]
   );
 
   // Bloki `formula` z `@linalg` opisują sceny przekształceń; blok `linalg`
   // tylko je uruchamia, tak jak `field` uruchamia pola.
   const sceny = useMemo(
-    () => segments
-      .filter((s): s is Extract<Segment, { kind: 'formula' }> => s.kind === 'formula')
-      .filter((s) => /^\s*@linalg\b/m.test(s.body)),
-    [segments],
+    () =>
+      segments
+        .filter((s): s is Extract<Segment, { kind: 'formula' }> => s.kind === 'formula')
+        .filter((s) => /^\s*@linalg\b/m.test(s.body)),
+    [segments]
   );
 
   const formulas = useMemo<FormulaBlock[]>(
-    () => segments
-      .filter((s): s is Extract<Segment, { kind: 'formula' }> => s.kind === 'formula')
-      .filter((s) => !/^\s*@pde\b/m.test(s.body) && !/^\s*@linalg\b/m.test(s.body))
-      .map((s) => parseFormulaBlock(s.id, s.body)),
-    [segments],
+    () =>
+      segments
+        .filter((s): s is Extract<Segment, { kind: 'formula' }> => s.kind === 'formula')
+        .filter((s) => !/^\s*@pde\b/m.test(s.body) && !/^\s*@linalg\b/m.test(s.body))
+        .map((s) => parseFormulaBlock(s.id, s.body)),
+    [segments]
   );
 
   /**
@@ -236,9 +250,12 @@ export function ReaderView({
   const rozwiazOdsylacz = (id: string) => {
     const wlasny = segments.find(
       (s): s is Extract<Segment, { kind: 'formula' | 'figure' | 'table' }> =>
-        (s.kind === 'formula' || s.kind === 'figure' || s.kind === 'table'
-          || s.kind === 'callout' || s.kind === 'law')
-        && s.id === id,
+        (s.kind === 'formula' ||
+          s.kind === 'figure' ||
+          s.kind === 'table' ||
+          s.kind === 'callout' ||
+          s.kind === 'law') &&
+        s.id === id
     );
     if (wlasny) return { code: wlasny.body, kind: wlasny.kind, sameDocument: true };
     return resolveRef?.(id);
@@ -357,7 +374,8 @@ export function ReaderView({
 
     zmierz();
     window.addEventListener('resize', zmierz);
-    const obserwator = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(zmierz);
+    const obserwator =
+      typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(zmierz);
     if (tresc.current) obserwator?.observe(tresc.current);
     return () => {
       window.removeEventListener('resize', zmierz);
@@ -370,9 +388,12 @@ export function ReaderView({
     setStrona((p) => Math.min(p, punkty.length - 1));
   }, [punkty.length]);
 
-  const przewroc = useCallback((o: number) => {
-    setStrona((p) => Math.min(Math.max(0, p + o), punkty.length - 1));
-  }, [punkty.length]);
+  const przewroc = useCallback(
+    (o: number) => {
+      setStrona((p) => Math.min(Math.max(0, p + o), punkty.length - 1));
+    },
+    [punkty.length]
+  );
 
   useEffect(() => {
     if (!paged || typeof window === 'undefined') return undefined;
@@ -385,7 +406,17 @@ export function ReaderView({
   }, [paged, przewroc]);
 
   const tekstDokumentu = (
-    <article ref={artykul} style={{ maxWidth, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14, ...text }}>
+    <article
+      ref={artykul}
+      style={{
+        maxWidth,
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        ...text,
+      }}
+    >
       {segments.map((segment, index) => {
         switch (segment.kind) {
           case 'text':
@@ -414,7 +445,14 @@ export function ReaderView({
               </div>
             );
           case 'sim':
-            return <SimBlock key={index} code={segment.body} formulas={formulas} workerFactory={workerFactory} />;
+            return (
+              <SimBlock
+                key={index}
+                code={segment.body}
+                formulas={formulas}
+                workerFactory={workerFactory}
+              />
+            );
           case 'procedure':
             return <ProcedureBlock key={index} id={segment.id} code={segment.body} />;
           case 'linalg': {
@@ -427,7 +465,14 @@ export function ReaderView({
                 </div>
               );
             }
-            return <LinAlgBlock key={index} id={scena.id} code={scena.body} setup={parseStageSetup(segment.body)} />;
+            return (
+              <LinAlgBlock
+                key={index}
+                id={scena.id}
+                code={scena.body}
+                setup={parseStageSetup(segment.body)}
+              />
+            );
           }
           case 'field': {
             // Blok `field` wskazuje wzór pola po identyfikatorze; nastawy
@@ -445,7 +490,14 @@ export function ReaderView({
             }
             // Bez `onFormulaChange`: w trybie czytania rysunek żyje do
             // przeładowania. Zapis należy do edytora, nie do czytelnika.
-            return <FieldBlock key={index} id={pole.id} code={pole.body} setup={parseSetup(segment.body)} />;
+            return (
+              <FieldBlock
+                key={index}
+                id={pole.id}
+                code={pole.body}
+                setup={parseSetup(segment.body)}
+              />
+            );
           }
           case 'simscript':
             return <ScriptBlock key={index} code={segment.body} workerFactory={workerFactory} />;
@@ -458,10 +510,14 @@ export function ReaderView({
                 formulas={formulas}
                 resolve={rozwiazOdsylacz}
                 onNavigate={przejdzDoCelu}
-                onAttempt={onAttempt && ((attempt) => onAttempt({
-                  ...attempt,
-                  id: path ? `${path}:${attempt.id}` : attempt.id,
-                }))}
+                onAttempt={
+                  onAttempt &&
+                  ((attempt) =>
+                    onAttempt({
+                      ...attempt,
+                      id: path ? `${path}:${attempt.id}` : attempt.id,
+                    }))
+                }
                 /*
                   Klucz historii składamy **tak samo jak klucz harmonogramu** —
                   identyfikator zadania jest unikalny tylko w obrębie dokumentu,
@@ -469,15 +525,25 @@ export function ReaderView({
                   jedną historię.
                 */
                 solutions={solutionStore?.get(path ? `${path}:${segment.id}` : segment.id)}
-                onSolution={solutionStore && ((draft) => solutionStore.save(
-                  path ? `${path}:${segment.id}` : segment.id,
-                  draft,
-                ))}
+                onSolution={
+                  solutionStore &&
+                  ((draft) =>
+                    solutionStore.save(path ? `${path}:${segment.id}` : segment.id, draft))
+                }
               />
             );
           default:
             return (
-              <pre key={index} style={{ background: '#f8fafc', borderRadius: 6, padding: 10, overflowX: 'auto', fontSize: 12 }}>
+              <pre
+                key={index}
+                style={{
+                  background: '#f8fafc',
+                  borderRadius: 6,
+                  padding: 10,
+                  overflowX: 'auto',
+                  fontSize: 12,
+                }}
+              >
                 <code>{segment.body}</code>
               </pre>
             );
@@ -524,10 +590,22 @@ export function ReaderView({
         {tekstDokumentu}
       </div>
 
-      <button type="button" aria-label="poprzednia strona" onClick={() => przewroc(-1)} style={{ ...polowa, left: 0 }} />
-      <button type="button" aria-label="następna strona" onClick={() => przewroc(1)} style={{ ...polowa, right: 0 }} />
+      <button
+        type="button"
+        aria-label="poprzednia strona"
+        onClick={() => przewroc(-1)}
+        style={{ ...polowa, left: 0 }}
+      />
+      <button
+        type="button"
+        aria-label="następna strona"
+        onClick={() => przewroc(1)}
+        style={{ ...polowa, right: 0 }}
+      />
 
-      <div style={licznikStron}>{strona + 1} / {punkty.length}</div>
+      <div style={licznikStron}>
+        {strona + 1} / {punkty.length}
+      </div>
     </div>
   );
 }

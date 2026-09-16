@@ -13,13 +13,15 @@ function generate(blocks: object): string {
 describe('liczby i arytmetyka', () => {
   it('liczba całkowita zostaje całkowita', () => {
     // `3` wypisane jako `3.0` sugerowałoby typ, którego użytkownik nie wybrał.
-    expect(generate({ type: 'math_number', fields: { NUM: 3 } , id: 'a' })).toContain('3');
+    expect(generate({ type: 'math_number', fields: { NUM: 3 }, id: 'a' })).toContain('3');
     expect(generate({ type: 'math_number', fields: { NUM: 3 }, id: 'a' })).not.toContain('3.0');
   });
 
   it('dodawanie', () => {
     const code = generate({
-      type: 'math_arithmetic', id: 'a', fields: { OP: 'ADD' },
+      type: 'math_arithmetic',
+      id: 'a',
+      fields: { OP: 'ADD' },
       inputs: {
         A: { block: { type: 'math_number', id: 'b', fields: { NUM: 1 } } },
         B: { block: { type: 'math_number', id: 'c', fields: { NUM: 2 } } },
@@ -31,7 +33,9 @@ describe('liczby i arytmetyka', () => {
   it('potęgowanie idzie przez funkcję, bo `^` w C++ to XOR', () => {
     // Najbardziej podstępna różnica: `2 ^ 3` kompiluje się i daje 1.
     const code = generate({
-      type: 'math_arithmetic', id: 'a', fields: { OP: 'POWER' },
+      type: 'math_arithmetic',
+      id: 'a',
+      fields: { OP: 'POWER' },
       inputs: {
         A: { block: { type: 'math_number', id: 'b', fields: { NUM: 2 } } },
         B: { block: { type: 'math_number', id: 'c', fields: { NUM: 3 } } },
@@ -44,12 +48,16 @@ describe('liczby i arytmetyka', () => {
 
 describe('logika', () => {
   it('wartości logiczne po C++owemu', () => {
-    expect(generate({ type: 'logic_boolean', id: 'a', fields: { BOOL: 'TRUE' } })).toContain('true');
+    expect(generate({ type: 'logic_boolean', id: 'a', fields: { BOOL: 'TRUE' } })).toContain(
+      'true'
+    );
   });
 
   it('porównanie równości', () => {
     const code = generate({
-      type: 'logic_compare', id: 'a', fields: { OP: 'EQ' },
+      type: 'logic_compare',
+      id: 'a',
+      fields: { OP: 'EQ' },
       inputs: {
         A: { block: { type: 'math_number', id: 'b', fields: { NUM: 1 } } },
         B: { block: { type: 'math_number', id: 'c', fields: { NUM: 1 } } },
@@ -60,7 +68,9 @@ describe('logika', () => {
 
   it('koniunkcja używa `&&`, nie `and`', () => {
     const code = generate({
-      type: 'logic_operation', id: 'a', fields: { OP: 'AND' },
+      type: 'logic_operation',
+      id: 'a',
+      fields: { OP: 'AND' },
       inputs: {
         A: { block: { type: 'logic_boolean', id: 'b', fields: { BOOL: 'TRUE' } } },
         B: { block: { type: 'logic_boolean', id: 'c', fields: { BOOL: 'FALSE' } } },
@@ -77,7 +87,8 @@ describe('logika', () => {
 describe('sterowanie', () => {
   it('warunek dostaje nawiasy klamrowe', () => {
     const code = generate({
-      type: 'controls_if', id: 'a',
+      type: 'controls_if',
+      id: 'a',
       inputs: { IF0: { block: { type: 'logic_boolean', id: 'b', fields: { BOOL: 'TRUE' } } } },
     });
     expect(code).toMatch(/if \(true\) \{/);
@@ -86,7 +97,8 @@ describe('sterowanie', () => {
 
   it('powtórzenie n razy używa pętli licznikowej', () => {
     const code = generate({
-      type: 'controls_repeat_ext', id: 'a',
+      type: 'controls_repeat_ext',
+      id: 'a',
       inputs: { TIMES: { block: { type: 'math_number', id: 'b', fields: { NUM: 5 } } } },
     });
     expect(code).toMatch(/for \(int \w+ = 0; \w+ < 5; \w+\+\+\)/);
@@ -94,11 +106,15 @@ describe('sterowanie', () => {
 
   it('„dopóki" i „aż" różnią się negacją, a nie słowem kluczowym', () => {
     const whileCode = generate({
-      type: 'controls_whileUntil', id: 'a', fields: { MODE: 'WHILE' },
+      type: 'controls_whileUntil',
+      id: 'a',
+      fields: { MODE: 'WHILE' },
       inputs: { BOOL: { block: { type: 'logic_boolean', id: 'b', fields: { BOOL: 'TRUE' } } } },
     });
     const untilCode = generate({
-      type: 'controls_whileUntil', id: 'a', fields: { MODE: 'UNTIL' },
+      type: 'controls_whileUntil',
+      id: 'a',
+      fields: { MODE: 'UNTIL' },
       inputs: { BOOL: { block: { type: 'logic_boolean', id: 'b', fields: { BOOL: 'TRUE' } } } },
     });
     expect(whileCode).toContain('while (true)');
@@ -122,7 +138,8 @@ describe('tekst', () => {
     // Kod z `std::cout` bez `#include <iostream>` nie kompiluje się, a błąd
     // wskazuje na linię, której użytkownik nie pisał.
     const code = generate({
-      type: 'text_print', id: 'a',
+      type: 'text_print',
+      id: 'a',
       inputs: { TEXT: { block: { type: 'text', id: 'b', fields: { TEXT: 'hej' } } } },
     });
     expect(code).toContain('#include <iostream>');
@@ -133,22 +150,33 @@ describe('tekst', () => {
 describe('zmienne', () => {
   it('pierwsze przypisanie deklaruje przez auto, kolejne już nie', () => {
     const ws = new Blockly.Workspace();
-    Blockly.serialization.workspaces.load({
-      variables: [{ name: 'licznik', id: 'V1' }],
-      blocks: {
-        languageVersion: 0,
-        blocks: [{
-          type: 'variables_set', id: 'a', fields: { VAR: { id: 'V1' } },
-          inputs: { VALUE: { block: { type: 'math_number', id: 'b', fields: { NUM: 1 } } } },
-          next: {
-            block: {
-              type: 'variables_set', id: 'c', fields: { VAR: { id: 'V1' } },
-              inputs: { VALUE: { block: { type: 'math_number', id: 'd', fields: { NUM: 2 } } } },
+    Blockly.serialization.workspaces.load(
+      {
+        variables: [{ name: 'licznik', id: 'V1' }],
+        blocks: {
+          languageVersion: 0,
+          blocks: [
+            {
+              type: 'variables_set',
+              id: 'a',
+              fields: { VAR: { id: 'V1' } },
+              inputs: { VALUE: { block: { type: 'math_number', id: 'b', fields: { NUM: 1 } } } },
+              next: {
+                block: {
+                  type: 'variables_set',
+                  id: 'c',
+                  fields: { VAR: { id: 'V1' } },
+                  inputs: {
+                    VALUE: { block: { type: 'math_number', id: 'd', fields: { NUM: 2 } } },
+                  },
+                },
+              },
             },
-          },
-        }],
+          ],
+        },
       },
-    }, ws);
+      ws
+    );
     const code = createCppGenerator().workspaceToCode(ws);
     expect(code).toContain('auto licznik = 1;');
     expect(code).toContain('licznik = 2;');
@@ -158,16 +186,23 @@ describe('zmienne', () => {
 
   it('nazwa niedozwolona w C++ jest poprawiana, nie przepuszczana', () => {
     const ws = new Blockly.Workspace();
-    Blockly.serialization.workspaces.load({
-      variables: [{ name: 'mój licznik', id: 'V1' }],
-      blocks: {
-        languageVersion: 0,
-        blocks: [{
-          type: 'variables_set', id: 'a', fields: { VAR: { id: 'V1' } },
-          inputs: { VALUE: { block: { type: 'math_number', id: 'b', fields: { NUM: 1 } } } },
-        }],
+    Blockly.serialization.workspaces.load(
+      {
+        variables: [{ name: 'mój licznik', id: 'V1' }],
+        blocks: {
+          languageVersion: 0,
+          blocks: [
+            {
+              type: 'variables_set',
+              id: 'a',
+              fields: { VAR: { id: 'V1' } },
+              inputs: { VALUE: { block: { type: 'math_number', id: 'b', fields: { NUM: 1 } } } },
+            },
+          ],
+        },
       },
-    }, ws);
+      ws
+    );
     const code = createCppGenerator().workspaceToCode(ws);
     expect(code).not.toContain('mój licznik');
     expect(code).toMatch(/auto \w+ = 1;/);
@@ -177,11 +212,13 @@ describe('zmienne', () => {
 describe('nagłówki', () => {
   it('każdy nagłówek pojawia się raz, choćby był potrzebny wielokrotnie', () => {
     const code = generate({
-      type: 'text_print', id: 'a',
+      type: 'text_print',
+      id: 'a',
       inputs: { TEXT: { block: { type: 'text', id: 'b', fields: { TEXT: 'x' } } } },
       next: {
         block: {
-          type: 'text_print', id: 'c',
+          type: 'text_print',
+          id: 'c',
           inputs: { TEXT: { block: { type: 'text', id: 'd', fields: { TEXT: 'y' } } } },
         },
       },
@@ -199,20 +236,35 @@ describe('funkcje', () => {
   };
 
   it('procedura bez wyniku wychodzi jako void', () => {
-    const code = withProcedure([{
-      type: 'procedures_defnoreturn', id: 'd', fields: { NAME: 'powitaj' },
-      inputs: { STACK: { block: { type: 'text_print', id: 'p',
-        inputs: { TEXT: { block: { type: 'text', id: 't', fields: { TEXT: 'hej' } } } } } } },
-    }]);
+    const code = withProcedure([
+      {
+        type: 'procedures_defnoreturn',
+        id: 'd',
+        fields: { NAME: 'powitaj' },
+        inputs: {
+          STACK: {
+            block: {
+              type: 'text_print',
+              id: 'p',
+              inputs: { TEXT: { block: { type: 'text', id: 't', fields: { TEXT: 'hej' } } } },
+            },
+          },
+        },
+      },
+    ]);
     expect(code).toMatch(/void powitaj\(\)\s*\{/);
     expect(code).toContain('"hej"');
   });
 
   it('funkcja z wynikiem zwraca wartość', () => {
-    const code = withProcedure([{
-      type: 'procedures_defreturn', id: 'd', fields: { NAME: 'dwa' },
-      inputs: { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 2 } } } },
-    }]);
+    const code = withProcedure([
+      {
+        type: 'procedures_defreturn',
+        id: 'd',
+        fields: { NAME: 'dwa' },
+        inputs: { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 2 } } } },
+      },
+    ]);
     expect(code).toMatch(/auto dwa\(\)\s*\{/);
     expect(code).toContain('return 2;');
   });
@@ -223,13 +275,23 @@ describe('funkcje', () => {
     const ws = new Blockly.Workspace();
     ws.createVariable('a');
     ws.createVariable('b');
-    Blockly.serialization.workspaces.load({
-      blocks: { languageVersion: 0, blocks: [{
-        type: 'procedures_defreturn', id: 'd', fields: { NAME: 'suma' },
-        extraState: { params: [{ name: 'a' }, { name: 'b' }] },
-        inputs: { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 0 } } } },
-      }] },
-    }, ws);
+    Blockly.serialization.workspaces.load(
+      {
+        blocks: {
+          languageVersion: 0,
+          blocks: [
+            {
+              type: 'procedures_defreturn',
+              id: 'd',
+              fields: { NAME: 'suma' },
+              extraState: { params: [{ name: 'a' }, { name: 'b' }] },
+              inputs: { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 0 } } } },
+            },
+          ],
+        },
+      },
+      ws
+    );
     const code = createCppGenerator().workspaceToCode(ws).trim();
     expect(code).toMatch(/template\s*<typename T0, typename T1>/);
     expect(code).toMatch(/auto suma\(T0 a, T1 b\)/);
@@ -238,43 +300,76 @@ describe('funkcje', () => {
   it('wywołanie funkcji z argumentami', () => {
     const ws = new Blockly.Workspace();
     ws.createVariable('a');
-    Blockly.serialization.workspaces.load({
-      blocks: { languageVersion: 0, blocks: [
-        {
-          type: 'procedures_defreturn', id: 'd', fields: { NAME: 'podwoj' },
-          extraState: { params: [{ name: 'a' }] },
-          inputs: { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 0 } } } },
+    Blockly.serialization.workspaces.load(
+      {
+        blocks: {
+          languageVersion: 0,
+          blocks: [
+            {
+              type: 'procedures_defreturn',
+              id: 'd',
+              fields: { NAME: 'podwoj' },
+              extraState: { params: [{ name: 'a' }] },
+              inputs: { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 0 } } } },
+            },
+            {
+              type: 'procedures_callreturn',
+              id: 'c',
+              extraState: { name: 'podwoj', params: ['a'] },
+              inputs: { ARG0: { block: { type: 'math_number', id: 'm', fields: { NUM: 21 } } } },
+            },
+          ],
         },
-        {
-          type: 'procedures_callreturn', id: 'c', extraState: { name: 'podwoj', params: ['a'] },
-          inputs: { ARG0: { block: { type: 'math_number', id: 'm', fields: { NUM: 21 } } } },
-        },
-      ] },
-    }, ws);
+      },
+      ws
+    );
     expect(createCppGenerator().workspaceToCode(ws)).toContain('podwoj(21)');
   });
 
   // Definicja musi stać przed użyciem — C++ nie widzi funkcji zdefiniowanej niżej.
   it('definicje lądują przed resztą kodu', () => {
     const ws = new Blockly.Workspace();
-    Blockly.serialization.workspaces.load({
-      blocks: { languageVersion: 0, blocks: [
-        { type: 'procedures_callnoreturn', id: 'c', x: 0, y: 200, extraState: { name: 'powitaj', params: [] } },
-        { type: 'procedures_defnoreturn', id: 'd', x: 0, y: 0, fields: { NAME: 'powitaj' } },
-      ] },
-    }, ws);
+    Blockly.serialization.workspaces.load(
+      {
+        blocks: {
+          languageVersion: 0,
+          blocks: [
+            {
+              type: 'procedures_callnoreturn',
+              id: 'c',
+              x: 0,
+              y: 200,
+              extraState: { name: 'powitaj', params: [] },
+            },
+            { type: 'procedures_defnoreturn', id: 'd', x: 0, y: 0, fields: { NAME: 'powitaj' } },
+          ],
+        },
+      },
+      ws
+    );
     const code = createCppGenerator().workspaceToCode(ws);
     expect(code.indexOf('void powitaj()')).toBeLessThan(code.indexOf('powitaj();'));
   });
 
   it('wcześniejszy return wewnątrz funkcji', () => {
-    const code = withProcedure([{
-      type: 'procedures_defnoreturn', id: 'd', fields: { NAME: 'sprawdz' },
-      inputs: { STACK: { block: {
-        type: 'procedures_ifreturn', id: 'r',
-        inputs: { CONDITION: { block: { type: 'logic_boolean', id: 'b', fields: { BOOL: 'TRUE' } } } },
-      } } },
-    }]);
+    const code = withProcedure([
+      {
+        type: 'procedures_defnoreturn',
+        id: 'd',
+        fields: { NAME: 'sprawdz' },
+        inputs: {
+          STACK: {
+            block: {
+              type: 'procedures_ifreturn',
+              id: 'r',
+              inputs: {
+                CONDITION: { block: { type: 'logic_boolean', id: 'b', fields: { BOOL: 'TRUE' } } },
+              },
+            },
+          },
+        },
+      },
+    ]);
     expect(code).toMatch(/if \(true\) \{\s*return;/);
   });
 });

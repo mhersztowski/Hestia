@@ -33,7 +33,9 @@ describe('tempo', () => {
     const jeden = stepSlider(stan(0), SPEC, { mode: 'loop', speed: 20 }, 0.05);
     const dwa = stepSlider(
       stepSlider(stan(0), SPEC, { mode: 'loop', speed: 20 }, 0.025),
-      SPEC, { mode: 'loop', speed: 20 }, 0.025,
+      SPEC,
+      { mode: 'loop', speed: 20 },
+      0.025
     );
     expect(dwa.value).toBeCloseTo(jeden.value, 9);
   });
@@ -85,12 +87,21 @@ describe('przypadki graniczne', () => {
 
   it('wartość spoza zakresu jest wciągana do środka', () => {
     // Zakres można zmienić w trakcie animacji; suwak nie może zostać na zewnątrz.
-    expect(stepSlider(stan(50), SPEC, { mode: 'loop', speed: 1 }, 0.1).value).toBeLessThanOrEqual(SPEC.max);
-    expect(stepSlider(stan(-50), SPEC, { mode: 'loop', speed: 1 }, 0.1).value).toBeGreaterThanOrEqual(SPEC.min);
+    expect(stepSlider(stan(50), SPEC, { mode: 'loop', speed: 1 }, 0.1).value).toBeLessThanOrEqual(
+      SPEC.max
+    );
+    expect(
+      stepSlider(stan(-50), SPEC, { mode: 'loop', speed: 1 }, 0.1).value
+    ).toBeGreaterThanOrEqual(SPEC.min);
   });
 
   it('zakres o zerowej szerokości nie zapętla programu', () => {
-    const po = stepSlider(stan(5), { min: 5, max: 5, step: 1 }, { mode: 'bounce', speed: 20 }, 0.05);
+    const po = stepSlider(
+      stan(5),
+      { min: 5, max: 5, step: 1 },
+      { mode: 'bounce', speed: 20 },
+      0.05
+    );
     expect(po.value).toBe(5);
   });
 

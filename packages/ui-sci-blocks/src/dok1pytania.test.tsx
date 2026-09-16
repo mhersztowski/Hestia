@@ -4,20 +4,33 @@ import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
-const pliki = ['1-Pytania.md', '1-1-wielkosci.md', '1-2-si.md', '1-3-dlugosc.md',
-  '1-4-masa.md', '1-5-czas.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [
+  '1-Pytania.md',
+  '1-1-wielkosci.md',
+  '1-2-si.md',
+  '1-3-dlugosc.md',
+  '1-4-masa.md',
+  '1-5-czas.md',
+  'Slownik.md',
+].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, '1-Pytania.md');
+  const cel = resolveReference(
+    id,
+    { anchors: index.anchors, formulaHome: index.formulaHome },
+    '1-Pytania.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['1-Pytania.md']} path="1-Pytania.md" resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(
+    <ReaderView markdown={bodies['1-Pytania.md']} path="1-Pytania.md" resolveRef={resolveRef} />
+  );
 
 describe('Pytania rozdziału 1', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));

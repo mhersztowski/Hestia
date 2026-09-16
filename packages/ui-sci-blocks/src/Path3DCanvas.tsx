@@ -23,9 +23,18 @@ export interface Path3DCanvasProps {
 }
 
 /** Obrót wokół osi pionowej i poziomej, w radianach. */
-interface Camera { yaw: number; pitch: number }
+interface Camera {
+  yaw: number;
+  pitch: number;
+}
 
-export function Path3DCanvas({ points, labels, width = 320, height = 260, cursor }: Path3DCanvasProps) {
+export function Path3DCanvas({
+  points,
+  labels,
+  width = 320,
+  height = 260,
+  cursor,
+}: Path3DCanvasProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [camera, setCamera] = useState<Camera>({ yaw: 0.6, pitch: 0.35 });
   const dragRef = useRef<{ x: number; y: number } | null>(null);
@@ -53,7 +62,7 @@ export function Path3DCanvas({ points, labels, width = 320, height = 260, cursor
     }) as [number, number, number];
     const radius = Math.max(
       ...points.map((p) => Math.hypot(p[0] - center[0], p[1] - center[1], p[2] - center[2])),
-      1e-9,
+      1e-9
     );
 
     const distance = radius * 3.2;
@@ -149,7 +158,9 @@ export function Path3DCanvas({ points, labels, width = 320, height = 260, cursor
           pitch: Math.max(-1.5, Math.min(1.5, previous.pitch + dy * 0.01)),
         }));
       }}
-      onPointerUp={() => { dragRef.current = null; }}
+      onPointerUp={() => {
+        dragRef.current = null;
+      }}
     />
   );
 }

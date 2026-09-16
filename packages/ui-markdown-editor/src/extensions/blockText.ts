@@ -24,7 +24,7 @@ export function replaceBlockText(
   editor: Editor,
   pos: number | null | undefined,
   node: ProseMirrorNode,
-  next: string,
+  next: string
 ): boolean {
   if (pos == null) return false;
   if (next === node.textContent) return false;

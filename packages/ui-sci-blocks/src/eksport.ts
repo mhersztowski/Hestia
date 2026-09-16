@@ -36,8 +36,9 @@ export function seriesToCsv(series: Series): string {
   const nazwy = Object.keys(series);
   if (nazwy.length === 0) return 't';
 
-  const czasy = [...new Set(nazwy.flatMap((name) => series[name].map(([t]) => t)))]
-    .sort((a, b) => a - b);
+  const czasy = [...new Set(nazwy.flatMap((name) => series[name].map(([t]) => t)))].sort(
+    (a, b) => a - b
+  );
 
   const poCzasie = new Map<string, Map<number, number>>();
   for (const name of nazwy) poCzasie.set(name, new Map(series[name]));
@@ -76,7 +77,15 @@ export function framesToCsv(frames: FrameLike[], nx: number, ny: number): string
 }
 
 const DIAKRYTYKI: Record<string, string> = {
-  ą: 'a', ć: 'c', ę: 'e', ł: 'l', ń: 'n', ó: 'o', ś: 's', ź: 'z', ż: 'z',
+  ą: 'a',
+  ć: 'c',
+  ę: 'e',
+  ł: 'l',
+  ń: 'n',
+  ó: 'o',
+  ś: 's',
+  ź: 'z',
+  ż: 'z',
 };
 
 /** Nazwa pliku z identyfikatora bloku — ma coś znaczyć w katalogu Pobrane. */
@@ -105,7 +114,10 @@ function saveBlob(blob: Blob, fileName: string): void {
 /** Zapisuje tekst jako plik CSV. */
 export function downloadCsv(csv: string, id: string | undefined): void {
   // BOM, bo bez niego Excel czyta polskie znaki w nagłówkach jako krzaki.
-  saveBlob(new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8' }), exportFileName(id, 'csv'));
+  saveBlob(
+    new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' }),
+    exportFileName(id, 'csv')
+  );
 }
 
 /**
@@ -115,7 +127,11 @@ export function downloadCsv(csv: string, id: string | undefined): void {
  * powiększany — obraz w rozmiarze ekranowym wygląda tam na rozmyty. Rysujemy
  * na białym tle: przezroczyste znika na ciemnym slajdzie razem z osiami.
  */
-export function downloadCanvasPng(canvas: HTMLCanvasElement, id: string | undefined, scale = 2): void {
+export function downloadCanvasPng(
+  canvas: HTMLCanvasElement,
+  id: string | undefined,
+  scale = 2
+): void {
   const cel = document.createElement('canvas');
   cel.width = Math.round(canvas.width * scale);
   cel.height = Math.round(canvas.height * scale);

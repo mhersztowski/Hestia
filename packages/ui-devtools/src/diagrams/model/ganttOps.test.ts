@@ -1,8 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { parseGanttDiagram, serializeGanttDiagram } from '../formats/mermaid/ganttDiagram';
 import {
-  addSection, updateSection, removeSection, moveSection,
-  addTask, updateTask, toggleTag, removeTask, moveTask, moveTaskToSection, setGanttSetting,
+  addSection,
+  updateSection,
+  removeSection,
+  moveSection,
+  addTask,
+  updateTask,
+  toggleTag,
+  removeTask,
+  moveTask,
+  moveTaskToSection,
+  setGanttSetting,
 } from './ganttOps';
 import type { DiagramDocument } from './diagram';
 
@@ -26,7 +35,10 @@ describe('sekcje', () => {
 
   it('zmienia nazwę i przesuwa sekcję', () => {
     expect(updateSection(docOf(BASE), 1, 'Realizacja').gantt!.sections[1].label).toBe('Realizacja');
-    expect(moveSection(docOf(BASE), 1, 0).gantt!.sections.map((s) => s.label)).toEqual(['Budowa', 'Projekt']);
+    expect(moveSection(docOf(BASE), 1, 0).gantt!.sections.map((s) => s.label)).toEqual([
+      'Budowa',
+      'Projekt',
+    ]);
   });
 
   it('usuwa sekcję razem z zadaniami', () => {
@@ -56,7 +68,9 @@ describe('zadania', () => {
     const next = moveTaskToSection(docOf(BASE), 0, 0, 1);
     expect(next.gantt!.sections[0].tasks.map((t) => t.label)).toEqual(['Makiety']);
     expect(next.gantt!.sections[1].tasks[1]).toEqual({
-      label: 'Analiza', tags: [], id: 'a1',
+      label: 'Analiza',
+      tags: [],
+      id: 'a1',
       start: { kind: 'date', value: '2024-01-01' },
       end: { kind: 'duration', value: '5d' },
     });
@@ -86,7 +100,12 @@ describe('usunięcie zadania nie zrywa harmonogramu', () => {
   });
 
   it('gdy usunięte zaczynało się datą, odniesienie znika i zadanie rusza po poprzedniku', () => {
-    const doc = docOf(['gantt', '    section S', '        A :a1, 2024-01-01, 5d', '        B :b1, after a1, 2d']);
+    const doc = docOf([
+      'gantt',
+      '    section S',
+      '        A :a1, 2024-01-01, 5d',
+      '        B :b1, after a1, 2d',
+    ]);
     const next = removeTask(doc, 0, 0);
     expect(next.gantt!.sections[0].tasks[0].start).toBeUndefined();
     expect(serializeGanttDiagram(next)).toContain('B :2d');
@@ -94,7 +113,8 @@ describe('usunięcie zadania nie zrywa harmonogramu', () => {
 
   it('after z kilkoma zadaniami traci tylko usunięte', () => {
     const doc = docOf([
-      'gantt', '    section S',
+      'gantt',
+      '    section S',
       '        A :a1, 2024-01-01, 5d',
       '        B :b1, 2024-01-01, 3d',
       '        C :c1, after a1 b1, 1d',
@@ -105,7 +125,8 @@ describe('usunięcie zadania nie zrywa harmonogramu', () => {
 
   it('until też jest naprawiane', () => {
     const doc = docOf([
-      'gantt', '    section S',
+      'gantt',
+      '    section S',
       '        A :a1, 2024-01-01, until b1',
       '        B :b1, after a1, 3d',
     ]);
@@ -116,7 +137,12 @@ describe('usunięcie zadania nie zrywa harmonogramu', () => {
   it('dziedziczenie nie tworzy odniesienia do samego siebie', () => {
     // Zapętlone zależności same w sobie są błędem, ale usuwanie nie ma prawa
     // zamienić ich na zadanie czekające na własny koniec.
-    const doc = docOf(['gantt', '    section S', '        A :a1, after b1, 2d', '        B :b1, after a1, 2d']);
+    const doc = docOf([
+      'gantt',
+      '    section S',
+      '        A :a1, after b1, 2d',
+      '        B :b1, after a1, 2d',
+    ]);
     const next = removeTask(doc, 0, 1);
     expect(next.gantt!.sections[0].tasks[0].start).toBeUndefined();
   });

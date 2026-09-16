@@ -1,10 +1,6 @@
 {
   "id": "lorenz-ode",
-  "state": [
-    "x",
-    "y",
-    "z"
-  ],
+  "state": ["x", "y", "z"],
   "derivatives": {
     "x": "(sigma * ((-x) + y))",
     "y": "((x * (rho + (-z))) + (-y))",
@@ -21,10 +17,7 @@
     "y": 1,
     "z": 1
   },
-  "tSpan": [
-    0,
-    3
-  ],
+  "tSpan": [0, 3],
   "samples": 60,
   "checkpoints": [
     {

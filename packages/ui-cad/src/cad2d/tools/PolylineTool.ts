@@ -32,10 +32,23 @@ export class PolylineTool implements Tool {
     const midX = (last.x + this.current.x) / 2;
     const midY = (last.y + this.current.y) / 2;
     const labels: DimensionLabel[] = [
-      { worldX: midX, worldY: midY, text: `L: ${len.toFixed(2)}`, offsetY: -14, variant: 'primary' },
+      {
+        worldX: midX,
+        worldY: midY,
+        text: `L: ${len.toFixed(2)}`,
+        offsetY: -14,
+        variant: 'primary',
+      },
     ];
     if (this.points.length >= 1) {
-      labels.push({ worldX: this.current.x, worldY: this.current.y, text: `Σ ${total.toFixed(2)}`, offsetX: 26, offsetY: 6, variant: 'secondary' });
+      labels.push({
+        worldX: this.current.x,
+        worldY: this.current.y,
+        text: `Σ ${total.toFixed(2)}`,
+        offsetX: 26,
+        offsetY: 6,
+        variant: 'secondary',
+      });
     }
     return labels;
   }
@@ -59,8 +72,12 @@ export class PolylineTool implements Tool {
         layerId: ctx.project.layerSystem.getActiveId(),
         points: [...this.points],
         closed: false,
-        color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-        visible: true, locked: false, extrudeHeight: 0,
+        color: 'bylayer',
+        lineType: 'bylayer',
+        lineWidth: 'bylayer',
+        visible: true,
+        locked: false,
+        extrudeHeight: 0,
       });
       this.reset();
     }
@@ -70,8 +87,12 @@ export class PolylineTool implements Tool {
         layerId: ctx.project.layerSystem.getActiveId(),
         points: [...this.points],
         closed: true,
-        color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-        visible: true, locked: false, extrudeHeight: 0,
+        color: 'bylayer',
+        lineType: 'bylayer',
+        lineWidth: 'bylayer',
+        visible: true,
+        locked: false,
+        extrudeHeight: 0,
       });
       this.reset();
     }

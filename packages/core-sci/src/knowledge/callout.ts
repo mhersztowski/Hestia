@@ -76,7 +76,8 @@ export function parseCalloutBlock(id: string, code: string): CalloutBlock {
 
     switch (nazwa) {
       case 'kind':
-        if ((CALLOUT_KINDS as readonly string[]).includes(reszta)) block.kind = reszta as CalloutKind;
+        if ((CALLOUT_KINDS as readonly string[]).includes(reszta))
+          block.kind = reszta as CalloutKind;
         else {
           block.issues.push({
             message: `Nieznany rodzaj notki „${reszta}" w @kind — dozwolone: ${CALLOUT_KINDS.join(', ')}.`,

@@ -49,7 +49,8 @@ export function matrixRank(A: number[][], eps = 1e-9): number {
   let rzad = 0;
   for (let kol = 0; kol < kolumn && rzad < wierszy; kol++) {
     let glowny = rzad;
-    for (let i = rzad + 1; i < wierszy; i++) if (Math.abs(M[i][kol]) > Math.abs(M[glowny][kol])) glowny = i;
+    for (let i = rzad + 1; i < wierszy; i++)
+      if (Math.abs(M[i][kol]) > Math.abs(M[glowny][kol])) glowny = i;
     if (Math.abs(M[glowny][kol]) < eps * skala) continue;
 
     [M[rzad], M[glowny]] = [M[glowny], M[rzad]];

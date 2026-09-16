@@ -7,27 +7,48 @@ import { readBook } from './test/knowledge';
 
 // One reference points into the textbook, which lives on a user's drive rather
 // than in the repository — without it there is nothing to resolve against.
-const rozdzial0804 = readBook('08-zasada-zachowania-energii/08-04-jednowymiarowe-uklady-zachowawcze.md');
+const rozdzial0804 = readBook(
+  '08-zasada-zachowania-energii/08-04-jednowymiarowe-uklady-zachowawcze.md'
+);
 const pliki = [
-  ...['15-2-oscylator.md', 'Slownik.md', '15-1-ruch-harmoniczny.md']
-    .map((p) => ({ path: p, markdown: readDocument(p) })),
+  ...['15-2-oscylator.md', 'Slownik.md', '15-1-ruch-harmoniczny.md'].map((p) => ({
+    path: p,
+    markdown: readDocument(p),
+  })),
   { path: '08-04.md', markdown: rozdzial0804 ?? '' },
 ];
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, {
-    anchors: index.anchors, formulaHome: index.formulaHome,
-    documentTitles: new Map(index.documents.map((d) => [d.path, d.meta.title ?? d.path])),
-  }, '15-2-oscylator.md');
+  const cel = resolveReference(
+    id,
+    {
+      anchors: index.anchors,
+      formulaHome: index.formulaHome,
+      documentTitles: new Map(index.documents.map((d) => [d.path, d.meta.title ?? d.path])),
+    },
+    '15-2-oscylator.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
-  return { code: m?.[1], kind: cel.kind, documentTitle: cel.documentTitle, sameDocument: cel.sameDocument };
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
+  return {
+    code: m?.[1],
+    kind: cel.kind,
+    documentTitle: cel.documentTitle,
+    sameDocument: cel.sameDocument,
+  };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['15-2-oscylator.md']} path="15-2-oscylator.md" resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(
+    <ReaderView
+      markdown={bodies['15-2-oscylator.md']}
+      path="15-2-oscylator.md"
+      resolveRef={resolveRef}
+    />
+  );
 
 describe.runIf(rozdzial0804)('15-2 w czytniku', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
@@ -74,6 +95,8 @@ describe.runIf(rozdzial0804)('wzory stoją tak, jak w książce', () => {
 
   it('(15-3) zachowuje zapis funkcyjny U(x)', () => {
     const { container } = widok();
-    expect(container.querySelector('#ref-rh1-15-eq3 .katex annotation')?.textContent).toContain('U(x)');
+    expect(container.querySelector('#ref-rh1-15-eq3 .katex annotation')?.textContent).toContain(
+      'U(x)'
+    );
   });
 });

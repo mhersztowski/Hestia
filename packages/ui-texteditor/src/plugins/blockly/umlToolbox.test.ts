@@ -6,9 +6,17 @@ import { dialectById, allDialects } from './dialects';
 import type { UmlCallable } from '../umlCallables';
 
 const call = (over: Partial<UmlCallable> = {}): UmlCallable => ({
-  id: 'p::Api::load', project: 'p', owner: 'Api', ownerKind: 'class',
-  name: 'load', params: [], paramTypes: [], isAsync: false,
-  callee: 'Api.load', importName: 'Api', label: 'Api.load()',
+  id: 'p::Api::load',
+  project: 'p',
+  owner: 'Api',
+  ownerKind: 'class',
+  name: 'load',
+  params: [],
+  paramTypes: [],
+  isAsync: false,
+  callee: 'Api.load',
+  importName: 'Api',
+  label: 'Api.load()',
   ...over,
 });
 
@@ -64,7 +72,11 @@ describe('defineUmlBlocks', () => {
   });
 
   it('każdy argument dostaje własne wejście wartości', () => {
-    defineUmlBlocks([call({ params: ['a', 'b'], paramTypes: ['string', 'number'] })], js, javascriptGenerator);
+    defineUmlBlocks(
+      [call({ params: ['a', 'b'], paramTypes: ['string', 'number'] })],
+      js,
+      javascriptGenerator
+    );
     const block = new Blockly.Block(new Blockly.Workspace(), umlBlockType(call(), js));
     expect(block.getInput('ARG0')).not.toBeNull();
     expect(block.getInput('ARG1')).not.toBeNull();
@@ -90,11 +102,27 @@ describe('defineUmlBlocks', () => {
   });
 
   it('zwraca kategorie zgrupowane po klasie, bez pustych', () => {
-    const cats = defineUmlBlocks([
-      call({ owner: 'Api', name: 'load', returnType: 'void' }),
-      call({ id: 'p::Api::save', owner: 'Api', name: 'save', callee: 'Api.save', returnType: 'void' }),
-      call({ id: 'p::Fs::read', owner: 'Fs', name: 'read', callee: 'Fs.read', returnType: 'void' }),
-    ], js, javascriptGenerator);
+    const cats = defineUmlBlocks(
+      [
+        call({ owner: 'Api', name: 'load', returnType: 'void' }),
+        call({
+          id: 'p::Api::save',
+          owner: 'Api',
+          name: 'save',
+          callee: 'Api.save',
+          returnType: 'void',
+        }),
+        call({
+          id: 'p::Fs::read',
+          owner: 'Fs',
+          name: 'read',
+          callee: 'Fs.read',
+          returnType: 'void',
+        }),
+      ],
+      js,
+      javascriptGenerator
+    );
     expect(cats.map((c) => c.name)).toEqual(['Api', 'Fs']);
     expect(cats[0].contents).toHaveLength(2);
   });
@@ -133,11 +161,13 @@ describe('toolboxWithUml', () => {
     // Bloczek, z którego nie wychodzi kod, jest gorszy niż jego brak:
     // użytkownik układa z niego program i widzi problem dopiero po pustym
     // miejscu w wyniku.
-    const cppNames = toolboxWithUml([], dialectById('cpp')).contents
-      .map((c) => ('name' in c ? c.name : '—'));
+    const cppNames = toolboxWithUml([], dialectById('cpp')).contents.map((c) =>
+      'name' in c ? c.name : '—'
+    );
     expect(cppNames).not.toContain('Listy');
-    const jsNames = toolboxWithUml([], dialectById('javascript')).contents
-      .map((c) => ('name' in c ? c.name : '—'));
+    const jsNames = toolboxWithUml([], dialectById('javascript')).contents.map((c) =>
+      'name' in c ? c.name : '—'
+    );
     expect(jsNames).toContain('Listy');
   });
 
@@ -148,7 +178,7 @@ describe('toolboxWithUml', () => {
       const contents = toolboxWithUml([], dialect).contents;
       expect(
         contents.some((c) => 'custom' in c && c.custom === 'PROCEDURE'),
-        `dialekt ${dialect.id}`,
+        `dialekt ${dialect.id}`
       ).toBe(true);
     }
   });

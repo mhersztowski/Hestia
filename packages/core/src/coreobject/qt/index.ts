@@ -1,4 +1,4 @@
-// ── TreeNode wrappers for the browser-Qt library (packages/core/browser/qt) ───────
+// ── CoreObject wrappers for the browser-Qt library (packages/core/browser/qt) ───────
 //
 // Bridge the vanilla-JS Qt-clone objects (QObject + widgets) into minislib's
 // reactive world: properties become live QtProperty bindings, signals become

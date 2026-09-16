@@ -2,31 +2,43 @@ import { describe, it, expect } from 'vitest';
 import { buildIndex } from './index';
 import { search, layoutKnowledgeGraph, learningOrder, tagCounts, odmiana } from './catalog';
 
-const doc = (title: string, tags: string[], requires: string[], extra = '') => [
-  '---',
-  `title: ${title}`,
-  `tags: [${tags.join(', ')}]`,
-  ...(requires.length ? [`requires: [${requires.join(', ')}]`] : []),
-  '---',
-  `# ${title}`,
-  '',
-  extra,
-].join('\n');
+const doc = (title: string, tags: string[], requires: string[], extra = '') =>
+  [
+    '---',
+    `title: ${title}`,
+    `tags: [${tags.join(', ')}]`,
+    ...(requires.length ? [`requires: [${requires.join(', ')}]`] : []),
+    '---',
+    `# ${title}`,
+    '',
+    extra,
+  ].join('\n');
 
 const files = [
-  { path: 'm/wahadlo.md', markdown: doc('Wahadło matematyczne', ['mechanika', 'drgania'], [], [
-    '```formula:okres',
-    'T = 2\\pi\\sqrt{\\frac{L}{g}}',
-    '@vars T: s, L: m, g: m/s^2',
-    '```',
-    '',
-    '```exercise:z1',
-    'Policz okres wahadła zegarowego.',
-    '@answer T',
-    '@uses okres',
-    '```',
-  ].join('\n')) },
-  { path: 'm/rezonans.md', markdown: doc('Rezonans', ['mechanika', 'drgania'], ['Wahadło matematyczne']) },
+  {
+    path: 'm/wahadlo.md',
+    markdown: doc(
+      'Wahadło matematyczne',
+      ['mechanika', 'drgania'],
+      [],
+      [
+        '```formula:okres',
+        'T = 2\\pi\\sqrt{\\frac{L}{g}}',
+        '@vars T: s, L: m, g: m/s^2',
+        '```',
+        '',
+        '```exercise:z1',
+        'Policz okres wahadła zegarowego.',
+        '@answer T',
+        '@uses okres',
+        '```',
+      ].join('\n')
+    ),
+  },
+  {
+    path: 'm/rezonans.md',
+    markdown: doc('Rezonans', ['mechanika', 'drgania'], ['Wahadło matematyczne']),
+  },
   { path: 'e/rlc.md', markdown: doc('Obwód RLC', ['elektronika', 'drgania'], ['Rezonans']) },
   { path: 'a/orbita.md', markdown: doc('Orbita keplerowska', ['astronomia'], []) },
 ];
@@ -64,7 +76,8 @@ describe('wyszukiwanie', () => {
 
   it('fragment treści nie pokazuje nagłówka YAML', () => {
     const bodies = {
-      'a/orbita.md': '---\ntitle: Orbita keplerowska\ntags: [astronomia]\n---\n# Orbita\n\nPlaneta krąży po elipsie.',
+      'a/orbita.md':
+        '---\ntitle: Orbita keplerowska\ntags: [astronomia]\n---\n# Orbita\n\nPlaneta krąży po elipsie.',
     };
     const hit = search(index, 'elipsie', bodies)[0];
     expect(hit.matches.find((m) => m.kind === 'text')!.detail).not.toContain('title:');
@@ -72,7 +85,9 @@ describe('wyszukiwanie', () => {
   });
 
   it('trafienie w tytuł waży więcej niż w treść', () => {
-    const bodies = { 'a/orbita.md': 'Tu pada słowo rezonans, ale to nie jest dokument o rezonansie.' };
+    const bodies = {
+      'a/orbita.md': 'Tu pada słowo rezonans, ale to nie jest dokument o rezonansie.',
+    };
     expect(search(index, 'rezonans', bodies)[0].document.meta.title).toBe('Rezonans');
   });
 
@@ -109,7 +124,11 @@ describe('układ grafu wiedzy', () => {
 
   it('węzły niosą to, czego potrzebuje widok', () => {
     const wahadlo = layout.nodes.find((n) => n.path === 'm/wahadlo.md')!;
-    expect(wahadlo).toMatchObject({ title: 'Wahadło matematyczne', formulaCount: 1, exerciseCount: 1 });
+    expect(wahadlo).toMatchObject({
+      title: 'Wahadło matematyczne',
+      formulaCount: 1,
+      exerciseCount: 1,
+    });
     expect(wahadlo.tags).toContain('drgania');
   });
 

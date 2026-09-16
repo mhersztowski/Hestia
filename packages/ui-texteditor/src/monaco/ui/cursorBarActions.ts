@@ -54,7 +54,10 @@ function isEmpty(s: SimpleSelection): boolean {
  * @param command akcja z paska
  * @param selection bieżące zaznaczenie edytora
  */
-export function collapseForMove(command: CursorBarAction, selection: SimpleSelection): MoveDecision {
+export function collapseForMove(
+  command: CursorBarAction,
+  selection: SimpleSelection
+): MoveDecision {
   if (isEmpty(selection) || IGNORES_SELECTION.has(command)) {
     return { collapseTo: null, runCommand: true };
   }
@@ -73,7 +76,7 @@ export function collapseForMove(command: CursorBarAction, selection: SimpleSelec
  */
 export function normalizePastedText(text: string | null | undefined): string {
   if (!text) return '';
-  return text.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  return text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
 }
 
 /**

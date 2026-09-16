@@ -27,7 +27,7 @@ interface SlotEntry<T extends unknown[]> {
  * - **Circuit breaker**: a slot that throws `CIRCUIT_BREAKER_THRESHOLD` times
  *   in a row is automatically disconnected to prevent log flooding.
  * - **Max-listeners warning**: logs when connection count exceeds
- *   `MAX_LISTENERS_WARN` (mirrors TreeNode.js EventEmitter behaviour).
+ *   `MAX_LISTENERS_WARN` (mirrors Node.js EventEmitter behaviour).
  * - **Error isolation**: one bad slot never prevents the rest from running.
  *
  * Usage:
@@ -49,9 +49,7 @@ export class Signal<T extends unknown[] = []> {
     this.#entries.set(key, { slot, errorCount: 0 });
 
     if (this.#entries.size > MAX_LISTENERS_WARN) {
-      console.warn(
-        `[Signal] ${this.#entries.size} connections — possible listener leak`,
-      );
+      console.warn(`[Signal] ${this.#entries.size} connections — possible listener leak`);
     }
 
     const conn = new Connection(() => this.#entries.delete(key));
@@ -129,12 +127,12 @@ export class Signal<T extends unknown[] = []> {
           this.#entries.delete(key);
           console.error(
             `[Signal] Slot disconnected after ${CIRCUIT_BREAKER_THRESHOLD} consecutive errors:`,
-            err,
+            err
           );
         } else {
           console.error(
             `[Signal] Slot error (${entry.errorCount}/${CIRCUIT_BREAKER_THRESHOLD}):`,
-            err,
+            err
           );
         }
       }

@@ -6,12 +6,29 @@
  * `EdgeLabelRenderer` wystawia etykietę jako zwykły HTML nad płótnem, dzięki
  * czemu można w niej użyć pola tekstowego.
  */
-import { BaseEdge, EdgeLabelRenderer, getBezierPath, getSmoothStepPath, type EdgeProps, type Edge } from '@xyflow/react';
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
+  getSmoothStepPath,
+  type EdgeProps,
+  type Edge,
+} from '@xyflow/react';
 import type { FlowEdgeData } from './flowBridge';
 import { InlineLabel } from './InlineLabel';
 
 /** Podpis przy końcu linii, odsunięty w stronę jej środka. */
-function Cardinality({ x, y, toward, text }: { x: number; y: number; toward: { x: number; y: number }; text: string }) {
+function Cardinality({
+  x,
+  y,
+  toward,
+  text,
+}: {
+  x: number;
+  y: number;
+  toward: { x: number; y: number };
+  text: string;
+}) {
   const dx = toward.x - x;
   const dy = toward.y - y;
   const length = Math.hypot(dx, dy) || 1;
@@ -35,8 +52,18 @@ function Cardinality({ x, y, toward, text }: { x: number; y: number; toward: { x
 }
 
 export function DiagramEdgeView({
-  id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, label, data, selected,
-  markerEnd, markerStart,
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  label,
+  data,
+  selected,
+  markerEnd,
+  markerStart,
 }: EdgeProps<Edge<FlowEdgeData>>) {
   // Pętla własna: oba końce leżą na tym samym boku, więc krzywa między nimi
   // byłaby ledwie widoczną kreską. Rysujemy wyraźny łuk pod węzłem i wieszamy
@@ -48,14 +75,14 @@ export function DiagramEdgeView({
 
   const [path, labelX, labelY] = selfLoop
     ? [
-      `M${sourceX} ${sourceY} C ${sourceX - 34} ${sourceY + LOOP_DEPTH}, ${targetX + 34} ${targetY + LOOP_DEPTH}, ${targetX} ${targetY}`,
-      (sourceX + targetX) / 2,
-      sourceY + LOOP_DEPTH * 0.78,
-    ]
-    // Połączenia skośne (np. rozwinięte z `A & B --> C & D`) rysujemy łukiem, tak
-    // jak Mermaid: łamana w kącie prostym zlewa się z sąsiednimi liniami i przy
-    // krzyżujących się przejściach nie widać, co z czym jest połączone.
-    : Math.abs(targetX - sourceX) > 20 && Math.abs(targetY - sourceY) > 20
+        `M${sourceX} ${sourceY} C ${sourceX - 34} ${sourceY + LOOP_DEPTH}, ${targetX + 34} ${targetY + LOOP_DEPTH}, ${targetX} ${targetY}`,
+        (sourceX + targetX) / 2,
+        sourceY + LOOP_DEPTH * 0.78,
+      ]
+    : // Połączenia skośne (np. rozwinięte z `A & B --> C & D`) rysujemy łukiem, tak
+      // jak Mermaid: łamana w kącie prostym zlewa się z sąsiednimi liniami i przy
+      // krzyżujących się przejściach nie widać, co z czym jest połączone.
+      Math.abs(targetX - sourceX) > 20 && Math.abs(targetY - sourceY) > 20
       ? getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition })
       : getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
 
@@ -94,8 +121,22 @@ export function DiagramEdgeView({
       {/* Krotności (UML) stoją PRZY KOŃCACH, nie w środku — środek należy do
           opisu relacji, a „1" i „0..*" mówią o konkretnej stronie powiązania. */}
       <EdgeLabelRenderer>
-        {data?.sourceLabel && <Cardinality x={sourceX} y={sourceY} toward={{ x: targetX, y: targetY }} text={data.sourceLabel} />}
-        {data?.targetLabel && <Cardinality x={targetX} y={targetY} toward={{ x: sourceX, y: sourceY }} text={data.targetLabel} />}
+        {data?.sourceLabel && (
+          <Cardinality
+            x={sourceX}
+            y={sourceY}
+            toward={{ x: targetX, y: targetY }}
+            text={data.sourceLabel}
+          />
+        )}
+        {data?.targetLabel && (
+          <Cardinality
+            x={targetX}
+            y={targetY}
+            toward={{ x: sourceX, y: sourceY }}
+            text={data.targetLabel}
+          />
+        )}
         <div
           style={{
             position: 'absolute',

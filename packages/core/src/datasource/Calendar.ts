@@ -28,17 +28,15 @@ export class Calendar<T extends CalendarItem = CalendarItem> {
   }
 
   getItemsForMonth(year: number, month: number): T[] {
-    return this.getItems().filter(
-      item => item.getYear() === year && item.getMonth() === month
-    );
+    return this.getItems().filter((item) => item.getYear() === year && item.getMonth() === month);
   }
 
   getItemsForYear(year: number): T[] {
-    return this.getItems().filter(item => item.getYear() === year);
+    return this.getItems().filter((item) => item.getYear() === year);
   }
 
   getItemsInRange(startDate: Date, endDate: Date): T[] {
-    return this.getItems().filter(item => {
+    return this.getItems().filter((item) => {
       const date = item.getDate();
       return date >= startDate && date <= endDate;
     });

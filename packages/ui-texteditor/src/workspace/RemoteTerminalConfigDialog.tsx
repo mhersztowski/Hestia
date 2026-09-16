@@ -49,8 +49,8 @@ export function RemoteTerminalConfigDialog({
       <DialogTitle>Remote Terminal — API Key</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          The terminal connects to <strong>{serverName}</strong>. This server requires
-          its own API key — your local session token is not accepted there.
+          The terminal connects to <strong>{serverName}</strong>. This server requires its own API
+          key — your local session token is not accepted there.
         </Typography>
         {apiKeysUrl && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -64,12 +64,14 @@ export function RemoteTerminalConfigDialog({
         <TextField
           label="API Key"
           value={draft}
-          onChange={e => setDraft(e.target.value)}
+          onChange={(e) => setDraft(e.target.value)}
           fullWidth
           size="small"
           placeholder="minis_..."
           autoFocus
-          onKeyDown={e => { if (e.key === 'Enter') handleSave(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSave();
+          }}
         />
       </DialogContent>
       <DialogActions>

@@ -11,7 +11,9 @@ import { rk4, euler, verlet, solve } from './solvers';
 import { Trajectory } from './trajectory';
 
 /** Oscylator harmoniczny: x'' = -ω²x, czyli y = [x, v]. */
-const oscillator = (omega: number) => (_t: number, [x, v]: number[]) => [v, -omega * omega * x];
+const oscillator =
+  (omega: number) =>
+  (_t: number, [x, v]: number[]) => [v, -omega * omega * x];
 
 /** Rozwiązanie analityczne dla x(0)=1, v(0)=0. */
 const exactOscillator = (omega: number, t: number) => Math.cos(omega * t);
@@ -70,7 +72,8 @@ describe('Euler', () => {
 
 describe('Verlet', () => {
   /** Wahadło w przybliżeniu małych kątów: a(x) = -ω²x. */
-  const acceleration = (omega: number) => (_t: number, x: number[]) => x.map((xi) => -omega * omega * xi);
+  const acceleration = (omega: number) => (_t: number, x: number[]) =>
+    x.map((xi) => -omega * omega * xi);
 
   it('odtwarza oscylator', () => {
     const traj = verlet(acceleration(2), [1], [0], [0, 5], { dt: 0.001 });

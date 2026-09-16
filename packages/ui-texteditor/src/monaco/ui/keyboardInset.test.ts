@@ -10,8 +10,11 @@
 import { describe, it, expect } from 'vitest';
 import { keyboardState, KEYBOARD_MIN_PX, type ViewportMetrics } from './keyboardInset';
 
-const m = (innerHeight: number, viewportHeight: number, offsetTop = 0): ViewportMetrics =>
-  ({ innerHeight, viewportHeight, offsetTop });
+const m = (innerHeight: number, viewportHeight: number, offsetTop = 0): ViewportMetrics => ({
+  innerHeight,
+  viewportHeight,
+  offsetTop,
+});
 
 describe('keyboardState — klawiatura nałożona na okno (Chrome mobile)', () => {
   it('rozpoznaje klawiaturę po skurczonym visualViewport i zwraca jej wysokość', () => {
@@ -58,10 +61,14 @@ describe('keyboardState — przypadki mieszane', () => {
   });
 
   it('brak visualViewport (stare WebView) — decyduje samo innerHeight', () => {
-    expect(keyboardState({ innerHeight: 430, viewportHeight: null, offsetTop: 0 }, 800))
-      .toEqual({ visible: true, inset: 0 });
-    expect(keyboardState({ innerHeight: 800, viewportHeight: null, offsetTop: 0 }, 800))
-      .toEqual({ visible: false, inset: 0 });
+    expect(keyboardState({ innerHeight: 430, viewportHeight: null, offsetTop: 0 }, 800)).toEqual({
+      visible: true,
+      inset: 0,
+    });
+    expect(keyboardState({ innerHeight: 800, viewportHeight: null, offsetTop: 0 }, 800)).toEqual({
+      visible: false,
+      inset: 0,
+    });
   });
 
   it('inset nigdy nie jest ujemny — visualViewport bywa wyższy niż okno', () => {

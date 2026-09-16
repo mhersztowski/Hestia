@@ -144,7 +144,10 @@ describe('przypadki graniczne', () => {
      * przy zerze zawiesiłby kartę.
      */
     let wywolania = 0;
-    sampleFunction((x) => { wywolania += 1; return Math.sin(1 / x); }, OPCJE);
+    sampleFunction((x) => {
+      wywolania += 1;
+      return Math.sin(1 / x);
+    }, OPCJE);
     expect(wywolania).toBeLessThan(20000);
   });
 });

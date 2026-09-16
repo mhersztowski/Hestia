@@ -52,12 +52,16 @@ describe.runIf(!!markdown && !!slownik && !!oscylator)('katalog praw', () => {
 
   // Bez tego katalog byłby spisem tytułów — `@formula` wiąże prawo z tym samym
   // blokiem, z którego liczy się symulacja w dokumencie.
-  it('prawo Hooke\'a sięga wzoru i hasła w bazie', () => {
+  it("prawo Hooke'a sięga wzoru i hasła w bazie", () => {
     const hooke = prawa.find((p) => p.id === 'rh1-prawo-hooke')!;
     expect(hooke.formulas).toEqual(['rh1-15-eq4']);
     expect(hooke.term).toBe('rh1-poj-prawo-hookea');
     for (const cel of [...hooke.formulas, hooke.term!]) {
-      const r = resolveReference(cel, { anchors: index.anchors, formulaHome: index.formulaHome }, 'Prawa.md');
+      const r = resolveReference(
+        cel,
+        { anchors: index.anchors, formulaHome: index.formulaHome },
+        'Prawa.md'
+      );
       expect(r.found, cel).toBe(true);
     }
   });
@@ -78,7 +82,7 @@ describe.runIf(!!markdown && !!slownik && !!oscylator)('katalog praw', () => {
   it('cały katalog renderuje się bez surowego zapisu', () => {
     const { container } = render(<ReaderView markdown={markdown ?? ''} path="Prawa.md" />);
     const t = container.textContent ?? '';
-    expect(t).toContain('Prawo Hooke\'a');
+    expect(t).toContain("Prawo Hooke'a");
     expect(t).toContain('Zasada zachowania pędu');
     expect(t).not.toContain('@chapter');
     expect(t).not.toContain('```');

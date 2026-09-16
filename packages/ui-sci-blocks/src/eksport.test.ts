@@ -15,8 +15,16 @@ import { seriesToCsv, framesToCsv, exportFileName } from './eksport';
 
 describe('seriesToCsv', () => {
   const przebiegi = {
-    x: [[0, 1], [0.5, 2], [1, 3]] as Array<[number, number]>,
-    v: [[0, 0], [0.5, -1], [1, -2]] as Array<[number, number]>,
+    x: [
+      [0, 1],
+      [0.5, 2],
+      [1, 3],
+    ] as Array<[number, number]>,
+    v: [
+      [0, 0],
+      [0.5, -1],
+      [1, -2],
+    ] as Array<[number, number]>,
   };
 
   it('pierwsza kolumna to czas, dalej po jednej na wielkość', () => {
@@ -43,7 +51,10 @@ describe('seriesToCsv', () => {
     // Wielkość liczona rzadziej (albo urwana zdarzeniem) nie może przesuwać
     // kolumn — brak wartości zostaje pusty.
     const csv = seriesToCsv({
-      x: [[0, 1], [1, 2]] as Array<[number, number]>,
+      x: [
+        [0, 1],
+        [1, 2],
+      ] as Array<[number, number]>,
       y: [[0, 9]] as Array<[number, number]>,
     });
     expect(csv.split('\n')).toEqual(['t,x,y', '0,1,9', '1,2,']);
@@ -54,7 +65,10 @@ describe('seriesToCsv', () => {
   });
 
   it('nazwy kolumn zachowują kolejność podaną przez model', () => {
-    const csv = seriesToCsv({ z: [[0, 1]] as Array<[number, number]>, a: [[0, 2]] as Array<[number, number]> });
+    const csv = seriesToCsv({
+      z: [[0, 1]] as Array<[number, number]>,
+      a: [[0, 2]] as Array<[number, number]>,
+    });
     expect(csv.split('\n')[0]).toBe('t,z,a');
   });
 });

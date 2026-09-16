@@ -1,0 +1,20 @@
+# Built output and dependencies.
+dist/
+node_modules/
+coverage/
+docs-site/
+app/*/public/
+
+# Not a package: loose files nothing imports (see CLAUDE.md).
+packages/finances/
+
+# Prose, not code. Prettier reflows Markdown — tables, line breaks and the
+# hand-wrapped paragraphs of the knowledge base — and a document rewritten for
+# the formatter is a document whose diff says nothing about its content.
+*.md
+packages/ui-sci-blocks/documents/
+
+# Data, not configuration: a lockfile and the fixtures are written by tools and
+# compared by them.
+pnpm-lock.yaml
+packages/core-sci/validation/fixtures/

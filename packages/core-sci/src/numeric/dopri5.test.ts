@@ -23,7 +23,10 @@ const exact = (t: number) => Math.cos(t);
 
 /** Opakowanie liczące wywołania prawej strony — to jest prawdziwy koszt. */
 function counted(f: Derivative) {
-  const wrapped = ((t, y) => { wrapped.calls += 1; return f(t, y); }) as Derivative & { calls: number };
+  const wrapped = ((t, y) => {
+    wrapped.calls += 1;
+    return f(t, y);
+  }) as Derivative & { calls: number };
   wrapped.calls = 0;
   return wrapped;
 }
@@ -68,7 +71,7 @@ describe('adaptacja kroku', () => {
       const a = -1 / (r * r * r);
       return [vx, vy, a * x, a * y];
     };
-    const y0 = [0.3, 0, 0, Math.sqrt((2 / 0.3) - 1)];
+    const y0 = [0.3, 0, 0, Math.sqrt(2 / 0.3 - 1)];
     const koniec: [number, number] = [0, 30];
 
     const fAdapt = counted(kepler);
@@ -78,10 +81,11 @@ describe('adaptacja kroku', () => {
     const fStaly = counted(kepler);
     const stała = rk4(fStaly, y0, koniec, { dt: 0.0005 });
 
-    const błąd = (traj: Trajectory) => Math.hypot(
-      traj.value('y0', 30) - adaptacyjna.value('y0', 30),
-      traj.value('y1', 30) - adaptacyjna.value('y1', 30),
-    );
+    const błąd = (traj: Trajectory) =>
+      Math.hypot(
+        traj.value('y0', 30) - adaptacyjna.value('y0', 30),
+        traj.value('y1', 30) - adaptacyjna.value('y1', 30)
+      );
     // Sanity: obie liczą to samo zjawisko i się zgadzają.
     expect(błąd(stała)).toBeLessThan(1e-3);
 
@@ -93,7 +97,7 @@ describe('adaptacja kroku', () => {
       const r = Math.hypot(x, y);
       return [vx, vy, -x / r ** 3, -y / r ** 3];
     };
-    const traj = dopri5(kepler, [0.3, 0, 0, Math.sqrt((2 / 0.3) - 1)], [0, 20], { rtol: 1e-8 });
+    const traj = dopri5(kepler, [0.3, 0, 0, Math.sqrt(2 / 0.3 - 1)], [0, 20], { rtol: 1e-8 });
 
     // Odstępy między próbkami muszą się wyraźnie różnić — inaczej nic się nie
     // zaadaptowało i mamy stały krok pod inną nazwą.
@@ -112,7 +116,10 @@ describe('dense output — odczyt między krokami', () => {
     // Środek najdłuższego kroku — tam cięciwa myli się najbardziej.
     let najdłuższy = 0;
     for (let i = 1; i < traj.samples.length; i += 1) {
-      if (traj.samples[i].t - traj.samples[i - 1].t > traj.samples[najdłuższy + 1].t - traj.samples[najdłuższy].t) {
+      if (
+        traj.samples[i].t - traj.samples[i - 1].t >
+        traj.samples[najdłuższy + 1].t - traj.samples[najdłuższy].t
+      ) {
         najdłuższy = i - 1;
       }
     }
@@ -140,17 +147,24 @@ describe('kiedy solver się poddaje', () => {
   it('melduje przekroczenie limitu kroków zamiast liczyć w nieskończoność', () => {
     // Układ sztywny: jawna metoda musi trzymać krok mikroskopijny ze względu
     // na stabilność, choć rozwiązanie jest gładkie. To jest zapowiedź etapu 3.
-    expect(() => dopri5((_t, [y]) => [-1e6 * (y - Math.cos(_t))], [0], [0, 10], {
-      rtol: 1e-6, maxSteps: 500,
-    })).toThrow(/kroków|sztywn/i);
+    expect(() =>
+      dopri5((_t, [y]) => [-1e6 * (y - Math.cos(_t))], [0], [0, 10], {
+        rtol: 1e-6,
+        maxSteps: 500,
+      })
+    ).toThrow(/kroków|sztywn/i);
   });
 
   it('melduje, gdy krok musiałby zejść poniżej sensownej granicy', () => {
     // Pierwiastek w zerze: pochodna rośnie nieograniczenie i żaden krok nie
     // spełni tolerancji. Cicha odpowiedź byłaby tu gorsza od błędu.
-    expect(() => dopri5((_t, [y]) => [1 / Math.max(y, 0) ** 2], [0], [0, 1], {
-      rtol: 1e-12, atol: 1e-14, minStep: 1e-10,
-    })).toThrow(/krok/i);
+    expect(() =>
+      dopri5((_t, [y]) => [1 / Math.max(y, 0) ** 2], [0], [0, 1], {
+        rtol: 1e-12,
+        atol: 1e-14,
+        minStep: 1e-10,
+      })
+    ).toThrow(/krok/i);
   });
 });
 
@@ -195,7 +209,11 @@ describe('zgodność z resztą pakietu', () => {
 
     // Ograniczenie kroku z góry jest doraźnym obejściem: kosztuje wywołania `f`
     // i daje dokładność samego kroku, nie tolerancji.
-    const zOgraniczeniem = dopri5(spadek, [5, 0], [0, 10], { rtol: 1e-8, maxStep: 0.05, onStep: stop });
+    const zOgraniczeniem = dopri5(spadek, [5, 0], [0, 10], {
+      rtol: 1e-8,
+      maxStep: 0.05,
+      onStep: stop,
+    });
     expect(zOgraniczeniem.t1).toBeGreaterThan(0.95);
     expect(zOgraniczeniem.t1).toBeLessThan(1.06);
   });

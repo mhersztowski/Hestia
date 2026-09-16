@@ -9,15 +9,19 @@
 import { describe, it, expect } from 'vitest';
 import { parseFormulaBlock, serializeFormulaBlock } from './parseFormula';
 
-const OSCYLATOR = (extra: string[]) => parseFormulaBlock('oscylator', [
-  '@ode',
-  '@state x, v',
-  '@d x = v',
-  '@d v = -\\frac{k}{m} x',
-  '@init x = A, v = 0',
-  '@vars k: N/m, m: kg, x: m, v: m/s, A: m',
-  ...extra,
-].join('\n'));
+const OSCYLATOR = (extra: string[]) =>
+  parseFormulaBlock(
+    'oscylator',
+    [
+      '@ode',
+      '@state x, v',
+      '@d x = v',
+      '@d v = -\\frac{k}{m} x',
+      '@init x = A, v = 0',
+      '@vars k: N/m, m: kg, x: m, v: m/s, A: m',
+      ...extra,
+    ].join('\n')
+  );
 
 describe('odczyt niezmiennika', () => {
   it('czyta nazwę i wyrażenie', () => {
@@ -46,13 +50,16 @@ describe('odczyt niezmiennika', () => {
 
 describe('zapis z powrotem do pliku', () => {
   it('nie gubi niezmiennika przy round-tripie', () => {
-    const zapis = serializeFormulaBlock(OSCYLATOR(['@invariant E = \\frac{1}{2} m v^2 + \\frac{1}{2} k x^2']));
+    const zapis = serializeFormulaBlock(
+      OSCYLATOR(['@invariant E = \\frac{1}{2} m v^2 + \\frac{1}{2} k x^2'])
+    );
 
     expect(zapis).toContain('@invariant E = \\frac{1}{2} m v^2 + \\frac{1}{2} k x^2');
     // Powtórny odczyt musi dać to samo — inaczej samo otwarcie dokumentu
     // przepisywałoby autorowi blok.
-    expect(parseFormulaBlock('oscylator', zapis).invariants)
-      .toEqual({ E: '\\frac{1}{2} m v^2 + \\frac{1}{2} k x^2' });
+    expect(parseFormulaBlock('oscylator', zapis).invariants).toEqual({
+      E: '\\frac{1}{2} m v^2 + \\frac{1}{2} k x^2',
+    });
   });
 
   it('blok bez niezmiennika nie dostaje pustej dyrektywy', () => {

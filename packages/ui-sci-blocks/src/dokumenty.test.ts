@@ -9,8 +9,17 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
-  buildGraph, buildHints, checkNumeric, compileGraph, exerciseVariant,
-  parseExerciseBlock, suggestViews, buildIndex, learningGraph, allExercises, documentsByTag,
+  buildGraph,
+  buildHints,
+  checkNumeric,
+  compileGraph,
+  exerciseVariant,
+  parseExerciseBlock,
+  suggestViews,
+  buildIndex,
+  learningGraph,
+  allExercises,
+  documentsByTag,
 } from '@hestia/core-sci';
 import { buildSimSetup, scanFormulas } from './documentModel';
 
@@ -220,7 +229,7 @@ describe('Lorenz', () => {
     // blisko siebie. Chaos widać w typowej odległości, nie w jednej próbce.
     const sredniaRoznica = (od: number, do_: number) => {
       const wybrane = a.filter(([t]) => t >= od && t <= do_);
-      const suma = wybrane.reduce((acc, [t, value], i) => {
+      const suma = wybrane.reduce((acc, [, value], i) => {
         const index = a.indexOf(wybrane[i]);
         return acc + Math.abs(value - b[index][1]);
       }, 0);
@@ -330,10 +339,13 @@ describe('zadania w dokumentach', () => {
         // dla tego, na którym autor patrzył.
         for (let seed = 1; seed <= 10; seed += 1) {
           const variant = exerciseVariant(block, model(), seed);
-          const odpowiedz = variant.expectedUnit && variant.expectedUnit !== '1'
-            ? `${variant.expected} ${variant.expectedUnit}`
-            : String(variant.expected);
-          expect(checkNumeric(odpowiedz, variant, block.tolerance).verdict, `seed ${seed}`).toBe('correct');
+          const odpowiedz =
+            variant.expectedUnit && variant.expectedUnit !== '1'
+              ? `${variant.expected} ${variant.expectedUnit}`
+              : String(variant.expected);
+          expect(checkNumeric(odpowiedz, variant, block.tolerance).verdict, `seed ${seed}`).toBe(
+            'correct'
+          );
         }
       });
 
@@ -341,7 +353,12 @@ describe('zadania w dokumentach', () => {
         const block = parseExerciseBlock(id, body);
         const graph = buildGraph(scanFormulas(markdown));
         const variant = exerciseVariant(block, model(), 3);
-        const hints = buildHints(graph, block.answer!, model().run(variant.values, [0, 1], 0.01), block.hints);
+        const hints = buildHints(
+          graph,
+          block.answer!,
+          model().run(variant.values, [0, 1], 0.01),
+          block.hints
+        );
 
         expect(hints.length).toBeGreaterThan(0);
         for (const hint of hints) {
@@ -353,9 +370,12 @@ describe('zadania w dokumentach', () => {
 });
 
 describe('baza wiedzy jako całość', () => {
-  const index = () => buildIndex(
-    readdirSync(DIR).filter((f) => f.endsWith('.md')).map((path) => ({ path, markdown: read(path) })),
-  );
+  const index = () =>
+    buildIndex(
+      readdirSync(DIR)
+        .filter((f) => f.endsWith('.md'))
+        .map((path) => ({ path, markdown: read(path) }))
+    );
 
   it('jest spójna: bez duplikatów, wiszących odniesień i brakujących prerekwizytów', () => {
     const issues = index().issues;
@@ -406,7 +426,10 @@ describe('baza wiedzy jako całość', () => {
     expect(documentsByTag(index(), 'drgania').length).toBeGreaterThanOrEqual(3);
     // Dwa dokumenty o elektronice: obwód i jego przetłumiony wariant, na którym
     // pokazana jest sztywność.
-    expect(documentsByTag(index(), 'elektronika').map((d) => d.meta.title).sort())
-      .toEqual(['Obwód RLC', 'Układ sztywny']);
+    expect(
+      documentsByTag(index(), 'elektronika')
+        .map((d) => d.meta.title)
+        .sort()
+    ).toEqual(['Obwód RLC', 'Układ sztywny']);
   });
 });

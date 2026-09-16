@@ -15,13 +15,21 @@ export class PointTool implements Tool {
     return [
       {
         id: 'x',
-        worldX: this.cursor.x, worldY: this.cursor.y, text: `X: ${this.cursor.x.toFixed(2)}`,
-        offsetX: 40, offsetY: -20, variant: 'primary',
+        worldX: this.cursor.x,
+        worldY: this.cursor.y,
+        text: `X: ${this.cursor.x.toFixed(2)}`,
+        offsetX: 40,
+        offsetY: -20,
+        variant: 'primary',
       },
       {
         id: 'y',
-        worldX: this.cursor.x, worldY: this.cursor.y, text: `Y: ${this.cursor.y.toFixed(2)}`,
-        offsetX: 40, offsetY: -2, variant: 'secondary',
+        worldX: this.cursor.x,
+        worldY: this.cursor.y,
+        text: `Y: ${this.cursor.y.toFixed(2)}`,
+        offsetX: 40,
+        offsetY: -2,
+        variant: 'secondary',
       },
     ];
   }
@@ -29,10 +37,15 @@ export class PointTool implements Tool {
   onPointerDown(point: Point2D, ctx: ToolContext): void {
     ctx.project.addEntity({
       type: 'point',
-      x: point.x, y: point.y,
+      x: point.x,
+      y: point.y,
       layerId: ctx.project.layerSystem.getActiveId(),
-      color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-      visible: true, locked: false, extrudeHeight: 0,
+      color: 'bylayer',
+      lineType: 'bylayer',
+      lineWidth: 'bylayer',
+      visible: true,
+      locked: false,
+      extrudeHeight: 0,
     });
   }
 

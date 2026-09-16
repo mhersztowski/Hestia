@@ -7,8 +7,11 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  registerBlockRenderer, rendererFor, registeredBlockRenderers,
-  subscribeBlockRenderers, blockRenderersVersion,
+  registerBlockRenderer,
+  rendererFor,
+  registeredBlockRenderers,
+  subscribeBlockRenderers,
+  blockRenderersVersion,
 } from './blockRenderers';
 import { registerSciBlocks } from '@hestia/ui-sci-blocks';
 
@@ -27,7 +30,11 @@ describe('rejestr widoków bloków', () => {
   });
 
   it('zarejestrowany widok obsługuje swoje języki', () => {
-    registerBlockRenderer({ name: 'x', matches: (l) => l === 'mermaid', Component: Dummy as never });
+    registerBlockRenderer({
+      name: 'x',
+      matches: (l) => l === 'mermaid',
+      Component: Dummy as never,
+    });
     expect(rendererFor('mermaid')?.name).toBe('x');
     expect(rendererFor('python')).toBeUndefined();
   });
@@ -39,7 +46,11 @@ describe('rejestr widoków bloków', () => {
   });
 
   it('wyrejestrowanie zwraca blok do postaci zwykłego kodu', () => {
-    const off = registerBlockRenderer({ name: 'x', matches: (l) => l === 'foo', Component: Dummy as never });
+    const off = registerBlockRenderer({
+      name: 'x',
+      matches: (l) => l === 'foo',
+      Component: Dummy as never,
+    });
     expect(rendererFor('foo')).toBeDefined();
     off();
     expect(rendererFor('foo')).toBeUndefined();
@@ -80,10 +91,16 @@ describe('odporność rejestru', () => {
     // To jest scenariusz, który wcześniej gubił bloki sci: moduł rejestrujący
     // wczytywał się po pierwszym renderze, a widok już nigdy o tym nie wiedział.
     let powiadomienia = 0;
-    const off = subscribeBlockRenderers(() => { powiadomienia += 1; });
+    const off = subscribeBlockRenderers(() => {
+      powiadomienia += 1;
+    });
 
     const wersjaPrzed = blockRenderersVersion();
-    const unregister = registerBlockRenderer({ name: 'późny', matches: (l) => l === 'x', Component: Dummy as never });
+    const unregister = registerBlockRenderer({
+      name: 'późny',
+      matches: (l) => l === 'x',
+      Component: Dummy as never,
+    });
 
     expect(powiadomienia).toBe(1);
     expect(blockRenderersVersion()).toBeGreaterThan(wersjaPrzed);
@@ -96,7 +113,9 @@ describe('odporność rejestru', () => {
 
   it('po odsubskrybowaniu nie ma powiadomień', () => {
     let powiadomienia = 0;
-    const off = subscribeBlockRenderers(() => { powiadomienia += 1; });
+    const off = subscribeBlockRenderers(() => {
+      powiadomienia += 1;
+    });
     off();
     registerBlockRenderer({ name: 'y', matches: () => false, Component: Dummy as never });
     expect(powiadomienia).toBe(0);

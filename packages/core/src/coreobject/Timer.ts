@@ -10,7 +10,7 @@ export type TimerMode = 'interval' | 'singleShot';
  * whose callback takes 20 ms will fire at 1 020 ms, 2 040 ms, … after a few
  * hours the error is measurable. This implementation self-schedules with
  * `setTimeout` and adjusts each delay by the measured overrun so the long-term
- * cadence stays accurate — the same technique used by TreeNode.js's `timers/promises`
+ * cadence stays accurate — the same technique used by Node.js's `timers/promises`
  * `setInterval` and most production scheduler libraries.
  *
  * Usage:

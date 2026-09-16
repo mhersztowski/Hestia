@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react';
 import * as THREE from 'three';
-import {
-  Box, Typography, Divider, IconButton, Tooltip,
-} from '@mui/material';
+import { Box, Typography, Divider, IconButton, Tooltip } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
@@ -40,7 +38,7 @@ interface TreeNode {
 function buildTree(
   obj: THREE.Object3D,
   featureMap: Map<string, Feature>,
-  depth = 0,
+  depth = 0
 ): TreeNode | null {
   // Skip pure edge helpers (LineSegments without featureId)
   if (obj instanceof THREE.LineSegments && !obj.userData['featureId']) return null;
@@ -63,10 +61,14 @@ function buildTree(
     kind = 'root';
     label = 'Scene';
   } else if (feature) {
-    kind = feature.type === 'sketch' ? 'sketch'
-      : feature.type === 'extrude' ? 'mesh'
-      : feature.type === 'revolve' ? 'mesh'
-      : 'group';
+    kind =
+      feature.type === 'sketch'
+        ? 'sketch'
+        : feature.type === 'extrude'
+          ? 'mesh'
+          : feature.type === 'revolve'
+            ? 'mesh'
+            : 'group';
     label = feature.name;
   } else if (obj instanceof THREE.Mesh) {
     kind = 'mesh';
@@ -82,7 +84,15 @@ function buildTree(
   // Drop empty anonymous containers
   if (kind === 'group' && !featureId && children.length === 0 && depth > 0) return null;
 
-  return { uuid: obj.uuid, label, kind, featureId, featureType: feature?.type ?? null, obj, children };
+  return {
+    uuid: obj.uuid,
+    label,
+    kind,
+    featureId,
+    featureType: feature?.type ?? null,
+    obj,
+    children,
+  };
 }
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -96,9 +106,11 @@ function NodeIcon({ node, expanded }: { node: TreeNode; expanded: boolean }) {
   if (node.featureType === 'mirror') return <FlipIcon sx={{ ...s, color: '#ce93d8' }} />;
   if (node.kind === 'mesh') return <CategoryIcon sx={{ ...s, color: '#81c784' }} />;
   if (node.kind === 'wire') return <TimelineIcon sx={{ ...s, color: '#4fc3f7', opacity: 0.6 }} />;
-  return expanded
-    ? <FolderOpenIcon sx={{ ...s, color: 'text.secondary' }} />
-    : <FolderIcon sx={{ ...s, color: 'text.secondary' }} />;
+  return expanded ? (
+    <FolderOpenIcon sx={{ ...s, color: 'text.secondary' }} />
+  ) : (
+    <FolderIcon sx={{ ...s, color: 'text.secondary' }} />
+  );
 }
 
 // ── Tree item ─────────────────────────────────────────────────────────────────
@@ -112,21 +124,31 @@ interface ItemProps {
   onVisibilityToggle: () => void;
 }
 
-function SceneTreeItem({ node, depth, selected, selectedId, onSelect, onVisibilityToggle }: ItemProps) {
+function SceneTreeItem({
+  node,
+  depth,
+  selected,
+  selectedId,
+  onSelect,
+  onVisibilityToggle,
+}: ItemProps) {
   const [expanded, setExpanded] = useState(depth < 2);
   const hasChildren = node.children.length > 0;
   const indent = depth * 14;
 
   const handleClick = useCallback(() => {
     if (node.featureId) onSelect(node.featureId);
-    if (hasChildren) setExpanded(e => !e);
+    if (hasChildren) setExpanded((e) => !e);
   }, [node.featureId, hasChildren, onSelect]);
 
-  const handleToggleVis = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    node.obj.visible = !node.obj.visible;
-    onVisibilityToggle();
-  }, [node.obj, onVisibilityToggle]);
+  const handleToggleVis = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      node.obj.visible = !node.obj.visible;
+      onVisibilityToggle();
+    },
+    [node.obj, onVisibilityToggle]
+  );
 
   const visible = node.obj.visible;
 
@@ -151,11 +173,13 @@ function SceneTreeItem({ node, depth, selected, selectedId, onSelect, onVisibili
       >
         {/* expand arrow */}
         <Box sx={{ width: 16, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-          {hasChildren
-            ? (expanded
-              ? <ArrowDropDownIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-              : <ArrowRightIcon sx={{ fontSize: 16, color: 'text.secondary' }} />)
-            : null}
+          {hasChildren ? (
+            expanded ? (
+              <ArrowDropDownIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            ) : (
+              <ArrowRightIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            )
+          ) : null}
         </Box>
 
         <NodeIcon node={node} expanded={expanded} />
@@ -181,24 +205,28 @@ function SceneTreeItem({ node, depth, selected, selectedId, onSelect, onVisibili
             onClick={handleToggleVis}
             sx={{ p: '2px', opacity: 0, '.MuiBox-root:hover > &': { opacity: 1 } }}
           >
-            {visible
-              ? <VisibilityIcon sx={{ fontSize: 12 }} />
-              : <VisibilityOffIcon sx={{ fontSize: 12 }} />}
+            {visible ? (
+              <VisibilityIcon sx={{ fontSize: 12 }} />
+            ) : (
+              <VisibilityOffIcon sx={{ fontSize: 12 }} />
+            )}
           </IconButton>
         </Tooltip>
       </Box>
 
-      {expanded && hasChildren && node.children.map(child => (
-        <SceneTreeItem
-          key={child.uuid}
-          node={child}
-          depth={depth + 1}
-          selected={!!child.featureId && child.featureId === selectedId}
-          selectedId={selectedId}
-          onSelect={onSelect}
-          onVisibilityToggle={onVisibilityToggle}
-        />
-      ))}
+      {expanded &&
+        hasChildren &&
+        node.children.map((child) => (
+          <SceneTreeItem
+            key={child.uuid}
+            node={child}
+            depth={depth + 1}
+            selected={!!child.featureId && child.featureId === selectedId}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            onVisibilityToggle={onVisibilityToggle}
+          />
+        ))}
     </>
   );
 }
@@ -208,14 +236,35 @@ function SceneTreeItem({ node, depth, selected, selectedId, onSelect, onVisibili
 export function SceneTreePanel({ sceneRoot, features, selectedId, onSelect }: Props) {
   // Version bumped to force re-render after visibility toggle (obj.visible is mutated in-place)
   const [visVersion, setVisVersion] = useState(0);
-  const bumpVis = useCallback(() => setVisVersion(v => v + 1), []);
+  const bumpVis = useCallback(() => setVisVersion((v) => v + 1), []);
 
-  const featureMap = new Map(features.map(f => [f.id, f]));
+  const featureMap = new Map(features.map((f) => [f.id, f]));
   const tree = sceneRoot ? buildTree(sceneRoot, featureMap) : null;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid', borderColor: 'divider', overflow: 'hidden', flex: 1, minHeight: 0 }}>
-      <Typography variant="caption" sx={{ px: 1.5, py: 0.75, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, flexShrink: 0 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        borderRight: '1px solid',
+        borderColor: 'divider',
+        overflow: 'hidden',
+        flex: 1,
+        minHeight: 0,
+      }}
+    >
+      <Typography
+        variant="caption"
+        sx={{
+          px: 1.5,
+          py: 0.75,
+          color: 'text.secondary',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: 1,
+          flexShrink: 0,
+        }}
+      >
         Scene Tree
       </Typography>
       <Divider />

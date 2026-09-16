@@ -47,11 +47,7 @@ export class FnCommand extends Command {
     this.#undoFn();
   }
 
-  static create(
-    description: string,
-    executeFn: () => void,
-    undoFn: () => void,
-  ): FnCommand {
+  static create(description: string, executeFn: () => void, undoFn: () => void): FnCommand {
     return new FnCommand(description, executeFn, undoFn);
   }
 }

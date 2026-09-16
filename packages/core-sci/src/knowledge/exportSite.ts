@@ -58,7 +58,9 @@ function toRoot(documentPath: string): string {
 /** Ucieczka znaków, które w treści HTML znaczą coś innego niż tekst. */
 function escapeHtml(text: string): string {
   return text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
 
@@ -71,13 +73,15 @@ function escapeHtml(text: string): string {
  * `JSON.parse` wraca dokładnie ten sam ciąg znaków.
  */
 function embedJson(value: unknown): string {
-  return JSON.stringify(value)
-    .replace(/</g, '\\u003c')
-    .replace(/>/g, '\\u003e')
-    // U+2028/U+2029 są w JavaScripcie legalnym końcem wiersza, ale w JSON-ie
-    // nie — dosłowne przechodzą przez `JSON.stringify` i psują parsowanie.
-    .replace(/\u2028/g, '\\u2028')
-    .replace(/\u2029/g, '\\u2029');
+  return (
+    JSON.stringify(value)
+      .replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e')
+      // U+2028/U+2029 są w JavaScripcie legalnym końcem wiersza, ale w JSON-ie
+      // nie — dosłowne przechodzą przez `JSON.stringify` i psują parsowanie.
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029')
+  );
 }
 
 /**
@@ -142,7 +146,9 @@ function page(options: {
     '</body>',
     '</html>',
     '',
-  ].filter(Boolean).join('\n');
+  ]
+    .filter(Boolean)
+    .join('\n');
 }
 
 /**
@@ -192,12 +198,18 @@ export function exportSite(documents: SourceDocument[], options: ExportOptions):
     };
   });
 
-  const pozycje = opisy.map((document) => [
-    '<li>',
-    `<a href="${document.page}">${escapeHtml(document.title)}</a>`,
-    document.tags.length ? `<div class="tagi">${escapeHtml(document.tags.join(' · '))}</div>` : '',
-    '</li>',
-  ].filter(Boolean).join(''));
+  const pozycje = opisy.map((document) =>
+    [
+      '<li>',
+      `<a href="${document.page}">${escapeHtml(document.title)}</a>`,
+      document.tags.length
+        ? `<div class="tagi">${escapeHtml(document.tags.join(' · '))}</div>`
+        : '',
+      '</li>',
+    ]
+      .filter(Boolean)
+      .join('')
+  );
 
   files.push({
     path: 'index.html',
@@ -228,17 +240,21 @@ export function exportSite(documents: SourceDocument[], options: ExportOptions):
 
   files.push({
     path: 'manifest.json',
-    content: `${JSON.stringify({
-      title,
-      documents: opisy.map((document) => ({
-        path: document.page,
-        title: document.title,
-        tags: document.tags,
-        // Nierozpoznany prerekwizyt zostaje tytułem — lepsze niż zgubienie go
-        // po cichu, bo w wyniku widać, czego w bazie brakuje.
-        requires: document.requires.map((wymagany) => stronaWgTytulu.get(wymagany) ?? wymagany),
-      })),
-    }, null, 2)}\n`,
+    content: `${JSON.stringify(
+      {
+        title,
+        documents: opisy.map((document) => ({
+          path: document.page,
+          title: document.title,
+          tags: document.tags,
+          // Nierozpoznany prerekwizyt zostaje tytułem — lepsze niż zgubienie go
+          // po cichu, bo w wyniku widać, czego w bazie brakuje.
+          requires: document.requires.map((wymagany) => stronaWgTytulu.get(wymagany) ?? wymagany),
+        })),
+      },
+      null,
+      2
+    )}\n`,
   });
 
   return files;

@@ -12,8 +12,13 @@ import type { MinisLocalizationModel } from '../models/MinisLocalizationModel';
 
 describe('MinisDeviceNode', () => {
   const model: MinisDeviceModel = {
-    type: 'device', id: 'd1', name: 'ESP', deviceDefId: 'def1',
-    isAssembled: true, isIot: true, sn: 'SN-1',
+    type: 'device',
+    id: 'd1',
+    name: 'ESP',
+    deviceDefId: 'def1',
+    isAssembled: true,
+    isIot: true,
+    sn: 'SN-1',
   };
 
   it('round-trips via toModel', () => {
@@ -56,7 +61,10 @@ describe('MinisModuleNode', () => {
 
 describe('MinisProjectNode', () => {
   const model: MinisProjectModel = {
-    type: 'minis_project', id: 'p1', name: 'Proj', githubProjectId: 'gh-9',
+    type: 'minis_project',
+    id: 'p1',
+    name: 'Proj',
+    githubProjectId: 'gh-9',
     softwarePlatform: 'arduino',
   };
   it('round-trips and matches name/github id', () => {
@@ -71,8 +79,14 @@ describe('MinisProjectNode', () => {
 
 describe('MinisProjectDefNode', () => {
   const model: MinisProjectDefModel = {
-    type: 'project_def', id: 'pd1', name: 'Def', version: '2.0',
-    deviceDefId: 'dd', moduleDefId: 'md', softwarePlatform: 'upython', blocklyDef: '{}',
+    type: 'project_def',
+    id: 'pd1',
+    name: 'Def',
+    version: '2.0',
+    deviceDefId: 'dd',
+    moduleDefId: 'md',
+    softwarePlatform: 'upython',
+    blocklyDef: '{}',
   };
   it('round-trips and displays name + version', () => {
     const n = new MinisProjectDefNode(model);
@@ -90,8 +104,13 @@ describe('MinisProjectDefNode', () => {
 
 describe('MinisLocalizationNode', () => {
   const model: MinisLocalizationModel = {
-    type: 'localization', id: 'loc1', name: 'Home', typ: 'geo',
-    place: null, geo: { lat: 52.2, lon: 21.0 }, device: 'esp32',
+    type: 'localization',
+    id: 'loc1',
+    name: 'Home',
+    typ: 'geo',
+    place: null,
+    geo: { lat: 52.2, lon: 21.0 },
+    device: 'esp32',
   };
   it('round-trips and matches name/device', () => {
     const n = new MinisLocalizationNode(model);

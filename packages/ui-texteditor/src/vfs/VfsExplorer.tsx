@@ -7,7 +7,14 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import LinearProgress from '@mui/material/LinearProgress';
-import { normalize, dirname, encodeText, decodeText, WritableGitHubFS, FileType } from '@hestia/core';
+import {
+  normalize,
+  dirname,
+  encodeText,
+  decodeText,
+  WritableGitHubFS,
+  FileType,
+} from '@hestia/core';
 import type { CompositeFS, FileSystemProvider } from '@hestia/core';
 
 import { globalEventBus } from '../monaco/plugins/EventBus';
@@ -31,8 +38,18 @@ import './vfs-explorer.css';
 
 function IconCompile() {
   return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 4l5 4-5 4" /><path d="M9 12h5" />
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2 4l5 4-5 4" />
+      <path d="M9 12h5" />
     </svg>
   );
 }
@@ -55,7 +72,8 @@ function IconRun() {
 
 /** Pick toolbar icon by action id */
 function ActionIcon({ actionId }: { actionId: string }) {
-  if (actionId === 'compile' || actionId === 'build' || actionId === 'build-web') return <IconCompile />;
+  if (actionId === 'compile' || actionId === 'build' || actionId === 'build-web')
+    return <IconCompile />;
   if (actionId === 'flash' || actionId === 'compile-flash') return <IconFlash />;
   return <IconRun />;
 }
@@ -64,16 +82,42 @@ function ActionIcon({ actionId }: { actionId: string }) {
 
 function ChevronRightIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
-      <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      style={{ display: 'block' }}
+    >
+      <path
+        d="M6 4l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
 function ChevronDownIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
-      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      style={{ display: 'block' }}
+    >
+      <path
+        d="M4 6l4 4 4-4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -215,7 +259,7 @@ async function readAllEntries(reader: FileSystemDirectoryReader): Promise<FileSy
 function inferPlatform(filePath: string): VfsProjectContext['platform'] | null {
   // Check for explicit platform segment in path (new directory structure: Projects/{Platform}/{name})
   const segments = filePath.split('/');
-  const projectsIdx = segments.findIndex(s => s === 'Projects');
+  const projectsIdx = segments.findIndex((s) => s === 'Projects');
   if (projectsIdx !== -1 && projectsIdx + 1 < segments.length) {
     const platformSeg = segments[projectsIdx + 1];
     if (platformSeg === 'Arduino') return 'Arduino';
@@ -225,7 +269,12 @@ function inferPlatform(filePath: string): VfsProjectContext['platform'] | null {
   }
   // Fallback: infer from file extension
   if (filePath.endsWith('.ino')) return 'Arduino';
-  if (filePath.endsWith('main.c') || filePath.endsWith('CMakeLists.txt') || filePath.endsWith('.cmake')) return 'PicoSdk';
+  if (
+    filePath.endsWith('main.c') ||
+    filePath.endsWith('CMakeLists.txt') ||
+    filePath.endsWith('.cmake')
+  )
+    return 'PicoSdk';
   if (filePath.endsWith('.py')) return 'uPython';
   return null;
 }
@@ -233,7 +282,7 @@ function inferPlatform(filePath: string): VfsProjectContext['platform'] | null {
 async function findProjectContext(
   path: string,
   provider: FileSystemProvider,
-  cache: Map<string, VfsProjectContext | null>,
+  cache: Map<string, VfsProjectContext | null>
 ): Promise<VfsProjectContext | null> {
   // Build ancestor list starting from path itself down to root.
   const segments = path.split('/').filter(Boolean);
@@ -278,7 +327,8 @@ async function findProjectContext(
   // This handles projects that predate project.json (old directory structure).
   const platform = inferPlatform(path);
   if (platform && provider.readDirectory) {
-    for (const dir of unique.slice(1)) { // skip path itself (it's a file)
+    for (const dir of unique.slice(1)) {
+      // skip path itself (it's a file)
       const fbKey = '__fallback__' + dir;
       if (cache.has(fbKey)) {
         const cached = cache.get(fbKey)!;
@@ -287,7 +337,9 @@ async function findProjectContext(
       }
       try {
         const entries = await provider.readDirectory(normalize(dir));
-        const hasSketchesDir = entries.some(e => e.name === 'sketches' && e.type === FileType.Directory);
+        const hasSketchesDir = entries.some(
+          (e) => e.name === 'sketches' && e.type === FileType.Directory
+        );
         if (hasSketchesDir) {
           const dirName = dir.split('/').filter(Boolean).pop() ?? dir;
           const ctx: VfsProjectContext = {
@@ -409,7 +461,9 @@ export function VfsExplorer({
   // Expose tree.refresh to external callers via ref
   useEffect(() => {
     if (refreshRef) refreshRef.current = tree.refresh;
-    return () => { if (refreshRef) refreshRef.current = null; };
+    return () => {
+      if (refreshRef) refreshRef.current = null;
+    };
   }, [refreshRef, tree.refresh]);
 
   // Expose a "reveal paths" function: refreshes tree and expands/loads all ancestor dirs of given paths
@@ -429,12 +483,14 @@ export function VfsExplorer({
       for (const dir of sorted) {
         await tree.handleItemExpansionToggle(null, dir, true);
       }
-      tree.setExpandedItems(prev => {
+      tree.setExpandedItems((prev) => {
         const set = new Set([...prev, ...sorted]);
         return [...set];
       });
     };
-    return () => { if (revealPathsRef) revealPathsRef.current = null; };
+    return () => {
+      if (revealPathsRef) revealPathsRef.current = null;
+    };
   }, [revealPathsRef, tree]);
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -472,9 +528,11 @@ export function VfsExplorer({
     const path = externalSelectedPath ?? (currentPath !== rp ? currentPath : null);
     if (!path) return;
     findProjectContext(path, provider, projectCacheRef.current)
-      .then(ctx => { if (ctx) setActiveProject(ctx); })
+      .then((ctx) => {
+        if (ctx) setActiveProject(ctx);
+      })
       .catch(() => {});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tree.items]);
 
   // Propagate to external consumer whenever activeProject changes
@@ -487,9 +545,11 @@ export function VfsExplorer({
   useEffect(() => {
     if (currentPath === rp || activeProject !== null) return;
     findProjectContext(currentPath, provider, projectCacheRef.current)
-      .then(ctx => { if (ctx) setActiveProject(ctx); })
+      .then((ctx) => {
+        if (ctx) setActiveProject(ctx);
+      })
       .catch(() => {});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPath, provider]);
 
   /**
@@ -526,7 +586,7 @@ export function VfsExplorer({
       }
       if (cancelled) return;
 
-      tree.setExpandedItems(prev => [...new Set([...prev, ...dirs])]);
+      tree.setExpandedItems((prev) => [...new Set([...prev, ...dirs])]);
       setSelectedItems([externalSelectedPath]);
 
       // Przewinięcie dopiero po tym, jak pozycja pojawi się w drzewie DOM.
@@ -542,16 +602,27 @@ export function VfsExplorer({
             if (localStorage.getItem('HYDRA_DEBUG') === '1') {
               console.log('[hydra] eksplorator: zaznaczono i przewinięto', externalSelectedPath);
             }
-          } catch { /* brak localStorage */ }
+          } catch {
+            /* brak localStorage */
+          }
           return;
         }
-        if (++attempts < 8) { requestAnimationFrame(scroll); return; }
+        if (++attempts < 8) {
+          requestAnimationFrame(scroll);
+          return;
+        }
         try {
           if (localStorage.getItem('HYDRA_DEBUG') === '1') {
-            console.warn('[hydra] eksplorator: nie znalazłem pozycji dla', externalSelectedPath,
-                         '— węzły w drzewie:', tree.items.length);
+            console.warn(
+              '[hydra] eksplorator: nie znalazłem pozycji dla',
+              externalSelectedPath,
+              '— węzły w drzewie:',
+              tree.items.length
+            );
           }
-        } catch { /* brak localStorage */ }
+        } catch {
+          /* brak localStorage */
+        }
       };
       requestAnimationFrame(scroll);
     };
@@ -560,25 +631,33 @@ export function VfsExplorer({
 
     // Update breadcrumb path
     const node = findNode(tree.items, externalSelectedPath);
-    const dir = node ? (node.isDirectory ? node.id : dirname(externalSelectedPath)) : dirname(externalSelectedPath);
+    const dir = node
+      ? node.isDirectory
+        ? node.id
+        : dirname(externalSelectedPath)
+      : dirname(externalSelectedPath);
     setCurrentPath(dir);
 
     // Detect project context (don't clear on errors — mount may not be ready yet)
     const seq = ++projectDetectSeqRef.current;
     findProjectContext(externalSelectedPath, provider, projectCacheRef.current)
-      .then(ctx => { if (projectDetectSeqRef.current === seq) setActiveProject(ctx); })
+      .then((ctx) => {
+        if (projectDetectSeqRef.current === seq) setActiveProject(ctx);
+      })
       .catch(() => {});
 
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [externalSelectedPath, provider]);
 
   /* ── Project instance (with execute() wired to deps) ── */
 
   const activeProjectInstance = useMemo<Project | null>(
-    () => activeProject ? createProject(activeProject, projectDeps) : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeProject, projectDeps],
+    () => (activeProject ? createProject(activeProject, projectDeps) : null),
+
+    [activeProject, projectDeps]
   );
 
   /* ── Action execution state ── */
@@ -618,83 +697,116 @@ export function VfsExplorer({
     setActionRunning(false);
   }, [activeProject?.id]);
 
-  const appendLine = useCallback((text: string) => {
-    const line = { text, timestamp: Date.now(), type: classifyLine(text) };
-    setOutputLines(prev => [...prev, line]);
-    onOutputLine?.(line);
-  }, [onOutputLine]);
+  const appendLine = useCallback(
+    (text: string) => {
+      const line = { text, timestamp: Date.now(), type: classifyLine(text) };
+      setOutputLines((prev) => [...prev, line]);
+      onOutputLine?.(line);
+    },
+    [onOutputLine]
+  );
 
   /** Builds a saveProjectJson callback for dialog actions: merges updates into project.json and refreshes context. */
-  const buildSaveProjectJson = useCallback((ctx: VfsProjectContext) => {
-    return async (updates: Record<string, unknown>) => {
-      const data = await provider.readFile(ctx.projectJsonPath);
-      const existing = JSON.parse(decodeText(data)) as Record<string, unknown>;
-      const merged = { ...existing, ...updates };
-      const encoded = new TextEncoder().encode(JSON.stringify(merged, null, 2));
-      await provider.writeFile!(ctx.projectJsonPath, encoded, { create: false, overwrite: true });
-      // Invalidate the project context cache so the next resolution picks up new values
-      projectCacheRef.current.delete(ctx.projectJsonPath);
-      // Re-evaluate context for the currently selected path
-      if (selectedItems[0]) {
-        const fresh = await findProjectContext(selectedItems[0], provider, projectCacheRef.current);
-        setActiveProject(fresh);
-        onProjectContext?.(fresh);
-      }
-    };
-  }, [provider, selectedItems, onProjectContext]);
+  const buildSaveProjectJson = useCallback(
+    (ctx: VfsProjectContext) => {
+      return async (updates: Record<string, unknown>) => {
+        const data = await provider.readFile(ctx.projectJsonPath);
+        const existing = JSON.parse(decodeText(data)) as Record<string, unknown>;
+        const merged = { ...existing, ...updates };
+        const encoded = new TextEncoder().encode(JSON.stringify(merged, null, 2));
+        await provider.writeFile!(ctx.projectJsonPath, encoded, { create: false, overwrite: true });
+        // Invalidate the project context cache so the next resolution picks up new values
+        projectCacheRef.current.delete(ctx.projectJsonPath);
+        // Re-evaluate context for the currently selected path
+        if (selectedItems[0]) {
+          const fresh = await findProjectContext(
+            selectedItems[0],
+            provider,
+            projectCacheRef.current
+          );
+          setActiveProject(fresh);
+          onProjectContext?.(fresh);
+        }
+      };
+    },
+    [provider, selectedItems, onProjectContext]
+  );
 
-  const handleRunAction = useCallback(async (actionId: string, hasOutput: boolean, hasDialog?: boolean) => {
-    const ctx = activeProject;
-    if (!ctx) return;
+  const handleRunAction = useCallback(
+    async (actionId: string, hasOutput: boolean, hasDialog?: boolean) => {
+      const ctx = activeProject;
+      if (!ctx) return;
 
-    // Dialog actions are handled by the host — no async output pipeline needed
-    if (hasDialog && onDialogAction) {
-      onDialogAction(actionId, ctx, buildSaveProjectJson(ctx));
-      return;
-    }
-
-    actionAbortRef.current?.abort();
-    const ctrl = new AbortController();
-    actionAbortRef.current = ctrl;
-
-    if (hasOutput) {
-      setOutputLines([]);
-      setLastStatus(null);
-      setOutputOpen(true);
-    }
-    const actionLabel = activeProjectInstance?.getActions().find(a => a.id === actionId)?.label;
-    setActionRunning(true);
-    onActionRunningChange?.(true, actionLabel);
-
-    try {
-      let result: { success: boolean; error?: string };
-
-      if (onExecuteAction) {
-        // External override takes priority
-        result = await onExecuteAction(actionId, ctx, selectedItems[0] ?? null, appendLine, ctrl.signal);
-      } else if (activeProjectInstance) {
-        // Built-in execute() from Project class
-        result = await activeProjectInstance.execute(actionId, selectedItems[0] ?? null, appendLine, ctrl.signal);
-      } else {
-        appendLine('Error: no executor configured (provide projectDeps or onExecuteAction)');
-        result = { success: false };
+      // Dialog actions are handled by the host — no async output pipeline needed
+      if (hasDialog && onDialogAction) {
+        onDialogAction(actionId, ctx, buildSaveProjectJson(ctx));
+        return;
       }
 
-      if (!ctrl.signal.aborted) {
-        setLastStatus(result.success ? 'success' : 'error');
-        if (result.error) appendLine(`Error: ${result.error}`);
-        if (hasOutput) appendLine(result.success ? '✓ Done' : '✗ Failed');
+      actionAbortRef.current?.abort();
+      const ctrl = new AbortController();
+      actionAbortRef.current = ctrl;
+
+      if (hasOutput) {
+        setOutputLines([]);
+        setLastStatus(null);
+        setOutputOpen(true);
       }
-    } catch (err) {
-      if (!ctrl.signal.aborted) {
-        setLastStatus('error');
-        appendLine(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      const actionLabel = activeProjectInstance?.getActions().find((a) => a.id === actionId)?.label;
+      setActionRunning(true);
+      onActionRunningChange?.(true, actionLabel);
+
+      try {
+        let result: { success: boolean; error?: string };
+
+        if (onExecuteAction) {
+          // External override takes priority
+          result = await onExecuteAction(
+            actionId,
+            ctx,
+            selectedItems[0] ?? null,
+            appendLine,
+            ctrl.signal
+          );
+        } else if (activeProjectInstance) {
+          // Built-in execute() from Project class
+          result = await activeProjectInstance.execute(
+            actionId,
+            selectedItems[0] ?? null,
+            appendLine,
+            ctrl.signal
+          );
+        } else {
+          appendLine('Error: no executor configured (provide projectDeps or onExecuteAction)');
+          result = { success: false };
+        }
+
+        if (!ctrl.signal.aborted) {
+          setLastStatus(result.success ? 'success' : 'error');
+          if (result.error) appendLine(`Error: ${result.error}`);
+          if (hasOutput) appendLine(result.success ? '✓ Done' : '✗ Failed');
+        }
+      } catch (err) {
+        if (!ctrl.signal.aborted) {
+          setLastStatus('error');
+          appendLine(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      } finally {
+        setActionRunning(false);
+        onActionRunningChange?.(false);
       }
-    } finally {
-      setActionRunning(false);
-      onActionRunningChange?.(false);
-    }
-  }, [activeProject, activeProjectInstance, onExecuteAction, onDialogAction, onActionRunningChange, selectedItems, appendLine, buildSaveProjectJson]);
+    },
+    [
+      activeProject,
+      activeProjectInstance,
+      onExecuteAction,
+      onDialogAction,
+      onActionRunningChange,
+      selectedItems,
+      appendLine,
+      buildSaveProjectJson,
+    ]
+  );
 
   const handleStopAction = useCallback(() => {
     actionAbortRef.current?.abort();
@@ -704,7 +816,9 @@ export function VfsExplorer({
 
   useEffect(() => {
     if (stopActionRef) stopActionRef.current = handleStopAction;
-    return () => { if (stopActionRef) stopActionRef.current = null; };
+    return () => {
+      if (stopActionRef) stopActionRef.current = null;
+    };
   }, [stopActionRef, handleStopAction]);
 
   /* ── Drag & drop (internal reorder) ── */
@@ -717,53 +831,64 @@ export function VfsExplorer({
   const [isExternalDragOver, setIsExternalDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
 
-  const handleExternalDrop = useCallback(async (
-    items: DataTransferItemList,
-    targetDir: string,
-  ): Promise<void> => {
-    if (readOnly || !provider.writeFile) return;
+  const handleExternalDrop = useCallback(
+    async (items: DataTransferItemList, targetDir: string): Promise<void> => {
+      if (readOnly || !provider.writeFile) return;
 
-    // Collect FileSystemEntry objects via the File and Directory Entries API
-    const entries: FileSystemEntry[] = [];
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item.kind !== 'file') continue;
-      const entry = item.webkitGetAsEntry?.();
-      if (entry) entries.push(entry);
-    }
-    if (entries.length === 0) return;
-
-    async function uploadEntry(entry: FileSystemEntry, dir: string): Promise<void> {
-      if (entry.isFile) {
-        const file = await new Promise<File>((res, rej) =>
-          (entry as FileSystemFileEntry).file(res, rej),
-        );
-        const content = new Uint8Array(await file.arrayBuffer());
-        setUploadProgress(file.name);
-        await provider.writeFile!(normalize(dir + '/' + entry.name), content, { create: true, overwrite: true });
-      } else if (entry.isDirectory) {
-        const subDir = normalize(dir + '/' + entry.name);
-        try { await provider.mkdir?.(subDir); } catch { /* may already exist */ }
-        const reader = (entry as FileSystemDirectoryEntry).createReader();
-        const children = await readAllEntries(reader);
-        for (const child of children) await uploadEntry(child, subDir);
+      // Collect FileSystemEntry objects via the File and Directory Entries API
+      const entries: FileSystemEntry[] = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind !== 'file') continue;
+        const entry = item.webkitGetAsEntry?.();
+        if (entry) entries.push(entry);
       }
-    }
+      if (entries.length === 0) return;
 
-    setUploadProgress('Uploading…');
-    try {
-      for (const entry of entries) await uploadEntry(entry, targetDir);
-      await tree.refresh();
-    } catch (err) {
-      console.error('[VfsExplorer] upload error:', err);
-    } finally {
-      setUploadProgress(null);
-    }
-  }, [readOnly, provider, tree]);
+      async function uploadEntry(entry: FileSystemEntry, dir: string): Promise<void> {
+        if (entry.isFile) {
+          const file = await new Promise<File>((res, rej) =>
+            (entry as FileSystemFileEntry).file(res, rej)
+          );
+          const content = new Uint8Array(await file.arrayBuffer());
+          setUploadProgress(file.name);
+          await provider.writeFile!(normalize(dir + '/' + entry.name), content, {
+            create: true,
+            overwrite: true,
+          });
+        } else if (entry.isDirectory) {
+          const subDir = normalize(dir + '/' + entry.name);
+          try {
+            await provider.mkdir?.(subDir);
+          } catch {
+            /* may already exist */
+          }
+          const reader = (entry as FileSystemDirectoryEntry).createReader();
+          const children = await readAllEntries(reader);
+          for (const child of children) await uploadEntry(child, subDir);
+        }
+      }
+
+      setUploadProgress('Uploading…');
+      try {
+        for (const entry of entries) await uploadEntry(entry, targetDir);
+        await tree.refresh();
+      } catch (err) {
+        console.error('[VfsExplorer] upload error:', err);
+      } finally {
+        setUploadProgress(null);
+      }
+    },
+    [readOnly, provider, tree]
+  );
 
   /* ── Mount manager ── */
 
-  const showMountManager = !readOnly && !!providerRegistry && providerRegistry.length > 0 && provider.scheme === 'composite';
+  const showMountManager =
+    !readOnly &&
+    !!providerRegistry &&
+    providerRegistry.length > 0 &&
+    provider.scheme === 'composite';
 
   /* ── Writable GitHub commit bar ── */
 
@@ -792,12 +917,15 @@ export function VfsExplorer({
     return () => disposable.dispose();
   }, [writableGitHub]);
 
-  const handleCommit = useCallback(async (message: string) => {
-    if (!writableGitHub) return;
-    await writableGitHub.commit(message);
-    setPendingCount(0);
-    tree.refresh();
-  }, [writableGitHub, tree]);
+  const handleCommit = useCallback(
+    async (message: string) => {
+      if (!writableGitHub) return;
+      await writableGitHub.commit(message);
+      setPendingCount(0);
+      tree.refresh();
+    },
+    [writableGitHub, tree]
+  );
 
   const handleDiscard = useCallback(() => {
     if (!writableGitHub) return;
@@ -808,7 +936,7 @@ export function VfsExplorer({
 
   const handleMountsChanged = useCallback(() => {
     tree.refresh();
-    setMountVersion(v => v + 1);
+    setMountVersion((v) => v + 1);
     onMountsChangedProp?.();
   }, [tree, onMountsChangedProp]);
 
@@ -825,44 +953,49 @@ export function VfsExplorer({
           if (!node.isDirectory) {
             const selectedPath = itemIds[0];
             globalEventBus.emit('system:vfs:fileSelected', { path: selectedPath });
-            provider.readFile(selectedPath)
-              .then(data => globalEventBus.emit('system:vfs:fileContent', { path: selectedPath, content: decodeText(data) }))
+            provider
+              .readFile(selectedPath)
+              .then((data) =>
+                globalEventBus.emit('system:vfs:fileContent', {
+                  path: selectedPath,
+                  content: decodeText(data),
+                })
+              )
               .catch(() => {});
           }
         }
         const seq = ++projectDetectSeqRef.current;
         findProjectContext(itemIds[0], provider, projectCacheRef.current)
-          .then(ctx => { if (projectDetectSeqRef.current === seq) setActiveProject(ctx); })
+          .then((ctx) => {
+            if (projectDetectSeqRef.current === seq) setActiveProject(ctx);
+          })
           .catch(() => {});
       }
       // Empty selection (deselect / double-click toggle) — don't clear the project panel.
     },
-    [onFileSelect, provider, tree.items],
+    [onFileSelect, provider, tree.items]
   );
 
   const handleExpandedItemsChange = useCallback(
     (_event: SyntheticEvent | null, itemIds: string[]) => {
       tree.setExpandedItems(itemIds);
     },
-    [tree],
+    [tree]
   );
 
   /* ── Context menu ── */
 
-  const openContextMenu = useCallback(
-    (event: React.MouseEvent, node: VfsTreeNode | null) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (node) setSelectedItems([node.id]);
-      setContextMenu({
-        mouseX: event.clientX + 2,
-        mouseY: event.clientY - 6,
-        nodeId: node?.id ?? null,
-        isDirectory: node?.isDirectory ?? true,
-      });
-    },
-    [],
-  );
+  const openContextMenu = useCallback((event: React.MouseEvent, node: VfsTreeNode | null) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (node) setSelectedItems([node.id]);
+    setContextMenu({
+      mouseX: event.clientX + 2,
+      mouseY: event.clientY - 6,
+      nodeId: node?.id ?? null,
+      isDirectory: node?.isDirectory ?? true,
+    });
+  }, []);
 
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
 
@@ -875,23 +1008,31 @@ export function VfsExplorer({
   // Detected once on first touch — disables onContextMenu (which fires on single tap on touch devices)
   const isTouchDeviceRef = useRef(false);
 
-  const startLongPress = useCallback((e: React.TouchEvent, node: VfsTreeNode | null) => {
-    isTouchDeviceRef.current = true;
-    touchMovedRef.current = false;
-    longPressOccurredRef.current = false;
-    const touch = e.touches[0];
-    const x = touch.clientX;
-    const y = touch.clientY;
-    longPressTimerRef.current = setTimeout(() => {
-      if (!touchMovedRef.current) {
-        longPressOccurredRef.current = true;
-        openContextMenu(
-          { clientX: x, clientY: y, preventDefault: () => {}, stopPropagation: () => {} } as unknown as React.MouseEvent,
-          node,
-        );
-      }
-    }, 500);
-  }, [openContextMenu]);
+  const startLongPress = useCallback(
+    (e: React.TouchEvent, node: VfsTreeNode | null) => {
+      isTouchDeviceRef.current = true;
+      touchMovedRef.current = false;
+      longPressOccurredRef.current = false;
+      const touch = e.touches[0];
+      const x = touch.clientX;
+      const y = touch.clientY;
+      longPressTimerRef.current = setTimeout(() => {
+        if (!touchMovedRef.current) {
+          longPressOccurredRef.current = true;
+          openContextMenu(
+            {
+              clientX: x,
+              clientY: y,
+              preventDefault: () => {},
+              stopPropagation: () => {},
+            } as unknown as React.MouseEvent,
+            node
+          );
+        }
+      }, 500);
+    },
+    [openContextMenu]
+  );
 
   const cancelLongPress = useCallback(() => {
     if (longPressTimerRef.current) {
@@ -916,12 +1057,15 @@ export function VfsExplorer({
 
   const handleContainerContextMenu = useCallback(
     (e: React.MouseEvent) => {
-      if (isTouchDeviceRef.current) { e.preventDefault(); return; }
+      if (isTouchDeviceRef.current) {
+        e.preventDefault();
+        return;
+      }
       const target = e.target as HTMLElement;
       if (target.closest('.MuiTreeItem-root')) return;
       openContextMenu(e, null);
     },
-    [openContextMenu],
+    [openContextMenu]
   );
 
   /* ── Context menu actions ── */
@@ -1022,19 +1166,19 @@ export function VfsExplorer({
         current = current ? current + '/' + part : '/' + part;
         pathsToExpand.push(current);
       }
-      tree.setExpandedItems(prev => {
+      tree.setExpandedItems((prev) => {
         const set = new Set([...prev, ...pathsToExpand]);
         return [...set];
       });
     },
-    [tree],
+    [tree]
   );
 
   /* ── Recursive tree rendering ── */
 
   const renderTree = useCallback(
     (nodes: VfsTreeNode[]) =>
-      nodes.map(node => {
+      nodes.map((node) => {
         // Directories with empty children array need a placeholder so they're expandable
         const hasLoadedChildren = node.children && node.children.length > 0;
         const isUnloadedDir = node.isDirectory && node.children && node.children.length === 0;
@@ -1079,7 +1223,7 @@ export function VfsExplorer({
                   setDropTargetId(node.id);
                 },
                 onDragLeave: () => {
-                  setDropTargetId(prev => (prev === node.id ? null : prev));
+                  setDropTargetId((prev) => (prev === node.id ? null : prev));
                 },
                 onDrop: (e: React.DragEvent) => {
                   e.preventDefault();
@@ -1096,7 +1240,9 @@ export function VfsExplorer({
                     const name = dragId.split('/').pop() ?? '';
                     const newPath = normalize(node.id + '/' + name);
                     if (dragId !== newPath) {
-                      provider.rename(dragId, newPath, { overwrite: false }).then(() => tree.refresh());
+                      provider
+                        .rename(dragId, newPath, { overwrite: false })
+                        .then(() => tree.refresh());
                     }
                   } else if (node.isDirectory && e.dataTransfer.items.length > 0) {
                     // External OS file/folder drop onto a specific directory
@@ -1108,7 +1254,10 @@ export function VfsExplorer({
                   setDropTargetId(null);
                 },
                 onContextMenu: (e: React.MouseEvent) => {
-                  if (isTouchDeviceRef.current) { e.preventDefault(); return; }
+                  if (isTouchDeviceRef.current) {
+                    e.preventDefault();
+                    return;
+                  }
                   openContextMenu(e, node);
                 },
                 onTouchStart: (e: React.TouchEvent) => startLongPress(e, node),
@@ -1134,7 +1283,20 @@ export function VfsExplorer({
           </TreeItem>
         );
       }),
-    [tree.expandedItems, tree, openContextMenu, onFileOpen, readOnly, provider, dropTargetId, startLongPress, cancelLongPress, onTouchMove, blockPostLongPressClick, handleExternalDrop],
+    [
+      tree.expandedItems,
+      tree,
+      openContextMenu,
+      onFileOpen,
+      readOnly,
+      provider,
+      dropTargetId,
+      startLongPress,
+      cancelLongPress,
+      onTouchMove,
+      blockPostLongPressClick,
+      handleExternalDrop,
+    ]
   );
 
   /* ── Render ── */
@@ -1160,18 +1322,31 @@ export function VfsExplorer({
         />
       )}
       {writableGitHub && pendingCount > 0 && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '4px 8px',
-          background: '#1e3a1e', borderBottom: '1px solid #2d5a2d',
-          fontSize: 12, color: '#89d185',
-        }}>
-          <span style={{ flex: 1 }}>{pendingCount} pending change{pendingCount !== 1 ? 's' : ''}</span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 8px',
+            background: '#1e3a1e',
+            borderBottom: '1px solid #2d5a2d',
+            fontSize: 12,
+            color: '#89d185',
+          }}
+        >
+          <span style={{ flex: 1 }}>
+            {pendingCount} pending change{pendingCount !== 1 ? 's' : ''}
+          </span>
           <button
             onClick={() => setShowCommitDialog(true)}
             style={{
-              padding: '2px 8px', fontSize: 11, cursor: 'pointer',
-              background: '#2d7a2d', color: '#fff', border: 'none', borderRadius: 3,
+              padding: '2px 8px',
+              fontSize: 11,
+              cursor: 'pointer',
+              background: '#2d7a2d',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 3,
             }}
           >
             Commit…
@@ -1179,8 +1354,13 @@ export function VfsExplorer({
           <button
             onClick={handleDiscard}
             style={{
-              padding: '2px 6px', fontSize: 11, cursor: 'pointer',
-              background: 'transparent', color: '#89d185', border: '1px solid #2d5a2d', borderRadius: 3,
+              padding: '2px 6px',
+              fontSize: 11,
+              cursor: 'pointer',
+              background: 'transparent',
+              color: '#89d185',
+              border: '1px solid #2d5a2d',
+              borderRadius: 3,
             }}
           >
             Discard
@@ -1200,7 +1380,11 @@ export function VfsExplorer({
         <div
           ref={projectToolbarRef}
           style={{
-            position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 3,
             background: '#1e1e1e',
             borderBottom: activeProject ? '1px solid #3c3c3c' : 'none',
             display: activeProject ? 'block' : 'none',
@@ -1208,41 +1392,98 @@ export function VfsExplorer({
         >
           {/* Project name row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px 2px' }}>
-            <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.7px', color: '#666' }}>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.7px',
+                color: '#666',
+              }}
+            >
               Project
             </span>
-            <span style={{ fontSize: 11, color: '#ccc', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span
+              style={{
+                fontSize: 11,
+                color: '#ccc',
+                flex: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {activeProject?.name ?? ''}
             </span>
-            <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: '#0e639c', color: '#c5c5c5', flexShrink: 0 }}>
+            <span
+              style={{
+                fontSize: 10,
+                padding: '1px 5px',
+                borderRadius: 3,
+                background: '#0e639c',
+                color: '#c5c5c5',
+                flexShrink: 0,
+              }}
+            >
               {activeProject?.platform ?? ''}
             </span>
           </div>
           {/* Action buttons row */}
           {activeProjectInstance && activeProjectInstance.getActions().length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, padding: '2px 6px 4px' }}>
-              {activeProjectInstance.getActions().map(action => (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 2,
+                padding: '2px 6px 4px',
+              }}
+            >
+              {activeProjectInstance.getActions().map((action) => (
                 <button
                   key={action.id}
                   title={action.description ?? action.label}
                   disabled={actionRunning && !action.hasDialog}
                   onClick={() => handleRunAction(action.id, action.hasOutput, action.hasDialog)}
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 4,
-                    padding: '3px 8px', fontSize: 11, cursor: actionRunning ? 'not-allowed' : 'pointer',
-                    background: '#2d2d2d', border: '1px solid #454545', borderRadius: 3,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '3px 8px',
+                    fontSize: 11,
+                    cursor: actionRunning ? 'not-allowed' : 'pointer',
+                    background: '#2d2d2d',
+                    border: '1px solid #454545',
+                    borderRadius: 3,
                     color: actionRunning ? '#555' : '#ccc',
                     opacity: actionRunning ? 0.5 : 1,
                   }}
-                  onMouseEnter={e => { if (!actionRunning) { (e.currentTarget as HTMLButtonElement).style.background = '#3a3a3a'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#666'; } }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#2d2d2d'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#454545'; }}
+                  onMouseEnter={(e) => {
+                    if (!actionRunning) {
+                      (e.currentTarget as HTMLButtonElement).style.background = '#3a3a3a';
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = '#666';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.background = '#2d2d2d';
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = '#454545';
+                  }}
                 >
                   <ActionIcon actionId={action.id} />
                   {action.label}
                 </button>
               ))}
               {actionRunning && (
-                <span style={{ marginLeft: 'auto', color: '#888', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    color: '#888',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 11,
+                  }}
+                >
                   <Spinner />
                   Running…
                 </span>
@@ -1257,7 +1498,7 @@ export function VfsExplorer({
           className="vfs-tree-container"
           style={{ position: 'absolute', inset: 0, paddingTop: projectToolbarHeight }}
           onContextMenu={handleContainerContextMenu}
-          onTouchStart={e => startLongPress(e, null)}
+          onTouchStart={(e) => startLongPress(e, null)}
           onTouchEnd={cancelLongPress}
           onTouchMove={onTouchMove}
           onClickCapture={blockPostLongPressClick}
@@ -1285,28 +1526,66 @@ export function VfsExplorer({
         >
           {/* External drag-over overlay */}
           {isExternalDragOver && !readOnly && (
-            <div style={{
-              position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none',
-              background: 'rgba(0, 120, 212, 0.12)',
-              border: '2px dashed #0078d4',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexDirection: 'column', gap: 4,
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 10,
+                pointerEvents: 'none',
+                background: 'rgba(0, 120, 212, 0.12)',
+                border: '2px dashed #0078d4',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
               <svg width="24" height="24" viewBox="0 0 16 16" fill="#0078d4">
-                <path d="M8 1v9M4 6l4-4 4 4M2 13h12" stroke="#0078d4" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M8 1v9M4 6l4-4 4 4M2 13h12"
+                  stroke="#0078d4"
+                  strokeWidth="1.4"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
-              <span style={{ color: '#0078d4', fontSize: 12, fontWeight: 500 }}>Drop to upload</span>
+              <span style={{ color: '#0078d4', fontSize: 12, fontWeight: 500 }}>
+                Drop to upload
+              </span>
             </div>
           )}
           {/* Upload progress */}
           {uploadProgress && (
-            <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 11,
-              background: '#252526', borderTop: '1px solid #3c3c3c',
-              padding: '4px 8px', fontSize: 11, color: '#888',
-              display: 'flex', alignItems: 'center', gap: 6,
-            }}>
-              <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', border: '1.5px solid #888', borderTopColor: 'transparent', animation: 'spin 0.6s linear infinite' }} />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 11,
+                background: '#252526',
+                borderTop: '1px solid #3c3c3c',
+                padding: '4px 8px',
+                fontSize: 11,
+                color: '#888',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  border: '1.5px solid #888',
+                  borderTopColor: 'transparent',
+                  animation: 'spin 0.6s linear infinite',
+                }}
+              />
               {uploadProgress}
             </div>
           )}
@@ -1342,8 +1621,11 @@ export function VfsExplorer({
         running={actionRunning}
         lastStatus={lastStatus}
         outputOpen={!hideOutput && outputOpen}
-        onToggleOutput={() => setOutputOpen(o => !o)}
-        onClearOutput={() => { setOutputLines([]); setOutputOpen(false); }}
+        onToggleOutput={() => setOutputOpen((o) => !o)}
+        onClearOutput={() => {
+          setOutputLines([]);
+          setOutputOpen(false);
+        }}
         onStop={handleStopAction}
         outputEndRef={outputEndRef}
       />
@@ -1409,35 +1691,62 @@ export function VfsExplorer({
 
       {/* Delete confirmation dialog */}
       {deleteTarget && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'rgba(0,0,0,0.6)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <div style={{
-            background: '#252526', border: '1px solid #3c3c3c', borderRadius: 4,
-            padding: '20px 24px', minWidth: 320, boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          }}>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              background: '#252526',
+              border: '1px solid #3c3c3c',
+              borderRadius: 4,
+              padding: '20px 24px',
+              minWidth: 320,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            }}
+          >
             <div style={{ color: '#cccccc', marginBottom: 8, fontWeight: 600 }}>Delete</div>
             <div style={{ color: '#999', fontSize: 13, marginBottom: 20, wordBreak: 'break-all' }}>
-              Are you sure you want to delete<br />
+              Are you sure you want to delete
+              <br />
               <span style={{ color: '#cccccc' }}>{deleteTarget}</span>?
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setDeleteTarget(null)}
                 style={{
-                  background: 'transparent', border: '1px solid #555', color: '#ccc',
-                  borderRadius: 3, padding: '5px 14px', cursor: 'pointer', fontSize: 13,
+                  background: 'transparent',
+                  border: '1px solid #555',
+                  color: '#ccc',
+                  borderRadius: 3,
+                  padding: '5px 14px',
+                  cursor: 'pointer',
+                  fontSize: 13,
                 }}
-              >Cancel</button>
+              >
+                Cancel
+              </button>
               <button
                 onClick={handleDeleteConfirm}
                 style={{
-                  background: '#c5231c', border: 'none', color: '#fff',
-                  borderRadius: 3, padding: '5px 14px', cursor: 'pointer', fontSize: 13,
+                  background: '#c5231c',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: 3,
+                  padding: '5px 14px',
+                  cursor: 'pointer',
+                  fontSize: 13,
                 }}
-              >Delete</button>
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
@@ -1445,20 +1754,37 @@ export function VfsExplorer({
 
       {/* Error toast */}
       {deleteError && (
-        <div style={{
-          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 9999, background: '#c5231c', color: '#fff',
-          borderRadius: 4, padding: '10px 20px', fontSize: 13,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.4)', maxWidth: 480,
-        }}>
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            background: '#c5231c',
+            color: '#fff',
+            borderRadius: 4,
+            padding: '10px 20px',
+            fontSize: 13,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+            maxWidth: 480,
+          }}
+        >
           Delete failed: {deleteError}
           <button
             onClick={() => setDeleteError(null)}
             style={{
-              marginLeft: 12, background: 'transparent', border: 'none',
-              color: '#fff', cursor: 'pointer', fontSize: 16, lineHeight: 1,
+              marginLeft: 12,
+              background: 'transparent',
+              border: 'none',
+              color: '#fff',
+              cursor: 'pointer',
+              fontSize: 16,
+              lineHeight: 1,
             }}
-          >×</button>
+          >
+            ×
+          </button>
         </div>
       )}
     </div>

@@ -35,7 +35,7 @@ describe('warianty greckich liter', () => {
   it('wzór z wariantem się kompiluje', () => {
     const blok = parseFormulaBlock(
       'rh1-15-eq24',
-      'T = 2\\pi\\sqrt{\\frac{I}{\\varkappa}}\n@vars T: s, I: kg*m^2, \\varkappa: N*m',
+      'T = 2\\pi\\sqrt{\\frac{I}{\\varkappa}}\n@vars T: s, I: kg*m^2, \\varkappa: N*m'
     );
     expect(blok.issues).toEqual([]);
     expect(compileGraph(buildGraph([blok])).issues).toEqual([]);
@@ -48,12 +48,18 @@ describe('warianty greckich liter', () => {
    * zamiast pozwolić autorowi na milczącą pomyłkę.
    */
   it('varphi jest zgłoszone, bo silnik czyta je jako złoty podział', () => {
-    const blok = parseFormulaBlock('x', 'x = A\\cos(\\omega t + \\varphi)\n@vars x: m, A: m, omega: 1/s, t: s, \\varphi: 1');
+    const blok = parseFormulaBlock(
+      'x',
+      'x = A\\cos(\\omega t + \\varphi)\n@vars x: m, A: m, omega: 1/s, t: s, \\varphi: 1'
+    );
     expect(blok.issues.map((i) => i.message).join(' ')).toMatch(/varphi.*złot|złot.*varphi/i);
   });
 
   it('blok bez wariantów nie dostaje żadnego ostrzeżenia', () => {
-    const blok = parseFormulaBlock('x', 'x = A\\cos(\\omega t + \\phi)\n@vars x: m, A: m, omega: 1/s, t: s, phi: 1');
+    const blok = parseFormulaBlock(
+      'x',
+      'x = A\\cos(\\omega t + \\phi)\n@vars x: m, A: m, omega: 1/s, t: s, phi: 1'
+    );
     expect(blok.issues).toEqual([]);
   });
 });
@@ -66,7 +72,10 @@ describe('warianty greckich liter', () => {
  */
 describe('prim w nazwie wielkości', () => {
   it('blok mówi wprost, na czym polega kłopot, i co zrobić', () => {
-    const blok = parseFormulaBlock('rh1-15-eq39', "\\omega' = 2\\pi\\nu'\n@vars omega': 1/s, nu': Hz");
+    const blok = parseFormulaBlock(
+      'rh1-15-eq39',
+      "\\omega' = 2\\pi\\nu'\n@vars omega': 1/s, nu': Hz"
+    );
     const komunikaty = blok.issues.map((i) => i.message).join(' ');
     expect(komunikaty).toMatch(/prim/i);
     expect(komunikaty).toMatch(/pochodn/i);

@@ -16,12 +16,12 @@ import { createCppGenerator } from './cppGenerator';
 const cache = new Map<GeneratorKind, CodeGenerator>();
 
 export async function generatorFor(dialect: LanguageDialect): Promise<CodeGenerator> {
-    const cached = cache.get(dialect.generator);
-    if (cached) return cached;
+  const cached = cache.get(dialect.generator);
+  if (cached) return cached;
 
-    const generator = await load(dialect.generator);
-    cache.set(dialect.generator, generator);
-    return generator;
+  const generator = await load(dialect.generator);
+  cache.set(dialect.generator, generator);
+  return generator;
 }
 
 /**
@@ -37,13 +37,19 @@ export async function generatorFor(dialect: LanguageDialect): Promise<CodeGenera
 const asBase = (g: unknown): CodeGenerator => g as CodeGenerator;
 
 async function load(kind: GeneratorKind): Promise<CodeGenerator> {
-    switch (kind) {
-        // Własny — Blockly nie dostarcza generatora C++ (patrz `cppGenerator.ts`).
-        case 'cpp': return createCppGenerator();
-        case 'python': return asBase((await import('blockly/python')).pythonGenerator);
-        case 'php': return asBase((await import('blockly/php')).phpGenerator);
-        case 'lua': return asBase((await import('blockly/lua')).luaGenerator);
-        case 'dart': return asBase((await import('blockly/dart')).dartGenerator);
-        default: return asBase((await import('blockly/javascript')).javascriptGenerator);
-    }
+  switch (kind) {
+    // Własny — Blockly nie dostarcza generatora C++ (patrz `cppGenerator.ts`).
+    case 'cpp':
+      return createCppGenerator();
+    case 'python':
+      return asBase((await import('blockly/python')).pythonGenerator);
+    case 'php':
+      return asBase((await import('blockly/php')).phpGenerator);
+    case 'lua':
+      return asBase((await import('blockly/lua')).luaGenerator);
+    case 'dart':
+      return asBase((await import('blockly/dart')).dartGenerator);
+    default:
+      return asBase((await import('blockly/javascript')).javascriptGenerator);
+  }
 }

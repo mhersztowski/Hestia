@@ -24,10 +24,10 @@ export const FILE_TYPE = 1;
 export const DIR_TYPE = 2;
 
 export interface VfsEntry {
-    name: string;
-    type: typeof FILE_TYPE | typeof DIR_TYPE;
-    size?: number;
-    mtime?: number;
+  name: string;
+  type: typeof FILE_TYPE | typeof DIR_TYPE;
+  size?: number;
+  mtime?: number;
 }
 
 /**
@@ -38,59 +38,59 @@ export interface VfsEntry {
  * perform gets no button**, rather than a button that ends in an error.
  */
 export interface DriveVfs {
-    list(path: string): Promise<VfsEntry[]>;
-    /** A file's bytes. Text is decoded by the caller — an image or a PDF is not text. */
-    readFile(path: string): Promise<Uint8Array>;
-    /**
-     * Writes a file. `onProgress` is called as the bytes go up, for the upload
-     * dialog's per-file bar; a host that cannot report progress simply never
-     * calls it, and the bar stays at nothing until the write finishes.
-     */
-    writeFile(path: string, data: Uint8Array, onProgress?: (pct: number) => void): Promise<void>;
-    mkdir?(path: string): Promise<void>;
-    /** `recursive` deletes a directory with what is in it. */
-    delete?(path: string, recursive: boolean): Promise<void>;
-    rename?(from: string, to: string): Promise<void>;
-    copy?(from: string, to: string): Promise<void>;
-    /** `null` when there is nothing there — the page uses this to avoid overwriting. */
-    stat?(path: string): Promise<{ type: number } | null>;
-    /**
-     * Packs a file or a folder into `destination`, on the host's side.
-     *
-     * Deliberately not done in the page: zipping in the browser means reading
-     * every file into memory, and a package that lists files has no business
-     * carrying an archiver. A host without this offers no packing at all —
-     * including "download as ZIP", which is this plus a download.
-     */
-    zipPack?(source: string, destination: string): Promise<void>;
-    /** Unpacks an archive into `destination`, which the page creates fresh. */
-    zipUnpack?(archive: string, destination: string): Promise<void>;
-    /**
-     * Runs a command of the project in `directory`, streaming its output.
-     *
-     * The page decides **what** to run — which manager, which arguments, and
-     * whether the script name is one it will pass on at all (see
-     * `npmProject.ts`) — and the host decides whether it will run anything.
-     * Absent: the drive offers no npm menu, because a button that cannot start
-     * a process is a promise it will not keep.
-     *
-     * The host is expected to check the same things again. A page can be lied
-     * to; a server cannot afford to be.
-     */
-    runCommand?(
-        directory: string,
-        command: string,
-        args: readonly string[],
-        onLine: (line: string) => void,
-    ): Promise<{ code: number }>;
-    /**
-     * A public address for a file, when the host serves one. MyCastle published
-     * anything under `public/` at a URL with no auth; whether that is true here
-     * is the host's business, and `null` means the page offers no such link.
-     */
-    publicUrl?(path: string): string | null;
-    /** An address to open a file at in a new tab (with auth, if the host needs it). */
-    downloadUrl?(path: string): string | null;
+  list(path: string): Promise<VfsEntry[]>;
+  /** A file's bytes. Text is decoded by the caller — an image or a PDF is not text. */
+  readFile(path: string): Promise<Uint8Array>;
+  /**
+   * Writes a file. `onProgress` is called as the bytes go up, for the upload
+   * dialog's per-file bar; a host that cannot report progress simply never
+   * calls it, and the bar stays at nothing until the write finishes.
+   */
+  writeFile(path: string, data: Uint8Array, onProgress?: (pct: number) => void): Promise<void>;
+  mkdir?(path: string): Promise<void>;
+  /** `recursive` deletes a directory with what is in it. */
+  delete?(path: string, recursive: boolean): Promise<void>;
+  rename?(from: string, to: string): Promise<void>;
+  copy?(from: string, to: string): Promise<void>;
+  /** `null` when there is nothing there — the page uses this to avoid overwriting. */
+  stat?(path: string): Promise<{ type: number } | null>;
+  /**
+   * Packs a file or a folder into `destination`, on the host's side.
+   *
+   * Deliberately not done in the page: zipping in the browser means reading
+   * every file into memory, and a package that lists files has no business
+   * carrying an archiver. A host without this offers no packing at all —
+   * including "download as ZIP", which is this plus a download.
+   */
+  zipPack?(source: string, destination: string): Promise<void>;
+  /** Unpacks an archive into `destination`, which the page creates fresh. */
+  zipUnpack?(archive: string, destination: string): Promise<void>;
+  /**
+   * Runs a command of the project in `directory`, streaming its output.
+   *
+   * The page decides **what** to run — which manager, which arguments, and
+   * whether the script name is one it will pass on at all (see
+   * `npmProject.ts`) — and the host decides whether it will run anything.
+   * Absent: the drive offers no npm menu, because a button that cannot start
+   * a process is a promise it will not keep.
+   *
+   * The host is expected to check the same things again. A page can be lied
+   * to; a server cannot afford to be.
+   */
+  runCommand?(
+    directory: string,
+    command: string,
+    args: readonly string[],
+    onLine: (line: string) => void
+  ): Promise<{ code: number }>;
+  /**
+   * A public address for a file, when the host serves one. MyCastle published
+   * anything under `public/` at a URL with no auth; whether that is true here
+   * is the host's business, and `null` means the page offers no such link.
+   */
+  publicUrl?(path: string): string | null;
+  /** An address to open a file at in a new tab (with auth, if the host needs it). */
+  downloadUrl?(path: string): string | null;
 }
 
 const encoder = new TextEncoder();
@@ -98,12 +98,12 @@ const decoder = new TextDecoder('utf-8');
 
 /** Text out of what `readFile` returned. */
 export function asText(data: Uint8Array): string {
-    return decoder.decode(data);
+  return decoder.decode(data);
 }
 
 /** Bytes for `writeFile`, from text. */
 export function fromText(text: string): Uint8Array {
-    return encoder.encode(text);
+  return encoder.encode(text);
 }
 
 /**
@@ -114,31 +114,31 @@ export function fromText(text: string): Uint8Array {
  * function, so a missing file means the same thing everywhere.
  */
 export async function readTextOrNull(vfs: DriveVfs, path: string): Promise<string | null> {
-    try {
-        return asText(await vfs.readFile(path));
-    } catch {
-        return null;
-    }
+  try {
+    return asText(await vfs.readFile(path));
+  } catch {
+    return null;
+  }
 }
 
 /** Reads and parses a JSON file; the fallback when it is missing **or** unreadable. */
 export async function readJson<T>(vfs: DriveVfs, path: string, fallback: T): Promise<T> {
-    const text = await readTextOrNull(vfs, path);
-    if (text === null) return fallback;
-    try {
-        return JSON.parse(text) as T;
-    } catch {
-        // A JSON file somebody edited by hand should not take the page down with
-        // it; the caller gets the default and the file stays as it is.
-        return fallback;
-    }
+  const text = await readTextOrNull(vfs, path);
+  if (text === null) return fallback;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    // A JSON file somebody edited by hand should not take the page down with
+    // it; the caller gets the default and the file stays as it is.
+    return fallback;
+  }
 }
 
 /** Directories first, then by name — the order MyCastle's listing used. */
 export function sortVfsEntries(entries: VfsEntry[]): VfsEntry[] {
-    return [...entries].sort((a, b) => (
-        a.type !== b.type ? (a.type === DIR_TYPE ? -1 : 1) : a.name.localeCompare(b.name)
-    ));
+  return [...entries].sort((a, b) =>
+    a.type !== b.type ? (a.type === DIR_TYPE ? -1 : 1) : a.name.localeCompare(b.name)
+  );
 }
 
 /**
@@ -147,12 +147,12 @@ export function sortVfsEntries(entries: VfsEntry[]): VfsEntry[] {
  * land somewhere, and silently overwriting is the one thing it must not do.
  */
 export function freeName(name: string, taken: Set<string>): string {
-    if (!taken.has(name)) return name;
-    const dot = name.lastIndexOf('.');
-    const stem = dot > 0 ? name.slice(0, dot) : name;
-    const ext = dot > 0 ? name.slice(dot) : '';
-    for (let i = 1; ; i++) {
-        const candidate = `${stem} (copy${i > 1 ? ` ${i}` : ''})${ext}`;
-        if (!taken.has(candidate)) return candidate;
-    }
+  if (!taken.has(name)) return name;
+  const dot = name.lastIndexOf('.');
+  const stem = dot > 0 ? name.slice(0, dot) : name;
+  const ext = dot > 0 ? name.slice(dot) : '';
+  for (let i = 1; ; i++) {
+    const candidate = `${stem} (copy${i > 1 ? ` ${i}` : ''})${ext}`;
+    if (!taken.has(candidate)) return candidate;
+  }
 }

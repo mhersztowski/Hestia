@@ -91,8 +91,14 @@ export interface UiWidgetNodeData extends SceneNodeData {
 }
 
 const PUSTA_KOTWICA: UiAnchor = {
-  minX: 0, maxX: 0, minY: 0, maxY: 0,
-  offsetLeft: 0, offsetTop: 0, offsetRight: 0, offsetBottom: 0,
+  minX: 0,
+  maxX: 0,
+  minY: 0,
+  maxY: 0,
+  offsetLeft: 0,
+  offsetTop: 0,
+  offsetRight: 0,
+  offsetBottom: 0,
 };
 
 export class UiRootNode extends SceneNode {
@@ -188,7 +194,11 @@ export class UiWidgetNode extends SceneNode {
     }
     if (property.startsWith('ui.container.')) {
       const pole = property.slice('ui.container.'.length) as keyof UiFlowContainer;
-      this.container = { direction: 'row', ...(this.container ?? {}), [pole]: value } as UiFlowContainer;
+      this.container = {
+        direction: 'row',
+        ...(this.container ?? {}),
+        [pole]: value,
+      } as UiFlowContainer;
       this.notifyChange();
       return true;
     }
@@ -199,7 +209,10 @@ export class UiWidgetNode extends SceneNode {
         this.kind = value as UiWidgetKind;
         this.notifyChange();
         return true;
-      case 'ui.x': case 'ui.y': case 'ui.w': case 'ui.h':
+      case 'ui.x':
+      case 'ui.y':
+      case 'ui.w':
+      case 'ui.h':
         this[property.slice(3) as 'x' | 'y' | 'w' | 'h'] = String(value);
         this.notifyChange();
         return true;

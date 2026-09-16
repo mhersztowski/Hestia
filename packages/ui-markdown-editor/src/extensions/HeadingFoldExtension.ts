@@ -77,8 +77,8 @@ function buildFoldDecorations(doc: PmNode, collapsed: Set<string>): DecorationSe
             });
             return dom;
           },
-          { side: -1, key: `fold-${id}-${isCollapsed ? 'c' : 'e'}`, ignoreSelection: true },
-        ),
+          { side: -1, key: `fold-${id}-${isCollapsed ? 'c' : 'e'}`, ignoreSelection: true }
+        )
       );
     }
 
@@ -88,7 +88,9 @@ function buildFoldDecorations(doc: PmNode, collapsed: Set<string>): DecorationSe
       for (let j = i + 1; j < tops.length; j++) {
         const t = tops[j];
         if (t.node.type.name === 'heading') break;
-        decos.push(Decoration.node(t.offset, t.offset + t.node.nodeSize, { class: 'md-folded-hidden' }));
+        decos.push(
+          Decoration.node(t.offset, t.offset + t.node.nodeSize, { class: 'md-folded-hidden' })
+        );
       }
       decos.push(Decoration.node(offset, offset + node.nodeSize, { class: 'md-folded-heading' }));
     }
@@ -104,7 +106,10 @@ export const HeadingFold = Extension.create({
       new Plugin<FoldPluginState>({
         key: headingFoldKey,
         state: {
-          init: (_config, state) => ({ collapsed: new Set(), decos: buildFoldDecorations(state.doc, new Set()) }),
+          init: (_config, state) => ({
+            collapsed: new Set(),
+            decos: buildFoldDecorations(state.doc, new Set()),
+          }),
           apply(tr, value, _oldState, newState) {
             const meta = tr.getMeta(headingFoldKey) as { type: 'toggle'; id: string } | undefined;
             let collapsed = value.collapsed;

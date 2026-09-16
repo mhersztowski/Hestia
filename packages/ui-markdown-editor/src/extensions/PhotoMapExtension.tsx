@@ -11,8 +11,19 @@ import { createPortal } from 'react-dom';
 import { Node, mergeAttributes } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
 import {
-  Box, Typography, IconButton, Tooltip, CircularProgress, Dialog, DialogTitle,
-  DialogContent, DialogActions, Button, TextField, ToggleButton, ToggleButtonGroup,
+  Box,
+  Typography,
+  IconButton,
+  Tooltip,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import MapIcon from '@mui/icons-material/Map';
 import EditIcon from '@mui/icons-material/Edit';
@@ -29,7 +40,10 @@ import 'leaflet/dist/leaflet.css';
 // ─── shared events / types ───────────────────────────────────────────────────
 
 export const PHOTOMAP_EDIT_EVENT = 'md-photomap-edit';
-export interface PhotoMapEditEventDetail { pos: number; config: string }
+export interface PhotoMapEditEventDetail {
+  pos: number;
+  config: string;
+}
 
 export type PhotoProvider = 'immich' | 'gphotos';
 
@@ -56,9 +70,14 @@ function parseConfig(raw: string | undefined | null): PhotoMapConfig {
   try {
     const c = JSON.parse(raw) as Partial<PhotoMapConfig>;
     return {
-      center: Array.isArray(c.center) && c.center.length === 2 ? [Number(c.center[0]), Number(c.center[1])] : DEFAULT_CONFIG.center,
+      center:
+        Array.isArray(c.center) && c.center.length === 2
+          ? [Number(c.center[0]), Number(c.center[1])]
+          : DEFAULT_CONFIG.center,
       zoom: typeof c.zoom === 'number' ? c.zoom : DEFAULT_CONFIG.zoom,
-      pins: Array.isArray(c.pins) ? c.pins.filter((p) => p && typeof p.lat === 'number' && typeof p.lng === 'number') : [],
+      pins: Array.isArray(c.pins)
+        ? c.pins.filter((p) => p && typeof p.lat === 'number' && typeof p.lng === 'number')
+        : [],
     };
   } catch {
     return { ...DEFAULT_CONFIG };
@@ -67,7 +86,14 @@ function parseConfig(raw: string | undefined | null): PhotoMapConfig {
 
 // ─── album loading (with GPS for Immich) ─────────────────────────────────────
 
-interface LoadedItem { key: string; thumb: string; full: string; alt?: string; lat?: number; lng?: number }
+interface LoadedItem {
+  key: string;
+  thumb: string;
+  full: string;
+  alt?: string;
+  lat?: number;
+  lng?: number;
+}
 
 async function loadAlbum(provider: string, source: string): Promise<LoadedItem[]> {
   const enc = encodeURIComponent(source);
@@ -78,20 +104,26 @@ async function loadAlbum(provider: string, source: string): Promise<LoadedItem[]
     return (j.images as string[]).map((u, i) => {
       const e = encodeURIComponent(u);
       // Google Photos scraping exposes no GPS — these are always placed by hand.
-      return { key: String(i), thumb: `/api/gphotos/image?url=${e}&size=w320-h320`, full: `/api/gphotos/image?url=${e}&size=w1600` };
+      return {
+        key: String(i),
+        thumb: `/api/gphotos/image?url=${e}&size=w320-h320`,
+        full: `/api/gphotos/image?url=${e}&size=w1600`,
+      };
     });
   }
   const r = await fetch(`/api/immich/album-assets?shareUrl=${enc}`);
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
-  return (j.assets as { id: string; description?: string; lat?: number; lng?: number }[]).map((a) => ({
-    key: a.id,
-    thumb: `/api/immich/shared-thumbnail?shareUrl=${enc}&assetId=${a.id}&size=thumbnail`,
-    full: `/api/immich/shared-thumbnail?shareUrl=${enc}&assetId=${a.id}&size=preview`,
-    alt: a.description,
-    lat: a.lat,
-    lng: a.lng,
-  }));
+  return (j.assets as { id: string; description?: string; lat?: number; lng?: number }[]).map(
+    (a) => ({
+      key: a.id,
+      thumb: `/api/immich/shared-thumbnail?shareUrl=${enc}&assetId=${a.id}&size=thumbnail`,
+      full: `/api/immich/shared-thumbnail?shareUrl=${enc}&assetId=${a.id}&size=preview`,
+      alt: a.description,
+      lat: a.lat,
+      lng: a.lng,
+    })
+  );
 }
 
 // ─── marker styling (one-time CSS injection) ─────────────────────────────────
@@ -140,22 +172,32 @@ const PhotoMapNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos, delet
   const [collapsed, setCollapsed] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
-  useEffect(() => { ensureMarkerCss(); }, []);
+  useEffect(() => {
+    ensureMarkerCss();
+  }, []);
 
-  const go = useCallback((delta: number) => {
-    setLightboxIdx((idx) => {
-      const n = pins.length;
-      if (idx === null || n === 0) return idx;
-      return (idx + delta + n) % n;
-    });
-  }, [pins.length]);
+  const go = useCallback(
+    (delta: number) => {
+      setLightboxIdx((idx) => {
+        const n = pins.length;
+        if (idx === null || n === 0) return idx;
+        return (idx + delta + n) % n;
+      });
+    },
+    [pins.length]
+  );
 
   useEffect(() => {
     if (lightboxIdx === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setLightboxIdx(null);
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+      else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        go(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        go(1);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -164,26 +206,64 @@ const PhotoMapNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos, delet
   const handleEdit = useCallback(() => {
     const pos = typeof getPos === 'function' ? getPos() : undefined;
     if (typeof pos !== 'number' || pos < 0) return;
-    window.dispatchEvent(new CustomEvent<PhotoMapEditEventDetail>(PHOTOMAP_EDIT_EVENT, { detail: { pos, config: JSON.stringify(config) } }));
+    window.dispatchEvent(
+      new CustomEvent<PhotoMapEditEventDetail>(PHOTOMAP_EDIT_EVENT, {
+        detail: { pos, config: JSON.stringify(config) },
+      })
+    );
   }, [getPos, config]);
 
   return (
     <NodeViewWrapper className="md-photomap" data-drag-handle>
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, overflow: 'hidden', my: 1 }}>
-        <Box contentEditable={false} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.5, bgcolor: 'action.hover' }}>
+      <Box
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1.5,
+          overflow: 'hidden',
+          my: 1,
+        }}
+      >
+        <Box
+          contentEditable={false}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            px: 1,
+            py: 0.5,
+            bgcolor: 'action.hover',
+          }}
+        >
           <Tooltip title={collapsed ? 'Rozwiń' : 'Zwiń'}>
             <IconButton size="small" onClick={() => setCollapsed((c) => !c)}>
-              {collapsed ? <ChevronRightIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
+              {collapsed ? (
+                <ChevronRightIcon sx={{ fontSize: 16 }} />
+              ) : (
+                <ExpandMoreIcon sx={{ fontSize: 16 }} />
+              )}
             </IconButton>
           </Tooltip>
           <MapIcon fontSize="small" color="primary" />
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>Mapa zdjęć</Typography>
-          <Typography variant="caption" color="text.secondary">· {pins.length} zdjęć</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            Mapa zdjęć
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            · {pins.length} zdjęć
+          </Typography>
           <Box sx={{ flex: 1 }} />
           {editor.isEditable && (
             <>
-              <Tooltip title="Edytuj mapę zdjęć"><IconButton size="small" onClick={handleEdit}><EditIcon sx={{ fontSize: 15 }} /></IconButton></Tooltip>
-              <Tooltip title="Usuń"><IconButton size="small" onClick={() => deleteNode()}><DeleteOutlineIcon sx={{ fontSize: 15 }} /></IconButton></Tooltip>
+              <Tooltip title="Edytuj mapę zdjęć">
+                <IconButton size="small" onClick={handleEdit}>
+                  <EditIcon sx={{ fontSize: 15 }} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Usuń">
+                <IconButton size="small" onClick={() => deleteNode()}>
+                  <DeleteOutlineIcon sx={{ fontSize: 15 }} />
+                </IconButton>
+              </Tooltip>
             </>
           )}
         </Box>
@@ -191,8 +271,18 @@ const PhotoMapNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos, delet
         {!collapsed && (
           <Box contentEditable={false} sx={{ height: 360, position: 'relative' }}>
             {pins.length === 0 ? (
-              <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-                <Typography variant="body2" color="text.secondary"><em>Brak przypiętych zdjęć — kliknij „Edytuj", aby dodać.</em></Typography>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 2,
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  <em>Brak przypiętych zdjęć — kliknij „Edytuj", aby dodać.</em>
+                </Typography>
               </Box>
             ) : (
               <MapContainer
@@ -220,31 +310,61 @@ const PhotoMapNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos, delet
         )}
       </Box>
 
-      {lightboxIdx !== null && pins[lightboxIdx] && createPortal(
-        <Box className="md-gallery-lightbox" onClick={() => setLightboxIdx(null)}>
-          <IconButton className="md-gallery-lightbox-close" onClick={(e) => { e.stopPropagation(); setLightboxIdx(null); }}><CloseIcon /></IconButton>
-          {pins.length > 1 && (
-            <IconButton className="md-gallery-lightbox-nav md-gallery-lightbox-prev" onClick={(e) => { e.stopPropagation(); go(-1); }} aria-label="Poprzednie">
-              <ChevronLeftIcon sx={{ fontSize: 40 }} />
+      {lightboxIdx !== null &&
+        pins[lightboxIdx] &&
+        createPortal(
+          <Box className="md-gallery-lightbox" onClick={() => setLightboxIdx(null)}>
+            <IconButton
+              className="md-gallery-lightbox-close"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIdx(null);
+              }}
+            >
+              <CloseIcon />
             </IconButton>
-          )}
-          <img
-            src={pins[lightboxIdx].full} alt={pins[lightboxIdx].alt || ''}
-            className="md-gallery-lightbox-img"
-            title="Kliknij, aby przejść do następnego"
-            onClick={(e) => { e.stopPropagation(); go(1); }}
-          />
-          {pins.length > 1 && (
-            <IconButton className="md-gallery-lightbox-nav md-gallery-lightbox-next" onClick={(e) => { e.stopPropagation(); go(1); }} aria-label="Następne">
-              <ChevronRightIcon sx={{ fontSize: 40 }} />
-            </IconButton>
-          )}
-          {pins.length > 1 && (
-            <Box className="md-gallery-lightbox-counter" onClick={(e) => e.stopPropagation()}>{lightboxIdx + 1} / {pins.length}</Box>
-          )}
-        </Box>,
-        document.body,
-      )}
+            {pins.length > 1 && (
+              <IconButton
+                className="md-gallery-lightbox-nav md-gallery-lightbox-prev"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  go(-1);
+                }}
+                aria-label="Poprzednie"
+              >
+                <ChevronLeftIcon sx={{ fontSize: 40 }} />
+              </IconButton>
+            )}
+            <img
+              src={pins[lightboxIdx].full}
+              alt={pins[lightboxIdx].alt || ''}
+              className="md-gallery-lightbox-img"
+              title="Kliknij, aby przejść do następnego"
+              onClick={(e) => {
+                e.stopPropagation();
+                go(1);
+              }}
+            />
+            {pins.length > 1 && (
+              <IconButton
+                className="md-gallery-lightbox-nav md-gallery-lightbox-next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  go(1);
+                }}
+                aria-label="Następne"
+              >
+                <ChevronRightIcon sx={{ fontSize: 40 }} />
+              </IconButton>
+            )}
+            {pins.length > 1 && (
+              <Box className="md-gallery-lightbox-counter" onClick={(e) => e.stopPropagation()}>
+                {lightboxIdx + 1} / {pins.length}
+              </Box>
+            )}
+          </Box>,
+          document.body
+        )}
     </NodeViewWrapper>
   );
 };
@@ -252,7 +372,9 @@ const PhotoMapNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos, delet
 // ─── edit dialog ─────────────────────────────────────────────────────────────
 
 // Working pin during editing (carries its source item metadata + coords).
-interface DraftPin extends PhotoPin { placed: boolean }
+interface DraftPin extends PhotoPin {
+  placed: boolean;
+}
 
 function MapClickCatcher({ onClick }: { onClick: (lat: number, lng: number) => void }) {
   useMapEvents({ click: (e) => onClick(e.latlng.lat, e.latlng.lng) });
@@ -278,7 +400,11 @@ export const PhotoMapDialog: React.FC<{
   useEffect(() => {
     if (!open) return;
     ensureMarkerCss();
-    setProvider('immich'); setSource(''); setItems(null); setError(null); setArmedKey(null);
+    setProvider('immich');
+    setSource('');
+    setItems(null);
+    setError(null);
+    setArmedKey(null);
     // Restore existing pins as already-placed drafts (they render on the map).
     const cfg = parseConfig(initial?.config);
     const d: Record<string, DraftPin> = {};
@@ -289,34 +415,55 @@ export const PhotoMapDialog: React.FC<{
   const load = useCallback(async () => {
     const s = source.trim();
     if (!s) return;
-    setLoading(true); setError(null);
-    try { setItems(await loadAlbum(provider, s)); }
-    catch (e) { setError((e as Error).message || 'Nie udało się wczytać albumu.'); setItems(null); }
-    finally { setLoading(false); }
+    setLoading(true);
+    setError(null);
+    try {
+      setItems(await loadAlbum(provider, s));
+    } catch (e) {
+      setError((e as Error).message || 'Nie udało się wczytać albumu.');
+      setItems(null);
+    } finally {
+      setLoading(false);
+    }
   }, [provider, source]);
 
   // Toggle a photo in/out of the selection. Auto-places when the photo has GPS.
   const toggleItem = useCallback((it: LoadedItem) => {
     setDrafts((prev) => {
       const next = { ...prev };
-      if (next[it.key]) { delete next[it.key]; return next; }
+      if (next[it.key]) {
+        delete next[it.key];
+        return next;
+      }
       const hasGps = typeof it.lat === 'number' && typeof it.lng === 'number';
       next[it.key] = {
-        key: it.key, thumb: it.thumb, full: it.full, alt: it.alt,
-        lat: hasGps ? it.lat! : 0, lng: hasGps ? it.lng! : 0, placed: hasGps,
+        key: it.key,
+        thumb: it.thumb,
+        full: it.full,
+        alt: it.alt,
+        lat: hasGps ? it.lat! : 0,
+        lng: hasGps ? it.lng! : 0,
+        placed: hasGps,
       };
       return next;
     });
   }, []);
 
-  const placeArmed = useCallback((lat: number, lng: number) => {
-    if (!armedKey) return;
-    setDrafts((prev) => prev[armedKey] ? { ...prev, [armedKey]: { ...prev[armedKey], lat, lng, placed: true } } : prev);
-    setArmedKey(null);
-  }, [armedKey]);
+  const placeArmed = useCallback(
+    (lat: number, lng: number) => {
+      if (!armedKey) return;
+      setDrafts((prev) =>
+        prev[armedKey]
+          ? { ...prev, [armedKey]: { ...prev[armedKey], lat, lng, placed: true } }
+          : prev
+      );
+      setArmedKey(null);
+    },
+    [armedKey]
+  );
 
   const moveDraft = useCallback((key: string, lat: number, lng: number) => {
-    setDrafts((prev) => prev[key] ? { ...prev, [key]: { ...prev[key], lat, lng } } : prev);
+    setDrafts((prev) => (prev[key] ? { ...prev, [key]: { ...prev[key], lat, lng } } : prev));
   }, []);
 
   const placedDrafts = useMemo(() => Object.values(drafts).filter((d) => d.placed), [drafts]);
@@ -326,7 +473,11 @@ export const PhotoMapDialog: React.FC<{
     const pins: PhotoPin[] = placedDrafts.map(({ placed: _p, ...pin }) => pin);
     let center: [number, number] = DEFAULT_CONFIG.center;
     let zoom = DEFAULT_CONFIG.zoom;
-    if (mapRef.current) { const c = mapRef.current.getCenter(); center = [c.lat, c.lng]; zoom = mapRef.current.getZoom(); }
+    if (mapRef.current) {
+      const c = mapRef.current.getCenter();
+      center = [c.lat, c.lng];
+      zoom = mapRef.current.getZoom();
+    }
     onSubmit(JSON.stringify({ center, zoom, pins }));
   };
 
@@ -341,36 +492,116 @@ export const PhotoMapDialog: React.FC<{
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           {/* ── left: album + selection ── */}
           <Box sx={{ flex: '1 1 320px', minWidth: 300 }}>
-            <ToggleButtonGroup exclusive size="small" value={provider}
-              onChange={(_, v) => { if (v) { setProvider(v); setItems(null); } }} sx={{ mb: 1 }}>
+            <ToggleButtonGroup
+              exclusive
+              size="small"
+              value={provider}
+              onChange={(_, v) => {
+                if (v) {
+                  setProvider(v);
+                  setItems(null);
+                }
+              }}
+              sx={{ mb: 1 }}
+            >
               <ToggleButton value="immich">Immich</ToggleButton>
               <ToggleButton value="gphotos">Google Photos</ToggleButton>
             </ToggleButtonGroup>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-              <TextField fullWidth size="small" label="Publiczny link do albumu" value={source}
-                onChange={(e) => { setSource(e.target.value); setItems(null); }}
-                placeholder={provider === 'immich' ? 'https://immich.example.com/share/…' : 'https://photos.app.goo.gl/…'} />
-              <Button variant="outlined" onClick={() => void load()} disabled={!source.trim() || loading} sx={{ flexShrink: 0 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Publiczny link do albumu"
+                value={source}
+                onChange={(e) => {
+                  setSource(e.target.value);
+                  setItems(null);
+                }}
+                placeholder={
+                  provider === 'immich'
+                    ? 'https://immich.example.com/share/…'
+                    : 'https://photos.app.goo.gl/…'
+                }
+              />
+              <Button
+                variant="outlined"
+                onClick={() => void load()}
+                disabled={!source.trim() || loading}
+                sx={{ flexShrink: 0 }}
+              >
                 Wczytaj
               </Button>
             </Box>
-            {loading && <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}><CircularProgress size={22} /></Box>}
-            {error && <Typography variant="body2" color="error" sx={{ mt: 1 }}>{error}</Typography>}
+            {loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <CircularProgress size={22} />
+              </Box>
+            )}
+            {error && (
+              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                {error}
+              </Typography>
+            )}
             {items && (
               <>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  Zaznacz zdjęcia ({selectedKeys.size}). Ze współrzędnymi GPS trafią od razu na mapę; pozostałe — z tacki poniżej.
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', mt: 1 }}
+                >
+                  Zaznacz zdjęcia ({selectedKeys.size}). Ze współrzędnymi GPS trafią od razu na
+                  mapę; pozostałe — z tacki poniżej.
                 </Typography>
-                <Box sx={{ mt: 0.5, maxHeight: 300, overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))', gap: 0.5 }}>
+                <Box
+                  sx={{
+                    mt: 0.5,
+                    maxHeight: 300,
+                    overflow: 'auto',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))',
+                    gap: 0.5,
+                  }}
+                >
                   {items.map((it) => {
                     const sel = selectedKeys.has(it.key);
                     const gps = typeof it.lat === 'number' && typeof it.lng === 'number';
                     return (
-                      <Box key={it.key} onClick={() => toggleItem(it)}
-                        sx={{ position: 'relative', cursor: 'pointer', borderRadius: 1, overflow: 'hidden',
-                          outline: sel ? '3px solid' : '1px solid', outlineColor: sel ? 'primary.main' : 'divider', opacity: sel ? 1 : 0.75 }}>
-                        <img src={it.thumb} alt={it.alt || ''} loading="lazy" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }} />
-                        {gps && <RoomIcon sx={{ position: 'absolute', bottom: 1, right: 1, fontSize: 15, color: '#fff', filter: 'drop-shadow(0 0 2px #000)' }} />}
+                      <Box
+                        key={it.key}
+                        onClick={() => toggleItem(it)}
+                        sx={{
+                          position: 'relative',
+                          cursor: 'pointer',
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                          outline: sel ? '3px solid' : '1px solid',
+                          outlineColor: sel ? 'primary.main' : 'divider',
+                          opacity: sel ? 1 : 0.75,
+                        }}
+                      >
+                        <img
+                          src={it.thumb}
+                          alt={it.alt || ''}
+                          loading="lazy"
+                          style={{
+                            width: '100%',
+                            aspectRatio: '1/1',
+                            objectFit: 'cover',
+                            display: 'block',
+                          }}
+                        />
+                        {gps && (
+                          <RoomIcon
+                            sx={{
+                              position: 'absolute',
+                              bottom: 1,
+                              right: 1,
+                              fontSize: 15,
+                              color: '#fff',
+                              filter: 'drop-shadow(0 0 2px #000)',
+                            }}
+                          />
+                        )}
                       </Box>
                     );
                   })}
@@ -382,33 +613,75 @@ export const PhotoMapDialog: React.FC<{
           {/* ── right: map + placement ── */}
           <Box sx={{ flex: '1 1 420px', minWidth: 340, display: 'flex', flexDirection: 'column' }}>
             <Typography variant="caption" color="text.secondary">
-              {armedKey ? 'Kliknij mapę, aby umieścić wybrane zdjęcie.' : 'Przeciągaj pinezki, aby poprawić pozycję. Zdjęcia bez GPS umieść z tacki poniżej.'}
+              {armedKey
+                ? 'Kliknij mapę, aby umieścić wybrane zdjęcie.'
+                : 'Przeciągaj pinezki, aby poprawić pozycję. Zdjęcia bez GPS umieść z tacki poniżej.'}
             </Typography>
-            <Box sx={{ height: 340, mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 1, overflow: 'hidden' }}>
+            <Box
+              sx={{
+                height: 340,
+                mt: 0.5,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                overflow: 'hidden',
+              }}
+            >
               <MapContainer
-                center={placedDrafts.length ? [placedDrafts[0].lat, placedDrafts[0].lng] : DEFAULT_CONFIG.center}
+                center={
+                  placedDrafts.length
+                    ? [placedDrafts[0].lat, placedDrafts[0].lng]
+                    : DEFAULT_CONFIG.center
+                }
                 zoom={placedDrafts.length ? 8 : DEFAULT_CONFIG.zoom}
                 style={{ width: '100%', height: '100%' }}
                 scrollWheelZoom
                 ref={mapRef}
               >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; OpenStreetMap' />
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution="&copy; OpenStreetMap"
+                />
                 <MapClickCatcher onClick={placeArmed} />
                 {placedDrafts.map((d) => (
-                  <Marker key={d.key} position={[d.lat, d.lng]} icon={thumbIcon(d.thumb)} draggable
-                    eventHandlers={{ dragend: (e) => { const ll = (e.target as L.Marker).getLatLng(); moveDraft(d.key, ll.lat, ll.lng); } }} />
+                  <Marker
+                    key={d.key}
+                    position={[d.lat, d.lng]}
+                    icon={thumbIcon(d.thumb)}
+                    draggable
+                    eventHandlers={{
+                      dragend: (e) => {
+                        const ll = (e.target as L.Marker).getLatLng();
+                        moveDraft(d.key, ll.lat, ll.lng);
+                      },
+                    }}
+                  />
                 ))}
               </MapContainer>
             </Box>
             {unplacedDrafts.length > 0 && (
               <Box sx={{ mt: 0.5 }}>
-                <Typography variant="caption" color="text.secondary">Do umieszczenia ({unplacedDrafts.length}) — kliknij, potem kliknij mapę:</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Do umieszczenia ({unplacedDrafts.length}) — kliknij, potem kliknij mapę:
+                </Typography>
                 <Box sx={{ display: 'flex', gap: 0.5, overflowX: 'auto', pb: 0.5 }}>
                   {unplacedDrafts.map((d) => (
-                    <img key={d.key} src={d.thumb} alt={d.alt || ''} onClick={() => setArmedKey((k) => k === d.key ? null : d.key)}
-                      style={{ width: 48, height: 48, objectFit: 'cover', flexShrink: 0, borderRadius: 4, cursor: 'pointer',
-                        outline: armedKey === d.key ? '3px solid #4fc3f7' : '1px solid rgba(0,0,0,0.2)' }} />
+                    <img
+                      key={d.key}
+                      src={d.thumb}
+                      alt={d.alt || ''}
+                      onClick={() => setArmedKey((k) => (k === d.key ? null : d.key))}
+                      style={{
+                        width: 48,
+                        height: 48,
+                        objectFit: 'cover',
+                        flexShrink: 0,
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        outline:
+                          armedKey === d.key ? '3px solid #4fc3f7' : '1px solid rgba(0,0,0,0.2)',
+                      }}
+                    />
                   ))}
                 </Box>
               </Box>
@@ -441,18 +714,29 @@ export const PhotoMap = Node.create({
         default: '',
         parseHTML: (el) => {
           const raw = el.getAttribute('data-config') || '';
-          try { return decodeURIComponent(raw); } catch { return raw; }
+          try {
+            return decodeURIComponent(raw);
+          } catch {
+            return raw;
+          }
         },
-        renderHTML: (a) => (a.config ? { 'data-config': encodeURIComponent(a.config as string) } : {}),
+        renderHTML: (a) =>
+          a.config ? { 'data-config': encodeURIComponent(a.config as string) } : {},
       },
     };
   },
 
-  parseHTML() { return [{ tag: 'div[data-type="photo-map"]' }]; },
+  parseHTML() {
+    return [{ tag: 'div[data-type="photo-map"]' }];
+  },
 
-  renderHTML({ HTMLAttributes }) { return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'photo-map' })]; },
+  renderHTML({ HTMLAttributes }) {
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'photo-map' })];
+  },
 
-  addNodeView() { return ReactNodeViewRenderer(PhotoMapNodeView); },
+  addNodeView() {
+    return ReactNodeViewRenderer(PhotoMapNodeView);
+  },
 });
 
 export default PhotoMap;

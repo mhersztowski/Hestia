@@ -37,15 +37,20 @@ export function PlotBlock({ code, onChange, height = 460 }: PlotBlockProps) {
    */
   const początkowy = useMemo<PlotDocument>(() => parsePlotDocument(code), []);
 
-  const zapisz = useCallback((next: PlotDocument) => {
-    onChange?.(serializePlotDocument(next));
-  }, [onChange]);
+  const zapisz = useCallback(
+    (next: PlotDocument) => {
+      onChange?.(serializePlotDocument(next));
+    },
+    [onChange]
+  );
 
   return (
     <div>
       {początkowy.issues.length > 0 && (
         <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 6 }}>
-          {początkowy.issues.map((issue) => <div key={issue}>{issue}</div>)}
+          {początkowy.issues.map((issue) => (
+            <div key={issue}>{issue}</div>
+          ))}
         </div>
       )}
       <SciPlot

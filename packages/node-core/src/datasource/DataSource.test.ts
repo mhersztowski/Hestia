@@ -110,7 +110,7 @@ describe('DataSource', () => {
   it('onFileChanged for a calendar file emits an events change', async () => {
     await fileSystem.writeFile(
       'data/calendar/2026/07/03.json',
-      JSON.stringify({ type: 'events', tasks: [] }),
+      JSON.stringify({ type: 'events', tasks: [] })
     );
     const ds = new DataSource(fileSystem);
     await ds.initialize();

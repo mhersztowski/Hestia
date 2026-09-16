@@ -15,9 +15,14 @@ import { exportSite } from './exportSite';
 const WAHADLO = {
   path: 'mechanika/wahadlo.md',
   markdown: [
-    '---', 'title: Wahadło matematyczne', 'tags: [mechanika]', '---',
-    '# Wahadło matematyczne', '',
-    'Okres małych drgań nie zależy od amplitudy.', '',
+    '---',
+    'title: Wahadło matematyczne',
+    'tags: [mechanika]',
+    '---',
+    '# Wahadło matematyczne',
+    '',
+    'Okres małych drgań nie zależy od amplitudy.',
+    '',
     '```formula:okres',
     'T = 2\\pi\\sqrt{\\frac{L}{g}}',
     '@vars T: s, L: m, g: m/s^2',
@@ -28,8 +33,14 @@ const WAHADLO = {
 const ORBITA = {
   path: 'astronomia/orbita.md',
   markdown: [
-    '---', 'title: Orbita kołowa', 'tags: [astronomia]', 'requires: [Wahadło matematyczne]', '---',
-    '# Orbita kołowa', '', 'Prędkość kołowa wynika z równowagi sił.',
+    '---',
+    'title: Orbita kołowa',
+    'tags: [astronomia]',
+    'requires: [Wahadło matematyczne]',
+    '---',
+    '# Orbita kołowa',
+    '',
+    'Prędkość kołowa wynika z równowagi sił.',
   ].join('\n'),
 };
 
@@ -73,8 +84,9 @@ describe('exportSite', () => {
       path: 'web/tagi.md',
       markdown: '# Tagi\n\nZamknięcie skryptu zapisujemy jako </script> w tekście.',
     };
-    const html = exportSite([zlosliwy], { title: 'T' })
-      .find((f) => f.path === 'web/tagi.html')!.content;
+    const html = exportSite([zlosliwy], { title: 'T' }).find(
+      (f) => f.path === 'web/tagi.html'
+    )!.content;
 
     expect(html).not.toContain('</script> w tekście');
     // Treść ma przetrwać w całości — chodzi o zakodowanie, nie o wycięcie.
@@ -111,19 +123,24 @@ describe('exportSite', () => {
     // katalog po eksporcie byłby gołą listą linków, a nie tym samym katalogiem.
     const dane = osadzone(strona(files, 'index.html').content, 'sci-index');
     expect(dane.documents).toHaveLength(2);
-    expect(dane.documents.find((d: { path: string }) => d.path === 'mechanika/wahadlo.md').markdown)
-      .toBe(WAHADLO.markdown);
+    expect(
+      dane.documents.find((d: { path: string }) => d.path === 'mechanika/wahadlo.md').markdown
+    ).toBe(WAHADLO.markdown);
   });
 
   it('tytuł strony bierze się z nagłówka dokumentu', () => {
-    expect(strona(files, 'mechanika/wahadlo.html').content)
-      .toContain('<title>Wahadło matematyczne');
+    expect(strona(files, 'mechanika/wahadlo.html').content).toContain(
+      '<title>Wahadło matematyczne'
+    );
   });
 
   it('manifest opisuje bazę w postaci nadającej się do przeszukania', () => {
     const manifest = JSON.parse(strona(files, 'manifest.json').content);
     expect(manifest.documents).toHaveLength(2);
-    expect(manifest.documents[0]).toMatchObject({ path: expect.any(String), title: expect.any(String) });
+    expect(manifest.documents[0]).toMatchObject({
+      path: expect.any(String),
+      title: expect.any(String),
+    });
     // Prerekwizyt zapisany tytułem musi wskazywać na ścieżkę — inaczej graf
     // wiedzy po eksporcie rozpada się na luźne strony.
     const orbita = manifest.documents.find((d: { title: string }) => d.title === 'Orbita kołowa');

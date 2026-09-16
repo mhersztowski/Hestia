@@ -24,7 +24,7 @@ const ZERO = 1e-12;
 export function pickVector(
   point: Vector2,
   vectors: Array<{ name: string; value: Vector2 }>,
-  radius: number,
+  radius: number
 ): string | undefined {
   let najblizszy: string | undefined;
   let najmniejsza = radius;

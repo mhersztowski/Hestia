@@ -54,8 +54,10 @@ describe('etykiety w operatorze', () => {
   });
 
   it('`-. tekst .->` czyta etykietę i styl kropkowany', () => {
-    expect(edgesOf('A -. kropki z tekstem .-> B')[0])
-      .toMatchObject({ label: 'kropki z tekstem', lineStyle: 'dotted' });
+    expect(edgesOf('A -. kropki z tekstem .-> B')[0]).toMatchObject({
+      label: 'kropki z tekstem',
+      lineStyle: 'dotted',
+    });
   });
 
   it('`== tekst ==>` czyta etykietę i grubą linię', () => {
@@ -86,8 +88,9 @@ describe('zakończenia po obu stronach', () => {
 describe('łańcuchy', () => {
   it('`A --> B --> C` daje dwie krawędzie i trzy węzły', () => {
     expect(idsOf('Q1[Start] --> Q2[Krok] --> Q3[Koniec]')).toEqual(['Q1', 'Q2', 'Q3']);
-    expect(edgesOf('Q1[Start] --> Q2[Krok] --> Q3[Koniec]').map((e) => `${e.source}->${e.target}`))
-      .toEqual(['Q1->Q2', 'Q2->Q3']);
+    expect(
+      edgesOf('Q1[Start] --> Q2[Krok] --> Q3[Koniec]').map((e) => `${e.source}->${e.target}`)
+    ).toEqual(['Q1->Q2', 'Q2->Q3']);
   });
 
   it('etykiety w łańcuchu trafiają na właściwe odcinki', () => {
@@ -98,7 +101,9 @@ describe('łańcuchy', () => {
 
 describe('kształty pominięte wcześniej', () => {
   it('potrójne nawiasy to podwójny okrąg', () => {
-    expect(parse('N(((Podwójny okrąg)))').nodes[0])
-      .toMatchObject({ shape: 'doubleCircle', label: 'Podwójny okrąg' });
+    expect(parse('N(((Podwójny okrąg)))').nodes[0]).toMatchObject({
+      shape: 'doubleCircle',
+      label: 'Podwójny okrąg',
+    });
   });
 });

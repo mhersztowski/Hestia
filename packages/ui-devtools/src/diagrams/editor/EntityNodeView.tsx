@@ -18,7 +18,11 @@ const STROKE_SELECTED = '#2563eb';
 function AttributeRow({ attribute }: { attribute: EntityAttribute }) {
   // Rozbiór się nie powiódł — pokazujemy zapis źródłowy, zamiast zgadywać.
   if (!attribute.name) {
-    return <div style={{ padding: '1px 8px', gridColumn: '1 / -1', color: '#64748b' }}>{attribute.raw}</div>;
+    return (
+      <div style={{ padding: '1px 8px', gridColumn: '1 / -1', color: '#64748b' }}>
+        {attribute.raw}
+      </div>
+    );
   }
   return (
     <>
@@ -31,7 +35,9 @@ function AttributeRow({ attribute }: { attribute: EntityAttribute }) {
       </div>
       {/* Komentarz jest osobną kolumną, tak jak w Mermaidzie: opis pola bywa
           dłuższy niż jego nazwa i doklejony do niej robiłby się nieczytelny. */}
-      <div style={{ padding: '1px 8px', color: '#94a3b8', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+      <div
+        style={{ padding: '1px 8px', color: '#94a3b8', fontStyle: 'italic', whiteSpace: 'nowrap' }}
+      >
         {attribute.comment}
       </div>
     </>
@@ -61,11 +67,15 @@ export function EntityNodeView({ id, data, selected }: NodeProps<Node<FlowNodeDa
     >
       <NodeAnchors />
 
-      <div style={{
-        padding: '4px 8px', textAlign: 'center', fontWeight: 600,
-        background: '#e2e8f0',
-        borderBottom: attributes.length ? `1px solid ${stroke}` : undefined,
-      }}>
+      <div
+        style={{
+          padding: '4px 8px',
+          textAlign: 'center',
+          fontWeight: 600,
+          background: '#e2e8f0',
+          borderBottom: attributes.length ? `1px solid ${stroke}` : undefined,
+        }}
+      >
         <InlineLabel
           value={data.label}
           placeholder={data.fallback}
@@ -77,16 +87,19 @@ export function EntityNodeView({ id, data, selected }: NodeProps<Node<FlowNodeDa
       </div>
 
       {attributes.length > 0 && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto auto auto 1fr',
-          alignItems: 'center',
-          padding: '3px 0',
-        }}>
-          {attributes.map((attribute, i) => <AttributeRow key={i} attribute={attribute} />)}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto auto auto 1fr',
+            alignItems: 'center',
+            padding: '3px 0',
+          }}
+        >
+          {attributes.map((attribute, i) => (
+            <AttributeRow key={i} attribute={attribute} />
+          ))}
         </div>
       )}
-
     </div>
   );
 }

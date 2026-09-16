@@ -56,7 +56,13 @@ export interface Interpolant {
  * zostaje zerowy), żeby odczyt z trajektorii nie musiał wiedzieć, która metoda
  * ją policzyła.
  */
-export function hermiteInterpolant(y0: State, y1: State, h: number, f0: State, f1: State): Interpolant {
+export function hermiteInterpolant(
+  y0: State,
+  y1: State,
+  h: number,
+  f0: State,
+  f1: State
+): Interpolant {
   const n = y0.length;
   const r2 = new Array<number>(n);
   const r3 = new Array<number>(n);
@@ -105,12 +111,18 @@ export class Trajectory {
      * wynikiem symulacji tak samo jak położenie, tylko odpowiada na pytanie
      * „kiedy", a nie „gdzie".
      */
-    readonly events?: EventHit[],
+    readonly events?: EventHit[]
   ) {}
 
-  get t0(): number { return this.samples[0]?.t ?? 0; }
-  get t1(): number { return this.samples[this.samples.length - 1]?.t ?? 0; }
-  get length(): number { return this.samples.length; }
+  get t0(): number {
+    return this.samples[0]?.t ?? 0;
+  }
+  get t1(): number {
+    return this.samples[this.samples.length - 1]?.t ?? 0;
+  }
+  get length(): number {
+    return this.samples.length;
+  }
 
   /**
    * Stan w dowolnej chwili — interpolacja liniowa między próbkami.

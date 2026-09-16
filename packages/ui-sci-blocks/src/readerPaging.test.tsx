@@ -28,12 +28,30 @@ const DOKUMENT = Array.from({ length: 40 }, (_, i) => `Akapit numer ${i + 1}.`).
  * wysokości całości. Pozycję wyznaczamy z miejsca elementu wśród rodzeństwa,
  * dzięki czemu mock nie zależy od kolejności wywołań pomiaru.
  */
-function ustawWymiary({ tresc, widok, elementow = 40 }: { tresc: number; widok: number; elementow?: number }) {
+function ustawWymiary({
+  tresc,
+  widok,
+  elementow = 40,
+}: {
+  tresc: number;
+  widok: number;
+  elementow?: number;
+}) {
   const wysokoscElementu = tresc / elementow;
 
-  Object.defineProperty(HTMLElement.prototype, 'scrollHeight', { value: tresc, configurable: true });
-  Object.defineProperty(HTMLElement.prototype, 'clientHeight', { value: widok, configurable: true });
-  Object.defineProperty(window, 'innerHeight', { value: widok, configurable: true, writable: true });
+  Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
+    value: tresc,
+    configurable: true,
+  });
+  Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
+    value: widok,
+    configurable: true,
+  });
+  Object.defineProperty(window, 'innerHeight', {
+    value: widok,
+    configurable: true,
+    writable: true,
+  });
 
   Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
     configurable: true,
@@ -44,12 +62,17 @@ function ustawWymiary({ tresc, widok, elementow = 40 }: { tresc: number; widok: 
       // przesuwa wynik w górę. Bez tego pozycja lektury zawsze wychodziła zero
       // i test przepuszczał kod, który nigdzie nie skakał.
       const przewiniecie = window.scrollY ?? 0;
-      if (this.tagName === 'ARTICLE') return { ...pusty, top: -przewiniecie, height: tresc } as DOMRect;
+      if (this.tagName === 'ARTICLE')
+        return { ...pusty, top: -przewiniecie, height: tresc } as DOMRect;
 
       const rodzic = this.parentElement;
       if (rodzic?.tagName === 'ARTICLE') {
         const indeks = [...rodzic.children].indexOf(this);
-        return { ...pusty, top: indeks * wysokoscElementu - przewiniecie, height: wysokoscElementu } as DOMRect;
+        return {
+          ...pusty,
+          top: indeks * wysokoscElementu - przewiniecie,
+          height: wysokoscElementu,
+        } as DOMRect;
       }
       return { ...pusty, top: -przewiniecie, height: 0 } as DOMRect;
     },
@@ -58,7 +81,9 @@ function ustawWymiary({ tresc, widok, elementow = 40 }: { tresc: number; widok: 
 
 beforeEach(() => {
   (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
-    observe() {} disconnect() {} unobserve() {}
+    observe() {}
+    disconnect() {}
+    unobserve() {}
   };
   ustawWymiary({ tresc: 3000, widok: 600 });
 });
@@ -162,7 +187,9 @@ describe('zmiana rozmiaru okna', () => {
     expect(screen.getByText(/1\s*\/\s*5/)).toBeTruthy();
 
     ustawWymiary({ tresc: 3000, widok: 1500 });
-    act(() => { fireEvent(window, new Event('resize')); });
+    act(() => {
+      fireEvent(window, new Event('resize'));
+    });
 
     // 1500 px mieści dwadzieścia akapitów po 75 px — podział wypada równo.
     expect(screen.getByText(/1\s*\/\s*2/)).toBeTruthy();
@@ -181,7 +208,7 @@ describe('zmiana trybu czytania', () => {
   function przechwycPrzewijanie() {
     const cele: number[] = [];
     window.scrollTo = ((opcje: { top?: number } | number) => {
-      const top = typeof opcje === 'number' ? opcje : opcje?.top ?? 0;
+      const top = typeof opcje === 'number' ? opcje : (opcje?.top ?? 0);
       cele.push(top);
       Object.defineProperty(window, 'scrollY', { value: top, configurable: true, writable: true });
     }) as typeof window.scrollTo;
@@ -260,13 +287,15 @@ describe('gdy przewija kontener, a nie okno', () => {
     const { rerender } = render(
       <div data-testid="obszar" style={{ overflowY: 'auto', height: 600 }}>
         <ReaderView markdown={DOKUMENT} paged />
-      </div>,
+      </div>
     );
 
     const obszar = screen.getByTestId('obszar');
     Object.defineProperty(obszar, 'scrollHeight', { value: 3000, configurable: true });
     Object.defineProperty(obszar, 'clientHeight', { value: 600, configurable: true });
-    obszar.scrollTo = ((o: { top?: number }) => { cele.push(o?.top ?? 0); }) as typeof obszar.scrollTo;
+    obszar.scrollTo = ((o: { top?: number }) => {
+      cele.push(o?.top ?? 0);
+    }) as typeof obszar.scrollTo;
 
     fireEvent.click(screen.getByLabelText(/następna strona/i));
     fireEvent.click(screen.getByLabelText(/następna strona/i));
@@ -274,7 +303,7 @@ describe('gdy przewija kontener, a nie okno', () => {
     rerender(
       <div data-testid="obszar" style={{ overflowY: 'auto', height: 600 }}>
         <ReaderView markdown={DOKUMENT} />
-      </div>,
+      </div>
     );
 
     // Okno nie drgnęło — przewinął się kontener, i to do początku trzeciej strony.

@@ -120,7 +120,14 @@ function sliderFor(parsed: ParsedPlotRow): SliderSpec | undefined {
 
 function makeRow(latex: string, index: number): PlotRow {
   const parsed = parsePlotRow(latex);
-  return { id: nextId(), latex, parsed, style: styleFor(index), slider: sliderFor(parsed), hidden: false };
+  return {
+    id: nextId(),
+    latex,
+    parsed,
+    style: styleFor(index),
+    slider: sliderFor(parsed),
+    hidden: false,
+  };
 }
 
 /** Nowy dokument: jeden pusty wiersz i domyślny widok. */
@@ -164,7 +171,7 @@ export function updateRow(doc: PlotDocument, id: string, latex: string): PlotDoc
         latex,
         parsed,
         // Zakres ustawiony ręcznie przeżywa edycję wzoru.
-        slider: slider ? row.slider ?? slider : undefined,
+        slider: slider ? (row.slider ?? slider) : undefined,
       };
     }),
   };
@@ -246,8 +253,8 @@ export function parsePlotDocument(text: string): PlotDocument {
 
   if (stored.version !== PLOT_FORMAT_VERSION) {
     issues.push(
-      `Zapis pochodzi z wersji ${stored.version ?? '(nieznanej)'}, a ta aplikacja rozumie ${PLOT_FORMAT_VERSION}. `
-      + 'Wczytuję, co się da.',
+      `Zapis pochodzi z wersji ${stored.version ?? '(nieznanej)'}, a ta aplikacja rozumie ${PLOT_FORMAT_VERSION}. ` +
+        'Wczytuję, co się da.'
     );
   }
 

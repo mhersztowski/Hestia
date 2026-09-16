@@ -13,7 +13,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import {
-  editableExpressions, parseFormulaBlock, replaceExpression,
+  editableExpressions,
+  parseFormulaBlock,
+  replaceExpression,
   type FormulaBlock,
 } from '@hestia/core-sci';
 import { MathField } from './MathField';
@@ -57,8 +59,11 @@ const RODZAJ: Record<string, string> = {
 };
 
 const chip: CSSProperties = {
-  fontSize: 10, padding: '1px 6px', borderRadius: 10,
-  background: '#f1f5f9', color: '#475569',
+  fontSize: 10,
+  padding: '1px 6px',
+  borderRadius: 10,
+  background: '#f1f5f9',
+  color: '#475569',
 };
 
 /**
@@ -112,13 +117,14 @@ function AlgebraView({ block }: { block: FormulaBlock }) {
     const bok = { 4: 2, 9: 3 }[w.length];
     if (!bok) return zapasowy;
     const wiersze = Array.from({ length: bok }, (_, i) =>
-      w.slice(i * bok, (i + 1) * bok).join(' & ')).join(' \\\\ ');
+      w.slice(i * bok, (i + 1) * bok).join(' & ')
+    ).join(' \\\\ ');
     return `\\begin{pmatrix} ${wiersze} \\end{pmatrix}`;
   };
 
   /** Wektor kolumnowy — tak, jak stoi w podręczniku, niezależnie od wymiaru. */
   const wektorLatex = (w: number[], zapasowy: string) =>
-    (w.length >= 2 ? `\\begin{pmatrix} ${w.join(' \\\\ ')} \\end{pmatrix}` : zapasowy);
+    w.length >= 2 ? `\\begin{pmatrix} ${w.join(' \\\\ ')} \\end{pmatrix}` : zapasowy;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -165,7 +171,12 @@ function useOdgrodzenie<T extends HTMLElement>(aktywne: boolean) {
   return ref;
 }
 
-export function FormulaBlockView({ id, code, bare, onChange, recognizeInk,
+export function FormulaBlockView({
+  id,
+  code,
+  bare,
+  onChange,
+  recognizeInk,
 }: FormulaBlockViewProps) {
   const block = parseFormulaBlock(id, code);
   /** Numer edytowanego wiersza; `undefined` znaczy tryb czytania. */
@@ -204,12 +215,21 @@ export function FormulaBlockView({ id, code, bare, onChange, recognizeInk,
         key={`wzor-${line}`}
         role="button"
         tabIndex={0}
-        onClick={(e) => { e.stopPropagation(); setEdytowany(line); }}
-        onKeyDown={(e) => { if (e.key === 'Enter') setEdytowany(line); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setEdytowany(line);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') setEdytowany(line);
+        }}
         title="Kliknij, aby edytować wzór"
         style={{ cursor: 'text', borderRadius: 4, padding: '2px 4px' }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = '#faf5ff'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#faf5ff';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
         {dzieci}
       </div>
@@ -219,15 +239,27 @@ export function FormulaBlockView({ id, code, bare, onChange, recognizeInk,
   return (
     <div
       ref={odgrodzenie}
-      style={bare
-        ? { display: 'flex', flexDirection: 'column', gap: 6 }
-        : { border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff', padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}
+      style={
+        bare
+          ? { display: 'flex', flexDirection: 'column', gap: 6 }
+          : {
+              border: '1px solid #e2e8f0',
+              borderRadius: 6,
+              background: '#fff',
+              padding: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+            }
+      }
     >
       {/* Poza ramką hosta blok sam się przedstawia; w ramce robi to `BlockShell`,
           poza rodzajem — „układ ODE" vs „wzór" widać dopiero po treści. */}
       {(!bare || block.kind !== 'definition') && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
-          <span style={{ ...chip, background: '#dbeafe', color: '#1e40af' }}>{RODZAJ[block.kind]}</span>
+          <span style={{ ...chip, background: '#dbeafe', color: '#1e40af' }}>
+            {RODZAJ[block.kind]}
+          </span>
           {!bare && <code style={{ fontSize: 11, color: '#94a3b8' }}>{id}</code>}
           {block.kind === 'pde' && block.pde && (
             <span style={{ fontSize: 11, color: '#64748b' }}>
@@ -250,15 +282,19 @@ export function FormulaBlockView({ id, code, bare, onChange, recognizeInk,
         <PoleView block={block} />
       ) : block.kind === 'ode' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {(block.state ?? []).map((name, index) => klikalny(
-            index,
-            <Math
-              key={name}
-              latex={`\\frac{d${symbolToLatex(name)}}{dt} = ${block.derivatives?.[name] ?? ''}`}
-            />,
-          ))}
+          {(block.state ?? []).map((name, index) =>
+            klikalny(
+              index,
+              <Math
+                key={name}
+                latex={`\\frac{d${symbolToLatex(name)}}{dt} = ${block.derivatives?.[name] ?? ''}`}
+              />
+            )
+          )}
           {block.init && (
-            <div style={{ fontSize: 11, color: '#64748b', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div
+              style={{ fontSize: 11, color: '#64748b', display: 'flex', gap: 10, flexWrap: 'wrap' }}
+            >
               <span>warunki początkowe:</span>
               {Object.entries(block.init).map(([k, v]) => (
                 <Math key={k} latex={`${symbolToLatex(k)} = ${v}`} block={false} />
@@ -266,30 +302,42 @@ export function FormulaBlockView({ id, code, bare, onChange, recognizeInk,
             </div>
           )}
         </div>
-      ) : klikalny(
-        0,
-        // Łańcuch równości pokazujemy w całości: `T = 2π/ω = 2π√(m/k)` niesie
-        // drogę, a nie tylko wynik, i to jest treść, nie ozdoba.
-        <Math latex={`${block.targetLatex ?? symbolToLatex(block.target ?? '')} = ${
-          block.chain?.join(' = ') ?? block.expression ?? ''}`}
-        />,
+      ) : (
+        klikalny(
+          0,
+          // Łańcuch równości pokazujemy w całości: `T = 2π/ω = 2π√(m/k)` niesie
+          // drogę, a nie tylko wynik, i to jest treść, nie ozdoba.
+          <Math
+            latex={`${block.targetLatex ?? symbolToLatex(block.target ?? '')} = ${
+              block.chain?.join(' = ') ?? block.expression ?? ''
+            }`}
+          />
+        )
       )}
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {Object.entries(block.vars).map(([name, unit]) => (
-          <span key={name} style={chip}>{name} [{unit}]</span>
+          <span key={name} style={chip}>
+            {name} [{unit}]
+          </span>
         ))}
         {block.assume.map((assumption) => (
-          <span key={assumption} style={{ ...chip, background: '#fef3c7', color: '#92400e' }}>założenie: {assumption}</span>
+          <span key={assumption} style={{ ...chip, background: '#fef3c7', color: '#92400e' }}>
+            założenie: {assumption}
+          </span>
         ))}
         {block.derivedFrom.map((source) => (
-          <span key={source} style={{ ...chip, background: '#dcfce7', color: '#166534' }}>z: {source}</span>
+          <span key={source} style={{ ...chip, background: '#dcfce7', color: '#166534' }}>
+            z: {source}
+          </span>
         ))}
       </div>
 
       {block.issues.length > 0 && (
         <div style={{ fontSize: 11, color: '#b91c1c' }}>
-          {block.issues.map((issue, index) => <div key={index}>{issue.message}</div>)}
+          {block.issues.map((issue, index) => (
+            <div key={index}>{issue.message}</div>
+          ))}
         </div>
       )}
     </div>

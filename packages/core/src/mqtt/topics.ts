@@ -12,9 +12,7 @@ export interface MqttTopicDef<T extends z.ZodTypeAny = z.ZodTypeAny> {
   tags?: string[];
 }
 
-export function defineMqttTopic<T extends z.ZodTypeAny>(
-  def: MqttTopicDef<T>,
-): MqttTopicDef<T> {
+export function defineMqttTopic<T extends z.ZodTypeAny>(def: MqttTopicDef<T>): MqttTopicDef<T> {
   return def;
 }
 
@@ -45,7 +43,8 @@ export const telemetry = defineMqttTopic({
 
 export const heartbeat = defineMqttTopic({
   pattern: 'minis/{userName}/{deviceName}/heartbeat',
-  description: 'Device heartbeat (keep-alive). App instances include sessionId, intervalSec, isInteractive, context.',
+  description:
+    'Device heartbeat (keep-alive). App instances include sessionId, intervalSec, isInteractive, context.',
   direction: 'device→server',
   tags: ['IoT', 'Presence'],
   payloadSchema: z.object({
@@ -62,34 +61,43 @@ export const heartbeat = defineMqttTopic({
 
 export const hello = defineMqttTopic({
   pattern: 'minis/{userName}/{deviceName}/hello',
-  description: 'Device announces itself on connect with current state; server syncs extensions if different',
+  description:
+    'Device announces itself on connect with current state; server syncs extensions if different',
   direction: 'device→server',
   tags: ['IoT', 'Presence'],
   payloadSchema: z.object({
     uptime: z.number().optional(),
-    extensions: z.array(z.object({
-      type: z.string(),
-      enabled: z.boolean(),
-      options: z.record(z.unknown()).optional(),
-    })).optional(),
-    entities: z.array(z.object({
-      id: z.string(),
-      type: z.enum(['sensor', 'binary_sensor', 'switch', 'number', 'button', 'select']),
-      name: z.string(),
-      icon: z.string().optional(),
-      deviceClass: z.string().optional(),
-      // sensor
-      unit: z.string().optional(),
-      // binary_sensor
-      onLabel: z.string().optional(),
-      offLabel: z.string().optional(),
-      // number
-      min: z.number().optional(),
-      max: z.number().optional(),
-      step: z.number().optional(),
-      // select
-      options: z.array(z.string()).optional(),
-    })).optional(),
+    extensions: z
+      .array(
+        z.object({
+          type: z.string(),
+          enabled: z.boolean(),
+          options: z.record(z.unknown()).optional(),
+        })
+      )
+      .optional(),
+    entities: z
+      .array(
+        z.object({
+          id: z.string(),
+          type: z.enum(['sensor', 'binary_sensor', 'switch', 'number', 'button', 'select']),
+          name: z.string(),
+          icon: z.string().optional(),
+          deviceClass: z.string().optional(),
+          // sensor
+          unit: z.string().optional(),
+          // binary_sensor
+          onLabel: z.string().optional(),
+          offLabel: z.string().optional(),
+          // number
+          min: z.number().optional(),
+          max: z.number().optional(),
+          step: z.number().optional(),
+          // select
+          options: z.array(z.string()).optional(),
+        })
+      )
+      .optional(),
     // App-instance fields (web / mobile / desktop presence)
     platform: z.enum(['web', 'mobile', 'desktop']).optional(),
     sessionId: z.string().optional(),
@@ -229,10 +237,12 @@ export const extRes = defineMqttTopic({
     ok: z.boolean(),
     /** Operation result (shape depends on op) */
     data: z.unknown().optional(),
-    error: z.object({
-      code: z.string(),
-      message: z.string().optional(),
-    }).optional(),
+    error: z
+      .object({
+        code: z.string(),
+        message: z.string().optional(),
+      })
+      .optional(),
   }),
 });
 
@@ -254,7 +264,8 @@ export const twinReported = defineMqttTopic({
 
 export const registerRequest = defineMqttTopic({
   pattern: 'minis/{userName}/{deviceName}/register-request',
-  description: 'A device asks to be added to the user\'s list; the request waits for acceptance in Electronics -> Devices',
+  description:
+    "A device asks to be added to the user's list; the request waits for acceptance in Electronics -> Devices",
   direction: 'device→server',
   tags: ['IoT', 'Presence'],
   payloadSchema: z.object({
@@ -302,7 +313,9 @@ export type MqttTopicName = keyof MqttTopicRegistry;
  * Pattern params use `{paramName}` syntax (e.g. `minis/{userName}/{deviceName}/telemetry`).
  * Returns the matched definition and extracted params, or null if no match.
  */
-export function matchTopic(fullTopic: string): { name: MqttTopicName; def: MqttTopicDef; params: Record<string, string> } | null {
+export function matchTopic(
+  fullTopic: string
+): { name: MqttTopicName; def: MqttTopicDef; params: Record<string, string> } | null {
   const parts = fullTopic.split('/');
 
   for (const [name, def] of Object.entries(mqttTopics)) {

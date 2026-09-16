@@ -15,7 +15,14 @@
  * to jedyne miejsce, gdzie ta arytmetyka żyje, i jedyne, które trzeba sprawdzić.
  */
 import { emptyDiagram, type DiagramDocument } from '../../model/diagram';
-import { emptyGantt, GANTT_TAGS, type GanttChart, type GanttSection, type GanttTag, type GanttTask } from '../../model/gantt';
+import {
+  emptyGantt,
+  GANTT_TAGS,
+  type GanttChart,
+  type GanttSection,
+  type GanttTag,
+  type GanttTask,
+} from '../../model/gantt';
 import type { ParseIssue, ParseResult } from '../../model/format';
 import { splitFrontMatter, withFrontMatter } from './frontMatter';
 
@@ -157,11 +164,20 @@ export function parseGanttDiagram(text: string): ParseResult {
     const trimmed = line.trim();
     if (!trimmed) return;
 
-    if (!seenHeader && HEADER.test(line)) { seenHeader = true; return; }
-    if (trimmed.startsWith('%%')) { chart.unknown.push({ index, text: line }); return; }
+    if (!seenHeader && HEADER.test(line)) {
+      seenHeader = true;
+      return;
+    }
+    if (trimmed.startsWith('%%')) {
+      chart.unknown.push({ index, text: line });
+      return;
+    }
 
     const section = SECTION.exec(trimmed);
-    if (section) { chart.sections.push({ label: section[1], tasks: [] }); return; }
+    if (section) {
+      chart.sections.push({ label: section[1], tasks: [] });
+      return;
+    }
 
     const setting = SETTINGS.find(([pattern]) => pattern.test(trimmed));
     if (setting) {

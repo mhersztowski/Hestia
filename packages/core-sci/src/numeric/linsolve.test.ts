@@ -16,14 +16,26 @@ import { solveLinear } from './linsolve';
 describe('rozwiązywanie układu', () => {
   it('rozwiązuje układ 2×2', () => {
     // 2x + y = 5, x − y = 1 → x = 2, y = 1.
-    const x = solveLinear([[2, 1], [1, -1]], [5, 1])!;
+    const x = solveLinear(
+      [
+        [2, 1],
+        [1, -1],
+      ],
+      [5, 1]
+    )!;
     expect(x[0]).toBeCloseTo(2, 12);
     expect(x[1]).toBeCloseTo(1, 12);
   });
 
   it('radzi sobie z zerem na przekątnej dzięki przestawianiu wierszy', () => {
     // Bez wyboru elementu głównego pierwszy krok dzieliłby przez zero.
-    const x = solveLinear([[0, 2], [3, 1]], [4, 5])!;
+    const x = solveLinear(
+      [
+        [0, 2],
+        [3, 1],
+      ],
+      [4, 5]
+    )!;
     expect(x[0]).toBeCloseTo(1, 12);
     expect(x[1]).toBeCloseTo(2, 12);
   });
@@ -43,7 +55,10 @@ describe('rozwiązywanie układu', () => {
   });
 
   it('nie psuje macierzy wołającego', () => {
-    const A = [[2, 1], [1, -1]];
+    const A = [
+      [2, 1],
+      [1, -1],
+    ];
     const kopia = A.map((row) => [...row]);
     solveLinear(A, [5, 1]);
     expect(A).toEqual(kopia);
@@ -52,6 +67,14 @@ describe('rozwiązywanie układu', () => {
   it('zwraca undefined dla układu osobliwego zamiast nieskończoności', () => {
     // Drugi wiersz jest wielokrotnością pierwszego — rozwiązania nie ma
     // albo jest ich nieskończenie wiele. Cicha odpowiedź z NaN byłaby gorsza.
-    expect(solveLinear([[1, 2], [2, 4]], [3, 7])).toBeUndefined();
+    expect(
+      solveLinear(
+        [
+          [1, 2],
+          [2, 4],
+        ],
+        [3, 7]
+      )
+    ).toBeUndefined();
   });
 });

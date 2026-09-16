@@ -127,7 +127,9 @@ export interface BooxPenBridge {
 type MaybeHost = (Window & { __booxPen?: BooxPenBridge }) | undefined;
 
 /** The bridge, if the page runs inside the native shell — otherwise `null`. */
-export function getBooxPen(win: MaybeHost = typeof window === 'undefined' ? undefined : window): BooxPenBridge | null {
+export function getBooxPen(
+  win: MaybeHost = typeof window === 'undefined' ? undefined : window
+): BooxPenBridge | null {
   return win?.__booxPen ?? null;
 }
 
@@ -222,7 +224,11 @@ export interface CanvasPenPoint {
 }
 
 /** Converts a stroke from device pixels into canvas coordinates. */
-export function toCanvasPoints(stroke: NativeStroke, area: DeviceRect, dpr: number): CanvasPenPoint[] {
+export function toCanvasPoints(
+  stroke: NativeStroke,
+  area: DeviceRect,
+  dpr: number
+): CanvasPenPoint[] {
   const scale = dpr > 0 ? dpr : 1;
   const pressure = normalizeStrokePressure(stroke.points.map((p) => p.pressure));
   return stroke.points.map((p, i) => ({
@@ -248,7 +254,7 @@ export function fractionOutside(points: NativePenPoint[], area: DeviceRect): num
       p.x < area.left ||
       p.y < area.top ||
       p.x > area.left + area.width ||
-      p.y > area.top + area.height,
+      p.y > area.top + area.height
   ).length;
   return outside / points.length;
 }

@@ -11,10 +11,16 @@ export type MemberKind = 'field' | 'method';
 export type Visibility = 'public' | 'private' | 'protected' | 'package';
 
 export const VISIBILITY_SIGIL: Record<Visibility, string> = {
-  public: '+', private: '-', protected: '#', package: '~',
+  public: '+',
+  private: '-',
+  protected: '#',
+  package: '~',
 };
 
-export interface CodeParam { name: string; type?: string }
+export interface CodeParam {
+  name: string;
+  type?: string;
+}
 
 /**
  * TSDoc/JSDoc documentation, extracted from the code and carried over into UML.
@@ -81,7 +87,7 @@ export interface CodeSymbol {
 }
 
 export type RelationType =
-  | 'generalization' | 'realization' | 'association' | 'composition' | 'dependency';
+  'generalization' | 'realization' | 'association' | 'composition' | 'dependency';
 
 export interface CodeRelation {
   id: string;

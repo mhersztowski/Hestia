@@ -8,7 +8,15 @@ export class EntityRegistry {
 
   add(input: EntityInput): Entity {
     const id = nanoid();
-    const entity = { ...input, id, boundingBox: computeBoundingBox({ ...input, id, boundingBox: { minX: 0, minY: 0, maxX: 0, maxY: 0 } } as Entity) } as Entity;
+    const entity = {
+      ...input,
+      id,
+      boundingBox: computeBoundingBox({
+        ...input,
+        id,
+        boundingBox: { minX: 0, minY: 0, maxX: 0, maxY: 0 },
+      } as Entity),
+    } as Entity;
     this.entities.set(id, entity);
     return entity;
   }
@@ -41,15 +49,15 @@ export class EntityRegistry {
   }
 
   getByLayer(layerId: string): Entity[] {
-    return this.getAll().filter(e => e.layerId === layerId);
+    return this.getAll().filter((e) => e.layerId === layerId);
   }
 
   getByType(type: EntityType): Entity[] {
-    return this.getAll().filter(e => e.type === type);
+    return this.getAll().filter((e) => e.type === type);
   }
 
   getInBoundingBox(box: BoundingBox2D): Entity[] {
-    return this.getAll().filter(e => {
+    return this.getAll().filter((e) => {
       const b = e.boundingBox;
       return b.maxX >= box.minX && b.minX <= box.maxX && b.maxY >= box.minY && b.minY <= box.maxY;
     });

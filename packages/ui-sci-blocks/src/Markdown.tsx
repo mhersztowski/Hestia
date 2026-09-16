@@ -14,9 +14,17 @@ import { inline } from './inlineText';
 import type { ReferenceKind } from '@hestia/core-sci';
 
 /** Nagłówki, akapity, listy numerowane i punktowane, cytaty, kod w linii, matematyka. */
-export function Markdown({ source, resolve, onNavigate }: {
+export function Markdown({
+  source,
+  resolve,
+  onNavigate,
+}: {
   source: string;
-  resolve?: (id: string) => { code?: string; kind?: ReferenceKind; documentTitle?: string; sameDocument: boolean } | undefined;
+  resolve?: (
+    id: string
+  ) =>
+    | { code?: string; kind?: ReferenceKind; documentTitle?: string; sameDocument: boolean }
+    | undefined;
   onNavigate?: (id: string) => void;
 }) {
   const blocks = source.split(/\n{2,}/).filter((block) => block.trim());
@@ -32,8 +40,11 @@ export function Markdown({ source, resolve, onNavigate }: {
             <div
               key={index}
               style={{
-                fontSize: sizes[level - 1], fontWeight: 600, color: '#0f172a',
-                marginTop: level <= 2 ? 10 : 4, lineHeight: 1.25,
+                fontSize: sizes[level - 1],
+                fontWeight: 600,
+                color: '#0f172a',
+                marginTop: level <= 2 ? 10 : 4,
+                lineHeight: 1.25,
               }}
             >
               {inline(heading[2], resolve, onNavigate)}
@@ -55,9 +66,17 @@ export function Markdown({ source, resolve, onNavigate }: {
             <ol
               key={index}
               start={pierwszy}
-              style={{ margin: 0, paddingLeft: 22, display: 'flex', flexDirection: 'column', gap: 6 }}
+              style={{
+                margin: 0,
+                paddingLeft: 22,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
             >
-              {items.map((item, i) => <li key={i}>{inline(item, resolve, onNavigate)}</li>)}
+              {items.map((item, i) => (
+                <li key={i}>{inline(item, resolve, onNavigate)}</li>
+              ))}
             </ol>
           );
         }
@@ -65,7 +84,8 @@ export function Markdown({ source, resolve, onNavigate }: {
         // Cytat blokowy: podpisy rysunków w podręczniku stoją właśnie tak, więc
         // bez tego każdy z 488 podpisów zaczynałby się od widocznego „>".
         if (/^\s*>\s?/.test(block)) {
-          const tresc = block.split('\n')
+          const tresc = block
+            .split('\n')
             .map((linia) => linia.replace(/^\s*>\s?/, ''))
             .join(' ')
             .trim();
@@ -92,17 +112,22 @@ export function Markdown({ source, resolve, onNavigate }: {
           const items = rozdzielPozycje(block, /^\s*[-*]\s+/);
           return (
             <ul key={index} style={{ margin: 0, paddingLeft: 22 }}>
-              {items.map((item, i) => <li key={i}>{inline(item, resolve, onNavigate)}</li>)}
+              {items.map((item, i) => (
+                <li key={i}>{inline(item, resolve, onNavigate)}</li>
+              ))}
             </ul>
           );
         }
 
-        return <p key={index} style={{ margin: 0 }}>{inline(block, resolve, onNavigate)}</p>;
+        return (
+          <p key={index} style={{ margin: 0 }}>
+            {inline(block, resolve, onNavigate)}
+          </p>
+        );
       })}
     </>
   );
 }
-
 
 /**
  * Dzieli blok na pozycje listy.
@@ -118,4 +143,3 @@ function rozdzielPozycje(block: string, znacznik: RegExp): string[] {
   }
   return pozycje;
 }
-

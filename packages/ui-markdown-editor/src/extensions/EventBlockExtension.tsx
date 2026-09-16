@@ -15,12 +15,8 @@
 
 import { useState } from 'react';
 import { Node, mergeAttributes } from '@tiptap/core';
-import {
-  NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps,
-} from '@tiptap/react';
-import {
-  Box, IconButton, Paper, Stack, Tooltip, Typography,
-} from '@mui/material';
+import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
+import { Box, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import EventIcon from '@mui/icons-material/Event';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -29,8 +25,8 @@ import EventDialog from '../EventDialog';
 
 export interface EventBlockAttrs {
   eventName: string;
-  start: string;          // ISO-ish `YYYY-MM-DDTHH:mm`
-  end: string;            // optional, same format or ''
+  start: string; // ISO-ish `YYYY-MM-DDTHH:mm`
+  end: string; // optional, same format or ''
   description: string;
   taskId: string;
   taskName: string;
@@ -60,8 +56,10 @@ function EventBlockNodeView({ node, updateAttributes, deleteNode }: NodeViewProp
       <Paper
         variant="outlined"
         sx={{
-          my: 1, p: 1.5,
-          borderLeft: '4px solid', borderLeftColor: 'primary.main',
+          my: 1,
+          p: 1.5,
+          borderLeft: '4px solid',
+          borderLeftColor: 'primary.main',
           bgcolor: 'background.paper',
           // Atoms render inline-block by default — force full width so the
           // card stretches like a normal block.
@@ -150,28 +148,34 @@ export const EventBlock = Node.create({
   },
 
   parseHTML() {
-    return [{
-      tag: 'div[data-type="event-block"]',
-      getAttrs: (node) => {
-        if (typeof node === 'string') return false;
-        const el = node as HTMLElement;
-        // Encoded so the values survive any HTML interpretation step.
-        const dec = (name: string) => {
-          const raw = el.getAttribute(name);
-          if (!raw) return '';
-          try { return decodeURIComponent(raw); } catch { return raw; }
-        };
-        return {
-          eventName: dec('data-event-name'),
-          start: dec('data-start'),
-          end: dec('data-end'),
-          description: dec('data-description'),
-          taskId: dec('data-task-id'),
-          taskName: dec('data-task-name'),
-          projectName: dec('data-project-name'),
-        };
+    return [
+      {
+        tag: 'div[data-type="event-block"]',
+        getAttrs: (node) => {
+          if (typeof node === 'string') return false;
+          const el = node as HTMLElement;
+          // Encoded so the values survive any HTML interpretation step.
+          const dec = (name: string) => {
+            const raw = el.getAttribute(name);
+            if (!raw) return '';
+            try {
+              return decodeURIComponent(raw);
+            } catch {
+              return raw;
+            }
+          };
+          return {
+            eventName: dec('data-event-name'),
+            start: dec('data-start'),
+            end: dec('data-end'),
+            description: dec('data-description'),
+            taskId: dec('data-task-id'),
+            taskName: dec('data-task-name'),
+            projectName: dec('data-project-name'),
+          };
+        },
       },
-    }];
+    ];
   },
 
   renderHTML({ node, HTMLAttributes }) {
@@ -179,12 +183,12 @@ export const EventBlock = Node.create({
     const enc: Record<string, string> = {
       'data-type': 'event-block',
     };
-    if (a.eventName)   enc['data-event-name']  = encodeURIComponent(a.eventName);
-    if (a.start)       enc['data-start']       = encodeURIComponent(a.start);
-    if (a.end)         enc['data-end']         = encodeURIComponent(a.end);
+    if (a.eventName) enc['data-event-name'] = encodeURIComponent(a.eventName);
+    if (a.start) enc['data-start'] = encodeURIComponent(a.start);
+    if (a.end) enc['data-end'] = encodeURIComponent(a.end);
     if (a.description) enc['data-description'] = encodeURIComponent(a.description);
-    if (a.taskId)      enc['data-task-id']     = encodeURIComponent(a.taskId);
-    if (a.taskName)    enc['data-task-name']   = encodeURIComponent(a.taskName);
+    if (a.taskId) enc['data-task-id'] = encodeURIComponent(a.taskId);
+    if (a.taskName) enc['data-task-name'] = encodeURIComponent(a.taskName);
     if (a.projectName) enc['data-project-name'] = encodeURIComponent(a.projectName);
     return ['div', mergeAttributes(HTMLAttributes, enc)];
   },

@@ -25,7 +25,8 @@ export class RotateTool implements Tool {
         worldX: this.center.x,
         worldY: this.center.y,
         text: `∠ ${deg.toFixed(1)}°`,
-        offsetX: 24, offsetY: -10,
+        offsetX: 24,
+        offsetY: -10,
         variant: 'primary',
       },
     ];
@@ -46,7 +47,12 @@ export class RotateTool implements Tool {
   onPointerMove(point: Point2D, ctx: ToolContext): void {
     if (this.state !== 'picking-angle' || !this.center) return;
     this.currentAngle = Math.atan2(point.y - this.center.y, point.x - this.center.x);
-    this.ghostSegments = buildGhostSegmentsRotated(ctx.project, this.center.x, this.center.y, this.currentAngle);
+    this.ghostSegments = buildGhostSegmentsRotated(
+      ctx.project,
+      this.center.x,
+      this.center.y,
+      this.currentAngle
+    );
   }
 
   onPointerUp(_point: Point2D, ctx: ToolContext): void {
@@ -80,7 +86,7 @@ export class RotateTool implements Tool {
     const angle = this.currentAngle;
     const ids = ctx.project.selectionManager.getSelected();
     const updates = ids
-      .map(id => ({ id, entity: ctx.project.entityRegistry.get(id) }))
+      .map((id) => ({ id, entity: ctx.project.entityRegistry.get(id) }))
       .filter((x): x is { id: string; entity: Entity } => x.entity !== undefined)
       .map(({ id, entity }) => ({ id, changes: rotateEntity(entity, cx, cy, angle) }));
     ctx.project.batchUpdate(updates, 'Rotate entities');

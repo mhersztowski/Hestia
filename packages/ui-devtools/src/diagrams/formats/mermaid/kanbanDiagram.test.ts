@@ -18,10 +18,10 @@ const TABLICA = [
   '    [Napisz dokumentacje]',
   '    docs[Wpis na blogu]',
   '  id6[W trakcie]',
-  '    id7[Renderer]@{ assigned: \'knsv\', priority: \'High\' }',
+  "    id7[Renderer]@{ assigned: 'knsv', priority: 'High' }",
   '  id11[Gotowe]',
   '    id5[definicja getData]',
-  '    id3[Aktualizacja bazy]@{ ticket: MC-2037, assigned: knsv, priority: \'High\' }',
+  "    id3[Aktualizacja bazy]@{ ticket: MC-2037, assigned: knsv, priority: 'High' }",
 ].join('\n');
 
 describe('struktura z wcięć', () => {
@@ -36,7 +36,10 @@ describe('struktura z wcięć', () => {
   });
 
   it('karty trafiają do właściwych kolumn', () => {
-    expect(b.columns[0].cards.map((c) => c.label)).toEqual(['Napisz dokumentacje', 'Wpis na blogu']);
+    expect(b.columns[0].cards.map((c) => c.label)).toEqual([
+      'Napisz dokumentacje',
+      'Wpis na blogu',
+    ]);
     expect(b.columns[1].cards).toHaveLength(1);
     expect(b.columns[2].cards).toHaveLength(2);
   });
@@ -63,8 +66,10 @@ describe('struktura z wcięć', () => {
 
 describe('metadane karty', () => {
   it('czyta przypisanie i priorytet', () => {
-    expect(parseCardMeta("assigned: 'knsv', priority: 'High'"))
-      .toMatchObject({ assigned: 'knsv', priority: 'High' });
+    expect(parseCardMeta("assigned: 'knsv', priority: 'High'")).toMatchObject({
+      assigned: 'knsv',
+      priority: 'High',
+    });
   });
 
   it('czyta numer zgłoszenia', () => {
@@ -85,7 +90,7 @@ describe('metadane karty', () => {
 
   it('metadane wracają przy zapisie', () => {
     const out = roundTrip(TABLICA);
-    expect(out).toContain("ticket: MC-2037");
+    expect(out).toContain('ticket: MC-2037');
     expect(out).toContain("assigned: 'knsv'");
     expect(out).toContain("priority: 'High'");
   });
@@ -137,7 +142,10 @@ describe('etykieta bez nawiasów', () => {
   });
 
   it('nazwa z nawiasem nadal daje identyfikator', () => {
-    expect(board('kanban\n  id6[W trakcie]').columns[0]).toMatchObject({ id: 'id6', label: 'W trakcie' });
+    expect(board('kanban\n  id6[W trakcie]').columns[0]).toMatchObject({
+      id: 'id6',
+      label: 'W trakcie',
+    });
   });
 
   it('karta bez nawiasów z metadanymi', () => {

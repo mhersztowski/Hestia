@@ -20,18 +20,23 @@ export class SlotTool implements Tool {
     if (this.lockR != null) return this.lockR;
     if (!this.a || !this.b) return 0;
     // The radius is the cursor's distance from the A–B axis.
-    const dx = this.b.x - this.a.x, dy = this.b.y - this.a.y;
+    const dx = this.b.x - this.a.x,
+      dy = this.b.y - this.a.y;
     const len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len, ny = dx / len;
+    const nx = -dy / len,
+      ny = dx / len;
     return Math.abs((this.cursor.x - this.a.x) * nx + (this.cursor.y - this.a.y) * ny);
   }
 
   /** The stadium outline as a closed list of points. */
   private outline(r: number): Point2D[] {
-    const a = this.a!, b = this.b!;
-    const dx = b.x - a.x, dy = b.y - a.y;
+    const a = this.a!,
+      b = this.b!;
+    const dx = b.x - a.x,
+      dy = b.y - a.y;
     const len = Math.hypot(dx, dy) || 1;
-    const ux = dx / len, uy = dy / len;          // the axis
+    const ux = dx / len,
+      uy = dy / len; // the axis
     const baseAngle = Math.atan2(uy, ux);
     const pts: Point2D[] = [];
     // The semicircle at B, from +90° to −90° relative to the axis
@@ -62,17 +67,34 @@ export class SlotTool implements Tool {
     if (!this.a || !this.b) return [];
     const r = this.effR();
     if (r < 0.01) return [];
-    return [{
-      id: 'radius', worldX: this.cursor.x, worldY: this.cursor.y, text: `R: ${r.toFixed(2)}`,
-      offsetX: 22, offsetY: -12, variant: 'primary',
-      editable: true, onEdit: (v: number) => { this.lockR = v; },
-    }];
+    return [
+      {
+        id: 'radius',
+        worldX: this.cursor.x,
+        worldY: this.cursor.y,
+        text: `R: ${r.toFixed(2)}`,
+        offsetX: 22,
+        offsetY: -12,
+        variant: 'primary',
+        editable: true,
+        onEdit: (v: number) => {
+          this.lockR = v;
+        },
+      },
+    ];
   }
 
   onPointerDown(point: Point2D, ctx: ToolContext): void {
-    if (!this.a) { this.a = point; this.cursor = point; }
-    else if (!this.b) { this.b = point; this.cursor = point; }
-    else { this.cursor = point; this.commit(ctx); }
+    if (!this.a) {
+      this.a = point;
+      this.cursor = point;
+    } else if (!this.b) {
+      this.b = point;
+      this.cursor = point;
+    } else {
+      this.cursor = point;
+      this.commit(ctx);
+    }
   }
 
   commitDraft(ctx: ToolContext): boolean {
@@ -83,20 +105,38 @@ export class SlotTool implements Tool {
 
   private commit(ctx: ToolContext): void {
     const r = this.effR();
-    if (!this.a || !this.b || r < 0.01) { this.reset(); return; }
+    if (!this.a || !this.b || r < 0.01) {
+      this.reset();
+      return;
+    }
     ctx.project.addEntity({
-      type: 'polyline', points: this.outline(r), closed: true,
+      type: 'polyline',
+      points: this.outline(r),
+      closed: true,
       construction: { kind: 'slot', ctrl: [{ ...this.a }, { ...this.b }], radius: r },
       layerId: ctx.project.layerSystem.getActiveId(),
-      color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-      visible: true, locked: false, extrudeHeight: 0,
+      color: 'bylayer',
+      lineType: 'bylayer',
+      lineWidth: 'bylayer',
+      visible: true,
+      locked: false,
+      extrudeHeight: 0,
     });
     this.reset();
   }
 
-  onPointerMove(point: Point2D, _ctx: ToolContext): void { this.cursor = point; }
+  onPointerMove(point: Point2D, _ctx: ToolContext): void {
+    this.cursor = point;
+  }
   onPointerUp(_point: Point2D, _ctx: ToolContext): void {}
-  onKeyDown(key: string, _ctx: ToolContext): void { if (key === 'Escape') this.reset(); }
+  onKeyDown(key: string, _ctx: ToolContext): void {
+    if (key === 'Escape') this.reset();
+  }
 
-  reset(): void { this.a = null; this.b = null; this.cursor = { x: 0, y: 0 }; this.lockR = null; }
+  reset(): void {
+    this.a = null;
+    this.b = null;
+    this.cursor = { x: 0, y: 0 };
+    this.lockR = null;
+  }
 }

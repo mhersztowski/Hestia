@@ -95,7 +95,7 @@ export const SpellCheckExtension = Extension.create<SpellCheckExtensionOptions>(
             const language = options.getLanguage();
             if (!enabled) {
               editorView.dispatch(
-                editorView.state.tr.setMeta(spellCheckKey, { decorations: DecorationSet.empty }),
+                editorView.state.tr.setMeta(spellCheckKey, { decorations: DecorationSet.empty })
               );
               options.onMatchesChange?.([]);
               return;
@@ -104,7 +104,10 @@ export const SpellCheckExtension = Extension.create<SpellCheckExtensionOptions>(
             // boundaries so LT's sentence-boundary logic doesn't
             // splice unrelated paragraphs.
             const text = editorView.state.doc.textBetween(
-              0, editorView.state.doc.content.size, '\n', '\n',
+              0,
+              editorView.state.doc.content.size,
+              '\n',
+              '\n'
             );
             const myId = ++latestRequestId;
             const checker = options.spellChecker;
@@ -115,7 +118,7 @@ export const SpellCheckExtension = Extension.create<SpellCheckExtensionOptions>(
             // ProseMirror positions: doc starts at 1 (position 0 is
             // BEFORE the first node). LanguageTool gives 0-based byte
             // offsets into our plain-text projection. We add 1 to align.
-            const decorations = matches.map(m =>
+            const decorations = matches.map((m) =>
               Decoration.inline(m.offset + 1, m.offset + m.length + 1, {
                 class: 'md-spell-error',
                 'data-spell-error': 'true',
@@ -125,12 +128,12 @@ export const SpellCheckExtension = Extension.create<SpellCheckExtensionOptions>(
                 'data-match-category': m.category,
                 'data-match-rule': m.ruleId,
                 'data-match-replacements': JSON.stringify(m.replacements),
-              }),
+              })
             );
             editorView.dispatch(
               editorView.state.tr.setMeta(spellCheckKey, {
                 decorations: DecorationSet.create(editorView.state.doc, decorations),
-              }),
+              })
             );
             options.onMatchesChange?.(matches);
           };

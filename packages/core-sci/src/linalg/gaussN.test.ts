@@ -49,14 +49,26 @@ describe('przebieg', () => {
   });
 
   it('ma więcej kroków niż układ 2×2 — bo eliminacji jest więcej', () => {
-    const male = gaussStepsN([[2, 1], [4, 3]], [5, 11]);
+    const male = gaussStepsN(
+      [
+        [2, 1],
+        [4, 3],
+      ],
+      [5, 11]
+    );
     expect(kroki.length).toBeGreaterThan(male.length);
   });
 });
 
 describe('wybór elementu głównego', () => {
   it('przestawia wiersze, gdy na przekątnej stoi zero', () => {
-    const kroki = gaussStepsN([[0, 1], [1, 0]], [1, 2]);
+    const kroki = gaussStepsN(
+      [
+        [0, 1],
+        [1, 0],
+      ],
+      [1, 2]
+    );
     expect(kroki.some((k) => /zamieni|przestawi/i.test(k.description))).toBe(true);
     expect(kroki[kroki.length - 1].solution).toEqual([2, 1]);
   });
@@ -64,7 +76,13 @@ describe('wybór elementu głównego', () => {
   it('wybiera największy element w kolumnie, nie pierwszy niezerowy', () => {
     // To jest cała różnica między „działa" a „działa dokładnie": dzielenie
     // przez małą liczbę powiększa błąd zaokrągleń.
-    const kroki = gaussStepsN([[0.0001, 1], [1, 1]], [1, 2]);
+    const kroki = gaussStepsN(
+      [
+        [0.0001, 1],
+        [1, 1],
+      ],
+      [1, 2]
+    );
     expect(kroki.some((k) => /zamieni|przestawi/i.test(k.description))).toBe(true);
 
     const wynik = kroki[kroki.length - 1].solution!;
@@ -73,7 +91,13 @@ describe('wybór elementu głównego', () => {
   });
 
   it('mówi wprost, dlaczego przestawia', () => {
-    const kroki = gaussStepsN([[0.0001, 1], [1, 1]], [1, 2]);
+    const kroki = gaussStepsN(
+      [
+        [0.0001, 1],
+        [1, 1],
+      ],
+      [1, 2]
+    );
     const zamiana = kroki.find((k) => /zamieni|przestawi/i.test(k.description))!;
     expect(zamiana.description).toMatch(/dokładn|błąd|największ/i);
   });
@@ -81,14 +105,26 @@ describe('wybór elementu głównego', () => {
 
 describe('układy bez jednego rozwiązania', () => {
   it('sprzeczny mówi, że rozwiązania nie ma', () => {
-    const kroki = gaussStepsN([[1, 1], [2, 2]], [1, 3]);
+    const kroki = gaussStepsN(
+      [
+        [1, 1],
+        [2, 2],
+      ],
+      [1, 3]
+    );
     const ostatni = kroki[kroki.length - 1];
     expect(ostatni.solution).toBeUndefined();
     expect(ostatni.description).toMatch(/sprzeczn|nie ma rozwiąz/i);
   });
 
   it('nieoznaczony mówi, że rozwiązań jest nieskończenie wiele', () => {
-    const kroki = gaussStepsN([[1, 1], [2, 2]], [1, 2]);
+    const kroki = gaussStepsN(
+      [
+        [1, 1],
+        [2, 2],
+      ],
+      [1, 2]
+    );
     const ostatni = kroki[kroki.length - 1];
     expect(ostatni.solution).toBeUndefined();
     expect(ostatni.description).toMatch(/nieskończenie|nieoznaczon/i);
@@ -97,7 +133,13 @@ describe('układy bez jednego rozwiązania', () => {
 
 describe('zgodność z wersją 2×2', () => {
   it('daje to samo rozwiązanie co dotychczasowa procedura', () => {
-    const kroki = gaussStepsN([[2, 1], [4, 3]], [5, 11]);
+    const kroki = gaussStepsN(
+      [
+        [2, 1],
+        [4, 3],
+      ],
+      [5, 11]
+    );
     const wynik = kroki[kroki.length - 1].solution!;
     expect(wynik[0]).toBeCloseTo(2, 9);
     expect(wynik[1]).toBeCloseTo(1, 9);

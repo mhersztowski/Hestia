@@ -14,7 +14,10 @@ import type { SignalArg } from './classMembers';
 const ARGS: Record<string, SignalArg[]> = {
   brak: [],
   jeden: [{ name: 'v', type: 'number' }],
-  dwa: [{ name: 'x', type: 'number' }, { name: 'y', type: 'number' }],
+  dwa: [
+    { name: 'x', type: 'number' },
+    { name: 'y', type: 'number' },
+  ],
 };
 
 defineDynArgsBlock({
@@ -30,7 +33,9 @@ defineDynArgsBlock({
 });
 
 let ws: Blockly.Workspace;
-beforeEach(() => { ws = new Blockly.Workspace(); });
+beforeEach(() => {
+  ws = new Blockly.Workspace();
+});
 
 /** Pole dropdownu zmienia kształt bloczka poza walidacją — stąd oczekiwanie na tik. */
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -61,7 +66,10 @@ describe('bloczek o zmiennej liczbie wejść', () => {
     const b = ws.newBlock('test_emit') as DynArgsBlock;
     b.setFieldValue('dwa', 'NAME');
     await tick();
-    for (const [input, value] of [['VALUE', 1], ['ARG1', 2]] as const) {
+    for (const [input, value] of [
+      ['VALUE', 1],
+      ['ARG1', 2],
+    ] as const) {
       const num = ws.newBlock('math_number');
       num.setFieldValue(String(value), 'NUM');
       b.getInput(input)!.connection!.connect(num.outputConnection!);
@@ -97,10 +105,10 @@ describe('bloczek o zmiennej liczbie wejść', () => {
     const b = ws.newBlock('test_emit') as DynArgsBlock;
     b.setFieldValue('dwa', 'NAME');
     await tick();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const state = (Blockly as any).serialization.workspaces.save(ws);
     const ws2 = new Blockly.Workspace();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     (Blockly as any).serialization.workspaces.load(state, ws2);
     const restored = ws2.getAllBlocks(false)[0] as DynArgsBlock;
     expect(restored.argCount_).toBe(2);
@@ -111,13 +119,17 @@ describe('bloczek o zmiennej liczbie wejść', () => {
     const state = {
       blocks: {
         languageVersion: 0,
-        blocks: [{
-          type: 'test_emit', id: 'stary', fields: { NAME: 'jeden' },
-          inputs: { VALUE: { block: { type: 'math_number', fields: { NUM: 5 } } } },
-        }],
+        blocks: [
+          {
+            type: 'test_emit',
+            id: 'stary',
+            fields: { NAME: 'jeden' },
+            inputs: { VALUE: { block: { type: 'math_number', fields: { NUM: 5 } } } },
+          },
+        ],
       },
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     (Blockly as any).serialization.workspaces.load(state, ws);
     const b = ws.getBlockById('stary') as DynArgsBlock;
     expect(b.argCount_).toBe(1);

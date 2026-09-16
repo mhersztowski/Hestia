@@ -87,7 +87,9 @@ export class PluginRegistry {
       if (entry.state === 'inactive') {
         try {
           await this.activate(id);
-        } catch { /* error already logged */ }
+        } catch {
+          /* error already logged */
+        }
       }
     }
   }
@@ -98,7 +100,9 @@ export class PluginRegistry {
     for (const id of ids) {
       try {
         await this.deactivate(id);
-      } catch { /* error already logged */ }
+      } catch {
+        /* error already logged */
+      }
     }
   }
 
@@ -132,7 +136,7 @@ import type { IPluginAPI } from './types';
 export function defineEditorPlugin(
   manifest: IPluginManifest & { contributes: ContributionPointType[] },
   activate: (api: IPluginAPI) => void | Promise<void>,
-  deactivate?: () => void | Promise<void>,
+  deactivate?: () => void | Promise<void>
 ): IPlugin {
   return { manifest, activate, deactivate };
 }

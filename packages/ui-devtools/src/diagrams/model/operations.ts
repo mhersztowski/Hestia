@@ -6,9 +6,15 @@
  * do trzymania poprzedniej wartości, a operacje dają się przetestować bez DOM-u.
  */
 import {
-  edgeId, uniqueNodeId,
-  type DiagramDocument, type DiagramEdge, type DiagramKind, type DiagramNode, type NodeShape,
-  type EdgeArrowType, type EdgeLineStyle,
+  edgeId,
+  uniqueNodeId,
+  type DiagramDocument,
+  type DiagramEdge,
+  type DiagramKind,
+  type DiagramNode,
+  type NodeShape,
+  type EdgeArrowType,
+  type EdgeLineStyle,
 } from './diagram';
 
 /** Czytelny rdzeń nazwy nowego węzła — zależny od roli, nie od nazwy kształtu. */
@@ -42,11 +48,19 @@ export interface AddNodeOptions {
  * Pseudostany (`[*]`) nie dostają etykiety — w składni i tak nie mają nazwy,
  * a podpis „start1" na kropce tylko myli.
  */
-export function addNode(doc: DiagramDocument, shape: NodeShape, options: AddNodeOptions = {}): DiagramDocument {
+export function addNode(
+  doc: DiagramDocument,
+  shape: NodeShape,
+  options: AddNodeOptions = {}
+): DiagramDocument {
   const isPseudo = shape === 'start' || shape === 'end';
   // Gdy znamy docelową nazwę, bierzemy ją też na identyfikator — inaczej
   // powstawałby zbędny alias (`state "Idle" as Stan`), mylący przy czytaniu kodu.
-  const id = uniqueNodeId(doc, options.id ?? (isPseudo ? baseNameFor(doc.kind, shape) : options.label ?? baseNameFor(doc.kind, shape)));
+  const id = uniqueNodeId(
+    doc,
+    options.id ??
+      (isPseudo ? baseNameFor(doc.kind, shape) : (options.label ?? baseNameFor(doc.kind, shape)))
+  );
   const node: DiagramNode = {
     id,
     label: isPseudo ? '' : (options.label ?? id),
@@ -122,7 +136,11 @@ export interface EdgeStylePatch {
  * je zna — ta funkcja jest jedynym miejscem, które o tym wie. Wpisy z `meta`
  * są **usuwane**, a nie zerowane: pusty klucz przeciekłby do zapisu.
  */
-export function setEdgeStyle(doc: DiagramDocument, id: string, patch: EdgeStylePatch): DiagramDocument {
+export function setEdgeStyle(
+  doc: DiagramDocument,
+  id: string,
+  patch: EdgeStylePatch
+): DiagramDocument {
   return {
     ...doc,
     edges: doc.edges.map((edge) => {
@@ -178,7 +196,12 @@ export function reverseEdge(doc: DiagramDocument, id: string): DiagramDocument {
   };
 }
 
-export function connect(doc: DiagramDocument, source: string, target: string, label?: string): DiagramDocument {
+export function connect(
+  doc: DiagramDocument,
+  source: string,
+  target: string,
+  label?: string
+): DiagramDocument {
   const edge: DiagramEdge = {
     id: edgeId(doc, source, target),
     source,
@@ -238,16 +261,21 @@ export function addGroup(doc: DiagramDocument, options: AddGroupOptions = {}): D
 
   return {
     ...doc,
-    groups: [...doc.groups, {
-      id,
-      label: options.label ?? id,
-      ...(options.parentId ? { parentId: options.parentId } : {}),
-      ...(options.position ? { position: options.position } : {}),
-      ...(options.size ? { size: options.size } : {}),
-    }],
+    groups: [
+      ...doc.groups,
+      {
+        id,
+        label: options.label ?? id,
+        ...(options.parentId ? { parentId: options.parentId } : {}),
+        ...(options.position ? { position: options.position } : {}),
+        ...(options.size ? { size: options.size } : {}),
+      },
+    ],
     // Węzły wchodzące do grupy tracą własną pozycję: dotychczasowa była liczona
     // od płótna, a wewnątrz grupy obowiązują współrzędne lokalne.
-    nodes: doc.nodes.map((n) => (members.has(n.id) ? { ...n, parentId: id, position: undefined } : n)),
+    nodes: doc.nodes.map((n) =>
+      members.has(n.id) ? { ...n, parentId: id, position: undefined } : n
+    ),
   };
 }
 
@@ -256,12 +284,20 @@ export function setGroupLabel(doc: DiagramDocument, id: string, label: string): 
 }
 
 /** Ręczna zmiana rozmiaru ramki (uchwyty w rogach). */
-export function setGroupSize(doc: DiagramDocument, id: string, size: { width: number; height: number }): DiagramDocument {
+export function setGroupSize(
+  doc: DiagramDocument,
+  id: string,
+  size: { width: number; height: number }
+): DiagramDocument {
   const rounded = { width: Math.round(size.width), height: Math.round(size.height) };
   return { ...doc, groups: doc.groups.map((g) => (g.id === id ? { ...g, size: rounded } : g)) };
 }
 
-export function setGroupPosition(doc: DiagramDocument, id: string, position: { x: number; y: number }): DiagramDocument {
+export function setGroupPosition(
+  doc: DiagramDocument,
+  id: string,
+  position: { x: number; y: number }
+): DiagramDocument {
   const rounded = { x: Math.round(position.x), y: Math.round(position.y) };
   return { ...doc, groups: doc.groups.map((g) => (g.id === id ? { ...g, position: rounded } : g)) };
 }
@@ -282,20 +318,32 @@ export function removeGroup(doc: DiagramDocument, id: string): DiagramDocument {
       .filter((g) => g.id !== id)
       .map((g) => (g.parentId === id ? { ...g, parentId: newParent } : g)),
     // Pozycje kasujemy: były lokalne wobec znikającej ramki.
-    nodes: doc.nodes.map((n) => (n.parentId === id ? { ...n, parentId: newParent, position: undefined } : n)),
+    nodes: doc.nodes.map((n) =>
+      n.parentId === id ? { ...n, parentId: newParent, position: undefined } : n
+    ),
     // Przejścia do samej grupy nie mają już celu — usuwamy tylko je.
     edges: doc.edges.filter((e) => e.source !== id && e.target !== id),
   };
 }
 
 /** Przenosi węzeł do grupy (albo poza wszystkie, gdy `groupId` jest pusty). */
-export function moveNodeToGroup(doc: DiagramDocument, nodeId: string, groupId?: string): DiagramDocument {
+export function moveNodeToGroup(
+  doc: DiagramDocument,
+  nodeId: string,
+  groupId?: string
+): DiagramDocument {
   if (groupId && !doc.groups.some((g) => g.id === groupId)) return doc;
   return {
     ...doc,
-    nodes: doc.nodes.map((n) => (n.id === nodeId
-      ? { ...n, ...(groupId ? { parentId: groupId } : { parentId: undefined }), position: undefined }
-      : n)),
+    nodes: doc.nodes.map((n) =>
+      n.id === nodeId
+        ? {
+            ...n,
+            ...(groupId ? { parentId: groupId } : { parentId: undefined }),
+            position: undefined,
+          }
+        : n
+    ),
   };
 }
 
@@ -326,8 +374,12 @@ export function resetLayout(doc: DiagramDocument): DiagramDocument {
  * pozycji — dostaną ją z `autoLayout`.
  */
 export function mergeLayout(target: DiagramDocument, previous: DiagramDocument): DiagramDocument {
-  const nodePositions = new Map(previous.nodes.filter((n) => n.position).map((n) => [n.id, n.position!]));
-  const groupBoxes = new Map(previous.groups.map((g) => [g.id, { position: g.position, size: g.size }]));
+  const nodePositions = new Map(
+    previous.nodes.filter((n) => n.position).map((n) => [n.id, n.position!])
+  );
+  const groupBoxes = new Map(
+    previous.groups.map((g) => [g.id, { position: g.position, size: g.size }])
+  );
 
   return {
     ...target,
@@ -348,7 +400,12 @@ export function mergeLayout(target: DiagramDocument, previous: DiagramDocument):
 }
 
 /** Prostokąt widocznego obszaru w układzie współrzędnych diagramu. */
-export interface VisibleArea { x: number; y: number; width: number; height: number }
+export interface VisibleArea {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 /**
  * Wskazuje miejsce dla nowego elementu: środek widocznego obszaru, odsunięty
@@ -361,7 +418,7 @@ export interface VisibleArea { x: number; y: number; width: number; height: numb
 export function spotForNewNode(
   doc: DiagramDocument,
   area: VisibleArea,
-  size = { width: 150, height: 52 },
+  size = { width: 150, height: 52 }
 ): { x: number; y: number } {
   const center = {
     x: Math.round(area.x + area.width / 2 - size.width / 2),
@@ -376,7 +433,9 @@ export function spotForNewNode(
   ];
 
   const collides = (p: { x: number; y: number }) =>
-    taken.some((t) => Math.abs(t.x - p.x) < size.width * 0.8 && Math.abs(t.y - p.y) < size.height * 1.4);
+    taken.some(
+      (t) => Math.abs(t.x - p.x) < size.width * 0.8 && Math.abs(t.y - p.y) < size.height * 1.4
+    );
 
   if (!collides(center)) return center;
 
@@ -384,7 +443,16 @@ export function spotForNewNode(
   const stepX = Math.round(size.width * 0.9);
   const stepY = Math.round(size.height * 1.6);
   for (let ring = 1; ring <= 6; ring++) {
-    for (const [dx, dy] of [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]) {
+    for (const [dx, dy] of [
+      [1, 0],
+      [1, 1],
+      [0, 1],
+      [-1, 1],
+      [-1, 0],
+      [-1, -1],
+      [0, -1],
+      [1, -1],
+    ]) {
       const candidate = { x: center.x + dx * ring * stepX, y: center.y + dy * ring * stepY };
       if (!collides(candidate)) return candidate;
     }

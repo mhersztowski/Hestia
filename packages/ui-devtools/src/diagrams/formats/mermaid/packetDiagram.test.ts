@@ -69,7 +69,9 @@ describe('etykiety', () => {
   });
 
   it('przyjmuje etykietę bez cudzysłowów', () => {
-    expect(spec('packet-beta\n0-7: Opis bez cudzyslowow').fields[0].label).toBe('Opis bez cudzyslowow');
+    expect(spec('packet-beta\n0-7: Opis bez cudzyslowow').fields[0].label).toBe(
+      'Opis bez cudzyslowow'
+    );
   });
 
   it('zapisuje zawsze w cudzysłowach — spacje inaczej psują składnię', () => {
@@ -134,7 +136,6 @@ describe('sprawdzanie podziału bitów', () => {
   });
 
   it('usterka niesie czytelny opis', () => {
-    expect(validatePacket(spec('packet-beta\n0-7: "A"\n16-23: "B"'))[0].message)
-      .toContain('8-15');
+    expect(validatePacket(spec('packet-beta\n0-7: "A"\n16-23: "B"'))[0].message).toContain('8-15');
   });
 });

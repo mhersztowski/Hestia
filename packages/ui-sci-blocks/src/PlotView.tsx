@@ -16,8 +16,13 @@
 
 import { useMemo } from 'react';
 import {
-  evaluateDocument, marchImplicit, sampleFunction, worldToScreen,
-  type PlotDocument, type Size, type Viewport,
+  evaluateDocument,
+  marchImplicit,
+  sampleFunction,
+  worldToScreen,
+  type PlotDocument,
+  type Size,
+  type Viewport,
 } from '@hestia/core-sci';
 import { PlotStage } from './PlotStage';
 
@@ -39,10 +44,7 @@ function dashPattern(dash: 'solid' | 'dashed' | 'dotted', width: number): number
 export function PlotView({ document, onViewportChange, parameters, height }: PlotViewProps) {
   // Liczenie zależy od wyrażeń i suwaków — nie od widoku. Przeciąganie wykresu
   // nie może uruchamiać kompilacji.
-  const evaluated = useMemo(
-    () => evaluateDocument(document, parameters),
-    [document, parameters],
-  );
+  const evaluated = useMemo(() => evaluateDocument(document, parameters), [document, parameters]);
 
   const draw = useMemo(
     () => (ctx: CanvasRenderingContext2D, viewport: Viewport, size: Size) => {
@@ -85,13 +87,16 @@ export function PlotView({ document, onViewportChange, parameters, height }: Plo
             for (const komorka of wynikSiatki.fills) {
               const a = worldToScreen(viewport, size, { x: komorka.x, y: komorka.y });
               const b = worldToScreen(viewport, size, {
-                x: komorka.x + komorka.width, y: komorka.y + komorka.height,
+                x: komorka.x + komorka.width,
+                y: komorka.y + komorka.height,
               });
               // Pół piksela zapasu: sąsiednie komórki rysowane osobno zostawiają
               // między sobą jasne szpary, które układają się w widoczną kratę.
               ctx.fillRect(
-                Math.min(a.x, b.x) - 0.5, Math.min(a.y, b.y) - 0.5,
-                Math.abs(b.x - a.x) + 1, Math.abs(b.y - a.y) + 1,
+                Math.min(a.x, b.x) - 0.5,
+                Math.min(a.y, b.y) - 0.5,
+                Math.abs(b.x - a.x) + 1,
+                Math.abs(b.y - a.y) + 1
               );
             }
             ctx.globalAlpha = 1;
@@ -140,7 +145,7 @@ export function PlotView({ document, onViewportChange, parameters, height }: Plo
 
       ctx.setLineDash([]);
     },
-    [document.rows, evaluated],
+    [document.rows, evaluated]
   );
 
   return (

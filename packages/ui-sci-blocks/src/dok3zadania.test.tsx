@@ -5,20 +5,23 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-Zadania.md';
-const pliki = [DOK, '3-Pytania.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-Pytania.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const zrodlo = bodies[DOK].split('## Uwagi redakcyjne')[0];
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 
@@ -52,7 +55,9 @@ describe('zadania do rozdziału 3 w czytniku', () => {
     const zOdp = [...zrodlo.matchAll(/```exercise:rh1-zad-3-(\d+)\n([\s\S]*?)```/g)]
       .filter(([, , tresc]) => tresc.includes('@expected'))
       .map(([, nr]) => Number(nr));
-    expect(zOdp).toEqual([1, 3, 5, 7, 9, 13, 15, 17, 19, 21, 23, 25, 29, 31, 33, 35, 37, 39, 41, 43, 45]);
+    expect(zOdp).toEqual([
+      1, 3, 5, 7, 9, 13, 15, 17, 19, 21, 23, 25, 29, 31, 33, 35, 37, 39, 41, 43, 45,
+    ]);
   });
 
   it('trzy rysunki, każdy w miejscu z druku', () => {
@@ -73,7 +78,11 @@ describe('zadania do rozdziału 3 w czytniku', () => {
 
   it('odsyłacze do rysunków trafiają w cel', () => {
     for (const id of ['rh1-3-rys10', 'rh1-3-rys11', 'rh1-3-rys12']) {
-      const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
+      const cel = resolveReference(
+        id,
+        { anchors: index.anchors, formulaHome: index.formulaHome },
+        DOK
+      );
       expect(cel.found, id).toBe(true);
       expect(cel.sameDocument, id).toBe(true);
     }
@@ -124,7 +133,11 @@ describe('zadania do rozdziału 3 w czytniku', () => {
     const uzyte = [...zrodlo.matchAll(/\(\(rh1-poj-([a-z-]+)\|/g)].map((m) => m[1]);
     expect([...new Set(uzyte)].sort()).toEqual(['przyspieszenie-ziemskie', 'wymiar']);
     for (const id of uzyte) {
-      const cel = resolveReference(`rh1-poj-${id}`, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
+      const cel = resolveReference(
+        `rh1-poj-${id}`,
+        { anchors: index.anchors, formulaHome: index.formulaHome },
+        DOK
+      );
       expect(cel.path, id).toBe('Slownik.md');
     }
     expect(zrodlo).not.toMatch(/\(\(\(?rh1-3-eq/);

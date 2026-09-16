@@ -19,8 +19,30 @@ export interface BoundingBox2D {
 export type LineType = 'solid' | 'dashed' | 'dotted' | 'dashdot';
 export type Units = 'mm' | 'cm' | 'm' | 'in';
 
-export type EntityType = 'line' | 'circle' | 'polyline' | 'rect' | 'arc' | 'ellipse' | 'point' | 'text' | 'image' | 'dimension' | 'box3d' | 'cylinder3d' | 'sphere3d' | 'freehand';
+export type EntityType =
+  | 'line'
+  | 'circle'
+  | 'polyline'
+  | 'rect'
+  | 'arc'
+  | 'ellipse'
+  | 'point'
+  | 'text'
+  | 'image'
+  | 'dimension'
+  | 'box3d'
+  | 'cylinder3d'
+  | 'sphere3d'
+  | 'freehand';
 
-export type SnapMode = 'grid' | 'endpoint' | 'midpoint' | 'center' | 'nearest' | 'intersection' | 'perpendicular' | 'tangent';
+export type SnapMode =
+  | 'grid'
+  | 'endpoint'
+  | 'midpoint'
+  | 'center'
+  | 'nearest'
+  | 'intersection'
+  | 'perpendicular'
+  | 'tangent';
 
 export type ViewMode = '2d' | '3d';

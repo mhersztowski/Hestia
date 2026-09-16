@@ -33,7 +33,10 @@ const FALLBACK_NODE = { width: 150, height: 52 };
 const GROUP_PADDING = 36;
 const GROUP_HEADER = 34;
 
-interface Box { width: number; height: number }
+interface Box {
+  width: number;
+  height: number;
+}
 
 /**
  * Krawędzie wsteczne — te, które zamykają cykl.
@@ -45,7 +48,7 @@ interface Box { width: number; height: number }
  */
 function findBackEdges(
   ids: string[],
-  edges: Array<{ source: string; target: string }>,
+  edges: Array<{ source: string; target: string }>
 ): Set<number> {
   const outgoing = new Map<string, Array<{ index: number; target: string }>>();
   ids.forEach((id) => outgoing.set(id, []));
@@ -68,10 +71,17 @@ function findBackEdges(
         continue;
       }
       const { index, target } = list[frame.next++];
-      if (target === frame.id) { back.add(index); continue; }   // pętla własna
+      if (target === frame.id) {
+        back.add(index);
+        continue;
+      } // pętla własna
       const st = state.get(target) ?? 0;
-      if (st === 1) back.add(index);                            // domyka cykl
-      else if (st === 0) { state.set(target, 1); stack.push({ id: target, next: 0 }); }
+      if (st === 1)
+        back.add(index); // domyka cykl
+      else if (st === 0) {
+        state.set(target, 1);
+        stack.push({ id: target, next: 0 });
+      }
     }
   };
 
@@ -93,7 +103,7 @@ function findBackEdges(
  */
 export function computeRanks(
   ids: string[],
-  edges: Array<{ source: string; target: string }>,
+  edges: Array<{ source: string; target: string }>
 ): Map<string, number> {
   const rank = new Map<string, number>(ids.map((id) => [id, 0]));
   const back = findBackEdges(ids, edges);
@@ -106,7 +116,10 @@ export function computeRanks(
       const from = rank.get(edge.source);
       const to = rank.get(edge.target);
       if (from === undefined || to === undefined) continue;
-      if (to < from + 1) { rank.set(edge.target, from + 1); changed = true; }
+      if (to < from + 1) {
+        rank.set(edge.target, from + 1);
+        changed = true;
+      }
     }
     if (!changed) break;
   }
@@ -131,9 +144,12 @@ function placeInRanks(
   edges: Array<{ source: string; target: string }>,
   direction: DiagramDirection,
   rankGap: number,
-  nodeGap: number,
+  nodeGap: number
 ): Map<string, { x: number; y: number }> {
-  const ranks = computeRanks(items.map((i) => i.id), edges);
+  const ranks = computeRanks(
+    items.map((i) => i.id),
+    edges
+  );
   const byRank = new Map<number, Array<{ id: string; box: Box }>>();
   for (const item of items) {
     const r = ranks.get(item.id) ?? 0;
@@ -179,7 +195,10 @@ function placeInRanks(
           .map((id) => center.get(id))
           .filter((v): v is number => v !== undefined);
         // Brak sąsiadów w tamtej warstwie = zostaw tam, gdzie jest.
-        wanted.set(item.id, near.length ? near.reduce((a, b) => a + b, 0) / near.length : center.get(item.id)!);
+        wanted.set(
+          item.id,
+          near.length ? near.reduce((a, b) => a + b, 0) / near.length : center.get(item.id)!
+        );
       }
 
       const sorted = [...list].sort((a, b) => wanted.get(a.id)! - wanted.get(b.id)!);
@@ -195,7 +214,9 @@ function placeInRanks(
       // Rozsuwanie spycha wszystko w prawo, więc warstwa jako całość odjeżdża od
       // celu: dwoje dzieci jednego rodzica lądowało obok niego, a nie wokół
       // niego. Cofamy blok o średnie odchylenie — kolejność i odstępy zostają.
-      const drift = sorted.reduce((sum, item) => sum + (center.get(item.id)! - wanted.get(item.id)!), 0) / sorted.length;
+      const drift =
+        sorted.reduce((sum, item) => sum + (center.get(item.id)! - wanted.get(item.id)!), 0) /
+        sorted.length;
       if (drift !== 0) for (const item of sorted) center.set(item.id, center.get(item.id)! - drift);
     }
   };
@@ -214,7 +235,8 @@ function placeInRanks(
   // Normalizacja: najmniejszy element trafia na 0, żeby diagram nie zaczynał się
   // od ujemnych współrzędnych (React Flow to zniesie, ale czyta się gorzej).
   let minAcross = Infinity;
-  for (const item of items) minAcross = Math.min(minAcross, center.get(item.id)! - sizeAcross(item.box) / 2);
+  for (const item of items)
+    minAcross = Math.min(minAcross, center.get(item.id)! - sizeAcross(item.box) / 2);
   const shift = Number.isFinite(minAcross) ? -minAcross : 0;
 
   const positions = new Map<string, { x: number; y: number }>();
@@ -224,9 +246,10 @@ function placeInRanks(
     let thickest = 0;
     for (const item of list) {
       const across = center.get(item.id)! - sizeAcross(item.box) / 2 + shift;
-      positions.set(item.id, horizontal
-        ? { x: along * flip, y: across }
-        : { x: across, y: along * flip });
+      positions.set(
+        item.id,
+        horizontal ? { x: along * flip, y: across } : { x: across, y: along * flip }
+      );
       thickest = Math.max(thickest, horizontal ? item.box.width : item.box.height);
     }
     // Warstwy odsuwamy o rozmiar najgrubszego elementu — inaczej grupa (duże
@@ -237,7 +260,10 @@ function placeInRanks(
 }
 
 /** Rozmiar grupy wyliczony z rozmieszczonych dzieci. */
-function boxOfChildren(positions: Map<string, { x: number; y: number }>, boxes: Map<string, Box>): Box {
+function boxOfChildren(
+  positions: Map<string, { x: number; y: number }>,
+  boxes: Map<string, Box>
+): Box {
   let maxX = 0;
   let maxY = 0;
   for (const [id, pos] of positions) {
@@ -313,8 +339,13 @@ export function autoLayout(doc: DiagramDocument, options: LayoutOptions = {}): D
     // Krawędzie rzutowane na poziom pojemnika: przejście do węzła w grupie
     // przyciąga całą grupę, a nie pojedynczy stan w środku.
     const edges = doc.edges
-      .map((e) => ({ source: containerOf(e.source, parentId), target: containerOf(e.target, parentId) }))
-      .filter((e): e is { source: string; target: string } => Boolean(e.source && e.target && e.source !== e.target));
+      .map((e) => ({
+        source: containerOf(e.source, parentId),
+        target: containerOf(e.target, parentId),
+      }))
+      .filter((e): e is { source: string; target: string } =>
+        Boolean(e.source && e.target && e.source !== e.target)
+      );
 
     const placed = placeInRanks(items, edges, dir, rankGap, nodeGap);
     const offset = parentId ? GROUP_PADDING : 0;
@@ -333,7 +364,9 @@ export function autoLayout(doc: DiagramDocument, options: LayoutOptions = {}): D
 
   return {
     ...doc,
-    nodes: doc.nodes.map((n) => (n.position ? n : { ...n, position: nodePositions.get(n.id) ?? { x: 0, y: 0 } })),
+    nodes: doc.nodes.map((n) =>
+      n.position ? n : { ...n, position: nodePositions.get(n.id) ?? { x: 0, y: 0 } }
+    ),
     groups: doc.groups.map((g): DiagramGroup => ({
       ...g,
       position: g.position ?? groupPositions.get(g.id) ?? { x: 0, y: 0 },

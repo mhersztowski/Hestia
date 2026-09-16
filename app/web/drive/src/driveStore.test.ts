@@ -12,17 +12,28 @@ import { DIR_TYPE, FILE_TYPE } from '@hestia/ui-core';
 import { platformDrive } from './driveStore';
 
 function answerWith(body: unknown, status = 200) {
-  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  })));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      async () =>
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { 'Content-Type': 'application/json' },
+        })
+    )
+  );
 }
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe('the drive over the platform', () => {
   it('lists what readdir sends', async () => {
-    answerWith({ entries: [{ name: 'notes.md', type: FILE_TYPE }, { name: 'projects', type: DIR_TYPE }] });
+    answerWith({
+      entries: [
+        { name: 'notes.md', type: FILE_TYPE },
+        { name: 'projects', type: DIR_TYPE },
+      ],
+    });
 
     expect(await platformDrive().list('')).toEqual([
       { name: 'notes.md', directory: false },
@@ -57,12 +68,14 @@ describe('the drive over the platform', () => {
  * in it, so creating one writes an empty `.keep`. That marker is the server's
  * bookkeeping and has no business in a listing the user reads.
  */
-describe('the platform\'s directory marker', () => {
+describe("the platform's directory marker", () => {
   it('is not listed', async () => {
-    answerWith({ entries: [
-      { name: '.keep', type: FILE_TYPE },
-      { name: 'notes.md', type: FILE_TYPE },
-    ] });
+    answerWith({
+      entries: [
+        { name: '.keep', type: FILE_TYPE },
+        { name: 'notes.md', type: FILE_TYPE },
+      ],
+    });
 
     expect(await platformDrive().list('')).toEqual([{ name: 'notes.md', directory: false }]);
   });

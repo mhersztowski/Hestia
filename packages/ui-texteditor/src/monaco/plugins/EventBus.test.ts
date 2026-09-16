@@ -51,7 +51,9 @@ describe('EventBus', () => {
     const bus = new EventBus();
     const good = vi.fn();
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    bus.on('e', () => { throw new Error('x'); });
+    bus.on('e', () => {
+      throw new Error('x');
+    });
     bus.on('e', good);
     expect(() => bus.emit('e', 1)).not.toThrow();
     expect(good).toHaveBeenCalled();

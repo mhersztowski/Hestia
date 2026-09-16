@@ -86,9 +86,7 @@ export function replaceExpression(body: string, line: number, latex: string): st
   const trimmed = wiersze[line].trim();
   const pochodna = POCHODNA.exec(trimmed);
 
-  wiersze[line] = pochodna
-    ? `@d ${pochodna[1]} = ${latex.trim()}`
-    : latex.trim();
+  wiersze[line] = pochodna ? `@d ${pochodna[1]} = ${latex.trim()}` : latex.trim();
 
   return wiersze.join('\n');
 }

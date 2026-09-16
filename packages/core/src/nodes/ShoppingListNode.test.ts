@@ -38,13 +38,21 @@ describe('ShoppingListNode', () => {
   });
 
   describe('item queries', () => {
-    const node = new ShoppingListNode(make({
-      items: [
-        item({ id: 'i1', name: 'Milk', checked: true, category: 'dairy', assignedPersonId: 'p1' }),
-        item({ id: 'i2', name: 'Bread', category: 'bakery' }),
-        item({ id: 'i3', name: 'Cheese', checked: true, category: 'dairy' }),
-      ],
-    }));
+    const node = new ShoppingListNode(
+      make({
+        items: [
+          item({
+            id: 'i1',
+            name: 'Milk',
+            checked: true,
+            category: 'dairy',
+            assignedPersonId: 'p1',
+          }),
+          item({ id: 'i2', name: 'Bread', category: 'bakery' }),
+          item({ id: 'i3', name: 'Cheese', checked: true, category: 'dairy' }),
+        ],
+      })
+    );
 
     it('checked/unchecked splits', () => {
       expect(node.getCheckedItems().map((i) => i.id)).toEqual(['i1', 'i3']);
@@ -76,9 +84,11 @@ describe('ShoppingListNode', () => {
 
   describe('progress', () => {
     it('computes percentage and text', () => {
-      const node = new ShoppingListNode(make({
-        items: [item({ id: '1', name: 'a', checked: true }), item({ id: '2', name: 'b' })],
-      }));
+      const node = new ShoppingListNode(
+        make({
+          items: [item({ id: '1', name: 'a', checked: true }), item({ id: '2', name: 'b' })],
+        })
+      );
       expect(node.getProgress()).toBe(50);
       expect(node.getProgressText()).toBe('1/2');
     });
@@ -88,13 +98,15 @@ describe('ShoppingListNode', () => {
   });
 
   describe('budget totals', () => {
-    const node = new ShoppingListNode(make({
-      budget: 30,
-      items: [
-        item({ id: '1', name: 'a', estimatedPrice: 10, actualPrice: 12, checked: true }),
-        item({ id: '2', name: 'b', estimatedPrice: 5 }),
-      ],
-    }));
+    const node = new ShoppingListNode(
+      make({
+        budget: 30,
+        items: [
+          item({ id: '1', name: 'a', estimatedPrice: 10, actualPrice: 12, checked: true }),
+          item({ id: '2', name: 'b', estimatedPrice: 5 }),
+        ],
+      })
+    );
     it('estimated total sums all items', () => {
       expect(node.getEstimatedTotal()).toBe(15);
     });
@@ -105,10 +117,12 @@ describe('ShoppingListNode', () => {
       expect(node.getBudgetStatus()).toBe('on_track');
     });
     it('reports over budget', () => {
-      const over = new ShoppingListNode(make({
-        budget: 5,
-        items: [item({ id: '1', name: 'a', estimatedPrice: 10, checked: true, actualPrice: 10 })],
-      }));
+      const over = new ShoppingListNode(
+        make({
+          budget: 5,
+          items: [item({ id: '1', name: 'a', estimatedPrice: 10, checked: true, actualPrice: 10 })],
+        })
+      );
       expect(over.getBudgetStatus()).toBe('over');
     });
     it('no_budget when unset or zero', () => {
@@ -124,11 +138,13 @@ describe('ShoppingListNode', () => {
   });
 
   it('matches name, store, description and item names', () => {
-    const node = new ShoppingListNode(make({
-      store: 'Biedronka',
-      description: 'weekend',
-      items: [item({ id: '1', name: 'Yogurt' })],
-    }));
+    const node = new ShoppingListNode(
+      make({
+        store: 'Biedronka',
+        description: 'weekend',
+        items: [item({ id: '1', name: 'Yogurt' })],
+      })
+    );
     expect(node.matches('grocer')).toBe(true);
     expect(node.matches('biedronka')).toBe(true);
     expect(node.matches('weekend')).toBe(true);

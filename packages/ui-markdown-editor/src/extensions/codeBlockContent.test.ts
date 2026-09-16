@@ -11,13 +11,9 @@ import { describe, it, expect } from 'vitest';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 
-const MERMAID = [
-  '---',
-  'title: Algorytm',
-  '---',
-  'flowchart TD',
-  '  A[Start] --> B[Koniec]',
-].join('\n');
+const MERMAID = ['---', 'title: Algorytm', '---', 'flowchart TD', '  A[Start] --> B[Koniec]'].join(
+  '\n'
+);
 
 function editorWith(text: string): Editor {
   const editor = new Editor({
@@ -68,7 +64,13 @@ describe('treść bloku kodu', () => {
     const editor = new Editor({ extensions: [StarterKit] });
     editor.commands.setContent({
       type: 'doc',
-      content: [{ type: 'codeBlock', attrs: { language: 'mermaid' }, content: [{ type: 'text', text: MERMAID }] }],
+      content: [
+        {
+          type: 'codeBlock',
+          attrs: { language: 'mermaid' },
+          content: [{ type: 'text', text: MERMAID }],
+        },
+      ],
     });
     expect(editor.state.doc.firstChild!.textContent).toBe(MERMAID);
     editor.destroy();

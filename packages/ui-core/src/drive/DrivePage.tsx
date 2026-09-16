@@ -11,8 +11,15 @@
  */
 
 import {
-  asText, fromText, readJson, readTextOrNull, sortVfsEntries, DIR_TYPE, FILE_TYPE,
-  type DriveVfs, type VfsEntry,
+  asText,
+  fromText,
+  readJson,
+  readTextOrNull,
+  sortVfsEntries,
+  DIR_TYPE,
+  FILE_TYPE,
+  type DriveVfs,
+  type VfsEntry,
 } from './vfs';
 import type { DriveAssistant, DriveEditor, DriveFileRef, DriveViewers } from './capabilities';
 import type { DriveStore } from './store';
@@ -23,20 +30,62 @@ import type { SearchFileResult, SearchMatch, SearchProgress } from './driveSearc
 import DriveSearchDialog from './DriveSearchDialog';
 import { archiveNameFor, folderNameFor, isArchive } from './zip';
 import {
-  isRunnableScript, runScript, stopScript, MAX_CONSOLE_LINES,
-  type ConsoleLine, type ScriptSession,
+  isRunnableScript,
+  runScript,
+  stopScript,
+  MAX_CONSOLE_LINES,
+  type ConsoleLine,
+  type ScriptSession,
 } from './runScript';
 import {
-  decideScript, detectPackageManager, installPlan, readPackageManagerField, readPackageScripts,
+  decideScript,
+  detectPackageManager,
+  installPlan,
+  readPackageManagerField,
+  readPackageScripts,
   type DetectedManager,
 } from './npmProject';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert, Backdrop, Box, Breadcrumbs, Button, Chip, CircularProgress, Collapse, Dialog, DialogActions,
-  DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, LinearProgress,
-  Link, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Select, Snackbar, Stack, Table,
-  TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useMediaQuery, useTheme,
-  Switch, FormControlLabel, Popover,
+  Alert,
+  Backdrop,
+  Box,
+  Breadcrumbs,
+  Button,
+  Chip,
+  CircularProgress,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  FormControl,
+  IconButton,
+  InputLabel,
+  LinearProgress,
+  Link,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Paper,
+  Select,
+  Snackbar,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TextField,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  Switch,
+  FormControlLabel,
+  Popover,
 } from '@mui/material';
 // Side-effect: ensures Monaco workers + compiler options + completionItems
 // configuration is in place BEFORE MdEditor (or the embedded workspace) mounts.
@@ -89,7 +138,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 
-
 // MJD editor — lazy-loaded so the (sizeable) editor bundle isn't pulled in
 // until the user actually opens a .mjd / .data.json file. RemoteFS is the
 // VFS adapter MjdVfsLoader expects.
@@ -100,7 +148,6 @@ import SmartToyIcon from '@mui/icons-material/SmartToy';
 
 // ─── VFS helpers ─────────────────────────────────────────────────────────────
 
-
 // navigator.clipboard is undefined outside a secure context (HTTP on a LAN IP,
 // which is how the app is reached on mobile) — so we fall back to the legacy
 // execCommand('copy') path, then to a manual prompt as a last resort.
@@ -110,7 +157,9 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
       await navigator.clipboard.writeText(text);
       return true;
     }
-  } catch { /* fall through to legacy path */ }
+  } catch {
+    /* fall through to legacy path */
+  }
   try {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -123,7 +172,9 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
     const ok = document.execCommand('copy');
     document.body.removeChild(ta);
     return ok;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -161,13 +212,16 @@ async function vfsWriteFile(
   relPath: string,
   data: Uint8Array,
   /** Called as the bytes go up — the upload dialog draws a bar per file. */
-  onProgress?: (pct: number) => void,
+  onProgress?: (pct: number) => void
 ): Promise<void> {
   await vfs.writeFile(relPath, data, onProgress);
 }
 
 async function vfsCopy(vfs: DriveVfs, sourceRel: string, destRel: string): Promise<void> {
-  if (vfs.copy) { await vfs.copy(sourceRel, destRel); return; }
+  if (vfs.copy) {
+    await vfs.copy(sourceRel, destRel);
+    return;
+  }
   // Without a copy of its own: read and write it back. Fine for a file, and the
   // page only copies files — a folder goes through `vfsCopyTree` below.
   await vfs.writeFile(destRel, await vfs.readFile(sourceRel));
@@ -194,9 +248,11 @@ async function loadFileProperties(vfs: DriveVfs): Promise<FileProperties> {
     if (text === null) return EMPTY_FILE_PROPS;
     const parsed = JSON.parse(text) as Partial<FileProperties>;
     return {
-      tags: (parsed.tags && typeof parsed.tags === 'object') ? parsed.tags : {},
+      tags: parsed.tags && typeof parsed.tags === 'object' ? parsed.tags : {},
     };
-  } catch { return EMPTY_FILE_PROPS; }
+  } catch {
+    return EMPTY_FILE_PROPS;
+  }
 }
 
 async function saveFileProperties(vfs: DriveVfs, props: FileProperties): Promise<void> {
@@ -213,7 +269,7 @@ type ViewSettingsMap = Record<string, ViewSettings>;
 
 async function loadViewSettings(vfs: DriveVfs): Promise<ViewSettingsMap> {
   const map = await readJson<ViewSettingsMap>(vfs, VIEW_SETTINGS_PATH, {});
-  return (map && typeof map === 'object') ? map : {};
+  return map && typeof map === 'object' ? map : {};
 }
 
 async function saveViewSettings(vfs: DriveVfs, map: ViewSettingsMap): Promise<void> {
@@ -228,8 +284,10 @@ async function loadSchedules(vfs: DriveVfs): Promise<DriveSchedules> {
     const text = await readTextOrNull(vfs, SCHEDULES_PATH);
     if (text === null) return {};
     const parsed = JSON.parse(text) as DriveSchedules;
-    return (parsed && typeof parsed === 'object') ? parsed : {};
-  } catch { return {}; }
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 
 async function saveSchedules(vfs: DriveVfs, schedules: DriveSchedules): Promise<void> {
@@ -239,7 +297,6 @@ async function saveSchedules(vfs: DriveVfs, schedules: DriveSchedules): Promise<
   // the file. Whether anything runs them here is the host's business: the page
   // writes the schedule, and a host that acts on it watches the file.
 }
-
 
 /** Bytes out of a base64 payload — what the clipboard hands us for an image. */
 function base64ToBytes(b64: string): Uint8Array {
@@ -258,7 +315,9 @@ function base64ToBytes(b64: string): Uint8Array {
  * from a file that failed to load.
  */
 async function readForPreview(
-  vfs: DriveVfs, rel: string, name: string,
+  vfs: DriveVfs,
+  rel: string,
+  name: string
 ): Promise<{ mime: string; textContent?: string; bytes: Uint8Array }> {
   const bytes = await vfs.readFile(rel);
   const mime = guessMime(name);
@@ -305,7 +364,10 @@ function downloadFile(vfs: DriveVfs, relPath: string, name: string): void {
     link.remove();
     if (revoke) URL.revokeObjectURL(revoke);
   };
-  if (direct) { open(direct); return; }
+  if (direct) {
+    open(direct);
+    return;
+  }
   void vfs.readFile(relPath).then((bytes) => {
     const url = URL.createObjectURL(new Blob([bytes as unknown as BlobPart]));
     open(url, url);
@@ -348,32 +410,87 @@ function formatDate(ms?: number): string {
 // out of memory.
 const TEXT_FILE_EXTS = new Set([
   // docs / config / data
-  'md', 'mdx', 'txt', 'json', 'yaml', 'yml', 'xml', 'toml', 'ini', 'conf', 'cfg',
-  'properties', 'env', 'log', 'csv', 'tsv',
+  'md',
+  'mdx',
+  'txt',
+  'json',
+  'yaml',
+  'yml',
+  'xml',
+  'toml',
+  'ini',
+  'conf',
+  'cfg',
+  'properties',
+  'env',
+  'log',
+  'csv',
+  'tsv',
   // web / scripts
-  'js', 'jsx', 'mjs', 'cjs', 'ts', 'tsx', 'css', 'scss', 'sass', 'less',
-  'html', 'htm', 'svg', 'vue', 'svelte',
+  'js',
+  'jsx',
+  'mjs',
+  'cjs',
+  'ts',
+  'tsx',
+  'css',
+  'scss',
+  'sass',
+  'less',
+  'html',
+  'htm',
+  'svg',
+  'vue',
+  'svelte',
   // backend / system
-  'py', 'rb', 'php', 'go', 'rs', 'java', 'kt', 'scala', 'swift', 'dart',
-  'c', 'cpp', 'cc', 'h', 'hpp', 'ino', 'pde', 'cs', 'sh', 'bash', 'zsh', 'fish',
-  'sql', 'lua', 'r', 'pl',
+  'py',
+  'rb',
+  'php',
+  'go',
+  'rs',
+  'java',
+  'kt',
+  'scala',
+  'swift',
+  'dart',
+  'c',
+  'cpp',
+  'cc',
+  'h',
+  'hpp',
+  'ino',
+  'pde',
+  'cs',
+  'sh',
+  'bash',
+  'zsh',
+  'fish',
+  'sql',
+  'lua',
+  'r',
+  'pl',
 ]);
 
 /** Files with no extension that are conventionally text. Compared
  *  case-insensitive against the basename. */
 const TEXT_FILE_NAMES_NO_EXT = new Set([
-  'dockerfile', 'makefile', 'readme', 'license', 'changelog',
-  'authors', 'contributors', 'notice',
+  'dockerfile',
+  'makefile',
+  'readme',
+  'license',
+  'changelog',
+  'authors',
+  'contributors',
+  'notice',
 ]);
 
 function isTextFile(name: string): boolean {
-  if (name.startsWith('.')) return false;   // skip hidden / sidecar files
+  if (name.startsWith('.')) return false; // skip hidden / sidecar files
   const i = name.lastIndexOf('.');
   if (i < 0) return TEXT_FILE_NAMES_NO_EXT.has(name.toLowerCase());
   const ext = name.slice(i + 1).toLowerCase();
   return TEXT_FILE_EXTS.has(ext);
 }
-
 
 /** Walk a directory tree (DFS) collecting text-file paths. Skips hidden
  *  files / dirs. Bounded by `maxFiles` so a runaway recursion can't melt
@@ -382,7 +499,7 @@ async function collectTextFiles(
   vfs: DriveVfs,
   baseRel: string,
   signal: AbortSignal | undefined,
-  maxFiles: number,
+  maxFiles: number
 ): Promise<string[]> {
   const results: string[] = [];
   // BFS — shorter queue than DFS for wide trees + we get partial results
@@ -391,9 +508,12 @@ async function collectTextFiles(
   while (queue.length > 0 && results.length < maxFiles) {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     const dir = queue.shift()!;
-    let entries: VfsEntry[] = [];
-    try { entries = await vfsListDir(vfs, dir); }
-    catch { continue; } // unreadable dir — skip silently
+    let entries: VfsEntry[];
+    try {
+      entries = await vfsListDir(vfs, dir);
+    } catch {
+      continue;
+    } // unreadable dir — skip silently
     for (const e of entries) {
       if (e.name.startsWith('.')) continue;
       const rel = dir ? `${dir}/${e.name}` : e.name;
@@ -410,15 +530,13 @@ async function collectTextFiles(
 
 /** Build a per-line matcher from the user query. Returns null if the
  *  regex source is invalid (caller surfaces the error in UI). */
-function buildSearchRegex(
-  query: string,
-  caseSensitive: boolean,
-  isRegex: boolean,
-): RegExp | null {
+function buildSearchRegex(query: string, caseSensitive: boolean, isRegex: boolean): RegExp | null {
   try {
     const source = isRegex ? query : query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(source, caseSensitive ? 'g' : 'gi');
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 /** A file's content as text; empty when it is not there. */
@@ -426,7 +544,7 @@ async function readFileAsText(vfs: DriveVfs, rel: string): Promise<string> {
   return (await readTextOrNull(vfs, rel)) ?? '';
 }
 
-const SEARCH_MAX_FILES = 5000;          // hard cap on scan size
+const SEARCH_MAX_FILES = 5000; // hard cap on scan size
 const SEARCH_MAX_MATCHES_PER_FILE = 50; // stop collecting after this many
 const SEARCH_MAX_FILE_BYTES = 2 * 1024 * 1024; // 2MB — skip larger files
 
@@ -439,7 +557,7 @@ async function searchInFiles(
   query: string,
   options: { caseSensitive: boolean; isRegex: boolean },
   signal: AbortSignal | undefined,
-  onProgress: (p: SearchProgress) => void,
+  onProgress: (p: SearchProgress) => void
 ): Promise<SearchFileResult[]> {
   if (!query) return [];
   const re = buildSearchRegex(query, options.caseSensitive, options.isRegex);
@@ -456,8 +574,11 @@ async function searchInFiles(
     onProgress({ scanned: i, total: files.length, current: path });
 
     let text: string;
-    try { text = await readFileAsText(vfs, path); }
-    catch { continue; }
+    try {
+      text = await readFileAsText(vfs, path);
+    } catch {
+      continue;
+    }
     if (text.length > SEARCH_MAX_FILE_BYTES) continue;
 
     // Line-by-line scan — the regex is global, so `exec`-loop on each line
@@ -494,28 +615,65 @@ async function searchInFiles(
 // ─── MIME + encoding helpers ─────────────────────────────────────────────────
 
 const MIME_BY_EXT: Record<string, string> = {
-  txt: 'text/plain', md: 'text/markdown', json: 'application/json',
-  xml: 'application/xml', yaml: 'text/yaml', yml: 'text/yaml',
-  csv: 'text/csv', tsv: 'text/tab-separated-values', log: 'text/plain',
-  html: 'text/html', htm: 'text/html', css: 'text/css',
-  js: 'text/javascript', mjs: 'text/javascript', ts: 'text/typescript',
-  tsx: 'text/typescript', jsx: 'text/javascript',
-  py: 'text/x-python', sh: 'text/x-shellscript', rb: 'text/x-ruby',
-  go: 'text/x-go', rs: 'text/x-rust', java: 'text/x-java',
-  c: 'text/x-c', h: 'text/x-c', cpp: 'text/x-c++', hpp: 'text/x-c++',
-  toml: 'text/x-toml', ini: 'text/plain', env: 'text/plain',
-  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
-  gif: 'image/gif', svg: 'image/svg+xml', webp: 'image/webp',
-  avif: 'image/avif', bmp: 'image/bmp', ico: 'image/x-icon',
-  pdf: 'application/pdf', djvu: 'image/vnd.djvu', djv: 'image/vnd.djvu',
-  mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime',
-  mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', flac: 'audio/flac',
+  txt: 'text/plain',
+  md: 'text/markdown',
+  json: 'application/json',
+  xml: 'application/xml',
+  yaml: 'text/yaml',
+  yml: 'text/yaml',
+  csv: 'text/csv',
+  tsv: 'text/tab-separated-values',
+  log: 'text/plain',
+  html: 'text/html',
+  htm: 'text/html',
+  css: 'text/css',
+  js: 'text/javascript',
+  mjs: 'text/javascript',
+  ts: 'text/typescript',
+  tsx: 'text/typescript',
+  jsx: 'text/javascript',
+  py: 'text/x-python',
+  sh: 'text/x-shellscript',
+  rb: 'text/x-ruby',
+  go: 'text/x-go',
+  rs: 'text/x-rust',
+  java: 'text/x-java',
+  c: 'text/x-c',
+  h: 'text/x-c',
+  cpp: 'text/x-c++',
+  hpp: 'text/x-c++',
+  toml: 'text/x-toml',
+  ini: 'text/plain',
+  env: 'text/plain',
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+  webp: 'image/webp',
+  avif: 'image/avif',
+  bmp: 'image/bmp',
+  ico: 'image/x-icon',
+  pdf: 'application/pdf',
+  djvu: 'image/vnd.djvu',
+  djv: 'image/vnd.djvu',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  mov: 'video/quicktime',
+  mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  ogg: 'audio/ogg',
+  flac: 'audio/flac',
 };
 function guessMime(name: string): string {
   const ext = (name.split('.').pop() ?? '').toLowerCase();
   return MIME_BY_EXT[ext] ?? 'application/octet-stream';
 }
-const isTextMime = (m: string) => m.startsWith('text/') || m === 'application/json' || m === 'application/xml' || m === 'image/svg+xml';
+const isTextMime = (m: string) =>
+  m.startsWith('text/') ||
+  m === 'application/json' ||
+  m === 'application/xml' ||
+  m === 'image/svg+xml';
 // Files we offer to open in MdEditor. Plain text is valid markdown (round-trips
 // safely as long as the user doesn't add markdown syntax), so .txt is included.
 const isMdEditable = (name: string) => {
@@ -545,24 +703,49 @@ interface FilePreset {
 }
 
 const FILE_PRESETS: FilePreset[] = [
-  { key: 'md',        label: 'Markdown (.md)',                  defaultName: 'notatka.md',         extension: '.md' },
-  { key: 'json',      label: 'JSON (.json)',                    defaultName: 'data.json',          extension: '.json' },
-  { key: 'mjd-def',   label: 'MJD definition (.mjd)',           defaultName: 'schema.mjd',         extension: '.mjd' },
-  { key: 'mjd-data',  label: 'MJD data (.data.json)',           defaultName: 'dane.data.json',     extension: '.data.json' },
-  { key: 'myschema',  label: 'My Schema (.myschema.json)',      defaultName: 'schema.myschema.json', extension: '.myschema.json' },
-  { key: 'yaml',      label: 'YAML — konfiguracja (.yaml)',     defaultName: 'config.yaml',        extension: '.yaml' },
-  { key: 'toml',      label: 'TOML — konfiguracja (.toml)',     defaultName: 'config.toml',        extension: '.toml' },
-  { key: 'ini',       label: 'INI — konfiguracja (.ini)',       defaultName: 'config.ini',         extension: '.ini' },
-  { key: 'env',       label: '.env — zmienne środowiskowe',     defaultName: '.env',               extension: '.env' },
-  { key: 'ts',        label: 'TypeScript (.ts)',                defaultName: 'index.ts',           extension: '.ts' },
-  { key: 'tsx',       label: 'TypeScript React (.tsx)',         defaultName: 'Component.tsx',      extension: '.tsx' },
-  { key: 'js',        label: 'JavaScript (.js)',                defaultName: 'index.js',           extension: '.js' },
-  { key: 'py',        label: 'Python (.py)',                    defaultName: 'main.py',            extension: '.py' },
-  { key: 'cpp',       label: 'C++ (.cpp)',                      defaultName: 'main.cpp',           extension: '.cpp' },
-  { key: 'css',       label: 'CSS (.css)',                      defaultName: 'styles.css',         extension: '.css' },
-  { key: 'html',      label: 'HTML (.html)',                    defaultName: 'index.html',         extension: '.html' },
-  { key: 'sh',        label: 'Shell script (.sh)',              defaultName: 'script.sh',          extension: '.sh' },
-  { key: 'custom',    label: 'Inny (bez wymuszania rozszerzenia)', defaultName: 'untitled.txt',    extension: '' },
+  { key: 'md', label: 'Markdown (.md)', defaultName: 'notatka.md', extension: '.md' },
+  { key: 'json', label: 'JSON (.json)', defaultName: 'data.json', extension: '.json' },
+  { key: 'mjd-def', label: 'MJD definition (.mjd)', defaultName: 'schema.mjd', extension: '.mjd' },
+  {
+    key: 'mjd-data',
+    label: 'MJD data (.data.json)',
+    defaultName: 'dane.data.json',
+    extension: '.data.json',
+  },
+  {
+    key: 'myschema',
+    label: 'My Schema (.myschema.json)',
+    defaultName: 'schema.myschema.json',
+    extension: '.myschema.json',
+  },
+  {
+    key: 'yaml',
+    label: 'YAML — konfiguracja (.yaml)',
+    defaultName: 'config.yaml',
+    extension: '.yaml',
+  },
+  {
+    key: 'toml',
+    label: 'TOML — konfiguracja (.toml)',
+    defaultName: 'config.toml',
+    extension: '.toml',
+  },
+  { key: 'ini', label: 'INI — konfiguracja (.ini)', defaultName: 'config.ini', extension: '.ini' },
+  { key: 'env', label: '.env — zmienne środowiskowe', defaultName: '.env', extension: '.env' },
+  { key: 'ts', label: 'TypeScript (.ts)', defaultName: 'index.ts', extension: '.ts' },
+  { key: 'tsx', label: 'TypeScript React (.tsx)', defaultName: 'Component.tsx', extension: '.tsx' },
+  { key: 'js', label: 'JavaScript (.js)', defaultName: 'index.js', extension: '.js' },
+  { key: 'py', label: 'Python (.py)', defaultName: 'main.py', extension: '.py' },
+  { key: 'cpp', label: 'C++ (.cpp)', defaultName: 'main.cpp', extension: '.cpp' },
+  { key: 'css', label: 'CSS (.css)', defaultName: 'styles.css', extension: '.css' },
+  { key: 'html', label: 'HTML (.html)', defaultName: 'index.html', extension: '.html' },
+  { key: 'sh', label: 'Shell script (.sh)', defaultName: 'script.sh', extension: '.sh' },
+  {
+    key: 'custom',
+    label: 'Inny (bez wymuszania rozszerzenia)',
+    defaultName: 'untitled.txt',
+    extension: '',
+  },
 ];
 
 /** Append `ext` to `name` if not already present. Special-case the empty
@@ -574,7 +757,8 @@ function applyExtension(name: string, ext: string): string {
 }
 // DjVu ma mime `image/vnd.djvu` (zaczyna się od image/), ale NIE jest obrazkiem <img> —
 // wyklucz, by trafił do dedykowanego DocPreview (djvu), a nie do zepsutego <img>.
-const isImageMime = (m: string) => m.startsWith('image/') && m !== 'image/svg+xml' && m !== 'image/vnd.djvu' && m !== 'image/x-djvu';
+const isImageMime = (m: string) =>
+  m.startsWith('image/') && m !== 'image/svg+xml' && m !== 'image/vnd.djvu' && m !== 'image/x-djvu';
 const isPdfMime = (m: string) => m === 'application/pdf';
 const isDjvuMime = (m: string) => m === 'image/vnd.djvu' || m === 'image/x-djvu';
 
@@ -586,17 +770,28 @@ const isDjvuMime = (m: string) => m === 'image/vnd.djvu' || m === 'image/x-djvu'
  * that does not want a PDF decoder simply passes none, and this shows the file
  * as unviewable instead.
  */
-const DocPreview: React.FC<{ viewers: DriveViewers | null; file: DriveFileRef }> = ({ viewers, file }) => (
+const DocPreview: React.FC<{ viewers: DriveViewers | null; file: DriveFileRef }> = ({
+  viewers,
+  file,
+}) => (
   <Box sx={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-    {viewers && viewers.canView(file)
-      ? viewers.render(file)
-      : (
-        <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-          <Typography variant="body2" color="text.secondary" align="center">
-            No viewer for this kind of file.
-          </Typography>
-        </Box>
-      )}
+    {viewers && viewers.canView(file) ? (
+      viewers.render(file)
+    ) : (
+      <Box
+        sx={{
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <Typography variant="body2" color="text.secondary" align="center">
+          No viewer for this kind of file.
+        </Typography>
+      </Box>
+    )}
   </Box>
 );
 
@@ -614,14 +809,16 @@ function isEditableTextFile(name: string, mime: string): boolean {
   if (isTextMime(mime)) return true;
   // MdEditor handles markdown — we don't want to route .md to Monaco.
   if (isMdEditable(name)) return false;
-  const ext = (name.toLowerCase().split('.').pop() ?? '');
+  const ext = name.toLowerCase().split('.').pop() ?? '';
   // Same set of recognised extensions we'd highlight, minus the markdown
   // variants. Kept inline rather than via a Set so the literal stays a
   // single grep target.
   // hydra/hsch/hcomp: pliki projektu frameworka Hydra. Są YAML-em, ale mają
   // własne rozszerzenia, żeby wtyczka Hydra Studio mogła je rozpoznać —
   // otwarcie w tym edytorze uruchamia jej interfejs obok zakładki tekstowej.
-  return /^(json|jsonc|json5|map|js|mjs|cjs|jsx|ts|tsx|mts|cts|py|pyi|xml|svg|xsd|xsl|html|htm|css|scss|less|yaml|yml|hydra|hsch|hcomp|sh|bash|zsh|sql|c|h|cpp|cc|cxx|hpp|hh|hxx|ino|pde|java|kt|rs|go|rb|php|cs|fs|swift|dart|lua|r|pl|ini|cfg|toml|env|conf|dockerfile|gitignore|gitattributes)$/.test(ext);
+  return /^(json|jsonc|json5|map|js|mjs|cjs|jsx|ts|tsx|mts|cts|py|pyi|xml|svg|xsd|xsl|html|htm|css|scss|less|yaml|yml|hydra|hsch|hcomp|sh|bash|zsh|sql|c|h|cpp|cc|cxx|hpp|hh|hxx|ino|pde|java|kt|rs|go|rb|php|cs|fs|swift|dart|lua|r|pl|ini|cfg|toml|env|conf|dockerfile|gitignore|gitattributes)$/.test(
+    ext
+  );
 }
 
 /**
@@ -648,13 +845,22 @@ export interface DrivePageProps {
 }
 
 export default function DrivePage({
-  vfs, startDir = '', editor = null, assistant = null, viewers = null, toolbarStart,
+  vfs,
+  startDir = '',
+  editor = null,
+  assistant = null,
+  viewers = null,
+  toolbarStart,
 }: DrivePageProps): React.ReactElement {
   // Inicjalizacja z `?cwd=` (wejście z Pulpitu do ulubionego katalogu) — dzięki temu PIERWSZY
   // refresh ładuje właściwy katalog (a nie root, który potem trzeba by nadpisać → wyścig).
   const [cwd, setCwd] = useState(() => {
-    try { return new URLSearchParams(window.location.search).get('cwd') ?? ''; } catch { return ''; }
-  });                                                       // relative under /drive/
+    try {
+      return new URLSearchParams(window.location.search).get('cwd') ?? '';
+    } catch {
+      return '';
+    }
+  }); // relative under /drive/
   const cwdRef = useRef(cwd);
   cwdRef.current = cwd;
   // Forward declaration for the paste shortcut: the keyboard handler is
@@ -675,18 +881,35 @@ export default function DrivePage({
     currentPct: number;
     failed: number;
   } | null>(null);
-  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: 'success'|'error'|'info' }>({ open: false, msg: '', severity: 'success' });
-  const [menuFor, setMenuFor] = useState<{ anchor: HTMLElement | null; entry: VfsEntry; pos?: { top: number; left: number } } | null>(null);
+  const [snack, setSnack] = useState<{
+    open: boolean;
+    msg: string;
+    severity: 'success' | 'error' | 'info';
+  }>({ open: false, msg: '', severity: 'success' });
+  const [menuFor, setMenuFor] = useState<{
+    anchor: HTMLElement | null;
+    entry: VfsEntry;
+    pos?: { top: number; left: number };
+  } | null>(null);
   const [newFolderDialog, setNewFolderDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [renameDialog, setRenameDialog] = useState<{ entry: VfsEntry; value: string } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   // Clipboard for cut/copy/paste. `mode` decides whether paste moves (cut) or duplicates (copy).
-  const [clipboard, setClipboard] = useState<{ entry: VfsEntry; sourceDir: string; mode: 'copy' | 'cut' } | null>(null);
+  const [clipboard, setClipboard] = useState<{
+    entry: VfsEntry;
+    sourceDir: string;
+    mode: 'copy' | 'cut';
+  } | null>(null);
   // View dialog state. textContent is set only when the MIME maps to a text-like format
   // OR the filename matches a recognised code-file extension — the Monaco editor
   // in the right panel uses textContent as its initial value.
-  const [viewing, setViewing] = useState<{ entry: VfsEntry; mime: string; textContent?: string; bytes?: Uint8Array } | null>(null);
+  const [viewing, setViewing] = useState<{
+    entry: VfsEntry;
+    mime: string;
+    textContent?: string;
+    bytes?: Uint8Array;
+  } | null>(null);
   // Git repo panel state — set when a `.repo.json` file is opened. `path` is the
   // .repo.json path relative to the user's drive root (e.g. `myrepo/.repo.json`).
   // Graphical (schema form) editor for a `.json` file. `rel` is drive-relative.
@@ -695,7 +918,9 @@ export default function DrivePage({
   // When a file is opened by clicking an embedded File component, remember the
   // source markdown so the opened editor can offer a "← back to markdown" button.
   // "New empty file" dialog. Just a name field — content is empty bytes.
-  const [newFileDialog, setNewFileDialog] = useState<{ name: string; presetKey: string } | null>(null);
+  const [newFileDialog, setNewFileDialog] = useState<{ name: string; presetKey: string } | null>(
+    null
+  );
   // The upload paths trigger a hidden <input type="file">: one in the header,
   // one inside the staging dialog. A single shared ref would mean the dialog's
   // button reopening the header's picker while the dialog is over it.
@@ -717,7 +942,7 @@ export default function DrivePage({
   const [editing, setEditing] = useState<DriveFileRef | null>(null);
 
   /** Everything the page says to the user in passing, in one place. */
-  const toast = useCallback((msg: string, severity: 'success'|'error'|'info' = 'success') => {
+  const toast = useCallback((msg: string, severity: 'success' | 'error' | 'info' = 'success') => {
     setSnack({ open: true, msg, severity });
   }, []);
 
@@ -739,8 +964,11 @@ export default function DrivePage({
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [favLoaded, setFavLoaded] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState<boolean>(() => {
-    try { return localStorage.getItem('drive_favs_open') !== '0'; }
-    catch { return true; }
+    try {
+      return localStorage.getItem('drive_favs_open') !== '0';
+    } catch {
+      return true;
+    }
   });
   // Beside the other two sidecars, and at the drive's own root: MyCastle's
   // `drive/` prefix was one level of its own layout, and the host's VFS decides
@@ -777,7 +1005,9 @@ export default function DrivePage({
   // Preview-navigation derived state — only file entries (directories are
   // navigated by double-click into them, not previewed).
   const fileEntries = useMemo(() => entries.filter((e) => e.type === FILE_TYPE), [entries]);
-  const currentPreviewIdx = viewing ? fileEntries.findIndex((e) => e.name === viewing.entry.name) : -1;
+  const currentPreviewIdx = viewing
+    ? fileEntries.findIndex((e) => e.name === viewing.entry.name)
+    : -1;
   const hasPrev = currentPreviewIdx > 0;
   const hasNext = currentPreviewIdx >= 0 && currentPreviewIdx < fileEntries.length - 1;
 
@@ -806,19 +1036,26 @@ export default function DrivePage({
    * smaller contract `@hestia/ui-core` describes. One object built from the
    * other, rather than two things for the host to supply and keep in step.
    */
-  const driveStoreForCapabilities = useMemo<DriveStore>(() => ({
-    startDir,
-    list: async (dir) => (await vfs.list(dir)).map((e) => ({
-      name: e.name, directory: e.type === DIR_TYPE, size: e.size, modified: e.mtime,
-    })),
-    read: async (path) => asText(await vfs.readFile(path)),
-    readBytes: (path) => vfs.readFile(path),
-    write: (path, content) => vfs.writeFile(path, fromText(content)),
-    ...(vfs.delete ? { remove: (path: string) => vfs.delete!(path, false) } : {}),
-    ...(vfs.rename ? { rename: (from: string, to: string) => vfs.rename!(from, to) } : {}),
-    ...(vfs.mkdir ? { createDir: (path: string) => vfs.mkdir!(path) } : {}),
-    ...(vfs.downloadUrl ? { urlFor: (path: string) => vfs.downloadUrl!(path) } : {}),
-  }), [startDir, vfs]);
+  const driveStoreForCapabilities = useMemo<DriveStore>(
+    () => ({
+      startDir,
+      list: async (dir) =>
+        (await vfs.list(dir)).map((e) => ({
+          name: e.name,
+          directory: e.type === DIR_TYPE,
+          size: e.size,
+          modified: e.mtime,
+        })),
+      read: async (path) => asText(await vfs.readFile(path)),
+      readBytes: (path) => vfs.readFile(path),
+      write: (path, content) => vfs.writeFile(path, fromText(content)),
+      ...(vfs.delete ? { remove: (path: string) => vfs.delete!(path, false) } : {}),
+      ...(vfs.rename ? { rename: (from: string, to: string) => vfs.rename!(from, to) } : {}),
+      ...(vfs.mkdir ? { createDir: (path: string) => vfs.mkdir!(path) } : {}),
+      ...(vfs.downloadUrl ? { urlFor: (path: string) => vfs.downloadUrl!(path) } : {}),
+    }),
+    [startDir, vfs]
+  );
 
   /**
    * Opens a file in the host's editor.
@@ -828,14 +1065,17 @@ export default function DrivePage({
    * in it is the editor's own answer (`canEdit`). With no editor passed this
    * does nothing at all, and the entries that call it are not drawn.
    */
-  const openInEditor = useCallback((entry: VfsEntry, relOverride?: string) => {
-    if (!editor) return;
-    const rel = relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name);
-    const file: DriveFileRef = { path: rel, name: entry.name, store: driveStoreForCapabilities };
-    if (!editor.canEdit(file)) return;
-    setViewing(null);
-    setEditing(file);
-  }, [cwd, editor, driveStoreForCapabilities]);
+  const openInEditor = useCallback(
+    (entry: VfsEntry, relOverride?: string) => {
+      if (!editor) return;
+      const rel = relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name);
+      const file: DriveFileRef = { path: rel, name: entry.name, store: driveStoreForCapabilities };
+      if (!editor.canEdit(file)) return;
+      setViewing(null);
+      setEditing(file);
+    },
+    [cwd, editor, driveStoreForCapabilities]
+  );
 
   const resetPanels = useCallback(() => {
     setViewing(null);
@@ -855,28 +1095,40 @@ export default function DrivePage({
    * the drive, so here it goes through the VFS like everything else. Whoever
    * runs the script writes the file — the drive only reads it.
    */
-  const openLogs = useCallback(async (rel: string) => {
-    resetPanels();
-    setLogsView({ rel, content: '…' });
-    const content = await readTextOrNull(vfs, `.logs/${rel}.log`);
-    setLogsView({
-      rel,
-      // An absent log and an empty one are different states, and saying so
-      // saves the reader from wondering whether the script ran at all.
-      content: content === null ? '(brak logów — uruchom skrypt albo poczekaj na cron)'
-        : content === '' ? '(pusty log)' : content,
-    });
-  }, [vfs, resetPanels]);
+  const openLogs = useCallback(
+    async (rel: string) => {
+      resetPanels();
+      setLogsView({ rel, content: '…' });
+      const content = await readTextOrNull(vfs, `.logs/${rel}.log`);
+      setLogsView({
+        rel,
+        // An absent log and an empty one are different states, and saying so
+        // saves the reader from wondering whether the script ran at all.
+        content:
+          content === null
+            ? '(brak logów — uruchom skrypt albo poczekaj na cron)'
+            : content === ''
+              ? '(pusty log)'
+              : content,
+      });
+    },
+    [vfs, resetPanels]
+  );
 
-  const clearLogs = useCallback(async (rel: string) => {
-    try {
-      await vfsWriteFile(vfs, `.logs/${rel}.log`, fromText('')); // empty file = cleared
-      setLogsView((prev) => (prev && prev.rel === rel ? { ...prev, content: '(wyczyszczono)' } : prev));
-      toast('Wyczyszczono logi');
-    } catch (err) {
-      toast((err as Error).message, 'error');
-    }
-  }, [vfs, toast]);
+  const clearLogs = useCallback(
+    async (rel: string) => {
+      try {
+        await vfsWriteFile(vfs, `.logs/${rel}.log`, fromText('')); // empty file = cleared
+        setLogsView((prev) =>
+          prev && prev.rel === rel ? { ...prev, content: '(wyczyszczono)' } : prev
+        );
+        toast('Wyczyszczono logi');
+      } catch (err) {
+        toast((err as Error).message, 'error');
+      }
+    },
+    [vfs, toast]
+  );
 
   /**
    * Opens (creating on the first visit of the day) today's journal entry,
@@ -904,7 +1156,7 @@ export default function DrivePage({
 
       // The template is written only on the first open of the day; an entry
       // already begun is never clobbered.
-      if (!await vfsStat(vfs, rel)) {
+      if (!(await vfsStat(vfs, rel))) {
         const weekday = today.toLocaleDateString('pl-PL', { weekday: 'long' });
         await vfsWriteFile(vfs, rel, fromText(`# ${yyyy}-${mm}-${dd} (${weekday})\n\n`));
         toast(`Utworzono dziennik na dziś — ${yyyy}-${mm}-${dd}`);
@@ -920,15 +1172,18 @@ export default function DrivePage({
   }, [vfs, openInEditor, toast]);
 
   /** Copies the address at which the host serves a public file. */
-  const copyPublicUrl = useCallback(async (entry: VfsEntry, relOverride?: string) => {
-    const rel = relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name);
-    if (!isPublic(vfs, rel)) {
-      toast('Ten plik nie jest publiczny — nie ma adresu do skopiowania', 'error');
-      return;
-    }
-    const url = publicUrl(vfs, rel);
-    toast(await copyTextToClipboard(url) ? 'Link skopiowany do schowka' : url, 'info');
-  }, [vfs, cwd, toast]);
+  const copyPublicUrl = useCallback(
+    async (entry: VfsEntry, relOverride?: string) => {
+      const rel = relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name);
+      if (!isPublic(vfs, rel)) {
+        toast('Ten plik nie jest publiczny — nie ma adresu do skopiowania', 'error');
+        return;
+      }
+      const url = publicUrl(vfs, rel);
+      toast((await copyTextToClipboard(url)) ? 'Link skopiowany do schowka' : url, 'info');
+    },
+    [vfs, cwd, toast]
+  );
 
   // The editor/preview panel now opens inline on every screen size. On a phone
   // it takes over the whole viewport (the file list hides while it is open).
@@ -945,7 +1200,9 @@ export default function DrivePage({
     try {
       // Make sure /drive/ exists at all — first-time users won't have it.
       if (cwd === '') {
-        await vfsMkdir(vfs, '').catch(() => {/* already exists */});
+        await vfsMkdir(vfs, '').catch(() => {
+          /* already exists */
+        });
       }
       const list = await vfsListDir(vfs, cwd);
       // Guard przeciw wyścigowi: nie nadpisuj listy, jeśli użytkownik jest już w innym katalogu.
@@ -960,8 +1217,20 @@ export default function DrivePage({
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
-      if (newFolderDialog || renameDialog || menuFor || viewing || newFileDialog || clipboardCreateDialog) return;
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      )
+        return;
+      if (
+        newFolderDialog ||
+        renameDialog ||
+        menuFor ||
+        viewing ||
+        newFileDialog ||
+        clipboardCreateDialog
+      )
+        return;
       if (!(e.metaKey || e.ctrlKey)) return;
       if (e.key === 'v') {
         e.preventDefault();
@@ -976,7 +1245,9 @@ export default function DrivePage({
   // `useCallback` over `cwd`, so a new directory is a new function and this
   // runs again — without it `loading` stays true for ever and the page is a
   // spinner over a drive that answers perfectly well.
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   // [port] dropped — the schema editor is not part of this package
 
@@ -1002,8 +1273,12 @@ export default function DrivePage({
         }
       })
       .catch((err) => console.warn('[Drive] favorites load failed:', err))
-      .finally(() => { if (!cancelled) setFavLoaded(true); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setFavLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [vfs, favLoaded]);
 
   // Saved after a short delay, so starring several files in a row is one write
@@ -1012,8 +1287,11 @@ export default function DrivePage({
   useEffect(() => {
     if (!favLoaded) return;
     const t = setTimeout(() => {
-      void vfsWriteFile(vfs, FAV_PATH, fromText(JSON.stringify({ favorites: Array.from(favorites).sort() }, null, 2)))
-        .catch((err) => console.warn('[Drive] favorites save failed:', err));
+      void vfsWriteFile(
+        vfs,
+        FAV_PATH,
+        fromText(JSON.stringify({ favorites: Array.from(favorites).sort() }, null, 2))
+      ).catch((err) => console.warn('[Drive] favorites save failed:', err));
     }, 300);
     return () => clearTimeout(t);
   }, [favorites, favLoaded, vfs]);
@@ -1024,31 +1302,53 @@ export default function DrivePage({
     if (fpLoaded) return;
     let cancelled = false;
     loadFileProperties(vfs)
-      .then((props) => { if (!cancelled) setFileProperties(props); })
+      .then((props) => {
+        if (!cancelled) setFileProperties(props);
+      })
       .catch((err) => console.warn('[Drive] fileProperties load failed:', err))
-      .finally(() => { if (!cancelled) setFpLoaded(true); });
-    loadSchedules(vfs).then((sched) => { if (!cancelled) setSchedules(sched); }).catch(() => {});
-    loadViewSettings(vfs).then((m) => { if (!cancelled) setViewSettingsMap(m); }).catch(() => {});
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setFpLoaded(true);
+      });
+    loadSchedules(vfs)
+      .then((sched) => {
+        if (!cancelled) setSchedules(sched);
+      })
+      .catch(() => {});
+    loadViewSettings(vfs)
+      .then((m) => {
+        if (!cancelled) setViewSettingsMap(m);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [vfs, fpLoaded]);
 
   // Collapsed or not is a per-device preference, so it stays in this browser.
   useEffect(() => {
-    try { localStorage.setItem('drive_favs_open', favoritesOpen ? '1' : '0'); } catch { /* private mode */ }
+    try {
+      localStorage.setItem('drive_favs_open', favoritesOpen ? '1' : '0');
+    } catch {
+      /* private mode */
+    }
   }, [favoritesOpen]);
 
   // A closed panel must not stay "fullscreen": reopening it would hide the
   // listing with no way back to it.
-  useEffect(() => { if (!panelOpen) setPanelFullscreen(false); }, [panelOpen]);
+  useEffect(() => {
+    if (!panelOpen) setPanelFullscreen(false);
+  }, [panelOpen]);
 
   // The same when the window narrows past `md` — the sidebar would vanish
   // entirely, with neither a dialog nor the list to return to.
-  useEffect(() => { if (!isWide) setPanelFullscreen(false); }, [isWide]);
+  useEffect(() => {
+    if (!isWide) setPanelFullscreen(false);
+  }, [isWide]);
 
   /** What the editor should show this file as — empty until something is set. */
   const viewSettingsFor = useCallback(
     (rel: string): ViewSettings => viewSettingsMap[rel] ?? {},
-    [viewSettingsMap],
+    [viewSettingsMap]
   );
 
   /**
@@ -1058,54 +1358,73 @@ export default function DrivePage({
    * deliberately, and the reader who flips it then closes the tab expects it
    * to be there next time.
    */
-  const setViewSetting = useCallback((rel: string, key: string, value: boolean) => {
-    setViewSettingsMap((prev) => {
-      const next = { ...prev, [rel]: { ...(prev[rel] ?? {}), [key]: value } };
-      void saveViewSettings(vfs, next).catch((err) => console.warn('[Drive] view settings save failed:', err));
-      return next;
-    });
-  }, [vfs]);
+  const setViewSetting = useCallback(
+    (rel: string, key: string, value: boolean) => {
+      setViewSettingsMap((prev) => {
+        const next = { ...prev, [rel]: { ...(prev[rel] ?? {}), [key]: value } };
+        void saveViewSettings(vfs, next).catch((err) =>
+          console.warn('[Drive] view settings save failed:', err)
+        );
+        return next;
+      });
+    },
+    [vfs]
+  );
 
   const isFavorite = useCallback((rel: string) => favorites.has(rel), [favorites]);
 
   // Toggle ulubionego po pełnej ścieżce (nie zależy od cwd) — używane w okienku Ulubione.
-  const toggleFavoritePath = useCallback((rel: string, name: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(rel)) { next.delete(rel); toast(`Usunięto z ulubionych: ${name}`, 'info'); }
-      else { next.add(rel); toast(`Dodano do ulubionych: ${name}`); }
-      return next;
-    });
-  }, [toast]);
+  const toggleFavoritePath = useCallback(
+    (rel: string, name: string) => {
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        if (next.has(rel)) {
+          next.delete(rel);
+          toast(`Usunięto z ulubionych: ${name}`, 'info');
+        } else {
+          next.add(rel);
+          toast(`Dodano do ulubionych: ${name}`);
+        }
+        return next;
+      });
+    },
+    [toast]
+  );
 
-  const toggleFavorite = useCallback((entry: VfsEntry) => {
-    const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(rel)) {
-        next.delete(rel);
-        toast(`Usunięto z ulubionych: ${entry.name}`, 'info');
-      } else {
-        next.add(rel);
-        toast(`Dodano do ulubionych: ${entry.name}`);
-      }
-      return next;
-    });
-  }, [cwd, toast]);
+  const toggleFavorite = useCallback(
+    (entry: VfsEntry) => {
+      const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        if (next.has(rel)) {
+          next.delete(rel);
+          toast(`Usunięto z ulubionych: ${entry.name}`, 'info');
+        } else {
+          next.add(rel);
+          toast(`Dodano do ulubionych: ${entry.name}`);
+        }
+        return next;
+      });
+    },
+    [cwd, toast]
+  );
 
   // ── Properties dialog ────────────────────────────────────────────────
   // Open: snapshot the current tag list for this file into the dialog draft.
   // Tag input is cleared so the user sees a clean field.
-  const openPropertiesDialog = useCallback((entry: VfsEntry) => {
-    const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
-    setPropsDialog({ entry, rel });
-    setPropsDraftTags(fileProperties.tags[rel] ?? []);
-    setPropsDraftTagInput('');
-    const sched = schedules[rel];
-    setPropsDraftCron(sched?.cron ?? '');
-    setPropsDraftCronEnabled(sched?.enabled ?? false);
-    setPropsDraftStartup(sched?.runAtStartup ?? false);
-  }, [cwd, fileProperties.tags, schedules]);
+  const openPropertiesDialog = useCallback(
+    (entry: VfsEntry) => {
+      const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
+      setPropsDialog({ entry, rel });
+      setPropsDraftTags(fileProperties.tags[rel] ?? []);
+      setPropsDraftTagInput('');
+      const sched = schedules[rel];
+      setPropsDraftCron(sched?.cron ?? '');
+      setPropsDraftCronEnabled(sched?.enabled ?? false);
+      setPropsDraftStartup(sched?.runAtStartup ?? false);
+    },
+    [cwd, fileProperties.tags, schedules]
+  );
 
   // Add the in-progress text input as a chip (Enter or "+" button). Rejects
   // empties and duplicates silently. Commas would split a tag on the next
@@ -1114,7 +1433,7 @@ export default function DrivePage({
     const trimmed = propsDraftTagInput.trim();
     if (!trimmed) return;
     const safe = trimmed.replace(/,/g, '-');
-    setPropsDraftTags(prev => prev.includes(safe) ? prev : [...prev, safe]);
+    setPropsDraftTags((prev) => (prev.includes(safe) ? prev : [...prev, safe]));
     setPropsDraftTagInput('');
   }, [propsDraftTagInput]);
 
@@ -1137,7 +1456,11 @@ export default function DrivePage({
         const nextSched: DriveSchedules = { ...schedules };
         const cronStr = propsDraftCron.trim();
         if (cronStr || propsDraftStartup) {
-          nextSched[propsDialog.rel] = { cron: cronStr, enabled: propsDraftCronEnabled, runAtStartup: propsDraftStartup };
+          nextSched[propsDialog.rel] = {
+            cron: cronStr,
+            enabled: propsDraftCronEnabled,
+            runAtStartup: propsDraftStartup,
+          };
         } else {
           delete nextSched[propsDialog.rel];
         }
@@ -1149,7 +1472,16 @@ export default function DrivePage({
     } catch (err) {
       toast(`Nie udało się zapisać właściwości: ${(err as Error).message}`, 'error');
     }
-  }, [propsDialog, propsDraftTags, fileProperties, toast, schedules, propsDraftCron, propsDraftCronEnabled, propsDraftStartup]);
+  }, [
+    propsDialog,
+    propsDraftTags,
+    fileProperties,
+    toast,
+    schedules,
+    propsDraftCron,
+    propsDraftCronEnabled,
+    propsDraftStartup,
+  ]);
 
   // Forward-declared ref for opening files in MdEditor — set below once
   // `openInMdEditor` is in scope. Avoids the TDZ cycle that would otherwise
@@ -1159,38 +1491,44 @@ export default function DrivePage({
   // sets cwd to the folder, then opens the file (MdEditor for .md/.txt,
   // preview for everything else). Skips already-deleted favorites with
   // a friendly toast instead of a hard error.
-  const goToFavorite = useCallback(async (rel: string) => {
-    const lastSlash = rel.lastIndexOf('/');
-    const folder = lastSlash >= 0 ? rel.slice(0, lastSlash) : '';
-    const fileName = lastSlash >= 0 ? rel.slice(lastSlash + 1) : rel;
-    const exists = await vfsStat(vfs, rel);
-    if (!exists) {
-      toast(`Ulubiony element już nie istnieje: ${rel} — usuń z listy`, 'error');
-      return;
-    }
-    // Katalog w ulubionych → po prostu wejdź do niego (nie otwieraj jako plik).
-    if (exists.type === DIR_TYPE) {
-      resetPanels();
-      setCwd(rel);
-      return;
-    }
-    setCwd(folder);
-    const entry: VfsEntry = { name: fileName, type: FILE_TYPE };
-    // MyCastle chose between four editors by extension here. The editor now
-    // answers for itself, and anything it will not take is previewed.
-    if (editor && editor.canEdit({ path: rel, name: fileName, store: driveStoreForCapabilities })) {
-      openInEditor(entry, rel);
-    } else {
-      // Inline read → setViewing (same as double-click on a file row).
-      try {
-        const loaded = await readForPreview(vfs, rel, fileName);
-        resetPanels();
-        setViewing({ entry, ...loaded });
-      } catch (err) {
-        toast((err as Error).message, 'error');
+  const goToFavorite = useCallback(
+    async (rel: string) => {
+      const lastSlash = rel.lastIndexOf('/');
+      const folder = lastSlash >= 0 ? rel.slice(0, lastSlash) : '';
+      const fileName = lastSlash >= 0 ? rel.slice(lastSlash + 1) : rel;
+      const exists = await vfsStat(vfs, rel);
+      if (!exists) {
+        toast(`Ulubiony element już nie istnieje: ${rel} — usuń z listy`, 'error');
+        return;
       }
-    }
-  }, [toast, resetPanels]);
+      // Katalog w ulubionych → po prostu wejdź do niego (nie otwieraj jako plik).
+      if (exists.type === DIR_TYPE) {
+        resetPanels();
+        setCwd(rel);
+        return;
+      }
+      setCwd(folder);
+      const entry: VfsEntry = { name: fileName, type: FILE_TYPE };
+      // MyCastle chose between four editors by extension here. The editor now
+      // answers for itself, and anything it will not take is previewed.
+      if (
+        editor &&
+        editor.canEdit({ path: rel, name: fileName, store: driveStoreForCapabilities })
+      ) {
+        openInEditor(entry, rel);
+      } else {
+        // Inline read → setViewing (same as double-click on a file row).
+        try {
+          const loaded = await readForPreview(vfs, rel, fileName);
+          resetPanels();
+          setViewing({ entry, ...loaded });
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+    },
+    [toast, resetPanels]
+  );
 
   // [port] dropped — exporting Markdown bundles needs JSZip
 
@@ -1199,39 +1537,58 @@ export default function DrivePage({
   // Declared before onOpen so onOpen can reference it without a TDZ cycle.
   // [port] dropped — the JSON-schema form editor is not part of this package
 
-  const onOpen = useCallback((entry: VfsEntry) => {
-    if (entry.type === DIR_TYPE) {
-      setCwd((p) => (p ? `${p}/${entry.name}` : entry.name));
-      return;
-    }
-
-    // MyCastle branched here on the extension — a schema editor, MJD, Markdown,
-    // a dashboard, a git panel, a Qt designer — each opening a panel of its own.
-    // The editor answers for itself now, and everything else is previewed.
-    if (editor && editor.canEdit({ path: cwd ? `${cwd}/${entry.name}` : entry.name, name: entry.name, store: driveStoreForCapabilities })) {
-      openInEditor(entry);
-      return;
-    }
-
-    // Other files → preview / Monaco editor (matches OS file managers more
-    // closely than auto-download; user can still hit "Pobierz" from the menu).
-    void (async () => {
-      try {
-        const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
-        const loaded = await readForPreview(vfs, rel, entry.name);
-        resetPanels();
-        setViewing({ entry, ...loaded });
-      } catch (e) {
-        toast((e as Error).message, 'error');
+  const onOpen = useCallback(
+    (entry: VfsEntry) => {
+      if (entry.type === DIR_TYPE) {
+        setCwd((p) => (p ? `${p}/${entry.name}` : entry.name));
+        return;
       }
-    })();
-  }, [cwd, toast, resetPanels]);
 
-  const onDownload = useCallback(async (entry: VfsEntry, relOverride?: string) => {
-    try {
-      await downloadFile(vfs, relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name), entry.name);
-    } catch (err) { toast((err as Error).message, 'error'); }
-  }, [cwd, toast]);
+      // MyCastle branched here on the extension — a schema editor, MJD, Markdown,
+      // a dashboard, a git panel, a Qt designer — each opening a panel of its own.
+      // The editor answers for itself now, and everything else is previewed.
+      if (
+        editor &&
+        editor.canEdit({
+          path: cwd ? `${cwd}/${entry.name}` : entry.name,
+          name: entry.name,
+          store: driveStoreForCapabilities,
+        })
+      ) {
+        openInEditor(entry);
+        return;
+      }
+
+      // Other files → preview / Monaco editor (matches OS file managers more
+      // closely than auto-download; user can still hit "Pobierz" from the menu).
+      void (async () => {
+        try {
+          const rel = cwd ? `${cwd}/${entry.name}` : entry.name;
+          const loaded = await readForPreview(vfs, rel, entry.name);
+          resetPanels();
+          setViewing({ entry, ...loaded });
+        } catch (e) {
+          toast((e as Error).message, 'error');
+        }
+      })();
+    },
+    [cwd, toast, resetPanels]
+  );
+
+  const onDownload = useCallback(
+    async (entry: VfsEntry, relOverride?: string) => {
+      try {
+        await downloadFile(
+          vfs,
+          relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name),
+          entry.name
+        );
+      } catch (err) {
+        toast((err as Error).message, 'error');
+      }
+    },
+    [cwd, toast]
+  );
 
   // Nazwa pakowanego katalogu (≠ null ⇒ pokazujemy overlay ze spinnerem).
   // A run is a session, and the console below the panel is its output. The
@@ -1247,9 +1604,11 @@ export default function DrivePage({
    * tool that builds it. Null whenever something else is open, or when the host
    * cannot run anything, in which case there is nothing to offer.
    */
-  const [npmProject, setNpmProject] = useState<
-    { dir: string; scripts: Record<string, string> | null; manager: DetectedManager } | null
-  >(null);
+  const [npmProject, setNpmProject] = useState<{
+    dir: string;
+    scripts: Record<string, string> | null;
+    manager: DetectedManager;
+  } | null>(null);
   const [npmMenu, setNpmMenu] = useState<HTMLElement | null>(null);
   const [npmScriptsOpen, setNpmScriptsOpen] = useState(false);
 
@@ -1261,37 +1620,43 @@ export default function DrivePage({
    * never leave the server. Unlike "download as ZIP", which is this followed by
    * a download of the result.
    */
-  const packEntry = useCallback(async (entry: VfsEntry) => {
-    if (!vfs.zipPack) return;
-    try {
-      // A unique name, so packing twice gives two archives instead of quietly
-      // overwriting the first.
-      const fileName = await uniqueName(vfs, cwd, archiveNameFor(entry.name));
-      const source = cwd ? `${cwd}/${entry.name}` : entry.name;
-      const destination = cwd ? `${cwd}/${fileName}` : fileName;
-      await vfs.zipPack(source, destination);
-      toast(`Spakowano do „${fileName}"`);
-      await refresh();
-    } catch (err) {
-      toast(`Nie udało się spakować: ${(err as Error).message}`, 'error');
-    }
-  }, [vfs, cwd, refresh, toast]);
+  const packEntry = useCallback(
+    async (entry: VfsEntry) => {
+      if (!vfs.zipPack) return;
+      try {
+        // A unique name, so packing twice gives two archives instead of quietly
+        // overwriting the first.
+        const fileName = await uniqueName(vfs, cwd, archiveNameFor(entry.name));
+        const source = cwd ? `${cwd}/${entry.name}` : entry.name;
+        const destination = cwd ? `${cwd}/${fileName}` : fileName;
+        await vfs.zipPack(source, destination);
+        toast(`Spakowano do „${fileName}"`);
+        await refresh();
+      } catch (err) {
+        toast(`Nie udało się spakować: ${(err as Error).message}`, 'error');
+      }
+    },
+    [vfs, cwd, refresh, toast]
+  );
 
-  const unpackEntry = useCallback(async (entry: VfsEntry) => {
-    if (!vfs.zipUnpack) return;
-    try {
-      // Same reasoning: unpacking twice gives two directories rather than
-      // mixing the new contents into the old ones.
-      const folder = await uniqueName(vfs, cwd, folderNameFor(entry.name));
-      const archive = cwd ? `${cwd}/${entry.name}` : entry.name;
-      const destination = cwd ? `${cwd}/${folder}` : folder;
-      await vfs.zipUnpack(archive, destination);
-      toast(`Rozpakowano do „${folder}"`);
-      await refresh();
-    } catch (err) {
-      toast(`Nie udało się rozpakować: ${(err as Error).message}`, 'error');
-    }
-  }, [vfs, cwd, refresh, toast]);
+  const unpackEntry = useCallback(
+    async (entry: VfsEntry) => {
+      if (!vfs.zipUnpack) return;
+      try {
+        // Same reasoning: unpacking twice gives two directories rather than
+        // mixing the new contents into the old ones.
+        const folder = await uniqueName(vfs, cwd, folderNameFor(entry.name));
+        const archive = cwd ? `${cwd}/${entry.name}` : entry.name;
+        const destination = cwd ? `${cwd}/${folder}` : folder;
+        await vfs.zipUnpack(archive, destination);
+        toast(`Rozpakowano do „${folder}"`);
+        await refresh();
+      } catch (err) {
+        toast(`Nie udało się rozpakować: ${(err as Error).message}`, 'error');
+      }
+    },
+    [vfs, cwd, refresh, toast]
+  );
 
   /**
    * Packs a folder and downloads the result.
@@ -1301,40 +1666,61 @@ export default function DrivePage({
    * to the drive for a moment — with a name of its own, so a failure leaves
    * something the user can find and delete rather than a mystery.
    */
-  const downloadFolderZip = useCallback(async (entry: VfsEntry) => {
-    if (!vfs.zipPack) return;
-    setZipping(entry.name);
-    const fileName = await uniqueName(vfs, cwd, archiveNameFor(entry.name));
-    const destination = cwd ? `${cwd}/${fileName}` : fileName;
-    try {
-      await vfs.zipPack(cwd ? `${cwd}/${entry.name}` : entry.name, destination);
-      downloadFile(vfs, destination, fileName);
-      // The download reads the file, so removing it immediately would race it.
-      // A moment is enough, and a leftover is visible in the listing anyway.
-      setTimeout(() => { void vfs.delete?.(destination, false).catch(() => {}); }, 5000);
-    } catch (err) {
-      toast(`Nie udało się spakować: ${(err as Error).message}`, 'error');
-    } finally {
-      setZipping(null);
-      await refresh();
-    }
-  }, [vfs, cwd, refresh, toast]);
+  const downloadFolderZip = useCallback(
+    async (entry: VfsEntry) => {
+      if (!vfs.zipPack) return;
+      setZipping(entry.name);
+      const fileName = await uniqueName(vfs, cwd, archiveNameFor(entry.name));
+      const destination = cwd ? `${cwd}/${fileName}` : fileName;
+      try {
+        await vfs.zipPack(cwd ? `${cwd}/${entry.name}` : entry.name, destination);
+        downloadFile(vfs, destination, fileName);
+        // The download reads the file, so removing it immediately would race it.
+        // A moment is enough, and a leftover is visible in the listing anyway.
+        setTimeout(() => {
+          void vfs.delete?.(destination, false).catch(() => {});
+        }, 5000);
+      } catch (err) {
+        toast(`Nie udało się spakować: ${(err as Error).message}`, 'error');
+      } finally {
+        setZipping(null);
+        await refresh();
+      }
+    },
+    [vfs, cwd, refresh, toast]
+  );
 
-  const onDelete = useCallback(async (entry: VfsEntry) => {
-    const kind = entry.type === DIR_TYPE ? 'katalog' : 'plik';
-    if (!confirm(`Usunąć ${kind} "${entry.name}"${entry.type === DIR_TYPE ? ' i całą jego zawartość' : ''}?`)) return;
-    try {
-      await vfsDelete(vfs, cwd ? `${cwd}/${entry.name}` : entry.name, entry.type === DIR_TYPE);
-      toast(`Usunięto "${entry.name}"`);
-      await refresh();
-    } catch (err) { toast((err as Error).message, 'error'); }
-  }, [cwd, refresh, toast]);
+  const onDelete = useCallback(
+    async (entry: VfsEntry) => {
+      const kind = entry.type === DIR_TYPE ? 'katalog' : 'plik';
+      if (
+        !confirm(
+          `Usunąć ${kind} "${entry.name}"${entry.type === DIR_TYPE ? ' i całą jego zawartość' : ''}?`
+        )
+      )
+        return;
+      try {
+        await vfsDelete(vfs, cwd ? `${cwd}/${entry.name}` : entry.name, entry.type === DIR_TYPE);
+        toast(`Usunięto "${entry.name}"`);
+        await refresh();
+      } catch (err) {
+        toast((err as Error).message, 'error');
+      }
+    },
+    [cwd, refresh, toast]
+  );
 
   const doRename = useCallback(async () => {
     if (!renameDialog) return;
     const newName = renameDialog.value.trim();
-    if (!newName || newName === renameDialog.entry.name) { setRenameDialog(null); return; }
-    if (newName.includes('/')) { toast('Nazwa nie może zawierać "/"', 'error'); return; }
+    if (!newName || newName === renameDialog.entry.name) {
+      setRenameDialog(null);
+      return;
+    }
+    if (newName.includes('/')) {
+      toast('Nazwa nie może zawierać "/"', 'error');
+      return;
+    }
     try {
       const oldRel = cwd ? `${cwd}/${renameDialog.entry.name}` : renameDialog.entry.name;
       const newRel = cwd ? `${cwd}/${newName}` : newName;
@@ -1342,51 +1728,71 @@ export default function DrivePage({
       toast(`Zmieniono nazwę na "${newName}"`);
       setRenameDialog(null);
       await refresh();
-    } catch (err) { toast((err as Error).message, 'error'); }
+    } catch (err) {
+      toast((err as Error).message, 'error');
+    }
   }, [renameDialog, cwd, refresh, toast]);
 
   const doMkdir = useCallback(async () => {
     const name = newFolderName.trim();
-    if (!name || name.includes('/')) { toast('Nazwa katalogu nie może być pusta ani zawierać "/"', 'error'); return; }
+    if (!name || name.includes('/')) {
+      toast('Nazwa katalogu nie może być pusta ani zawierać "/"', 'error');
+      return;
+    }
     try {
       await vfsMkdir(vfs, cwd ? `${cwd}/${name}` : name);
       toast(`Utworzono katalog "${name}"`);
       setNewFolderDialog(false);
       setNewFolderName('');
       await refresh();
-    } catch (err) { toast((err as Error).message, 'error'); }
+    } catch (err) {
+      toast((err as Error).message, 'error');
+    }
   }, [newFolderName, cwd, refresh, toast]);
 
-  const moveToPublic = useCallback(async (entry: VfsEntry) => {
-    if (isPublic(vfs, cwd ? `${cwd}/${entry.name}` : entry.name)) {
-      toast('Plik jest już w katalogu publicznym', 'info');
-      return;
-    }
-    try {
-      await vfsMkdir(vfs, 'public').catch(() => {/* exists */});
-      const oldRel = cwd ? `${cwd}/${entry.name}` : entry.name;
-      await vfsRename(vfs, oldRel, `public/${entry.name}`);
-      toast(`Przeniesiono "${entry.name}" do public/`);
-      await refresh();
-    } catch (err) { toast((err as Error).message, 'error'); }
-  }, [cwd, refresh, toast]);
+  const moveToPublic = useCallback(
+    async (entry: VfsEntry) => {
+      if (isPublic(vfs, cwd ? `${cwd}/${entry.name}` : entry.name)) {
+        toast('Plik jest już w katalogu publicznym', 'info');
+        return;
+      }
+      try {
+        await vfsMkdir(vfs, 'public').catch(() => {
+          /* exists */
+        });
+        const oldRel = cwd ? `${cwd}/${entry.name}` : entry.name;
+        await vfsRename(vfs, oldRel, `public/${entry.name}`);
+        toast(`Przeniesiono "${entry.name}" do public/`);
+        await refresh();
+      } catch (err) {
+        toast((err as Error).message, 'error');
+      }
+    },
+    [cwd, refresh, toast]
+  );
 
   // ── Cut / Copy / Paste ────────────────────────────────────────────────
 
-  const copyToClipboard = useCallback((entry: VfsEntry, mode: 'copy' | 'cut') => {
-    setClipboard({ entry, sourceDir: cwd, mode });
-    const verb = mode === 'cut' ? 'Wycięto' : 'Skopiowano';
-    toast(`${verb} "${entry.name}" — wklej w wybranym katalogu (Wklej / ⌘V)`, 'info');
-  }, [cwd, toast]);
+  const copyToClipboard = useCallback(
+    (entry: VfsEntry, mode: 'copy' | 'cut') => {
+      setClipboard({ entry, sourceDir: cwd, mode });
+      const verb = mode === 'cut' ? 'Wycięto' : 'Skopiowano';
+      toast(`${verb} "${entry.name}" — wklej w wybranym katalogu (Wklej / ⌘V)`, 'info');
+    },
+    [cwd, toast]
+  );
 
   const paste = useCallback(async () => {
     if (!clipboard) return;
     try {
-      const sourceRel = clipboard.sourceDir ? `${clipboard.sourceDir}/${clipboard.entry.name}` : clipboard.entry.name;
+      const sourceRel = clipboard.sourceDir
+        ? `${clipboard.sourceDir}/${clipboard.entry.name}`
+        : clipboard.entry.name;
       // Same-dir paste needs a new name to avoid clobbering the source.
-      const destName = (clipboard.sourceDir === cwd)
-        ? await uniqueName(vfs, cwd, clipboard.entry.name)
-        : await uniqueName(vfs, cwd, clipboard.entry.name);
+      const destName =
+        clipboard.sourceDir === cwd
+          ? await uniqueName(vfs, cwd, clipboard.entry.name)
+          : await uniqueName(vfs, cwd, clipboard.entry.name);
       const destRel = cwd ? `${cwd}/${destName}` : destName;
 
       if (clipboard.mode === 'cut') {
@@ -1405,21 +1811,28 @@ export default function DrivePage({
     }
   }, [clipboard, cwd, refresh, toast]);
 
-  useEffect(() => { pasteRef.current = () => { void paste(); }; }, [paste]);
+  useEffect(() => {
+    pasteRef.current = () => {
+      void paste();
+    };
+  }, [paste]);
 
   // ── View / Open / Create ────────────────────────────────────────────────
 
-  const viewFile = useCallback(async (entry: VfsEntry, relOverride?: string) => {
-    if (entry.type !== FILE_TYPE) return;
-    try {
-      const rel = relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name);
-      const loaded = await readForPreview(vfs, rel, entry.name);
-      resetPanels();
-      setViewing({ entry, ...loaded });
-    } catch (err) {
-      toast((err as Error).message, 'error');
-    }
-  }, [cwd, toast, resetPanels]);
+  const viewFile = useCallback(
+    async (entry: VfsEntry, relOverride?: string) => {
+      if (entry.type !== FILE_TYPE) return;
+      try {
+        const rel = relOverride ?? (cwd ? `${cwd}/${entry.name}` : entry.name);
+        const loaded = await readForPreview(vfs, rel, entry.name);
+        resetPanels();
+        setViewing({ entry, ...loaded });
+      } catch (err) {
+        toast((err as Error).message, 'error');
+      }
+    },
+    [cwd, toast, resetPanels]
+  );
 
   const doCreateEmpty = useCallback(async () => {
     if (!newFileDialog) return;
@@ -1434,7 +1847,10 @@ export default function DrivePage({
     const name = applyExtension(rawName, preset.extension);
     try {
       const rel = cwd ? `${cwd}/${name}` : name;
-      if (await vfsStat(vfs, rel)) { toast(`Plik "${name}" już istnieje — wybierz inną nazwę`, 'error'); return; }
+      if (await vfsStat(vfs, rel)) {
+        toast(`Plik "${name}" już istnieje — wybierz inną nazwę`, 'error');
+        return;
+      }
       await vfsWriteFile(vfs, rel, fromText(''));
       toast(`Utworzono "${name}"`);
       setNewFileDialog(null);
@@ -1454,7 +1870,11 @@ export default function DrivePage({
     const trim = text.trim();
     if (!trim) return 'clipboard.txt';
     if (trim.startsWith('#')) return 'clipboard.md';
-    if ((trim.startsWith('{') && trim.endsWith('}')) || (trim.startsWith('[') && trim.endsWith(']'))) return 'clipboard.json';
+    if (
+      (trim.startsWith('{') && trim.endsWith('}')) ||
+      (trim.startsWith('[') && trim.endsWith(']'))
+    )
+      return 'clipboard.json';
     if (trim.startsWith('<') && trim.endsWith('>')) return 'clipboard.xml';
     return 'clipboard.txt';
   };
@@ -1465,12 +1885,15 @@ export default function DrivePage({
    * Goes through `viewFile`, so reading, the MIME guess and the state swap
    * stay in one place.
    */
-  const navigatePreview = useCallback(async (delta: number) => {
-    if (!viewing || currentPreviewIdx < 0) return;
-    const target = fileEntries[currentPreviewIdx + delta];
-    if (!target) return;
-    await viewFile(target);
-  }, [viewing, currentPreviewIdx, fileEntries, viewFile]);
+  const navigatePreview = useCallback(
+    async (delta: number) => {
+      if (!viewing || currentPreviewIdx < 0) return;
+      const target = fileEntries[currentPreviewIdx + delta];
+      if (!target) return;
+      await viewFile(target);
+    },
+    [viewing, currentPreviewIdx, fileEntries, viewFile]
+  );
 
   // Arrows step through the preview and Escape closes it — but not while the
   // focus is in a text field, and not over an open dialog or menu, where the
@@ -1480,15 +1903,41 @@ export default function DrivePage({
     const handler = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-      if (newFolderDialog || renameDialog || menuFor || newFileDialog || clipboardCreateDialog || actionsMenu) return;
-      if (e.key === 'ArrowLeft' && hasPrev) { e.preventDefault(); void navigatePreview(-1); }
-      else if (e.key === 'ArrowRight' && hasNext) { e.preventDefault(); void navigatePreview(1); }
-      else if (e.key === 'Escape') { e.preventDefault(); closeRightPanel(); }
+      if (
+        newFolderDialog ||
+        renameDialog ||
+        menuFor ||
+        newFileDialog ||
+        clipboardCreateDialog ||
+        actionsMenu
+      )
+        return;
+      if (e.key === 'ArrowLeft' && hasPrev) {
+        e.preventDefault();
+        void navigatePreview(-1);
+      } else if (e.key === 'ArrowRight' && hasNext) {
+        e.preventDefault();
+        void navigatePreview(1);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeRightPanel();
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [viewing, hasPrev, hasNext, navigatePreview, closeRightPanel,
-      newFolderDialog, renameDialog, menuFor, newFileDialog, clipboardCreateDialog, actionsMenu]);
+  }, [
+    viewing,
+    hasPrev,
+    hasNext,
+    navigatePreview,
+    closeRightPanel,
+    newFolderDialog,
+    renameDialog,
+    menuFor,
+    newFileDialog,
+    clipboardCreateDialog,
+    actionsMenu,
+  ]);
 
   // [port] dropped — binding a JSON schema belonged to the schema form editor
 
@@ -1548,9 +1997,10 @@ export default function DrivePage({
       // Auto-suffix on collision instead of failing — clipboard pastes are usually rapid.
       const finalName = await uniqueName(vfs, cwd, name);
       const rel = cwd ? `${cwd}/${finalName}` : finalName;
-      const bytes = clipboardCreateDialog.kind === 'image'
-        ? base64ToBytes(clipboardCreateDialog.imageB64)
-        : fromText(clipboardCreateDialog.textContent);
+      const bytes =
+        clipboardCreateDialog.kind === 'image'
+          ? base64ToBytes(clipboardCreateDialog.imageB64)
+          : fromText(clipboardCreateDialog.textContent);
       await vfsWriteFile(vfs, rel, bytes);
       toast(`Utworzono "${finalName}"`);
       setClipboardCreateDialog(null);
@@ -1569,77 +2019,84 @@ export default function DrivePage({
   }, [viewing, toast]);
 
   // ── Upload (file input + drag-and-drop) ─────────────────────────────────
-  const upload = useCallback(async (files: ReadonlyArray<File | { file: File; relPath: string }>) => {
-    // Accept either a plain File[] (from <input type=file>) or a list with
-    // pre-computed relative paths (from a folder drag-and-drop). Normalise
-    // both into the same `{file, relPath}` shape so the upload loop below
-    // doesn't need to branch.
-    const arr = Array.from(files).map(item =>
-      item instanceof File ? { file: item, relPath: item.name } : item,
-    );
-    if (arr.length === 0) return;
-    // Snapshot the current directory NOW — before any await — so that if the
-    // user navigates to a different folder mid-upload, all files in this batch
-    // still land in the directory that was active when the upload started.
-    const uploadCwd = cwd;
-    // A pre-flight size check gives a useful error instead of a vague 500 from
-    // whatever the host's write does with a file this large.
-    const HARD_LIMIT_BYTES = 140 * 1024 * 1024;
-    setUploading({ done: 0, total: arr.length, currentName: null, currentPct: 0, failed: 0 });
-    // mkdir is idempotent at this layer (we ignore errors), but doing it once
-    // per directory saves a round-trip per file in deep tree uploads.
-    const createdDirs = new Set<string>();
-    let done = 0;
-    let failed = 0;
-    for (const { file, relPath } of arr) {
-      // Show file name + reset per-file progress before each file starts.
-      // Use relPath in the display so folder uploads show 'sub/foo.js' not just 'foo.js'.
-      setUploading({ done, total: arr.length, currentName: relPath, currentPct: 0, failed });
-      try {
-        if (file.size > HARD_LIMIT_BYTES) {
-          throw new Error(`Plik za duży (${(file.size / 1024 / 1024).toFixed(1)} MB; limit ${(HARD_LIMIT_BYTES / 1024 / 1024).toFixed(0)} MB)`);
-        }
-        const bytes = new Uint8Array(await file.arrayBuffer());
-        const rel = uploadCwd ? `${uploadCwd}/${relPath}` : relPath;
-        // For files inside subdirectories, ensure every parent dir exists
-        // (Node's writeFile would error on a missing parent). We walk the
-        // path and mkdir each segment in order — quietly ignoring "already
-        // exists" responses since the backend doesn't surface them
-        // specifically.
-        const lastSlash = rel.lastIndexOf('/');
-        if (lastSlash > 0) {
-          const segments = rel.slice(0, lastSlash).split('/');
-          let acc = '';
-          for (const seg of segments) {
-            acc = acc ? `${acc}/${seg}` : seg;
-            if (!createdDirs.has(acc)) {
-              await vfsMkdir(vfs, acc).catch(() => { /* already exists or race */ });
-              createdDirs.add(acc);
+  const upload = useCallback(
+    async (files: ReadonlyArray<File | { file: File; relPath: string }>) => {
+      // Accept either a plain File[] (from <input type=file>) or a list with
+      // pre-computed relative paths (from a folder drag-and-drop). Normalise
+      // both into the same `{file, relPath}` shape so the upload loop below
+      // doesn't need to branch.
+      const arr = Array.from(files).map((item) =>
+        item instanceof File ? { file: item, relPath: item.name } : item
+      );
+      if (arr.length === 0) return;
+      // Snapshot the current directory NOW — before any await — so that if the
+      // user navigates to a different folder mid-upload, all files in this batch
+      // still land in the directory that was active when the upload started.
+      const uploadCwd = cwd;
+      // A pre-flight size check gives a useful error instead of a vague 500 from
+      // whatever the host's write does with a file this large.
+      const HARD_LIMIT_BYTES = 140 * 1024 * 1024;
+      setUploading({ done: 0, total: arr.length, currentName: null, currentPct: 0, failed: 0 });
+      // mkdir is idempotent at this layer (we ignore errors), but doing it once
+      // per directory saves a round-trip per file in deep tree uploads.
+      const createdDirs = new Set<string>();
+      let done = 0;
+      let failed = 0;
+      for (const { file, relPath } of arr) {
+        // Show file name + reset per-file progress before each file starts.
+        // Use relPath in the display so folder uploads show 'sub/foo.js' not just 'foo.js'.
+        setUploading({ done, total: arr.length, currentName: relPath, currentPct: 0, failed });
+        try {
+          if (file.size > HARD_LIMIT_BYTES) {
+            throw new Error(
+              `Plik za duży (${(file.size / 1024 / 1024).toFixed(1)} MB; limit ${(HARD_LIMIT_BYTES / 1024 / 1024).toFixed(0)} MB)`
+            );
+          }
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          const rel = uploadCwd ? `${uploadCwd}/${relPath}` : relPath;
+          // For files inside subdirectories, ensure every parent dir exists
+          // (Node's writeFile would error on a missing parent). We walk the
+          // path and mkdir each segment in order — quietly ignoring "already
+          // exists" responses since the backend doesn't surface them
+          // specifically.
+          const lastSlash = rel.lastIndexOf('/');
+          if (lastSlash > 0) {
+            const segments = rel.slice(0, lastSlash).split('/');
+            let acc = '';
+            for (const seg of segments) {
+              acc = acc ? `${acc}/${seg}` : seg;
+              if (!createdDirs.has(acc)) {
+                await vfsMkdir(vfs, acc).catch(() => {
+                  /* already exists or race */
+                });
+                createdDirs.add(acc);
+              }
             }
           }
+          // Live byte progress via the XHR variant of vfsWriteFile.
+          await vfsWriteFile(vfs, rel, bytes, (pct) => {
+            setUploading((prev) => (prev ? { ...prev, currentPct: pct } : prev));
+          });
+        } catch (err) {
+          failed++;
+          const msg = (err as Error).message;
+          // Detect typical "body too large" failure modes from the backend
+          // and surface them with a friendlier hint than the raw HTTP code.
+          const friendly = /413|too large/i.test(msg)
+            ? `Plik za duży dla serwera (${(file.size / 1024 / 1024).toFixed(1)} MB) — zwiększ limit lub podziel`
+            : msg;
+          toast(`Błąd uploadu "${relPath}": ${friendly}`, 'error');
         }
-        // Live byte progress via the XHR variant of vfsWriteFile.
-        await vfsWriteFile(vfs, rel, bytes, (pct) => {
-          setUploading((prev) => prev ? { ...prev, currentPct: pct } : prev);
-        });
-      } catch (err) {
-        failed++;
-        const msg = (err as Error).message;
-        // Detect typical "body too large" failure modes from the backend
-        // and surface them with a friendlier hint than the raw HTTP code.
-        const friendly = /413|too large/i.test(msg)
-          ? `Plik za duży dla serwera (${(file.size / 1024 / 1024).toFixed(1)} MB) — zwiększ limit lub podziel`
-          : msg;
-        toast(`Błąd uploadu "${relPath}": ${friendly}`, 'error');
+        done++;
+        setUploading((prev) => (prev ? { ...prev, done, currentPct: 100, failed } : prev));
       }
-      done++;
-      setUploading((prev) => prev ? { ...prev, done, currentPct: 100, failed } : prev);
-    }
-    setUploading(null);
-    const ok = done - failed;
-    if (ok > 0) toast(`Wgrano ${ok} z ${arr.length} plików`);
-    await refresh();
-  }, [cwd, refresh, toast]);
+      setUploading(null);
+      const ok = done - failed;
+      if (ok > 0) toast(`Wgrano ${ok} z ${arr.length} plików`);
+      await refresh();
+    },
+    [cwd, refresh, toast]
+  );
 
   /**
    * Walk a DataTransferItemList from a drop event, recursively expanding any
@@ -1654,83 +2111,94 @@ export default function DrivePage({
    * the time an operation was processed.` — that's the exact error from
    * the report.
    */
-  const collectDroppedFiles = useCallback(async (
-    items: DataTransferItemList,
-  ): Promise<{ file: File; relPath: string }[]> => {
-    const results: { file: File; relPath: string }[] = [];
+  const collectDroppedFiles = useCallback(
+    async (items: DataTransferItemList): Promise<{ file: File; relPath: string }[]> => {
+      const results: { file: File; relPath: string }[] = [];
 
-    const readDirEntries = (reader: FileSystemDirectoryReader): Promise<FileSystemEntry[]> => {
-      // readEntries returns at most ~100 entries per call; iterate until empty.
-      return new Promise((resolve, reject) => {
-        const all: FileSystemEntry[] = [];
-        const step = () => reader.readEntries((batch) => {
-          if (batch.length === 0) resolve(all);
-          else { all.push(...batch); step(); }
-        }, reject);
-        step();
-      });
-    };
+      const readDirEntries = (reader: FileSystemDirectoryReader): Promise<FileSystemEntry[]> => {
+        // readEntries returns at most ~100 entries per call; iterate until empty.
+        return new Promise((resolve, reject) => {
+          const all: FileSystemEntry[] = [];
+          const step = () =>
+            reader.readEntries((batch) => {
+              if (batch.length === 0) resolve(all);
+              else {
+                all.push(...batch);
+                step();
+              }
+            }, reject);
+          step();
+        });
+      };
 
-    const entryToFile = (entry: FileSystemFileEntry): Promise<File> =>
-      new Promise((resolve, reject) => entry.file(resolve, reject));
+      const entryToFile = (entry: FileSystemFileEntry): Promise<File> =>
+        new Promise((resolve, reject) => entry.file(resolve, reject));
 
-    const walk = async (entry: FileSystemEntry, prefix: string): Promise<void> => {
-      if (entry.isFile) {
-        const file = await entryToFile(entry as FileSystemFileEntry);
-        results.push({ file, relPath: prefix ? `${prefix}/${file.name}` : file.name });
-      } else if (entry.isDirectory) {
-        const reader = (entry as FileSystemDirectoryEntry).createReader();
-        const children = await readDirEntries(reader);
-        for (const child of children) {
-          await walk(child, prefix ? `${prefix}/${entry.name}` : entry.name);
-        }
-      }
-    };
-
-    // Materialise entries synchronously — they become invalid if we wait.
-    const entries: FileSystemEntry[] = [];
-    for (const item of Array.from(items)) {
-      if (item.kind !== 'file') continue;
-      const entry = item.webkitGetAsEntry?.();
-      if (entry) entries.push(entry);
-    }
-    // Now walk asynchronously — at this point we hold real entry references,
-    // not items from the original event.
-    for (const entry of entries) await walk(entry, '');
-    return results;
-  }, []);
-
-  const onFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) void upload(Array.from(e.target.files));
-    e.target.value = '';
-  }, [upload]);
-
-  const onDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    // Use the items list (with webkitGetAsEntry) when the browser exposes
-    // it — that's the only way to detect dropped folders and recursively
-    // upload their contents. Falls back to plain files when items aren't
-    // available (very old browsers, or items.kind!=='file' for everything).
-    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-      void (async () => {
-        try {
-          const entries = await collectDroppedFiles(e.dataTransfer.items);
-          if (entries.length > 0) {
-            await upload(entries);
-          } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            // Some browsers (Safari < 13) populate `files` but not entry-aware
-            // `items`. Fall back to flat upload in that case.
-            await upload(Array.from(e.dataTransfer.files));
+      const walk = async (entry: FileSystemEntry, prefix: string): Promise<void> => {
+        if (entry.isFile) {
+          const file = await entryToFile(entry as FileSystemFileEntry);
+          results.push({ file, relPath: prefix ? `${prefix}/${file.name}` : file.name });
+        } else if (entry.isDirectory) {
+          const reader = (entry as FileSystemDirectoryEntry).createReader();
+          const children = await readDirEntries(reader);
+          for (const child of children) {
+            await walk(child, prefix ? `${prefix}/${entry.name}` : entry.name);
           }
-        } catch (err) {
-          toast(`Nie udało się odczytać upuszczonych plików: ${(err as Error).message}`, 'error');
         }
-      })();
-    } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      void upload(Array.from(e.dataTransfer.files));
-    }
-  }, [upload, collectDroppedFiles, toast]);
+      };
+
+      // Materialise entries synchronously — they become invalid if we wait.
+      const entries: FileSystemEntry[] = [];
+      for (const item of Array.from(items)) {
+        if (item.kind !== 'file') continue;
+        const entry = item.webkitGetAsEntry?.();
+        if (entry) entries.push(entry);
+      }
+      // Now walk asynchronously — at this point we hold real entry references,
+      // not items from the original event.
+      for (const entry of entries) await walk(entry, '');
+      return results;
+    },
+    []
+  );
+
+  const onFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) void upload(Array.from(e.target.files));
+      e.target.value = '';
+    },
+    [upload]
+  );
+
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      // Use the items list (with webkitGetAsEntry) when the browser exposes
+      // it — that's the only way to detect dropped folders and recursively
+      // upload their contents. Falls back to plain files when items aren't
+      // available (very old browsers, or items.kind!=='file' for everything).
+      if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+        void (async () => {
+          try {
+            const entries = await collectDroppedFiles(e.dataTransfer.items);
+            if (entries.length > 0) {
+              await upload(entries);
+            } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+              // Some browsers (Safari < 13) populate `files` but not entry-aware
+              // `items`. Fall back to flat upload in that case.
+              await upload(Array.from(e.dataTransfer.files));
+            }
+          } catch (err) {
+            toast(`Nie udało się odczytać upuszczonych plików: ${(err as Error).message}`, 'error');
+          }
+        })();
+      } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        void upload(Array.from(e.dataTransfer.files));
+      }
+    },
+    [upload, collectDroppedFiles, toast]
+  );
 
   // ── Upload dialog: staging area for files before commit ────────────────
 
@@ -1745,24 +2213,30 @@ export default function DrivePage({
     if (arr.length === 0) return;
     setUploadDialog((prev) => {
       if (!prev) return prev;
-      const seen = new Set(prev.files.map(f => `${f.name}:${f.size}`));
+      const seen = new Set(prev.files.map((f) => `${f.name}:${f.size}`));
       const merged = [...prev.files];
       for (const f of arr) {
         const key = `${f.name}:${f.size}`;
-        if (!seen.has(key)) { merged.push(f); seen.add(key); }
+        if (!seen.has(key)) {
+          merged.push(f);
+          seen.add(key);
+        }
       }
       return { files: merged };
     });
   }, []);
 
   const removeFileFromUploadDialog = useCallback((idx: number) => {
-    setUploadDialog((prev) => prev ? { files: prev.files.filter((_, i) => i !== idx) } : prev);
+    setUploadDialog((prev) => (prev ? { files: prev.files.filter((_, i) => i !== idx) } : prev));
   }, []);
 
-  const onDialogFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) addFilesToUploadDialog(e.target.files);
-    e.target.value = '';   // reset so re-picking the same file fires onChange
-  }, [addFilesToUploadDialog]);
+  const onDialogFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) addFilesToUploadDialog(e.target.files);
+      e.target.value = ''; // reset so re-picking the same file fires onChange
+    },
+    [addFilesToUploadDialog]
+  );
 
   // Commit dialog: kicks the existing `upload()` pipeline with all staged
   // files in one batch, then closes the dialog on success.
@@ -1774,8 +2248,7 @@ export default function DrivePage({
   }, [uploadDialog, upload]);
 
   // ── Breadcrumbs ─────────────────────────────────────────────────────────
-  const segments = useMemo(() => cwd ? cwd.split('/').filter(Boolean) : [], [cwd]);
-
+  const segments = useMemo(() => (cwd ? cwd.split('/').filter(Boolean) : []), [cwd]);
 
   // ── Right panel content (View or MdEditor) ──────────────────────────────
   // Rendered both as embedded panel (desktop) and as Dialog content (mobile).
@@ -1791,10 +2264,18 @@ export default function DrivePage({
    * we say so — which is what the effect below is for.
    */
   const viewingUrl = useMemo(
-    () => (viewing?.bytes ? URL.createObjectURL(new Blob([viewing.bytes as BlobPart], { type: viewing.mime })) : ''),
-    [viewing?.bytes, viewing?.mime],
+    () =>
+      viewing?.bytes
+        ? URL.createObjectURL(new Blob([viewing.bytes as BlobPart], { type: viewing.mime }))
+        : '',
+    [viewing?.bytes, viewing?.mime]
   );
-  useEffect(() => () => { if (viewingUrl) URL.revokeObjectURL(viewingUrl); }, [viewingUrl]);
+  useEffect(
+    () => () => {
+      if (viewingUrl) URL.revokeObjectURL(viewingUrl);
+    },
+    [viewingUrl]
+  );
 
   /**
    * The file the panel is showing, whichever panel that is.
@@ -1806,7 +2287,11 @@ export default function DrivePage({
   const panelFile = viewing
     ? { entry: viewing.entry, rel: viewingRel, name: viewing.entry.name }
     : editing
-      ? { entry: { name: editing.name, type: FILE_TYPE } as VfsEntry, rel: editing.path, name: editing.name }
+      ? {
+          entry: { name: editing.name, type: FILE_TYPE } as VfsEntry,
+          rel: editing.path,
+          name: editing.name,
+        }
       : null;
 
   const stopRun = useCallback(() => {
@@ -1819,8 +2304,11 @@ export default function DrivePage({
   // and so does leaving the page. A script left running against a file nobody
   // is looking at prints into a console that says someone else's name.
   useEffect(() => stopRun, [stopRun]);
-  useEffect(() => { stopRun(); setConsoleOpen(false); setConsoleLines([]); },
-    [viewing?.entry.name, editing?.path, stopRun]);
+  useEffect(() => {
+    stopRun();
+    setConsoleOpen(false);
+    setConsoleLines([]);
+  }, [viewing?.entry.name, editing?.path, stopRun]);
 
   /**
    * Runs the open `.js`/`.ts` file and shows what it prints.
@@ -1834,16 +2322,20 @@ export default function DrivePage({
     stopRun();
 
     const file: DriveFileRef = {
-      path: panelFile.rel, name: panelFile.name, store: driveStoreForCapabilities,
+      path: panelFile.rel,
+      name: panelFile.name,
+      store: driveStoreForCapabilities,
     };
     let source: string;
     try {
       source = editor?.prepareScript
         ? await editor.prepareScript(file)
-        : (viewing?.textContent ?? await readTextOrNull(vfs, panelFile.rel) ?? '');
+        : (viewing?.textContent ?? (await readTextOrNull(vfs, panelFile.rel)) ?? '');
     } catch (err) {
       setConsoleOpen(true);
-      setConsoleLines([{ level: 'error', text: `Nie udało się przygotować skryptu: ${(err as Error).message}` }]);
+      setConsoleLines([
+        { level: 'error', text: `Nie udało się przygotować skryptu: ${(err as Error).message}` },
+      ]);
       return;
     }
 
@@ -1853,11 +2345,12 @@ export default function DrivePage({
     setConsoleOpen(true);
     setScriptRunning(true);
 
-    const append = (line: ConsoleLine) => setConsoleLines((prev) => (
-      // A runaway loop must not grow the page until it stops responding; the
-      // oldest lines go, because the newest are the ones being read.
-      prev.length >= MAX_CONSOLE_LINES ? [...prev.slice(1), line] : [...prev, line]
-    ));
+    const append = (line: ConsoleLine) =>
+      setConsoleLines((prev) =>
+        // A runaway loop must not grow the page until it stops responding; the
+        // oldest lines go, because the newest are the ones being read.
+        prev.length >= MAX_CONSOLE_LINES ? [...prev.slice(1), line] : [...prev, line]
+      );
 
     try {
       const { stillRunning } = await runScript(source, session, { onLine: append });
@@ -1876,15 +2369,21 @@ export default function DrivePage({
 
   useEffect(() => {
     const rel = viewing ? viewingRel : editing?.path;
-    if (!vfs.runCommand || !rel || (rel.split('/').pop() ?? rel) !== 'package.json') { setNpmProject(null); return; }
+    if (!vfs.runCommand || !rel || (rel.split('/').pop() ?? rel) !== 'package.json') {
+      setNpmProject(null);
+      return;
+    }
 
     let cancelled = false;
     void (async () => {
       const dir = rel.includes('/') ? rel.slice(0, rel.lastIndexOf('/')) : '';
-      const text = viewing?.textContent ?? await readTextOrNull(vfs, rel) ?? '';
+      const text = viewing?.textContent ?? (await readTextOrNull(vfs, rel)) ?? '';
       // The manager is read from what lies beside the file, which is why this
       // needs the listing of that directory and not only the file itself.
-      const siblings = await vfs.list(dir).then((e) => e.map((x) => x.name)).catch(() => []);
+      const siblings = await vfs
+        .list(dir)
+        .then((e) => e.map((x) => x.name))
+        .catch(() => []);
       if (cancelled) return;
       setNpmProject({
         dir,
@@ -1892,36 +2391,49 @@ export default function DrivePage({
         manager: detectPackageManager(siblings, readPackageManagerField(text)),
       });
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [vfs, viewing, viewingRel, editing?.path]);
 
   /** Runs one command of the project, with its output in the same console. */
-  const runNpm = useCallback(async (command: string, args: readonly string[], title: string) => {
-    if (!vfs.runCommand || !npmProject) return;
-    setNpmMenu(null);
-    setConsoleLines([{ level: 'info', text: `$ ${command} ${args.join(' ')}` }]);
-    setConsoleOpen(true);
-    setScriptRunning(true);
-    try {
-      const { code } = await vfs.runCommand(npmProject.dir, command, args, (line) => {
-        setConsoleLines((prev) => (
-          prev.length >= MAX_CONSOLE_LINES ? [...prev.slice(1), { level: 'log' as const, text: line }]
-            : [...prev, { level: 'log' as const, text: line }]
-        ));
-      });
-      setConsoleLines((prev) => [...prev, {
-        level: code === 0 ? 'info' : 'error',
-        text: code === 0 ? `✓ ${title} zakończone` : `${title} zakończone kodem ${code}`,
-      }]);
-    } catch (err) {
-      setConsoleLines((prev) => [...prev, { level: 'error', text: `${title}: ${(err as Error).message}` }]);
-    } finally {
-      setScriptRunning(false);
-    }
-  }, [vfs, npmProject]);
+  const runNpm = useCallback(
+    async (command: string, args: readonly string[], title: string) => {
+      if (!vfs.runCommand || !npmProject) return;
+      setNpmMenu(null);
+      setConsoleLines([{ level: 'info', text: `$ ${command} ${args.join(' ')}` }]);
+      setConsoleOpen(true);
+      setScriptRunning(true);
+      try {
+        const { code } = await vfs.runCommand(npmProject.dir, command, args, (line) => {
+          setConsoleLines((prev) =>
+            prev.length >= MAX_CONSOLE_LINES
+              ? [...prev.slice(1), { level: 'log' as const, text: line }]
+              : [...prev, { level: 'log' as const, text: line }]
+          );
+        });
+        setConsoleLines((prev) => [
+          ...prev,
+          {
+            level: code === 0 ? 'info' : 'error',
+            text: code === 0 ? `✓ ${title} zakończone` : `${title} zakończone kodem ${code}`,
+          },
+        ]);
+      } catch (err) {
+        setConsoleLines((prev) => [
+          ...prev,
+          { level: 'error', text: `${title}: ${(err as Error).message}` },
+        ]);
+      } finally {
+        setScriptRunning(false);
+      }
+    },
+    [vfs, npmProject]
+  );
 
-  const viewerBody = viewing && (
-    isImageMime(viewing.mime) ? (
+  const viewerBody =
+    viewing &&
+    (isImageMime(viewing.mime) ? (
       <Box sx={{ textAlign: 'center', p: 2, height: '100%', overflow: 'auto' }}>
         <img
           src={viewingUrl}
@@ -1930,18 +2442,23 @@ export default function DrivePage({
         />
       </Box>
     ) : isPdfMime(viewing.mime) ? (
-      <DocPreview viewers={viewers} file={{ path: viewingRel, name: viewing.entry.name, store: driveStoreForCapabilities }} />
+      <DocPreview
+        viewers={viewers}
+        file={{ path: viewingRel, name: viewing.entry.name, store: driveStoreForCapabilities }}
+      />
     ) : isDjvuMime(viewing.mime) ? (
-      <DocPreview viewers={viewers} file={{ path: viewingRel, name: viewing.entry.name, store: driveStoreForCapabilities }} />
+      <DocPreview
+        viewers={viewers}
+        file={{ path: viewingRel, name: viewing.entry.name, store: driveStoreForCapabilities }}
+      />
     ) : isAudioMime(viewing.mime) ? (
       <Box sx={{ textAlign: 'center', py: 4, px: 2 }}>
-        <Box component="audio" controls
-          src={viewingUrl}
-          sx={{ width: '100%', maxWidth: 500 }}
-        />
+        <Box component="audio" controls src={viewingUrl} sx={{ width: '100%', maxWidth: 500 }} />
       </Box>
     ) : isVideoMime(viewing.mime) ? (
-      <Box component="video" controls
+      <Box
+        component="video"
+        controls
         src={viewingUrl}
         sx={{ width: '100%', maxHeight: '100%', display: 'block' }}
       />
@@ -1952,8 +2469,7 @@ export default function DrivePage({
           podgląd niedostępny w przeglądarce. Pobierz, aby otworzyć w odpowiedniej aplikacji.
         </Alert>
       </Box>
-    )
-  );
+    ));
 
   // ── Render ──────────────────────────────────────────────────────────────
   return (
@@ -1964,670 +2480,1021 @@ export default function DrivePage({
     // banner injection, etc.) — page wound up taller than the viewport.
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
-      {showSidebar && (
-      <Box sx={{
-        p: 2,
-        display: 'flex', flexDirection: 'column',
-        // 280-620px sidebar: low end fits tablet portrait (~600px viewport)
-        // with ~320px left for the right panel; high end caps on ultrawides
-        // so the editor gets the dominant share.
-        // When a file preview is open the sidebar is a clamped column. When only
-        // the agent is open they split the canvas 50/50 (both flex:1).
-        flex: showRightPanel ? `0 0 clamp(280px, 36%, 620px)` : 1,
-        minWidth: 0, overflow: 'hidden',
-        borderRight: (showRightPanel || showAgent) ? '1px solid' : 'none',
-        borderColor: 'divider',
-      }}>
-      {/* Header — single "Actions" dropdown gathers every directory-level
+        {showSidebar && (
+          <Box
+            sx={{
+              p: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              // 280-620px sidebar: low end fits tablet portrait (~600px viewport)
+              // with ~320px left for the right panel; high end caps on ultrawides
+              // so the editor gets the dominant share.
+              // When a file preview is open the sidebar is a clamped column. When only
+              // the agent is open they split the canvas 50/50 (both flex:1).
+              flex: showRightPanel ? `0 0 clamp(280px, 36%, 620px)` : 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              borderRight: showRightPanel || showAgent ? '1px solid' : 'none',
+              borderColor: 'divider',
+            }}
+          >
+            {/* Header — single "Actions" dropdown gathers every directory-level
           operation. Per-file ops live in the row's context menu (MoreVertIcon). */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
-        {toolbarStart && (
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'action.hover', borderRadius: 1.5, px: 0.25, mr: 0.5 }}>
-            {toolbarStart}
-          </Box>
-        )}
-        <Typography variant="h5" sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-          <DriveFolderUploadIcon /> Drive
-          {clipboard && (
-            <Chip
-              size="small"
-              variant="outlined"
-              color="primary"
-              icon={<ContentPasteIcon />}
-              label={`${clipboard.mode === 'cut' ? 'Wycięto' : 'Skopiowano'}: ${clipboard.entry.name}`}
-              sx={{ ml: 1, fontWeight: 400 }}
-            />
-          )}
-        </Typography>
-        <input ref={fileInputRef} type="file" multiple style={{ display: 'none' }} onChange={onFileInputChange} />
-        <Tooltip title="Otwórz/utwórz dziennik na dziś — Calendar/{rok}/{miesiąc}/{dzień}.md">
-          <Button
-            variant="outlined"
-            startIcon={<TodayIcon />}
-            onClick={openTodayJournal}
-          >
-            Today
-          </Button>
-        </Tooltip>
-        {assistant && (
-          <Tooltip title={assistant.label ?? 'Asystent'}>
-            <Button
-              variant={showAgent ? 'contained' : 'outlined'}
-              startIcon={<SmartToyIcon />}
-              onClick={() => setShowAgent((v) => !v)}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
+              {toolbarStart && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: 'action.hover',
+                    borderRadius: 1.5,
+                    px: 0.25,
+                    mr: 0.5,
+                  }}
+                >
+                  {toolbarStart}
+                </Box>
+              )}
+              <Typography
+                variant="h5"
+                sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}
+              >
+                <DriveFolderUploadIcon /> Drive
+                {clipboard && (
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    icon={<ContentPasteIcon />}
+                    label={`${clipboard.mode === 'cut' ? 'Wycięto' : 'Skopiowano'}: ${clipboard.entry.name}`}
+                    sx={{ ml: 1, fontWeight: 400 }}
+                  />
+                )}
+              </Typography>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                style={{ display: 'none' }}
+                onChange={onFileInputChange}
+              />
+              <Tooltip title="Otwórz/utwórz dziennik na dziś — Calendar/{rok}/{miesiąc}/{dzień}.md">
+                <Button variant="outlined" startIcon={<TodayIcon />} onClick={openTodayJournal}>
+                  Today
+                </Button>
+              </Tooltip>
+              {assistant && (
+                <Tooltip title={assistant.label ?? 'Asystent'}>
+                  <Button
+                    variant={showAgent ? 'contained' : 'outlined'}
+                    startIcon={<SmartToyIcon />}
+                    onClick={() => setShowAgent((v) => !v)}
+                  >
+                    {assistant.label ?? 'Asystent'}
+                  </Button>
+                </Tooltip>
+              )}
+              <Tooltip title="Szukaj tekstu w plikach (bieżący katalog lub cały drive)">
+                <Button
+                  variant="outlined"
+                  startIcon={<SearchIcon />}
+                  onClick={() => setSearchOpen(true)}
+                >
+                  Search
+                </Button>
+              </Tooltip>
+              <Button
+                variant="contained"
+                endIcon={<KeyboardArrowDownIcon />}
+                onClick={(e) => setActionsMenu(e.currentTarget)}
+              >
+                Actions
+              </Button>
+            </Box>
+            <Menu
+              anchorEl={actionsMenu}
+              open={actionsMenu !== null}
+              onClose={() => setActionsMenu(null)}
+              slotProps={{ paper: { sx: { minWidth: 260 } } }}
             >
-              {assistant.label ?? 'Asystent'}
-            </Button>
-          </Tooltip>
-        )}
-        <Tooltip title="Szukaj tekstu w plikach (bieżący katalog lub cały drive)">
-          <Button
-            variant="outlined"
-            startIcon={<SearchIcon />}
-            onClick={() => setSearchOpen(true)}
-          >
-            Search
-          </Button>
-        </Tooltip>
-        <Button
-          variant="contained"
-          endIcon={<KeyboardArrowDownIcon />}
-          onClick={(e) => setActionsMenu(e.currentTarget)}
-        >
-          Actions
-        </Button>
-      </Box>
-      <Menu
-        anchorEl={actionsMenu}
-        open={actionsMenu !== null}
-        onClose={() => setActionsMenu(null)}
-        slotProps={{ paper: { sx: { minWidth: 260 } } }}
-      >
-        <MenuItem onClick={() => { openUploadDialog(); setActionsMenu(null); }}>
-          <ListItemIcon><CloudUploadIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="Upload plików…" secondary="Wybierz / przeciągnij, przejrzyj, wgraj" />
-        </MenuItem>
-        <MenuItem onClick={() => { setNewFolderDialog(true); setActionsMenu(null); }}>
-          <ListItemIcon><CreateNewFolderIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="Nowy katalog" />
-        </MenuItem>
-        <MenuItem onClick={() => { setNewFileDialog({ name: 'notatka.md', presetKey: 'md' }); setActionsMenu(null); }}>
-          <ListItemIcon><NoteAddIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="Nowy pusty plik" secondary="Z rozszerzeniem (np. .md, .json)" />
-        </MenuItem>
-        {/* [port] dropped — creating a file from the clipboard needs the editor */}
-        <Divider />
-        <MenuItem
-          disabled={!clipboard}
-          onClick={() => { void paste(); setActionsMenu(null); }}
-        >
-          <ListItemIcon><ContentPasteIcon fontSize="small" color={clipboard ? 'primary' : 'inherit'} /></ListItemIcon>
-          <ListItemText
-            primary={clipboard ? `Wklej "${clipboard.entry.name}"` : 'Wklej'}
-            secondary={clipboard
-              ? `${clipboard.mode === 'cut' ? 'przenieś' : 'duplikat'} · ⌘V`
-              : 'Schowek pusty — skorzystaj z "Kopiuj" / "Wytnij" w menu pliku'}
-          />
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => {
-          const url = `/workspace/md?path=${encodeURIComponent(`/home/drive${cwd ? '/' + cwd : ''}`)}`;
-          window.open(url, '_blank');
-          setActionsMenu(null);
-        }}>
-          <ListItemIcon><LaunchIcon fontSize="small" /></ListItemIcon>
-          <ListItemText
-            primary="Otwórz w workspace"
-            secondary="Monaco editor — kod, JSON, terminal, agent"
-          />
-        </MenuItem>
-        {/* [port] dropped — the assistant is a capability now */}
-        <MenuItem onClick={() => { setSearchOpen(true); setActionsMenu(null); }}>
-          <ListItemIcon><SearchIcon fontSize="small" /></ListItemIcon>
-          <ListItemText
-            primary="Szukaj w plikach…"
-            secondary="Bieżący katalog lub cały drive"
-          />
-        </MenuItem>
-        <MenuItem onClick={() => { void refresh(); setActionsMenu(null); }}>
-          <ListItemIcon><RefreshIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="Odśwież" />
-        </MenuItem>
-      </Menu>
+              <MenuItem
+                onClick={() => {
+                  openUploadDialog();
+                  setActionsMenu(null);
+                }}
+              >
+                <ListItemIcon>
+                  <CloudUploadIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Upload plików…"
+                  secondary="Wybierz / przeciągnij, przejrzyj, wgraj"
+                />
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  setNewFolderDialog(true);
+                  setActionsMenu(null);
+                }}
+              >
+                <ListItemIcon>
+                  <CreateNewFolderIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Nowy katalog" />
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  setNewFileDialog({ name: 'notatka.md', presetKey: 'md' });
+                  setActionsMenu(null);
+                }}
+              >
+                <ListItemIcon>
+                  <NoteAddIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Nowy pusty plik"
+                  secondary="Z rozszerzeniem (np. .md, .json)"
+                />
+              </MenuItem>
+              {/* [port] dropped — creating a file from the clipboard needs the editor */}
+              <Divider />
+              <MenuItem
+                disabled={!clipboard}
+                onClick={() => {
+                  void paste();
+                  setActionsMenu(null);
+                }}
+              >
+                <ListItemIcon>
+                  <ContentPasteIcon fontSize="small" color={clipboard ? 'primary' : 'inherit'} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={clipboard ? `Wklej "${clipboard.entry.name}"` : 'Wklej'}
+                  secondary={
+                    clipboard
+                      ? `${clipboard.mode === 'cut' ? 'przenieś' : 'duplikat'} · ⌘V`
+                      : 'Schowek pusty — skorzystaj z "Kopiuj" / "Wytnij" w menu pliku'
+                  }
+                />
+              </MenuItem>
+              <Divider />
+              <MenuItem
+                onClick={() => {
+                  const url = `/workspace/md?path=${encodeURIComponent(`/home/drive${cwd ? '/' + cwd : ''}`)}`;
+                  window.open(url, '_blank');
+                  setActionsMenu(null);
+                }}
+              >
+                <ListItemIcon>
+                  <LaunchIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Otwórz w workspace"
+                  secondary="Monaco editor — kod, JSON, terminal, agent"
+                />
+              </MenuItem>
+              {/* [port] dropped — the assistant is a capability now */}
+              <MenuItem
+                onClick={() => {
+                  setSearchOpen(true);
+                  setActionsMenu(null);
+                }}
+              >
+                <ListItemIcon>
+                  <SearchIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Szukaj w plikach…"
+                  secondary="Bieżący katalog lub cały drive"
+                />
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  void refresh();
+                  setActionsMenu(null);
+                }}
+              >
+                <ListItemIcon>
+                  <RefreshIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Odśwież" />
+              </MenuItem>
+            </Menu>
 
-      {/* Breadcrumbs */}
-      <Paper sx={{ p: 1, mb: 1 }}>
-        <Breadcrumbs>
-          <Link component="button" underline="hover" onClick={() => setCwd('')}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <HomeIcon fontSize="small" /> drive
-          </Link>
-          {segments.map((seg, i) => (
-            i === segments.length - 1 ? (
-              <Typography key={i} color="text.primary">{seg}</Typography>
-            ) : (
-              <Link key={i} component="button" underline="hover"
-                onClick={() => setCwd(segments.slice(0, i + 1).join('/'))}>
-                {seg}
-              </Link>
-            )
-          ))}
-          {isPublic(vfs, cwd) && (
-            <Chip size="small" icon={<PublicIcon />} label="public" color="success" />
-          )}
-        </Breadcrumbs>
-      </Paper>
+            {/* Breadcrumbs */}
+            <Paper sx={{ p: 1, mb: 1 }}>
+              <Breadcrumbs>
+                <Link
+                  component="button"
+                  underline="hover"
+                  onClick={() => setCwd('')}
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                >
+                  <HomeIcon fontSize="small" /> drive
+                </Link>
+                {segments.map((seg, i) =>
+                  i === segments.length - 1 ? (
+                    <Typography key={i} color="text.primary">
+                      {seg}
+                    </Typography>
+                  ) : (
+                    <Link
+                      key={i}
+                      component="button"
+                      underline="hover"
+                      onClick={() => setCwd(segments.slice(0, i + 1).join('/'))}
+                    >
+                      {seg}
+                    </Link>
+                  )
+                )}
+                {isPublic(vfs, cwd) && (
+                  <Chip size="small" icon={<PublicIcon />} label="public" color="success" />
+                )}
+              </Breadcrumbs>
+            </Paper>
 
-      {/* Upload progress dialog — full overview while files are being shipped:
+            {/* Upload progress dialog — full overview while files are being shipped:
           per-file progress bar + name + overall position. Stops disabling
           the inline area of the file list and is impossible to miss on
           mobile, where the previous tiny LinearProgress was easy to scroll
           past. */}
-      {uploading && (
-        <Dialog open hideBackdrop={false} maxWidth="xs" fullWidth disableEscapeKeyDown
-          slotProps={{ paper: { sx: { p: 0 } } }}>
-          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
-            <CloudUploadIcon />
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="subtitle1" sx={{ lineHeight: 1.2 }}>Wgrywanie plików</Typography>
-              <Typography variant="caption" color="text.secondary">
-                {uploading.done} z {uploading.total} ukończonych
-                {uploading.failed > 0 && ` · ${uploading.failed} błąd`}
-              </Typography>
-            </Box>
-          </DialogTitle>
-          <DialogContent sx={{ pt: 0 }}>
-            {/* Overall — counts a fully-finished file as 100%, in-flight file as its byte %. */}
-            <Box sx={{ mb: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="caption" color="text.secondary">Łączny postęp</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                  {Math.round(((uploading.done + (uploading.currentName ? uploading.currentPct / 100 : 0)) / uploading.total) * 100)}%
-                </Typography>
-              </Box>
-              <LinearProgress
-                variant="determinate"
-                value={((uploading.done + (uploading.currentName ? uploading.currentPct / 100 : 0)) / uploading.total) * 100}
-                sx={{ height: 8, borderRadius: 1 }}
-              />
-            </Box>
+            {uploading && (
+              <Dialog
+                open
+                hideBackdrop={false}
+                maxWidth="xs"
+                fullWidth
+                disableEscapeKeyDown
+                slotProps={{ paper: { sx: { p: 0 } } }}
+              >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
+                  <CloudUploadIcon />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle1" sx={{ lineHeight: 1.2 }}>
+                      Wgrywanie plików
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {uploading.done} z {uploading.total} ukończonych
+                      {uploading.failed > 0 && ` · ${uploading.failed} błąd`}
+                    </Typography>
+                  </Box>
+                </DialogTitle>
+                <DialogContent sx={{ pt: 0 }}>
+                  {/* Overall — counts a fully-finished file as 100%, in-flight file as its byte %. */}
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        Łączny postęp
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ fontVariantNumeric: 'tabular-nums' }}
+                      >
+                        {Math.round(
+                          ((uploading.done +
+                            (uploading.currentName ? uploading.currentPct / 100 : 0)) /
+                            uploading.total) *
+                            100
+                        )}
+                        %
+                      </Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={
+                        ((uploading.done +
+                          (uploading.currentName ? uploading.currentPct / 100 : 0)) /
+                          uploading.total) *
+                        100
+                      }
+                      sx={{ height: 8, borderRadius: 1 }}
+                    />
+                  </Box>
 
-            {/* Current file — name + per-file progress. Hidden between files. */}
-            {uploading.currentName && (
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                  <InsertDriveFileIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                  <Typography variant="body2" noWrap sx={{ flex: 1, minWidth: 0 }} title={uploading.currentName}>
-                    {uploading.currentName}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                    {uploading.currentPct}%
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={uploading.currentPct}
-                  sx={{ height: 6, borderRadius: 0.5 }}
-                  // While the file-reader is encoding to base64 the XHR hasn't
-                  // started yet, so we get a long 0% phase. An indeterminate
-                  // bar reads as "still working" instead of "stuck".
-                  {...(uploading.currentPct === 0 && { variant: 'indeterminate' as const })}
-                />
-                <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
-                  {uploading.currentPct === 0
-                    ? 'Przygotowywanie pliku…'
-                    : uploading.currentPct < 100
-                      ? 'Wysyłanie do serwera…'
-                      : 'Zapisywanie…'}
-                </Typography>
-              </Box>
+                  {/* Current file — name + per-file progress. Hidden between files. */}
+                  {uploading.currentName && (
+                    <Box>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                        <InsertDriveFileIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                        <Typography
+                          variant="body2"
+                          noWrap
+                          sx={{ flex: 1, minWidth: 0 }}
+                          title={uploading.currentName}
+                        >
+                          {uploading.currentName}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                          {uploading.currentPct}%
+                        </Typography>
+                      </Stack>
+                      <LinearProgress
+                        variant="determinate"
+                        value={uploading.currentPct}
+                        sx={{ height: 6, borderRadius: 0.5 }}
+                        // While the file-reader is encoding to base64 the XHR hasn't
+                        // started yet, so we get a long 0% phase. An indeterminate
+                        // bar reads as "still working" instead of "stuck".
+                        {...(uploading.currentPct === 0 && { variant: 'indeterminate' as const })}
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.disabled"
+                        sx={{ display: 'block', mt: 0.5 }}
+                      >
+                        {uploading.currentPct === 0
+                          ? 'Przygotowywanie pliku…'
+                          : uploading.currentPct < 100
+                            ? 'Wysyłanie do serwera…'
+                            : 'Zapisywanie…'}
+                      </Typography>
+                    </Box>
+                  )}
+                </DialogContent>
+              </Dialog>
             )}
-          </DialogContent>
-        </Dialog>
-      )}
 
-      {/* Favorites — compact card above the file list. Rendered only when
+            {/* Favorites — compact card above the file list. Rendered only when
           there's at least one favorite; collapsing-when-empty would make the
           UI flicker as the user un-stars the last item. */}
-      {favorites.size > 0 && (
-        <Paper variant="outlined" sx={{ mb: 1, p: 1 }}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1}
-            sx={{ cursor: 'pointer', userSelect: 'none' }}
-            onClick={() => setFavoritesOpen((v) => !v)}
-          >
-            <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              Ulubione ({favorites.size})
-            </Typography>
-            <Box sx={{ flex: 1 }} />
-            <IconButton size="small" sx={{ p: 0.25 }}>
-              {favoritesOpen ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
-            </IconButton>
-          </Stack>
-          <Collapse in={favoritesOpen} unmountOnExit>
-            <Stack
-              direction="row"
-              flexWrap="wrap"
-              useFlexGap
-              spacing={0.75}
-              sx={{ mt: 1 }}
-            >
-              {Array.from(favorites).sort().map((rel) => {
-                const lastSlash = rel.lastIndexOf('/');
-                const fileName = lastSlash >= 0 ? rel.slice(lastSlash + 1) : rel;
-                const folder = lastSlash >= 0 ? rel.slice(0, lastSlash) : '';
-                return (
-                  <Chip
-                    key={rel}
-                    size="small"
-                    icon={fileName.includes('.') ? <InsertDriveFileIcon fontSize="small" /> : <FolderIcon fontSize="small" />}
-                    label={fileName}
-                    title={folder ? `${folder}/${fileName}` : fileName}
-                    onClick={() => { void goToFavorite(rel); }}
-                    onDelete={() => {
-                      setFavorites((prev) => {
-                        const next = new Set(prev);
-                        next.delete(rel);
-                        return next;
-                      });
-                    }}
-                    sx={{ maxWidth: 260 }}
-                  />
-                );
-              })}
-            </Stack>
-          </Collapse>
-        </Paper>
-      )}
+            {favorites.size > 0 && (
+              <Paper variant="outlined" sx={{ mb: 1, p: 1 }}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{ cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => setFavoritesOpen((v) => !v)}
+                >
+                  <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    Ulubione ({favorites.size})
+                  </Typography>
+                  <Box sx={{ flex: 1 }} />
+                  <IconButton size="small" sx={{ p: 0.25 }}>
+                    {favoritesOpen ? (
+                      <ExpandLessIcon fontSize="small" />
+                    ) : (
+                      <ExpandMoreIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </Stack>
+                <Collapse in={favoritesOpen} unmountOnExit>
+                  <Stack direction="row" flexWrap="wrap" useFlexGap spacing={0.75} sx={{ mt: 1 }}>
+                    {Array.from(favorites)
+                      .sort()
+                      .map((rel) => {
+                        const lastSlash = rel.lastIndexOf('/');
+                        const fileName = lastSlash >= 0 ? rel.slice(lastSlash + 1) : rel;
+                        const folder = lastSlash >= 0 ? rel.slice(0, lastSlash) : '';
+                        return (
+                          <Chip
+                            key={rel}
+                            size="small"
+                            icon={
+                              fileName.includes('.') ? (
+                                <InsertDriveFileIcon fontSize="small" />
+                              ) : (
+                                <FolderIcon fontSize="small" />
+                              )
+                            }
+                            label={fileName}
+                            title={folder ? `${folder}/${fileName}` : fileName}
+                            onClick={() => {
+                              void goToFavorite(rel);
+                            }}
+                            onDelete={() => {
+                              setFavorites((prev) => {
+                                const next = new Set(prev);
+                                next.delete(rel);
+                                return next;
+                              });
+                            }}
+                            sx={{ maxWidth: 260 }}
+                          />
+                        );
+                      })}
+                  </Stack>
+                </Collapse>
+              </Paper>
+            )}
 
-      {/* File list with drag-and-drop overlay */}
-      <Paper
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={onDrop}
-        sx={{
-          flex: 1, overflow: 'auto', position: 'relative',
-          border: dragOver ? '2px dashed' : '2px dashed transparent',
-          borderColor: dragOver ? 'primary.main' : 'transparent',
-          transition: 'border-color 0.15s',
-        }}
-      >
-        {dragOver && (
-          <Box sx={{
-            position: 'absolute', inset: 0, display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            bgcolor: 'rgba(0,0,0,0.05)', zIndex: 10, pointerEvents: 'none',
-          }}>
-            <Typography variant="h6" color="primary">Upuść pliki tutaj</Typography>
-          </Box>
-        )}
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}><CircularProgress /></Box>
-        ) : entries.length === 0 ? (
-          <Box sx={{ p: 6, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography variant="body1">Pusty katalog</Typography>
-            <Typography variant="caption">Przeciągnij pliki tutaj lub użyj <strong>Upload</strong> / <strong>New folder</strong></Typography>
-          </Box>
-        ) : (
-          <Table size="small" stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell></TableCell>
-                <TableCell>Nazwa</TableCell>
-                <TableCell sx={{ width: 100, display: { xs: 'none', md: 'table-cell' } }}>Rozmiar</TableCell>
-                <TableCell sx={{ width: 200, display: { xs: 'none', md: 'table-cell' } }}>Modyfikowane</TableCell>
-                <TableCell sx={{ width: 50 }}></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {entries.map((e) => {
-                const rel = cwd ? `${cwd}/${e.name}` : e.name;
-                const pub = isPublic(vfs, rel);
-                return (
-                  <TableRow
-                    key={e.name}
-                    hover
-                    onDoubleClick={() => onOpen(e)}
-                    onContextMenu={(ev) => {
-                      // Prawy przycisk myszy (desktop) otwiera to samo menu co kebab (⋮),
-                      // zakotwiczone w pozycji kursora (anchorPosition).
-                      ev.preventDefault();
-                      setMenuFor({ anchor: null, entry: e, pos: { top: ev.clientY, left: ev.clientX } });
-                    }}
-                    sx={{ cursor: 'pointer' }}
-                  >
-                    <TableCell sx={{ width: 40 }}>
-                      {e.type === DIR_TYPE
-                        ? <FolderIcon sx={{ color: pub ? 'success.main' : 'primary.main' }} />
-                        : <InsertDriveFileIcon sx={{ color: pub ? 'success.main' : 'text.secondary' }} />}
-                    </TableCell>
-                    <TableCell onClick={() => e.type === DIR_TYPE && onOpen(e)}>
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
-                        <span>{e.name}</span>
-                        {/* Passive favorite indicator — small filled star next to
+            {/* File list with drag-and-drop overlay */}
+            <Paper
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={onDrop}
+              sx={{
+                flex: 1,
+                overflow: 'auto',
+                position: 'relative',
+                border: dragOver ? '2px dashed' : '2px dashed transparent',
+                borderColor: dragOver ? 'primary.main' : 'transparent',
+                transition: 'border-color 0.15s',
+              }}
+            >
+              {dragOver && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: 'rgba(0,0,0,0.05)',
+                    zIndex: 10,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <Typography variant="h6" color="primary">
+                    Upuść pliki tutaj
+                  </Typography>
+                </Box>
+              )}
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
+                  <CircularProgress />
+                </Box>
+              ) : entries.length === 0 ? (
+                <Box sx={{ p: 6, textAlign: 'center', color: 'text.secondary' }}>
+                  <Typography variant="body1">Pusty katalog</Typography>
+                  <Typography variant="caption">
+                    Przeciągnij pliki tutaj lub użyj <strong>Upload</strong> /{' '}
+                    <strong>New folder</strong>
+                  </Typography>
+                </Box>
+              ) : (
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell></TableCell>
+                      <TableCell>Nazwa</TableCell>
+                      <TableCell sx={{ width: 100, display: { xs: 'none', md: 'table-cell' } }}>
+                        Rozmiar
+                      </TableCell>
+                      <TableCell sx={{ width: 200, display: { xs: 'none', md: 'table-cell' } }}>
+                        Modyfikowane
+                      </TableCell>
+                      <TableCell sx={{ width: 50 }}></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {entries.map((e) => {
+                      const rel = cwd ? `${cwd}/${e.name}` : e.name;
+                      const pub = isPublic(vfs, rel);
+                      return (
+                        <TableRow
+                          key={e.name}
+                          hover
+                          onDoubleClick={() => onOpen(e)}
+                          onContextMenu={(ev) => {
+                            // Prawy przycisk myszy (desktop) otwiera to samo menu co kebab (⋮),
+                            // zakotwiczone w pozycji kursora (anchorPosition).
+                            ev.preventDefault();
+                            setMenuFor({
+                              anchor: null,
+                              entry: e,
+                              pos: { top: ev.clientY, left: ev.clientX },
+                            });
+                          }}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <TableCell sx={{ width: 40 }}>
+                            {e.type === DIR_TYPE ? (
+                              <FolderIcon sx={{ color: pub ? 'success.main' : 'primary.main' }} />
+                            ) : (
+                              <InsertDriveFileIcon
+                                sx={{ color: pub ? 'success.main' : 'text.secondary' }}
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell onClick={() => e.type === DIR_TYPE && onOpen(e)}>
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                              sx={{ flexWrap: 'wrap', rowGap: 0.5 }}
+                            >
+                              <span>{e.name}</span>
+                              {/* Passive favorite indicator — small filled star next to
                             the name when the file is in favorites. The toggle
                             itself lives in the row's context menu (`⋯`); having
                             both a clickable toggle here and the same item in
                             the menu was redundant. */}
-                        {isFavorite(rel) && (
-                          <Tooltip title="Ulubiony — zarządzaj przez menu (⋯)">
-                            <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
-                          </Tooltip>
-                        )}
-                        {pub && <Tooltip title="Publiczny — dostępny przez HTTP bez logowania"><PublicIcon fontSize="small" color="success" /></Tooltip>}
-                        {/* File-property tags — chips inline next to the
+                              {isFavorite(rel) && (
+                                <Tooltip title="Ulubiony — zarządzaj przez menu (⋯)">
+                                  <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                                </Tooltip>
+                              )}
+                              {pub && (
+                                <Tooltip title="Publiczny — dostępny przez HTTP bez logowania">
+                                  <PublicIcon fontSize="small" color="success" />
+                                </Tooltip>
+                              )}
+                              {/* File-property tags — chips inline next to the
                             name. Read from the in-memory fileProperties
                             mirror (loaded once on mount), so rendering
                             stays fast even with hundreds of entries. */}
-                        {(fileProperties.tags[rel] ?? []).map((tag) => (
-                          <Chip
-                            key={`tag-${tag}`}
-                            label={tag}
-                            size="small"
-                            variant="outlined"
-                            sx={{ height: 18, fontSize: '0.65rem', '& .MuiChip-label': { px: 0.75 } }}
-                          />
-                        ))}
-                      </Stack>
-                    </TableCell>
-                    <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                      {e.type === DIR_TYPE ? '—' : formatBytes(e.size)}
-                    </TableCell>
-                    <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                      <Typography variant="caption">{formatDate(e.mtime)}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <IconButton size="small" onClick={(ev) => { ev.stopPropagation(); setMenuFor({ anchor: ev.currentTarget, entry: e }); }}>
-                        <MoreVertIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                              {(fileProperties.tags[rel] ?? []).map((tag) => (
+                                <Chip
+                                  key={`tag-${tag}`}
+                                  label={tag}
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{
+                                    height: 18,
+                                    fontSize: '0.65rem',
+                                    '& .MuiChip-label': { px: 0.75 },
+                                  }}
+                                />
+                              ))}
+                            </Stack>
+                          </TableCell>
+                          <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                            {e.type === DIR_TYPE ? '—' : formatBytes(e.size)}
+                          </TableCell>
+                          <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                            <Typography variant="caption">{formatDate(e.mtime)}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <IconButton
+                              size="small"
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                setMenuFor({ anchor: ev.currentTarget, entry: e });
+                              }}
+                            >
+                              <MoreVertIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </Paper>
+          </Box>
         )}
-      </Paper>
-
-
-      </Box>
-      )}
-      {showRightPanel && (
-        <Box sx={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          overflow: 'hidden', minWidth: 0, bgcolor: 'background.default',
-        }}>
-          {/* Panel toolbar */}
-          <Box sx={{
-            display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1,
-            borderBottom: '1px solid', borderColor: 'divider',
-            bgcolor: 'background.paper',
-          }}>
-            {viewing && (
-              <>
-                <Tooltip title={hasPrev ? 'Poprzedni plik (←)' : 'To jest pierwszy plik'}>
-                  <span>
-                    <IconButton size="small" disabled={!hasPrev} onClick={() => void navigatePreview(-1)}>
-                      <NavigateBeforeIcon fontSize="small" />
-                    </IconButton>
-                  </span>
+        {showRightPanel && (
+          <Box
+            sx={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              minWidth: 0,
+              bgcolor: 'background.default',
+            }}
+          >
+            {/* Panel toolbar */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                px: 1.5,
+                py: 1,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
+              }}
+            >
+              {viewing && (
+                <>
+                  <Tooltip title={hasPrev ? 'Poprzedni plik (←)' : 'To jest pierwszy plik'}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        disabled={!hasPrev}
+                        onClick={() => void navigatePreview(-1)}
+                      >
+                        <NavigateBeforeIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      minWidth: 48,
+                      textAlign: 'center',
+                      userSelect: 'none',
+                      color: 'text.secondary',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {currentPreviewIdx >= 0
+                      ? `${currentPreviewIdx + 1} / ${fileEntries.length}`
+                      : '—'}
+                  </Typography>
+                  <Tooltip title={hasNext ? 'Następny plik (→)' : 'To jest ostatni plik'}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        disabled={!hasNext}
+                        onClick={() => void navigatePreview(1)}
+                      >
+                        <NavigateNextIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+                </>
+              )}
+              {logsView ? (
+                <SubjectIcon fontSize="small" />
+              ) : viewing ? (
+                <VisibilityIcon fontSize="small" />
+              ) : (
+                <EditNoteIcon fontSize="small" />
+              )}
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {(logsView ? `${logsView.rel} · logi` : undefined) ??
+                  viewing?.entry.name ??
+                  editing?.name}
+              </Typography>
+              {viewing && !isCompact && (
+                <Chip size="small" variant="outlined" label={viewing.mime} />
+              )}
+              {viewing && !isCompact && viewing.textContent !== undefined && (
+                <Tooltip title="Kopiuj cały tekst do systemowego schowka">
+                  <IconButton size="small" onClick={copyViewTextToSystem}>
+                    <ContentCopyIcon fontSize="small" />
+                  </IconButton>
                 </Tooltip>
-                <Typography variant="caption" sx={{
-                  minWidth: 48, textAlign: 'center', userSelect: 'none',
-                  color: 'text.secondary', fontVariantNumeric: 'tabular-nums',
-                }}>
-                  {currentPreviewIdx >= 0 ? `${currentPreviewIdx + 1} / ${fileEntries.length}` : '—'}
-                </Typography>
-                <Tooltip title={hasNext ? 'Następny plik (→)' : 'To jest ostatni plik'}>
-                  <span>
-                    <IconButton size="small" disabled={!hasNext} onClick={() => void navigatePreview(1)}>
-                      <NavigateNextIcon fontSize="small" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-              </>
-            )}
-            {logsView ? <SubjectIcon fontSize="small" /> : viewing ? <VisibilityIcon fontSize="small" /> : <EditNoteIcon fontSize="small" />}
-            <Typography variant="subtitle1" sx={{
-              flex: 1, minWidth: 0,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
-              {(logsView ? `${logsView.rel} · logi` : undefined) ?? viewing?.entry.name ?? editing?.name}
-            </Typography>
-            {viewing && !isCompact && (
-              <Chip size="small" variant="outlined" label={viewing.mime} />
-            )}
-            {viewing && !isCompact && viewing.textContent !== undefined && (
-              <Tooltip title="Kopiuj cały tekst do systemowego schowka">
-                <IconButton size="small" onClick={copyViewTextToSystem}>
-                  <ContentCopyIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {/*
+              )}
+              {/*
               Editing and previewing are two views of one file, so the bar
               offers the other one — the counterpart of MyCastle's "open the
               source" and "open in the editor".
             */}
-            {panelFile && !isCompact && editing && (
-              <Tooltip title="Podgląd (bez edytora)">
-                <IconButton size="small" onClick={() => void viewFile(panelFile.entry, panelFile.rel)}>
-                  <VisibilityIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {panelFile && !isCompact && viewing && editor
-              && editor.canEdit({ path: panelFile.rel, name: panelFile.name, store: driveStoreForCapabilities }) && (
-              <Tooltip title="Edytuj">
-                <IconButton size="small" onClick={() => openInEditor(panelFile.entry, panelFile.rel)}>
-                  <EditIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {panelFile && !isCompact && (
-              <Tooltip title={isFavorite(panelFile.rel) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}>
-                <IconButton size="small" onClick={() => toggleFavoritePath(panelFile.rel, panelFile.name)}>
-                  {isFavorite(panelFile.rel)
-                    ? <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
-                    : <StarBorderIcon fontSize="small" />}
-                </IconButton>
-              </Tooltip>
-            )}
-            {panelFile && !isCompact && isPublic(vfs, panelFile.rel) && (
-              <Tooltip title="Kopiuj link publiczny">
-                <IconButton size="small" onClick={() => void copyPublicUrl(panelFile.entry, panelFile.rel)}>
-                  <LinkIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {panelFile && !isCompact && (
-              <Tooltip title="Pobierz">
-                <IconButton size="small" onClick={() => void onDownload(panelFile.entry, panelFile.rel)}>
-                  <DownloadIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {panelFile && isCompact && (
-              <Tooltip title="Akcje pliku">
-                <IconButton size="small" onClick={(ev) => setViewActionsMenu(ev.currentTarget)}>
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {npmProject && !isCompact && (
-              <Tooltip title="Projekt npm">
-                <IconButton size="small" onClick={(e) => setNpmMenu(e.currentTarget)}>
-                  <InventoryIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {panelFile && !isCompact && isRunnableScript(panelFile.name) && (
-              <Tooltip title={scriptRunning ? 'Zatrzymaj' : 'Uruchom w przeglądarce'}>
-                <IconButton
-                  size="small"
-                  color={scriptRunning ? 'error' : 'success'}
-                  onClick={() => (scriptRunning ? stopRun() : void runOpenScript())}
+              {panelFile && !isCompact && editing && (
+                <Tooltip title="Podgląd (bez edytora)">
+                  <IconButton
+                    size="small"
+                    onClick={() => void viewFile(panelFile.entry, panelFile.rel)}
+                  >
+                    <VisibilityIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {panelFile &&
+                !isCompact &&
+                viewing &&
+                editor &&
+                editor.canEdit({
+                  path: panelFile.rel,
+                  name: panelFile.name,
+                  store: driveStoreForCapabilities,
+                }) && (
+                  <Tooltip title="Edytuj">
+                    <IconButton
+                      size="small"
+                      onClick={() => openInEditor(panelFile.entry, panelFile.rel)}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              {panelFile && !isCompact && (
+                <Tooltip
+                  title={isFavorite(panelFile.rel) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
                 >
-                  {scriptRunning ? <StopIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+                  <IconButton
+                    size="small"
+                    onClick={() => toggleFavoritePath(panelFile.rel, panelFile.name)}
+                  >
+                    {isFavorite(panelFile.rel) ? (
+                      <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                    ) : (
+                      <StarBorderIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              )}
+              {panelFile && !isCompact && isPublic(vfs, panelFile.rel) && (
+                <Tooltip title="Kopiuj link publiczny">
+                  <IconButton
+                    size="small"
+                    onClick={() => void copyPublicUrl(panelFile.entry, panelFile.rel)}
+                  >
+                    <LinkIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {panelFile && !isCompact && (
+                <Tooltip title="Pobierz">
+                  <IconButton
+                    size="small"
+                    onClick={() => void onDownload(panelFile.entry, panelFile.rel)}
+                  >
+                    <DownloadIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {panelFile && isCompact && (
+                <Tooltip title="Akcje pliku">
+                  <IconButton size="small" onClick={(ev) => setViewActionsMenu(ev.currentTarget)}>
+                    <MoreVertIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {npmProject && !isCompact && (
+                <Tooltip title="Projekt npm">
+                  <IconButton size="small" onClick={(e) => setNpmMenu(e.currentTarget)}>
+                    <InventoryIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {panelFile && !isCompact && isRunnableScript(panelFile.name) && (
+                <Tooltip title={scriptRunning ? 'Zatrzymaj' : 'Uruchom w przeglądarce'}>
+                  <IconButton
+                    size="small"
+                    color={scriptRunning ? 'error' : 'success'}
+                    onClick={() => (scriptRunning ? stopRun() : void runOpenScript())}
+                  >
+                    {scriptRunning ? (
+                      <StopIcon fontSize="small" />
+                    ) : (
+                      <PlayArrowIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              )}
+              {panelFile && !isCompact && isRunnableScript(panelFile.name) && (
+                <Tooltip title={consoleOpen ? 'Ukryj konsolę' : 'Pokaż konsolę'}>
+                  <IconButton size="small" onClick={() => setConsoleOpen((v) => !v)}>
+                    <TerminalIcon
+                      fontSize="small"
+                      sx={{ color: scriptRunning ? 'success.main' : 'text.secondary' }}
+                    />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {editing && editor?.viewOptions?.length && (
+                <Tooltip title="Ustawienia widoku (zapisywane per plik)">
+                  <IconButton
+                    size="small"
+                    // Coloured when anything is on, so it is visible from the bar
+                    // that this file is being shown differently from the rest.
+                    color={
+                      editor.viewOptions.some((o) => viewSettingsFor(editing.path)[o.key])
+                        ? 'primary'
+                        : 'default'
+                    }
+                    onClick={(e) => setViewSettingsAnchor(e.currentTarget)}
+                  >
+                    <TuneIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+              <Tooltip
+                title={
+                  panelFullscreen
+                    ? 'Pokaż listę plików'
+                    : 'Ukryj listę plików (panel na cały ekran)'
+                }
+              >
+                <IconButton size="small" onClick={() => setPanelFullscreen((f) => !f)}>
+                  {panelFullscreen ? (
+                    <FullscreenExitIcon fontSize="small" />
+                  ) : (
+                    <FullscreenIcon fontSize="small" />
+                  )}
                 </IconButton>
               </Tooltip>
-            )}
-            {panelFile && !isCompact && isRunnableScript(panelFile.name) && (
-              <Tooltip title={consoleOpen ? 'Ukryj konsolę' : 'Pokaż konsolę'}>
-                <IconButton size="small" onClick={() => setConsoleOpen((v) => !v)}>
-                  <TerminalIcon
-                    fontSize="small"
-                    sx={{ color: scriptRunning ? 'success.main' : 'text.secondary' }}
-                  />
+              <Tooltip title="Zamknij panel">
+                <IconButton size="small" onClick={closeRightPanel}>
+                  <CloseIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-            )}
-            {editing && editor?.viewOptions?.length && (
-              <Tooltip title="Ustawienia widoku (zapisywane per plik)">
-                <IconButton
-                  size="small"
-                  // Coloured when anything is on, so it is visible from the bar
-                  // that this file is being shown differently from the rest.
-                  color={editor.viewOptions.some((o) => viewSettingsFor(editing.path)[o.key]) ? 'primary' : 'default'}
-                  onClick={(e) => setViewSettingsAnchor(e.currentTarget)}
-                >
-                  <TuneIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            <Tooltip title={panelFullscreen ? 'Pokaż listę plików' : 'Ukryj listę plików (panel na cały ekran)'}>
-              <IconButton size="small" onClick={() => setPanelFullscreen((f) => !f)}>
-                {panelFullscreen ? <FullscreenExitIcon fontSize="small" /> : <FullscreenIcon fontSize="small" />}
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Zamknij panel">
-              <IconButton size="small" onClick={closeRightPanel}>
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          {/* Panel content */}
-          <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            {viewing && (
-              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ flex: 1, minHeight: 0 }}>{viewerBody}</Box>
-                {/*
+            </Box>
+            {/* Panel content */}
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              {viewing && (
+                <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ flex: 1, minHeight: 0 }}>{viewerBody}</Box>
+                  {/*
                   Panel sceny nad konsolą i **wyżej** niż ona: scena wymaga
                   miejsca, żeby dało się cokolwiek na niej zobaczyć, a konsola
                   jest przy niej dopiskiem.
                 */}
 
-                {/* [port] dropped — the in-browser runner’s console */}
-              </Box>
-            )}
-            {/*
+                  {/* [port] dropped — the in-browser runner’s console */}
+                </Box>
+              )}
+              {/*
               The editor itself. MyCastle rendered a component per editor here —
               Markdown, MJD, the schema form, the dashboard, Qt — each with its
               own state. There is one capability now, and what it draws is the
               host's business; the page supplies the file and the panel.
             */}
-            {editing && editor && (
-              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                {editor.render(editing, {
-                  onClose: closeRightPanel,
-                  onSaved: () => { void refresh(); },
-                  view: viewSettingsFor(editing.path),
-                })}
-              </Box>
-            )}
-            {/*
+              {editing && editor && (
+                <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                  {editor.render(editing, {
+                    onClose: closeRightPanel,
+                    onSaved: () => {
+                      void refresh();
+                    },
+                    view: viewSettingsFor(editing.path),
+                  })}
+                </Box>
+              )}
+              {/*
               The console sits under whatever the panel is showing rather than
               replacing it: a script is read and run in the same breath, and a
               console that covers the source makes the next edit guesswork.
               A third of the height, so both halves stay usable.
             */}
-            {consoleOpen && (
-              <Box sx={{ flex: '0 0 33%', minHeight: 120, display: 'flex', flexDirection: 'column', borderTop: '1px solid', borderColor: 'divider' }}>
-                <Box sx={{
-                  display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.5,
-                  borderBottom: '1px solid', borderColor: 'divider',
-                }}>
-                  <Chip
-                    size="small"
-                    variant="outlined"
-                    icon={<TerminalIcon />}
-                    color={scriptRunning ? 'success' : 'default'}
-                    label={scriptRunning ? 'działa' : 'konsola'}
-                  />
-                  <Box sx={{ flex: 1 }} />
-                  <Button size="small" onClick={() => setConsoleLines([])}>Wyczyść</Button>
-                  <Tooltip title="Ukryj konsolę">
-                    <IconButton size="small" onClick={() => setConsoleOpen(false)}>
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-                <Box component="pre" sx={{
-                  flex: 1, m: 0, p: 1.5, overflow: 'auto',
-                  fontFamily: 'monospace', fontSize: '0.78rem', lineHeight: 1.45,
-                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                  bgcolor: '#1e1e1e', color: '#d4d4d4',
-                }}>
-                  {consoleLines.length === 0
-                    ? <Box component="span" sx={{ opacity: 0.5 }}>(brak wyjścia)</Box>
-                    : consoleLines.map((line, i) => (
-                      <Box
-                        key={i}
-                        component="div"
-                        sx={{ color: line.level === 'error' ? '#f48771' : line.level === 'warn' ? '#dcdcaa' : line.level === 'debug' ? '#808080' : '#d4d4d4' }}
-                      >
-                        {line.text}
+              {consoleOpen && (
+                <Box
+                  sx={{
+                    flex: '0 0 33%',
+                    minHeight: 120,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 1.5,
+                      py: 0.5,
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      icon={<TerminalIcon />}
+                      color={scriptRunning ? 'success' : 'default'}
+                      label={scriptRunning ? 'działa' : 'konsola'}
+                    />
+                    <Box sx={{ flex: 1 }} />
+                    <Button size="small" onClick={() => setConsoleLines([])}>
+                      Wyczyść
+                    </Button>
+                    <Tooltip title="Ukryj konsolę">
+                      <IconButton size="small" onClick={() => setConsoleOpen(false)}>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  <Box
+                    component="pre"
+                    sx={{
+                      flex: 1,
+                      m: 0,
+                      p: 1.5,
+                      overflow: 'auto',
+                      fontFamily: 'monospace',
+                      fontSize: '0.78rem',
+                      lineHeight: 1.45,
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      bgcolor: '#1e1e1e',
+                      color: '#d4d4d4',
+                    }}
+                  >
+                    {consoleLines.length === 0 ? (
+                      <Box component="span" sx={{ opacity: 0.5 }}>
+                        (brak wyjścia)
                       </Box>
-                    ))}
+                    ) : (
+                      consoleLines.map((line, i) => (
+                        <Box
+                          key={i}
+                          component="div"
+                          sx={{
+                            color:
+                              line.level === 'error'
+                                ? '#f48771'
+                                : line.level === 'warn'
+                                  ? '#dcdcaa'
+                                  : line.level === 'debug'
+                                    ? '#808080'
+                                    : '#d4d4d4',
+                          }}
+                        >
+                          {line.text}
+                        </Box>
+                      ))
+                    )}
+                  </Box>
                 </Box>
-              </Box>
-            )}
-            {logsView && (
-              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{
-                  display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.75,
-                  borderBottom: '1px solid', borderColor: 'divider',
-                }}>
-                  <Chip size="small" variant="outlined" icon={<SubjectIcon />} label="logi skryptu" />
-                  <Box sx={{ flex: 1 }} />
-                  {/* [port] dropped — the log stream is MyCastle's own endpoint */}
-                  <Button size="small" color="error" startIcon={<DeleteIcon />} onClick={() => void clearLogs(logsView.rel)}>
-                    Wyczyść
-                  </Button>
+              )}
+              {logsView && (
+                <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 1.5,
+                      py: 0.75,
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      icon={<SubjectIcon />}
+                      label="logi skryptu"
+                    />
+                    <Box sx={{ flex: 1 }} />
+                    {/* [port] dropped — the log stream is MyCastle's own endpoint */}
+                    <Button
+                      size="small"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={() => void clearLogs(logsView.rel)}
+                    >
+                      Wyczyść
+                    </Button>
+                  </Box>
+                  <Box
+                    component="pre"
+                    sx={{
+                      flex: 1,
+                      m: 0,
+                      p: 1.5,
+                      overflow: 'auto',
+                      fontFamily: 'monospace',
+                      fontSize: '0.78rem',
+                      lineHeight: 1.45,
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      bgcolor: '#1e1e1e',
+                      color: '#d4d4d4',
+                    }}
+                  >
+                    {logsView.content || '(pusty)'}
+                  </Box>
                 </Box>
-                <Box component="pre" sx={{
-                  flex: 1, m: 0, p: 1.5, overflow: 'auto',
-                  fontFamily: 'monospace', fontSize: '0.78rem', lineHeight: 1.45,
-                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                  bgcolor: '#1e1e1e', color: '#d4d4d4',
-                }}>
-                  {logsView.content || '(pusty)'}
-                </Box>
-              </Box>
+              )}
+            </Box>
+          </Box>
+        )}
+        {assistant && showAgent && (
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            {assistant.render(
+              {
+                store: driveStoreForCapabilities,
+                dir: cwd,
+                file: viewing
+                  ? { path: viewingRel, name: viewing.entry.name, store: driveStoreForCapabilities }
+                  : editing,
+                onFileOpen: (path) => {
+                  void goToFavorite(path);
+                },
+                onFileWritten: () => {
+                  void refresh();
+                },
+              },
+              { onClose: () => setShowAgent(false) }
             )}
           </Box>
-        </Box>
-      )}
-      {assistant && showAgent && (
-        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {assistant.render(
-            {
-              store: driveStoreForCapabilities,
-              dir: cwd,
-              file: viewing
-                ? { path: viewingRel, name: viewing.entry.name, store: driveStoreForCapabilities }
-                : editing,
-              onFileOpen: (path) => { void goToFavorite(path); },
-              onFileWritten: () => { void refresh(); },
-            },
-            { onClose: () => setShowAgent(false) },
-          )}
-        </Box>
-      )}
+        )}
       </Box>
 
       <Backdrop
@@ -2636,7 +3503,9 @@ export default function DrivePage({
       >
         <CircularProgress color="inherit" />
         <Typography variant="body1">Pakowanie „{zipping}" do ZIP…</Typography>
-        <Typography variant="caption" sx={{ opacity: 0.8 }}>To może chwilę potrwać przy dużych katalogach.</Typography>
+        <Typography variant="caption" sx={{ opacity: 0.8 }}>
+          To może chwilę potrwać przy dużych katalogach.
+        </Typography>
       </Backdrop>
 
       {/*
@@ -2653,22 +3522,37 @@ export default function DrivePage({
           transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
           <Box sx={{ p: 1.5, minWidth: 320 }}>
-            <Typography sx={{
-              fontSize: 12, fontWeight: 700, textTransform: 'uppercase',
-              letterSpacing: 0.5, color: 'text.secondary', mb: 0.5,
-            }}>
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                color: 'text.secondary',
+                mb: 0.5,
+              }}
+            >
               Ustawienia widoku
             </Typography>
             {editor.viewOptions.map((option) => (
               <FormControlLabel
                 key={option.key}
-                sx={{ ml: 0, width: '100%', justifyContent: 'space-between', mr: 0, alignItems: 'flex-start', py: 0.5 }}
+                sx={{
+                  ml: 0,
+                  width: '100%',
+                  justifyContent: 'space-between',
+                  mr: 0,
+                  alignItems: 'flex-start',
+                  py: 0.5,
+                }}
                 labelPlacement="start"
                 label={
                   <Box>
                     <Typography variant="body2">{option.label}</Typography>
                     {option.description && (
-                      <Typography variant="caption" color="text.secondary">{option.description}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {option.description}
+                      </Typography>
                     )}
                   </Box>
                 }
@@ -2700,21 +3584,38 @@ export default function DrivePage({
           {(() => {
             const plan = installPlan(npmProject.manager.id, npmProject.manager.hasLockfile);
             return (
-              <MenuItem onClick={() => void runNpm(plan.command, plan.args, `${plan.command} ${plan.args[0]}`)}>
-                <ListItemIcon><DownloadIcon fontSize="small" /></ListItemIcon>
-                <ListItemText primary={`${plan.command} ${plan.args.join(' ')}`} secondary={plan.note} />
+              <MenuItem
+                onClick={() =>
+                  void runNpm(plan.command, plan.args, `${plan.command} ${plan.args[0]}`)
+                }
+              >
+                <ListItemIcon>
+                  <DownloadIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={`${plan.command} ${plan.args.join(' ')}`}
+                  secondary={plan.note}
+                />
               </MenuItem>
             );
           })()}
           <MenuItem onClick={() => setNpmScriptsOpen((v) => !v)}>
-            <ListItemIcon><PlayArrowIcon fontSize="small" color="success" /></ListItemIcon>
+            <ListItemIcon>
+              <PlayArrowIcon fontSize="small" color="success" />
+            </ListItemIcon>
             <ListItemText
               primary={`${npmProject.manager.command} run`}
-              secondary={npmProject.scripts === null
-                ? 'Nie udało się odczytać package.json'
-                : `${Object.keys(npmProject.scripts).length} skryptów w package.json`}
+              secondary={
+                npmProject.scripts === null
+                  ? 'Nie udało się odczytać package.json'
+                  : `${Object.keys(npmProject.scripts).length} skryptów w package.json`
+              }
             />
-            {npmScriptsOpen ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+            {npmScriptsOpen ? (
+              <ExpandLessIcon fontSize="small" />
+            ) : (
+              <ExpandMoreIcon fontSize="small" />
+            )}
           </MenuItem>
           <Collapse in={npmScriptsOpen} unmountOnExit>
             {Object.entries(npmProject.scripts ?? {}).map(([name, body]) => {
@@ -2725,13 +3626,19 @@ export default function DrivePage({
                   sx={{ pl: 4 }}
                   disabled={!decision.ok}
                   title={decision.ok ? body : decision.reason}
-                  onClick={() => decision.ok && void runNpm(decision.plan.command, decision.plan.args, name)}
+                  onClick={() =>
+                    decision.ok && void runNpm(decision.plan.command, decision.plan.args, name)
+                  }
                 >
-                  <ListItemIcon><PlayArrowIcon fontSize="small" /></ListItemIcon>
+                  <ListItemIcon>
+                    <PlayArrowIcon fontSize="small" />
+                  </ListItemIcon>
                   <ListItemText
                     primary={name}
                     secondary={decision.ok ? body : decision.reason}
-                    secondaryTypographyProps={{ sx: { fontFamily: 'monospace', fontSize: '0.72rem' } }}
+                    secondaryTypographyProps={{
+                      sx: { fontFamily: 'monospace', fontSize: '0.72rem' },
+                    }}
                   />
                 </MenuItem>
               );
@@ -2740,9 +3647,11 @@ export default function DrivePage({
           <Divider />
           <MenuItem disabled sx={{ opacity: '1 !important' }}>
             <ListItemText
-              secondary={npmProject.manager.detected
-                ? `Menedżer: ${npmProject.manager.command} (${npmProject.manager.lockfile})`
-                : `Menedżer: ${npmProject.manager.command} — zgaduję, brak pliku blokady`}
+              secondary={
+                npmProject.manager.detected
+                  ? `Menedżer: ${npmProject.manager.command} (${npmProject.manager.lockfile})`
+                  : `Menedżer: ${npmProject.manager.command} — zgaduję, brak pliku blokady`
+              }
               secondaryTypographyProps={{ variant: 'caption' }}
             />
           </MenuItem>
@@ -2758,24 +3667,43 @@ export default function DrivePage({
         onClose={() => setMenuFor(null)}
       >
         {menuFor && menuFor.entry.type === DIR_TYPE && (
-          <MenuItem onClick={() => { const entry = menuFor.entry; setMenuFor(null); onOpen(entry); }}>
-            <ListItemIcon><FolderOpenIcon fontSize="small" color="primary" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              const entry = menuFor.entry;
+              setMenuFor(null);
+              onOpen(entry);
+            }}
+          >
+            <ListItemIcon>
+              <FolderOpenIcon fontSize="small" color="primary" />
+            </ListItemIcon>
             <ListItemText>Otwórz</ListItemText>
           </MenuItem>
         )}
         {menuFor && menuFor.entry.type === FILE_TYPE && (
-          <MenuItem onClick={() => { void viewFile(menuFor.entry); setMenuFor(null); }}>
-            <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              void viewFile(menuFor.entry);
+              setMenuFor(null);
+            }}
+          >
+            <ListItemIcon>
+              <VisibilityIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText>Podgląd</ListItemText>
           </MenuItem>
         )}
         {menuFor && menuFor.entry.type === FILE_TYPE && isRunnable(menuFor.entry.name) && (
-          <MenuItem onClick={() => {
-            const rel = cwd ? `${cwd}/${menuFor!.entry.name}` : menuFor!.entry.name;
-            void openLogs(rel);
-            setMenuFor(null);
-          }}>
-            <ListItemIcon><SubjectIcon fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              const rel = cwd ? `${cwd}/${menuFor!.entry.name}` : menuFor!.entry.name;
+              void openLogs(rel);
+              setMenuFor(null);
+            }}
+          >
+            <ListItemIcon>
+              <SubjectIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText primary="Logs" secondary="Wyjście skryptu (Run + cron)" />
           </MenuItem>
         )}
@@ -2787,55 +3715,111 @@ export default function DrivePage({
         {menuFor && menuFor.entry.type === DIR_TYPE && vfs.zipPack && (
           <MenuItem
             disabled={zipping !== null}
-            onClick={() => { const e = menuFor.entry; setMenuFor(null); void downloadFolderZip(e); }}
+            onClick={() => {
+              const e = menuFor.entry;
+              setMenuFor(null);
+              void downloadFolderZip(e);
+            }}
           >
-            <ListItemIcon><FolderZipIcon fontSize="small" /></ListItemIcon>
+            <ListItemIcon>
+              <FolderZipIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText primary="Pobierz ZIP" secondary="Spakuj katalog i pobierz" />
           </MenuItem>
         )}
         {menuFor && menuFor.entry.type === DIR_TYPE && vfs.zipPack && (
-          <MenuItem onClick={() => { const e = menuFor.entry; setMenuFor(null); void packEntry(e); }}>
-            <ListItemIcon><FolderZipIcon fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              const e = menuFor.entry;
+              setMenuFor(null);
+              void packEntry(e);
+            }}
+          >
+            <ListItemIcon>
+              <FolderZipIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText primary="Spakuj" secondary="Archiwum .zip powstanie obok katalogu" />
           </MenuItem>
         )}
-        {menuFor && menuFor.entry.type === FILE_TYPE && isArchive(menuFor.entry.name) && vfs.zipUnpack && (
-          <MenuItem onClick={() => { const e = menuFor.entry; setMenuFor(null); void unpackEntry(e); }}>
-            <ListItemIcon><FolderZipIcon fontSize="small" /></ListItemIcon>
-            <ListItemText primary="Rozpakuj" secondary="Zawartość trafi do katalogu obok" />
-          </MenuItem>
-        )}
-        {menuFor && (() => {
-          const rel = cwd ? `${cwd}/${menuFor.entry.name}` : menuFor.entry.name;
-          const isFav = isFavorite(rel);
-          const isDir = menuFor.entry.type === DIR_TYPE;
-          return (
-            <MenuItem onClick={() => { toggleFavorite(menuFor.entry); setMenuFor(null); }}>
+        {menuFor &&
+          menuFor.entry.type === FILE_TYPE &&
+          isArchive(menuFor.entry.name) &&
+          vfs.zipUnpack && (
+            <MenuItem
+              onClick={() => {
+                const e = menuFor.entry;
+                setMenuFor(null);
+                void unpackEntry(e);
+              }}
+            >
               <ListItemIcon>
-                {isFav
-                  ? <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
-                  : <StarBorderIcon fontSize="small" />}
+                <FolderZipIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText>{isFav ? 'Usuń z ulubionych' : `Dodaj do ulubionych${isDir ? ' (katalog)' : ''}`}</ListItemText>
+              <ListItemText primary="Rozpakuj" secondary="Zawartość trafi do katalogu obok" />
             </MenuItem>
-          );
-        })()}
+          )}
+        {menuFor &&
+          (() => {
+            const rel = cwd ? `${cwd}/${menuFor.entry.name}` : menuFor.entry.name;
+            const isFav = isFavorite(rel);
+            const isDir = menuFor.entry.type === DIR_TYPE;
+            return (
+              <MenuItem
+                onClick={() => {
+                  toggleFavorite(menuFor.entry);
+                  setMenuFor(null);
+                }}
+              >
+                <ListItemIcon>
+                  {isFav ? (
+                    <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                  ) : (
+                    <StarBorderIcon fontSize="small" />
+                  )}
+                </ListItemIcon>
+                <ListItemText>
+                  {isFav ? 'Usuń z ulubionych' : `Dodaj do ulubionych${isDir ? ' (katalog)' : ''}`}
+                </ListItemText>
+              </MenuItem>
+            );
+          })()}
         {menuFor && menuFor.entry.type === FILE_TYPE && isMdEditable(menuFor.entry.name) && (
-          <MenuItem onClick={() => { openInEditor(menuFor.entry); setMenuFor(null); }}>
-            <ListItemIcon><EditNoteIcon fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              openInEditor(menuFor.entry);
+              setMenuFor(null);
+            }}
+          >
+            <ListItemIcon>
+              <EditNoteIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText>Otwórz w MdEditor</ListItemText>
           </MenuItem>
         )}
         {menuFor && menuFor.entry.type === FILE_TYPE && (
-          <MenuItem onClick={() => { void onDownload(menuFor.entry); setMenuFor(null); }}>
-            <ListItemIcon><DownloadIcon fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              void onDownload(menuFor.entry);
+              setMenuFor(null);
+            }}
+          >
+            <ListItemIcon>
+              <DownloadIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText>Pobierz</ListItemText>
           </MenuItem>
         )}
         {/* [port] dropped — downloading a folder as a zip needs JSZip */}
         {menuFor && !isPublic(vfs, cwd ? `${cwd}/${menuFor.entry.name}` : menuFor.entry.name) && (
-          <MenuItem onClick={() => { void moveToPublic(menuFor.entry); setMenuFor(null); }}>
-            <ListItemIcon><DriveFileMoveIcon fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              void moveToPublic(menuFor.entry);
+              setMenuFor(null);
+            }}
+          >
+            <ListItemIcon>
+              <DriveFileMoveIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText>Make public (przenieś do public/)</ListItemText>
           </MenuItem>
         )}
@@ -2846,42 +3830,89 @@ export default function DrivePage({
             w menu było pozostałością po czasach, gdy publiczny był tylko
             `public/` z pojedynczymi obrazkami.
           */
-          <MenuItem onClick={() => { void copyPublicUrl(menuFor.entry); setMenuFor(null); }}>
-            <ListItemIcon><LinkIcon fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              void copyPublicUrl(menuFor.entry);
+              setMenuFor(null);
+            }}
+          >
+            <ListItemIcon>
+              <LinkIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText>Kopiuj link publiczny</ListItemText>
           </MenuItem>
         )}
-        <MenuItem onClick={async () => {
-          // Ścieżka w formacie używanym przez api.file w skryptach automatyzacji
-          // (userBase-relative: `drive/{rel}`), nie backendowa /data/Minis/Users/...
-          const rel = cwd ? `${cwd}/${menuFor!.entry.name}` : menuFor!.entry.name;
-          const apiPath = `drive/${rel}`;
-          setMenuFor(null);
-          const ok = await copyTextToClipboard(apiPath);
-          if (ok) toast(`Skopiowano ścieżkę: ${apiPath}`);
-          else prompt('Skopiuj ścieżkę ręcznie:', apiPath);
-        }}>
-          <ListItemIcon><CodeIcon fontSize="small" /></ListItemIcon>
+        <MenuItem
+          onClick={async () => {
+            // Ścieżka w formacie używanym przez api.file w skryptach automatyzacji
+            // (userBase-relative: `drive/{rel}`), nie backendowa /data/Minis/Users/...
+            const rel = cwd ? `${cwd}/${menuFor!.entry.name}` : menuFor!.entry.name;
+            const apiPath = `drive/${rel}`;
+            setMenuFor(null);
+            const ok = await copyTextToClipboard(apiPath);
+            if (ok) toast(`Skopiowano ścieżkę: ${apiPath}`);
+            else prompt('Skopiuj ścieżkę ręcznie:', apiPath);
+          }}
+        >
+          <ListItemIcon>
+            <CodeIcon fontSize="small" />
+          </ListItemIcon>
           <ListItemText primary="Path" secondary="Ścieżka dla api.file (skrypty)" />
         </MenuItem>
-        <MenuItem onClick={() => { copyToClipboard(menuFor!.entry, 'copy'); setMenuFor(null); }}>
-          <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            copyToClipboard(menuFor!.entry, 'copy');
+            setMenuFor(null);
+          }}
+        >
+          <ListItemIcon>
+            <ContentCopyIcon fontSize="small" />
+          </ListItemIcon>
           <ListItemText>Kopiuj</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { copyToClipboard(menuFor!.entry, 'cut'); setMenuFor(null); }}>
-          <ListItemIcon><ContentCutIcon fontSize="small" /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            copyToClipboard(menuFor!.entry, 'cut');
+            setMenuFor(null);
+          }}
+        >
+          <ListItemIcon>
+            <ContentCutIcon fontSize="small" />
+          </ListItemIcon>
           <ListItemText>Wytnij</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { setRenameDialog({ entry: menuFor!.entry, value: menuFor!.entry.name }); setMenuFor(null); }}>
-          <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            setRenameDialog({ entry: menuFor!.entry, value: menuFor!.entry.name });
+            setMenuFor(null);
+          }}
+        >
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
           <ListItemText>Zmień nazwę</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { openPropertiesDialog(menuFor!.entry); setMenuFor(null); }}>
-          <ListItemIcon><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            openPropertiesDialog(menuFor!.entry);
+            setMenuFor(null);
+          }}
+        >
+          <ListItemIcon>
+            <InfoOutlinedIcon fontSize="small" />
+          </ListItemIcon>
           <ListItemText>Właściwości…</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { void onDelete(menuFor!.entry); setMenuFor(null); }} sx={{ color: 'error.main' }}>
-          <ListItemIcon><DeleteIcon fontSize="small" color="error" /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            void onDelete(menuFor!.entry);
+            setMenuFor(null);
+          }}
+          sx={{ color: 'error.main' }}
+        >
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
           <ListItemText>Usuń</ListItemText>
         </MenuItem>
       </Menu>
@@ -2911,44 +3942,54 @@ export default function DrivePage({
               tags UX so the user gets the same chip-input across the app. */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <LabelIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-            <Typography variant="body2" fontWeight={600}>Tagi pliku</Typography>
+            <Typography variant="body2" fontWeight={600}>
+              Tagi pliku
+            </Typography>
           </Box>
-          <Box sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 0.5,
-            mb: 1,
-            minHeight: 32,
-            p: 0.5,
-            borderRadius: 1,
-            bgcolor: 'action.hover',
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 0.5,
+              mb: 1,
+              minHeight: 32,
+              p: 0.5,
+              borderRadius: 1,
+              bgcolor: 'action.hover',
+            }}
+          >
             {propsDraftTags.length === 0 ? (
               <Typography variant="caption" color="text.secondary" sx={{ p: 0.5 }}>
                 Brak tagów — dodaj poniżej.
               </Typography>
-            ) : propsDraftTags.map(tag => (
-              <Chip
-                key={tag}
-                label={tag}
-                size="small"
-                onDelete={() => setPropsDraftTags(prev => prev.filter(t => t !== tag))}
-              />
-            ))}
+            ) : (
+              propsDraftTags.map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  size="small"
+                  onDelete={() => setPropsDraftTags((prev) => prev.filter((t) => t !== tag))}
+                />
+              ))
+            )}
           </Box>
           <Stack direction="row" spacing={1}>
             <TextField
               value={propsDraftTagInput}
-              onChange={e => setPropsDraftTagInput(e.target.value)}
+              onChange={(e) => setPropsDraftTagInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   commitDraftTag();
-                } else if (e.key === 'Backspace' && !propsDraftTagInput && propsDraftTags.length > 0) {
+                } else if (
+                  e.key === 'Backspace' &&
+                  !propsDraftTagInput &&
+                  propsDraftTags.length > 0
+                ) {
                   // Empty-input backspace deletes the last chip — same UX as
                   // Gmail/Slack recipient fields.
                   e.preventDefault();
-                  setPropsDraftTags(prev => prev.slice(0, -1));
+                  setPropsDraftTags((prev) => prev.slice(0, -1));
                 }
               }}
               placeholder="np. daily, projekt-A, notatki"
@@ -2965,8 +4006,8 @@ export default function DrivePage({
             </IconButton>
           </Stack>
           <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-            Tagi są zapisywane w <code>drive/.fileproperties.json</code>. Przydaje się do filtrowania /
-            grupowania plików w przyszłych narzędziach.
+            Tagi są zapisywane w <code>drive/.fileproperties.json</code>. Przydaje się do
+            filtrowania / grupowania plików w przyszłych narzędziach.
           </Typography>
 
           {/* Cron schedule — only for runnable JS scripts (drive/server/*.mjs etc.) */}
@@ -2974,7 +4015,9 @@ export default function DrivePage({
             <Box sx={{ mt: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <ScheduleIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                <Typography variant="body2" fontWeight={600}>Harmonogram (cron)</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  Harmonogram (cron)
+                </Typography>
               </Box>
               <Stack direction="row" spacing={1} alignItems="center">
                 <TextField
@@ -2986,7 +4029,13 @@ export default function DrivePage({
                 />
                 <FormControlLabel
                   sx={{ whiteSpace: 'nowrap', mr: 0 }}
-                  control={<Switch size="small" checked={propsDraftCronEnabled} onChange={(e) => setPropsDraftCronEnabled(e.target.checked)} />}
+                  control={
+                    <Switch
+                      size="small"
+                      checked={propsDraftCronEnabled}
+                      onChange={(e) => setPropsDraftCronEnabled(e.target.checked)}
+                    />
+                  }
                   label={<Typography variant="caption">Aktywny</Typography>}
                 />
               </Stack>
@@ -2997,46 +4046,70 @@ export default function DrivePage({
                   { l: 'co godz.', c: '0 * * * *' },
                   { l: 'codz. 8:00', c: '0 8 * * *' },
                   { l: 'pon-pt 9:00', c: '0 9 * * 1-5' },
-                ].map(p => (
-                  <Chip key={p.c} label={p.l} size="small" variant="outlined" onClick={() => setPropsDraftCron(p.c)} />
+                ].map((p) => (
+                  <Chip
+                    key={p.c}
+                    label={p.l}
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setPropsDraftCron(p.c)}
+                  />
                 ))}
               </Box>
               <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                Skrypt uruchamiany na backendzie (<code>node {propsDialog.rel}</code>) wg wyrażenia cron
-                (minuta godzina dzień miesiąc dzień-tygodnia). Puste pole = brak harmonogramu.
+                Skrypt uruchamiany na backendzie (<code>node {propsDialog.rel}</code>) wg wyrażenia
+                cron (minuta godzina dzień miesiąc dzień-tygodnia). Puste pole = brak harmonogramu.
                 Zapis do <code>drive/.schedules.json</code>.
               </Typography>
 
               <FormControlLabel
                 sx={{ mt: 1 }}
-                control={<Switch size="small" checked={propsDraftStartup} onChange={(e) => setPropsDraftStartup(e.target.checked)} />}
-                label={
-                  <Typography variant="body2">
-                    Uruchom przy starcie serwera
-                  </Typography>
+                control={
+                  <Switch
+                    size="small"
+                    checked={propsDraftStartup}
+                    onChange={(e) => setPropsDraftStartup(e.target.checked)}
+                  />
                 }
+                label={<Typography variant="body2">Uruchom przy starcie serwera</Typography>}
               />
             </Box>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPropsDialog(null)}>Anuluj</Button>
-          <Button onClick={saveProperties} variant="contained">Zapisz</Button>
+          <Button onClick={saveProperties} variant="contained">
+            Zapisz
+          </Button>
         </DialogActions>
       </Dialog>
 
       {/* New folder dialog */}
-      <Dialog open={newFolderDialog} onClose={() => setNewFolderDialog(false)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={newFolderDialog}
+        onClose={() => setNewFolderDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>Nowy katalog</DialogTitle>
         <DialogContent>
-          <TextField autoFocus fullWidth label="Nazwa" value={newFolderName}
+          <TextField
+            autoFocus
+            fullWidth
+            label="Nazwa"
+            value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') void doMkdir(); }}
-            margin="normal" />
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void doMkdir();
+            }}
+            margin="normal"
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setNewFolderDialog(false)}>Anuluj</Button>
-          <Button variant="contained" disabled={!newFolderName.trim()} onClick={doMkdir}>Utwórz</Button>
+          <Button variant="contained" disabled={!newFolderName.trim()} onClick={doMkdir}>
+            Utwórz
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -3045,14 +4118,27 @@ export default function DrivePage({
         <Dialog open onClose={() => setRenameDialog(null)} maxWidth="xs" fullWidth>
           <DialogTitle>Zmień nazwę</DialogTitle>
           <DialogContent>
-            <TextField autoFocus fullWidth label="Nowa nazwa" value={renameDialog.value}
+            <TextField
+              autoFocus
+              fullWidth
+              label="Nowa nazwa"
+              value={renameDialog.value}
               onChange={(e) => setRenameDialog({ ...renameDialog, value: e.target.value })}
-              onKeyDown={(e) => { if (e.key === 'Enter') void doRename(); }}
-              margin="normal" />
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void doRename();
+              }}
+              margin="normal"
+            />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setRenameDialog(null)}>Anuluj</Button>
-            <Button variant="contained" disabled={!renameDialog.value.trim() || renameDialog.value === renameDialog.entry.name} onClick={doRename}>
+            <Button
+              variant="contained"
+              disabled={
+                !renameDialog.value.trim() || renameDialog.value === renameDialog.entry.name
+              }
+              onClick={doRename}
+            >
               Zmień
             </Button>
           </DialogActions>
@@ -3082,131 +4168,212 @@ export default function DrivePage({
           </MenuItem>
           <Divider />
           {viewing?.textContent !== undefined && (
-            <MenuItem onClick={() => { void copyViewTextToSystem(); setViewActionsMenu(null); }}>
-              <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
+            <MenuItem
+              onClick={() => {
+                void copyViewTextToSystem();
+                setViewActionsMenu(null);
+              }}
+            >
+              <ListItemIcon>
+                <ContentCopyIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Kopiuj cały tekst" secondary="Do systemowego schowka" />
             </MenuItem>
           )}
           {editing && (
-            <MenuItem onClick={() => { void viewFile(panelFile.entry, panelFile.rel); setViewActionsMenu(null); }}>
-              <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
+            <MenuItem
+              onClick={() => {
+                void viewFile(panelFile.entry, panelFile.rel);
+                setViewActionsMenu(null);
+              }}
+            >
+              <ListItemIcon>
+                <VisibilityIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Podgląd" secondary="Bez edytora" />
             </MenuItem>
           )}
-          {viewing && editor
-            && editor.canEdit({ path: panelFile.rel, name: panelFile.name, store: driveStoreForCapabilities }) && (
-            <MenuItem onClick={() => { openInEditor(panelFile.entry, panelFile.rel); setViewActionsMenu(null); }}>
-              <ListItemIcon><EditNoteIcon fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Edytuj" secondary="W prawym panelu" />
-            </MenuItem>
-          )}
-          <MenuItem onClick={() => { toggleFavoritePath(panelFile.rel, panelFile.name); setViewActionsMenu(null); }}>
+          {viewing &&
+            editor &&
+            editor.canEdit({
+              path: panelFile.rel,
+              name: panelFile.name,
+              store: driveStoreForCapabilities,
+            }) && (
+              <MenuItem
+                onClick={() => {
+                  openInEditor(panelFile.entry, panelFile.rel);
+                  setViewActionsMenu(null);
+                }}
+              >
+                <ListItemIcon>
+                  <EditNoteIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Edytuj" secondary="W prawym panelu" />
+              </MenuItem>
+            )}
+          <MenuItem
+            onClick={() => {
+              toggleFavoritePath(panelFile.rel, panelFile.name);
+              setViewActionsMenu(null);
+            }}
+          >
             <ListItemIcon>
-              {isFavorite(panelFile.rel)
-                ? <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
-                : <StarBorderIcon fontSize="small" />}
+              {isFavorite(panelFile.rel) ? (
+                <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
+              ) : (
+                <StarBorderIcon fontSize="small" />
+              )}
             </ListItemIcon>
-            <ListItemText primary={isFavorite(panelFile.rel) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'} />
+            <ListItemText
+              primary={isFavorite(panelFile.rel) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+            />
           </MenuItem>
           {isPublic(vfs, panelFile.rel) && (
-            <MenuItem onClick={() => { void copyPublicUrl(panelFile.entry, panelFile.rel); setViewActionsMenu(null); }}>
-              <ListItemIcon><LinkIcon fontSize="small" /></ListItemIcon>
+            <MenuItem
+              onClick={() => {
+                void copyPublicUrl(panelFile.entry, panelFile.rel);
+                setViewActionsMenu(null);
+              }}
+            >
+              <ListItemIcon>
+                <LinkIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Kopiuj link publiczny" />
             </MenuItem>
           )}
-          <MenuItem onClick={() => { void onDownload(panelFile.entry, panelFile.rel); setViewActionsMenu(null); }}>
-            <ListItemIcon><DownloadIcon fontSize="small" /></ListItemIcon>
+          <MenuItem
+            onClick={() => {
+              void onDownload(panelFile.entry, panelFile.rel);
+              setViewActionsMenu(null);
+            }}
+          >
+            <ListItemIcon>
+              <DownloadIcon fontSize="small" />
+            </ListItemIcon>
             <ListItemText primary="Pobierz" />
           </MenuItem>
         </Menu>
       )}
 
-
       {/* New empty file dialog */}
-      {newFileDialog && (() => {
-        const currentPreset = FILE_PRESETS.find(p => p.key === newFileDialog.presetKey) ?? FILE_PRESETS[0];
-        // Live preview of the name that will actually land on disk —
-        // matches what `doCreateEmpty` will produce.
-        const previewName = newFileDialog.name.trim()
-          ? applyExtension(newFileDialog.name.trim(), currentPreset.extension)
-          : '';
-        return (
-        <Dialog open onClose={() => setNewFileDialog(null)} maxWidth="xs" fullWidth>
-          <DialogTitle>Nowy pusty plik</DialogTitle>
-          <DialogContent>
-            <FormControl fullWidth size="small" margin="normal">
-              <InputLabel id="new-file-preset-label">Typ pliku</InputLabel>
-              <Select
-                labelId="new-file-preset-label"
-                label="Typ pliku"
-                value={newFileDialog.presetKey}
-                onChange={(e) => {
-                  const nextKey = e.target.value;
-                  const nextPreset = FILE_PRESETS.find(p => p.key === nextKey) ?? FILE_PRESETS[0];
-                  // Auto-update name to the new preset's default IF the user
-                  // hasn't typed something custom (still on a known default).
-                  // Otherwise keep their text — they'll get auto-extension on save.
-                  const wasDefault = FILE_PRESETS.some(p => p.defaultName === newFileDialog.name);
-                  setNewFileDialog({
-                    presetKey: nextKey,
-                    name: wasDefault ? nextPreset.defaultName : newFileDialog.name,
-                  });
-                }}
-              >
-                {FILE_PRESETS.map(p => (
-                  <MenuItem key={p.key} value={p.key}>{p.label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField autoFocus fullWidth label="Nazwa pliku" value={newFileDialog.name}
-              onChange={(e) => setNewFileDialog({ ...newFileDialog, name: e.target.value })}
-              onKeyDown={(e) => { if (e.key === 'Enter') void doCreateEmpty(); }}
-              margin="normal"
-              helperText={
-                currentPreset.extension
-                  ? `Rozszerzenie ${currentPreset.extension} zostanie dodane automatycznie jeśli go nie wpiszesz.`
-                  : 'Wpisz pełną nazwę z rozszerzeniem.'
-              }
-            />
-            {previewName && previewName !== newFileDialog.name && (
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                Końcowa nazwa: <code>{previewName}</code>
-              </Typography>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setNewFileDialog(null)}>Anuluj</Button>
-            <Button variant="contained" disabled={!newFileDialog.name.trim()} onClick={doCreateEmpty}>Utwórz</Button>
-          </DialogActions>
-        </Dialog>
-        );
-      })()}
+      {newFileDialog &&
+        (() => {
+          const currentPreset =
+            FILE_PRESETS.find((p) => p.key === newFileDialog.presetKey) ?? FILE_PRESETS[0];
+          // Live preview of the name that will actually land on disk —
+          // matches what `doCreateEmpty` will produce.
+          const previewName = newFileDialog.name.trim()
+            ? applyExtension(newFileDialog.name.trim(), currentPreset.extension)
+            : '';
+          return (
+            <Dialog open onClose={() => setNewFileDialog(null)} maxWidth="xs" fullWidth>
+              <DialogTitle>Nowy pusty plik</DialogTitle>
+              <DialogContent>
+                <FormControl fullWidth size="small" margin="normal">
+                  <InputLabel id="new-file-preset-label">Typ pliku</InputLabel>
+                  <Select
+                    labelId="new-file-preset-label"
+                    label="Typ pliku"
+                    value={newFileDialog.presetKey}
+                    onChange={(e) => {
+                      const nextKey = e.target.value;
+                      const nextPreset =
+                        FILE_PRESETS.find((p) => p.key === nextKey) ?? FILE_PRESETS[0];
+                      // Auto-update name to the new preset's default IF the user
+                      // hasn't typed something custom (still on a known default).
+                      // Otherwise keep their text — they'll get auto-extension on save.
+                      const wasDefault = FILE_PRESETS.some(
+                        (p) => p.defaultName === newFileDialog.name
+                      );
+                      setNewFileDialog({
+                        presetKey: nextKey,
+                        name: wasDefault ? nextPreset.defaultName : newFileDialog.name,
+                      });
+                    }}
+                  >
+                    {FILE_PRESETS.map((p) => (
+                      <MenuItem key={p.key} value={p.key}>
+                        {p.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <TextField
+                  autoFocus
+                  fullWidth
+                  label="Nazwa pliku"
+                  value={newFileDialog.name}
+                  onChange={(e) => setNewFileDialog({ ...newFileDialog, name: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') void doCreateEmpty();
+                  }}
+                  margin="normal"
+                  helperText={
+                    currentPreset.extension
+                      ? `Rozszerzenie ${currentPreset.extension} zostanie dodane automatycznie jeśli go nie wpiszesz.`
+                      : 'Wpisz pełną nazwę z rozszerzeniem.'
+                  }
+                />
+                {previewName && previewName !== newFileDialog.name && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mt: 0.5, display: 'block' }}
+                  >
+                    Końcowa nazwa: <code>{previewName}</code>
+                  </Typography>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setNewFileDialog(null)}>Anuluj</Button>
+                <Button
+                  variant="contained"
+                  disabled={!newFileDialog.name.trim()}
+                  onClick={doCreateEmpty}
+                >
+                  Utwórz
+                </Button>
+              </DialogActions>
+            </Dialog>
+          );
+        })()}
 
       {/* Create-from-clipboard dialog */}
       {clipboardCreateDialog && (
         <Dialog open onClose={() => setClipboardCreateDialog(null)} maxWidth="md" fullWidth>
           <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <ContentPasteGoIcon /> Utwórz ze schowka
-            <Chip size="small" label={clipboardCreateDialog.kind === 'image' ? 'obraz' : 'tekst'}
+            <Chip
+              size="small"
+              label={clipboardCreateDialog.kind === 'image' ? 'obraz' : 'tekst'}
               color={clipboardCreateDialog.kind === 'image' ? 'primary' : 'default'}
               sx={{ ml: 1 }}
             />
           </DialogTitle>
           <DialogContent>
-            <TextField fullWidth label="Nazwa pliku" value={clipboardCreateDialog.name}
-              onChange={(e) => setClipboardCreateDialog({ ...clipboardCreateDialog, name: e.target.value })}
+            <TextField
+              fullWidth
+              label="Nazwa pliku"
+              value={clipboardCreateDialog.name}
+              onChange={(e) =>
+                setClipboardCreateDialog({ ...clipboardCreateDialog, name: e.target.value })
+              }
               margin="normal"
               helperText="Jeśli plik o takiej nazwie istnieje, dostanie sufix (copy)"
             />
             {clipboardCreateDialog.kind === 'image' ? (
-              <Box sx={{ textAlign: 'center', mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+              <Box
+                sx={{ textAlign: 'center', mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}
+              >
                 <img
                   src={`data:${clipboardCreateDialog.imageMime};base64,${clipboardCreateDialog.imageB64}`}
                   alt="podgląd"
                   style={{ maxWidth: '100%', maxHeight: '50vh' }}
                 />
                 <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                  {clipboardCreateDialog.imageMime} • ~{formatBytes(Math.floor(clipboardCreateDialog.imageB64.length * 3 / 4))}
+                  {clipboardCreateDialog.imageMime} • ~
+                  {formatBytes(Math.floor((clipboardCreateDialog.imageB64.length * 3) / 4))}
                 </Typography>
               </Box>
             ) : (
@@ -3216,12 +4383,16 @@ export default function DrivePage({
                     Twoja przeglądarka nie pozwala odczytać systemowego schowka automatycznie
                     (typowo: telefon, tablet, lub strona pod HTTP).
                     <br />
-                    <strong>Wklej zawartość ręcznie w polu poniżej</strong> —
-                    użyj <code>⌘V</code>/<code>Ctrl+V</code> na desktopie,
-                    lub przytrzymaj pole i wybierz <strong>Wklej</strong> na mobile.
+                    <strong>Wklej zawartość ręcznie w polu poniżej</strong> — użyj <code>⌘V</code>/
+                    <code>Ctrl+V</code> na desktopie, lub przytrzymaj pole i wybierz{' '}
+                    <strong>Wklej</strong> na mobile.
                   </Alert>
                 )}
-                <TextField fullWidth multiline rows={12} label="Treść (wklej lub edytuj)"
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={12}
+                  label="Treść (wklej lub edytuj)"
                   autoFocus={!clipboardCreateDialog.textContent}
                   value={clipboardCreateDialog.textContent}
                   onChange={(e) => {
@@ -3234,12 +4405,20 @@ export default function DrivePage({
                       // user who already renamed the file.
                       const wasEmpty = !prev.textContent && newText;
                       const stillDefault = prev.name === 'clipboard.txt';
-                      const nextName = (wasEmpty && stillDefault) ? suggestNameForText(newText) : prev.name;
+                      const nextName =
+                        wasEmpty && stillDefault ? suggestNameForText(newText) : prev.name;
                       return { ...prev, textContent: newText, name: nextName };
                     });
                   }}
                   margin="normal"
-                  slotProps={{ htmlInput: { style: { fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace', fontSize: 13 } } }}
+                  slotProps={{
+                    htmlInput: {
+                      style: {
+                        fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
+                        fontSize: 13,
+                      },
+                    },
+                  }}
                   helperText={`${clipboardCreateDialog.textContent.length} znaków`}
                 />
               </>
@@ -3247,7 +4426,11 @@ export default function DrivePage({
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setClipboardCreateDialog(null)}>Anuluj</Button>
-            <Button variant="contained" disabled={!clipboardCreateDialog.name.trim()} onClick={doCreateFromClipboard}>
+            <Button
+              variant="contained"
+              disabled={!clipboardCreateDialog.name.trim()}
+              onClick={doCreateFromClipboard}
+            >
               Zapisz
             </Button>
           </DialogActions>
@@ -3281,105 +4464,154 @@ export default function DrivePage({
       />
 
       {/* Upload staging dialog — pick / drop multiple files, review, commit. */}
-      {uploadDialog && (() => {
-        const UPLOAD_LIMIT = 140 * 1024 * 1024;   // pre-flight limit aligned with upload()
-        const totalBytes = uploadDialog.files.reduce((sum, f) => sum + f.size, 0);
-        const oversized = uploadDialog.files.filter(f => f.size > UPLOAD_LIMIT).length;
-        return (
-          <Dialog open onClose={() => setUploadDialog(null)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CloudUploadIcon /> Upload plików do <code>/{cwd || ''}</code>
-            </DialogTitle>
-            <DialogContent>
-              <input
-                ref={dialogFileInputRef} type="file" multiple
-                style={{ display: 'none' }} onChange={onDialogFileInputChange}
-              />
+      {uploadDialog &&
+        (() => {
+          const UPLOAD_LIMIT = 140 * 1024 * 1024; // pre-flight limit aligned with upload()
+          const totalBytes = uploadDialog.files.reduce((sum, f) => sum + f.size, 0);
+          const oversized = uploadDialog.files.filter((f) => f.size > UPLOAD_LIMIT).length;
+          return (
+            <Dialog open onClose={() => setUploadDialog(null)} maxWidth="sm" fullWidth>
+              <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CloudUploadIcon /> Upload plików do <code>/{cwd || ''}</code>
+              </DialogTitle>
+              <DialogContent>
+                <input
+                  ref={dialogFileInputRef}
+                  type="file"
+                  multiple
+                  style={{ display: 'none' }}
+                  onChange={onDialogFileInputChange}
+                />
 
-              {/* Drop zone + pick button */}
-              <Box
-                onClick={() => dialogFileInputRef.current?.click()}
-                onDragOver={(e) => { e.preventDefault(); }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                    addFilesToUploadDialog(e.dataTransfer.files);
-                  }
-                }}
-                sx={{
-                  border: '2px dashed', borderColor: 'divider',
-                  borderRadius: 1, p: 3, mt: 1, textAlign: 'center',
-                  cursor: 'pointer',
-                  bgcolor: 'action.hover',
-                  '&:hover': { borderColor: 'primary.main', bgcolor: 'action.selected' },
-                }}
-              >
-                <DriveFolderUploadIcon sx={{ fontSize: 36, color: 'text.secondary', mb: 0.5 }} />
-                <Typography variant="body2"><strong>Kliknij</strong>, aby wybrać pliki — lub przeciągnij tu z systemu</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Możesz dodawać kolejne — pliki nie znikają po kolejnym kliknięciu
-                </Typography>
-              </Box>
-
-              {/* Staged file list */}
-              {uploadDialog.files.length > 0 && (
-                <Box sx={{ mt: 2, maxHeight: 320, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                  {uploadDialog.files.map((f, i) => {
-                    const tooBig = f.size > UPLOAD_LIMIT;
-                    return (
-                      <Box key={`${f.name}-${i}`} sx={{
-                        display: 'flex', alignItems: 'center', gap: 1, px: 1, py: 0.75,
-                        borderBottom: i < uploadDialog.files.length - 1 ? '1px solid' : 'none',
-                        borderColor: 'divider',
-                      }}>
-                        <InsertDriveFileIcon fontSize="small" sx={{ color: tooBig ? 'error.main' : 'text.secondary' }} />
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography variant="body2" noWrap title={f.name}>{f.name}</Typography>
-                          <Typography variant="caption" color={tooBig ? 'error.main' : 'text.secondary'}>
-                            {formatBytes(f.size)}{tooBig && ` — za duży (max ${formatBytes(UPLOAD_LIMIT)})`}
-                          </Typography>
-                        </Box>
-                        <IconButton size="small" onClick={() => removeFileFromUploadDialog(i)}>
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    );
-                  })}
+                {/* Drop zone + pick button */}
+                <Box
+                  onClick={() => dialogFileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      addFilesToUploadDialog(e.dataTransfer.files);
+                    }
+                  }}
+                  sx={{
+                    border: '2px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 3,
+                    mt: 1,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    bgcolor: 'action.hover',
+                    '&:hover': { borderColor: 'primary.main', bgcolor: 'action.selected' },
+                  }}
+                >
+                  <DriveFolderUploadIcon sx={{ fontSize: 36, color: 'text.secondary', mb: 0.5 }} />
+                  <Typography variant="body2">
+                    <strong>Kliknij</strong>, aby wybrać pliki — lub przeciągnij tu z systemu
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Możesz dodawać kolejne — pliki nie znikają po kolejnym kliknięciu
+                  </Typography>
                 </Box>
-              )}
 
-              {/* Summary */}
-              <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-                <Chip
-                  size="small" variant="outlined"
-                  label={`${uploadDialog.files.length} plik${uploadDialog.files.length === 1 ? '' : 'ów'}`}
-                />
-                <Chip
-                  size="small" variant="outlined"
-                  label={`Razem ${formatBytes(totalBytes)}`}
-                />
-                {oversized > 0 && (
-                  <Chip size="small" color="error" variant="outlined"
-                    label={`${oversized} za duży — usuń przed uploadem`} />
+                {/* Staged file list */}
+                {uploadDialog.files.length > 0 && (
+                  <Box
+                    sx={{
+                      mt: 2,
+                      maxHeight: 320,
+                      overflowY: 'auto',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                    }}
+                  >
+                    {uploadDialog.files.map((f, i) => {
+                      const tooBig = f.size > UPLOAD_LIMIT;
+                      return (
+                        <Box
+                          key={`${f.name}-${i}`}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            px: 1,
+                            py: 0.75,
+                            borderBottom: i < uploadDialog.files.length - 1 ? '1px solid' : 'none',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          <InsertDriveFileIcon
+                            fontSize="small"
+                            sx={{ color: tooBig ? 'error.main' : 'text.secondary' }}
+                          />
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" noWrap title={f.name}>
+                              {f.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color={tooBig ? 'error.main' : 'text.secondary'}
+                            >
+                              {formatBytes(f.size)}
+                              {tooBig && ` — za duży (max ${formatBytes(UPLOAD_LIMIT)})`}
+                            </Typography>
+                          </Box>
+                          <IconButton size="small" onClick={() => removeFileFromUploadDialog(i)}>
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      );
+                    })}
+                  </Box>
                 )}
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setUploadDialog(null)}>Anuluj</Button>
-              <Button
-                variant="contained"
-                startIcon={<CloudUploadIcon />}
-                disabled={uploadDialog.files.length === 0 || oversized > 0}
-                onClick={commitUploadDialog}
-              >
-                Wgraj {uploadDialog.files.length > 0 ? `(${uploadDialog.files.length})` : ''}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        );
-      })()}
 
-      <Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack({ ...snack, open: false })}>
+                {/* Summary */}
+                <Box
+                  sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}
+                >
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`${uploadDialog.files.length} plik${uploadDialog.files.length === 1 ? '' : 'ów'}`}
+                  />
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`Razem ${formatBytes(totalBytes)}`}
+                  />
+                  {oversized > 0 && (
+                    <Chip
+                      size="small"
+                      color="error"
+                      variant="outlined"
+                      label={`${oversized} za duży — usuń przed uploadem`}
+                    />
+                  )}
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setUploadDialog(null)}>Anuluj</Button>
+                <Button
+                  variant="contained"
+                  startIcon={<CloudUploadIcon />}
+                  disabled={uploadDialog.files.length === 0 || oversized > 0}
+                  onClick={commitUploadDialog}
+                >
+                  Wgraj {uploadDialog.files.length > 0 ? `(${uploadDialog.files.length})` : ''}
+                </Button>
+              </DialogActions>
+            </Dialog>
+          );
+        })()}
+
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={3500}
+        onClose={() => setSnack({ ...snack, open: false })}
+      >
         <Alert severity={snack.severity}>{snack.msg}</Alert>
       </Snackbar>
     </Box>

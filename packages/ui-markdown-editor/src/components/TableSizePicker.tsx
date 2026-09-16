@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  Popover,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
+import { Box, Paper, Typography, Popover, IconButton, Tooltip } from '@mui/material';
 import TableChartIcon from '@mui/icons-material/TableChart';
 
 interface TableSizePickerProps {

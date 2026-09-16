@@ -20,7 +20,7 @@ const InlineMathNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
           throwOnError: false,
           displayMode: false,
         });
-      } catch (e) {
+      } catch {
         containerRef.current.innerHTML = `<span style="color: red;">${node.attrs.latex}</span>`;
       }
     }
@@ -39,7 +39,8 @@ const InlineMathNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
             cursor: 'pointer',
             padding: '2px 6px',
             borderRadius: '4px',
-            backgroundColor: selected || isHovered ? 'rgba(25, 118, 210, 0.15)' : 'rgba(25, 118, 210, 0.05)',
+            backgroundColor:
+              selected || isHovered ? 'rgba(25, 118, 210, 0.15)' : 'rgba(25, 118, 210, 0.05)',
             border: selected ? '1px solid #1976d2' : '1px solid transparent',
             transition: 'all 0.2s ease',
           }}
@@ -49,7 +50,10 @@ const InlineMathNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
         open={dialogOpen}
         initialLatex={node.attrs.latex}
         displayMode={false}
-        onSave={(latex) => { updateAttributes({ latex }); setDialogOpen(false); }}
+        onSave={(latex) => {
+          updateAttributes({ latex });
+          setDialogOpen(false);
+        }}
         onClose={() => setDialogOpen(false)}
       />
     </NodeViewWrapper>
@@ -69,7 +73,7 @@ const MathBlockNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, se
           throwOnError: false,
           displayMode: true,
         });
-      } catch (e) {
+      } catch {
         containerRef.current.innerHTML = `<span style="color: red;">Błąd LaTeX: ${node.attrs.latex}</span>`;
       }
     }
@@ -147,7 +151,10 @@ const MathBlockNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, se
         open={dialogOpen}
         initialLatex={node.attrs.latex}
         displayMode
-        onSave={(latex) => { updateAttributes({ latex }); setDialogOpen(false); }}
+        onSave={(latex) => {
+          updateAttributes({ latex });
+          setDialogOpen(false);
+        }}
         onClose={() => setDialogOpen(false)}
       />
     </NodeViewWrapper>
@@ -185,10 +192,13 @@ export const InlineMath = Node.create({
   },
 
   renderHTML({ HTMLAttributes, node }) {
-    return ['span', mergeAttributes(HTMLAttributes, {
-      'data-type': 'inline-math',
-      'data-latex': encodeURIComponent(node.attrs.latex || ''),
-    })];
+    return [
+      'span',
+      mergeAttributes(HTMLAttributes, {
+        'data-type': 'inline-math',
+        'data-latex': encodeURIComponent(node.attrs.latex || ''),
+      }),
+    ];
   },
 
   addNodeView() {
@@ -197,12 +207,14 @@ export const InlineMath = Node.create({
 
   addCommands() {
     return {
-      insertInlineMath: (latex = 'x') => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: { latex },
-        });
-      },
+      insertInlineMath:
+        (latex = 'x') =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: { latex },
+          });
+        },
     };
   },
 
@@ -249,10 +261,13 @@ export const MathBlock = Node.create({
   },
 
   renderHTML({ HTMLAttributes, node }) {
-    return ['div', mergeAttributes(HTMLAttributes, {
-      'data-type': 'math-block',
-      'data-latex': encodeURIComponent(node.attrs.latex || ''),
-    })];
+    return [
+      'div',
+      mergeAttributes(HTMLAttributes, {
+        'data-type': 'math-block',
+        'data-latex': encodeURIComponent(node.attrs.latex || ''),
+      }),
+    ];
   },
 
   addNodeView() {
@@ -261,12 +276,14 @@ export const MathBlock = Node.create({
 
   addCommands() {
     return {
-      insertMathBlock: (latex = 'E = mc^2') => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: { latex },
-        });
-      },
+      insertMathBlock:
+        (latex = 'E = mc^2') =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: { latex },
+          });
+        },
     };
   },
 

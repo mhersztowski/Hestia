@@ -28,23 +28,24 @@ export const ALLOWED_COMMANDS = new Set(['npm', 'pnpm', 'yarn', 'bun']);
  */
 const SAFE_ARGUMENT = /^[A-Za-z0-9][A-Za-z0-9:._=-]{0,63}$/;
 
-export type CommandDecision =
-    | { ok: true }
-    | { ok: false; reason: string };
+export type CommandDecision = { ok: true } | { ok: false; reason: string };
 
 export function decideCommand(command: string, args: readonly string[]): CommandDecision {
-    if (!ALLOWED_COMMANDS.has(command)) {
-        return { ok: false, reason: `Nie uruchamiam „${command}" — dozwolone: ${[...ALLOWED_COMMANDS].join(', ')}.` };
+  if (!ALLOWED_COMMANDS.has(command)) {
+    return {
+      ok: false,
+      reason: `Nie uruchamiam „${command}" — dozwolone: ${[...ALLOWED_COMMANDS].join(', ')}.`,
+    };
+  }
+  if (args.length > 8) {
+    return { ok: false, reason: 'Za dużo argumentów.' };
+  }
+  for (const arg of args) {
+    // `--frozen-lockfile` and friends: the leading dashes are stripped
+    // before the shape is checked, so a flag is judged by its name.
+    if (!SAFE_ARGUMENT.test(arg.replace(/^--?/, ''))) {
+      return { ok: false, reason: `Niedozwolony argument: ${JSON.stringify(arg)}` };
     }
-    if (args.length > 8) {
-        return { ok: false, reason: 'Za dużo argumentów.' };
-    }
-    for (const arg of args) {
-        // `--frozen-lockfile` and friends: the leading dashes are stripped
-        // before the shape is checked, so a flag is judged by its name.
-        if (!SAFE_ARGUMENT.test(arg.replace(/^--?/, ''))) {
-            return { ok: false, reason: `Niedozwolony argument: ${JSON.stringify(arg)}` };
-        }
-    }
-    return { ok: true };
+  }
+  return { ok: true };
 }

@@ -52,7 +52,9 @@ describe('compareRuns', () => {
     // zauważył.
     const [krotkie, dlugie] = wynik.runs.map((r) => r.result.series.theta ?? []);
     expect(krotkie.length).toBeGreaterThan(2);
-    const roznica = krotkie.some(([t, v], i) => Math.abs(v - (dlugie[i]?.[1] ?? v)) > 1e-6 && t > 0);
+    const roznica = krotkie.some(
+      ([t, v], i) => Math.abs(v - (dlugie[i]?.[1] ?? v)) > 1e-6 && t > 0
+    );
     expect(roznica).toBe(true);
   });
 
@@ -64,11 +66,15 @@ describe('compareRuns', () => {
   });
 
   it('bierze tylko wielkości, które są we wszystkich przebiegach', () => {
-    expect(Object.keys(wynik.series).every((name) => /\((krótkie|długie)\)$/.test(name))).toBe(true);
+    expect(Object.keys(wynik.series).every((name) => /\((krótkie|długie)\)$/.test(name))).toBe(
+      true
+    );
   });
 
   it('zgłasza uwagi z każdego przebiegu razem z jego etykietą', () => {
-    const zeZlym = compareRuns(model(), [{ label: 'zły', values: { nieistnieje: 1 } }], { duration: 1 });
+    const zeZlym = compareRuns(model(), [{ label: 'zły', values: { nieistnieje: 1 } }], {
+      duration: 1,
+    });
     expect(zeZlym.issues[0]).toContain('zły');
   });
 

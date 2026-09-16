@@ -1,9 +1,4 @@
-import {
-  PART_LIBRARY,
-  getPartDef,
-  CATEGORY_ORDER,
-  CATEGORY_LABEL,
-} from './partLibrary';
+import { PART_LIBRARY, getPartDef, CATEGORY_ORDER, CATEGORY_LABEL } from './partLibrary';
 
 describe('partLibrary', () => {
   it('exposes a non-empty part library', () => {

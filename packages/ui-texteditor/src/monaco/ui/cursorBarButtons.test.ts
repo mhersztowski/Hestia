@@ -10,8 +10,14 @@ import { CURSOR_BAR_BUTTONS } from './cursorBarButtons';
 describe('CURSOR_BAR_BUTTONS', () => {
   it('zawiera wszystkie osiem ruchów kursora', () => {
     expect(CURSOR_BAR_BUTTONS.map((b) => b.command)).toEqual([
-      'cursorTop', 'cursorHome', 'cursorLeft', 'cursorUp',
-      'cursorDown', 'cursorRight', 'cursorEnd', 'cursorBottom',
+      'cursorTop',
+      'cursorHome',
+      'cursorLeft',
+      'cursorUp',
+      'cursorDown',
+      'cursorRight',
+      'cursorEnd',
+      'cursorBottom',
     ]);
   });
 

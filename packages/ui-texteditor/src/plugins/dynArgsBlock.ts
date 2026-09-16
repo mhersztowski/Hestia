@@ -43,17 +43,21 @@ export function defineDynArgsBlock(cfg: {
         .appendField(cfg.prefix)
         .appendField(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          new Blockly.FieldDropdown(cfg.nameOpts as any, function (this: Blockly.Field, value: string) {
+          new Blockly.FieldDropdown(cfg.nameOpts as any, function (
+            this: Blockly.Field,
+            value: string
+          ) {
             // Kształt zmieniamy poza walidacją: w jej trakcie pole nie ma
             // jeszcze nowej wartości, a przebudowa wejść generuje zdarzenia,
             // których Blockly nie spodziewa się w środku `setValue`.
             const block = this.getSourceBlock() as DynArgsBlock | null;
-            if (block) setTimeout(() => {
-              if (!block.isDisposed()) block.updateShape_(cfg.argsFor(value).length);
-            }, 0);
+            if (block)
+              setTimeout(() => {
+                if (!block.isDisposed()) block.updateShape_(cfg.argsFor(value).length);
+              }, 0);
             return undefined;
           }),
-          'NAME',
+          'NAME'
         )
         .appendField(cfg.suffix);
       this.setPreviousStatement(true, null);
@@ -104,7 +108,11 @@ export function defineDynArgsBlock(cfg: {
         const target = kept[i];
         const input = this.getInput(inputName(i));
         if (!target || !input?.connection) continue;
-        try { input.connection.connect(target); } catch { /* typ się nie zgadza — blok zostaje luzem */ }
+        try {
+          input.connection.connect(target);
+        } catch {
+          /* typ się nie zgadza — blok zostaje luzem */
+        }
       }
     },
   };

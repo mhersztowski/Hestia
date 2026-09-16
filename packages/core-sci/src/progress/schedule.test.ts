@@ -28,7 +28,10 @@ function seria(razy: number, quality: 'perfect' | 'hinted' = 'perfect'): Progres
 
 describe('recordAttempt', () => {
   it('pierwsza poprawna odpowiedź wyznacza termin powtórki', () => {
-    const progress = recordAttempt(emptyProgress(), 'wahadlo:okres', { quality: 'perfect', at: START });
+    const progress = recordAttempt(emptyProgress(), 'wahadlo:okres', {
+      quality: 'perfect',
+      at: START,
+    });
     const wpis = progress.items['wahadlo:okres'];
 
     expect(wpis.dueAt).toBeGreaterThan(START);
@@ -73,8 +76,9 @@ describe('recordAttempt', () => {
     const samodzielnie = seria(3, 'perfect').items['wahadlo:okres'];
     const zPodpowiedzia = seria(3, 'hinted').items['wahadlo:okres'];
 
-    expect(zPodpowiedzia.dueAt - zPodpowiedzia.lastAt)
-      .toBeLessThan(samodzielnie.dueAt - samodzielnie.lastAt);
+    expect(zPodpowiedzia.dueAt - zPodpowiedzia.lastAt).toBeLessThan(
+      samodzielnie.dueAt - samodzielnie.lastAt
+    );
   });
 
   it('nie gubi postępów innych zadań', () => {

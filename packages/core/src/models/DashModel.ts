@@ -8,18 +8,19 @@
 // here — those are view-layer types and stay in the editor component.
 
 /** Value of a block field/property (recursive JSON). */
-export type DashValue =
-  | string
-  | number
-  | boolean
-  | null
-  | DashValue[]
-  | { [k: string]: DashValue };
+export type DashValue = string | number | boolean | null | DashValue[] | { [k: string]: DashValue };
 
 /** Entity field type (mapped to an editing widget in Properties). */
 export type QFieldType =
-  | 'QIcon' | 'QImage' | 'QString' | 'QNumber' | 'QArray' | 'QMap'
-  | 'QObjectRef' | 'QChildsObjectRef' | 'QFilePath';
+  | 'QIcon'
+  | 'QImage'
+  | 'QString'
+  | 'QNumber'
+  | 'QArray'
+  | 'QMap'
+  | 'QObjectRef'
+  | 'QChildsObjectRef'
+  | 'QFilePath';
 
 /** Value of a QObjectRef field — a reference to an object in another file. */
 export interface QObjectRefValue {
@@ -71,13 +72,17 @@ export interface HandlerFn {
   sourceName: string;
   fileType: DataSourceEntry['fileType'];
   symbolPath: string;
-  params: string;      // raw parameter text (with types for TS)
+  params: string; // raw parameter text (with types for TS)
   paramCount: number;
   lang?: 'python';
 }
 
 /** Used only when parsing older scenes (x/y without a transform). */
-export type LegacyDashObject = Omit<DashObject, 'transform'> & { transform?: DashTransform; x?: number; y?: number };
+export type LegacyDashObject = Omit<DashObject, 'transform'> & {
+  transform?: DashTransform;
+  x?: number;
+  y?: number;
+};
 
 /** A data source (file with functions/classes/JSON) attached to the scene. */
 export interface DataSourceEntry {
@@ -90,15 +95,15 @@ export interface DataSourceEntry {
 /** A block calling a function from the data source. */
 export interface FunctionCallObject {
   id: string;
-  sourceId: string;       // DataSourceEntry.id
-  symbolPath: string;     // e.g. "ClassName.methodName" or "functionName"
+  sourceId: string; // DataSourceEntry.id
+  symbolPath: string; // e.g. "ClassName.methodName" or "functionName"
   paramNames: string[];
-  argOverrides: Record<number, string>;  // manual argument values, when no Var is wired in
-  result: string | null;  // JSON-serialized last result
+  argOverrides: Record<number, string>; // manual argument values, when no Var is wired in
+  result: string | null; // JSON-serialized last result
   error: string | null;
   x: number;
   y: number;
-  pinsFlipped?: boolean;  // true: argument pins on the right, return on the right
+  pinsFlipped?: boolean; // true: argument pins on the right, return on the right
   /** 'python' → run the function through Pyodide (the source is a .py file). */
   lang?: 'python';
   /** Id of the group the block belongs to (grouping in the SCENE tree). */
@@ -109,10 +114,10 @@ export interface FunctionCallObject {
 export interface VarObject {
   id: string;
   varName: string;
-  varValue: string | null;  // JSON-serialized value
+  varValue: string | null; // JSON-serialized value
   x: number;
   y: number;
-  pinsFlipped?: boolean;  // true: both pins on the right
+  pinsFlipped?: boolean; // true: both pins on the right
   parentId?: string;
   /** true: hide the "Set var value" editor on the canvas (the block shows only name/pins). */
   hideValue?: boolean;
@@ -122,9 +127,9 @@ export interface VarObject {
 export interface FcEdge {
   id: string;
   source: string;
-  sourceHandle: string;   // 'return' on FunctionCall, 'value_out' on Var, 'get_X'/'instance_out' on ClassObj
+  sourceHandle: string; // 'return' on FunctionCall, 'value_out' on Var, 'get_X'/'instance_out' on ClassObj
   target: string;
-  targetHandle: string;   // 'arg_N'/'this' on FunctionCall, 'value_in' on Var, 'set_X'/'instance_in' on ClassObj
+  targetHandle: string; // 'arg_N'/'this' on FunctionCall, 'value_in' on Var, 'set_X'/'instance_in' on ClassObj
 }
 
 /** A class instance block (ClassObj). */
@@ -132,18 +137,18 @@ export interface ClassObjItem {
   id: string;
   sourceId: string;
   className: string;
-  fieldNames: string[];       // ordered list of fields/getters
+  fieldNames: string[]; // ordered list of fields/getters
   instanceValue: string | null; // JSON-serialized current instance
   x: number;
   y: number;
-  pinsFlipped?: boolean;      // true: SET pins on the right, GET on the left
+  pinsFlipped?: boolean; // true: SET pins on the right, GET on the left
   parentId?: string;
 }
 
 /** A property read block (GetProp). */
 export interface GetPropObject {
   id: string;
-  propNameOverride: string;   // inline fallback, when propname_in is not wired in
+  propNameOverride: string; // inline fallback, when propname_in is not wired in
   result: string | null;
   error: string | null;
   x: number;

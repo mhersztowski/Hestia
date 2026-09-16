@@ -8,10 +8,26 @@
  */
 
 // The codemap document (the `*.codemap.json` file) and its history
-export type { Codemap, CodemapSnapshot, CodemapCommit, CodemapHistory, SyncResult } from './document.js';
+export type {
+  Codemap,
+  CodemapSnapshot,
+  CodemapCommit,
+  CodemapHistory,
+  SyncResult,
+} from './document.js';
 export {
-  CODEMAP_EXTENSION, codemapFromDiagrams, createCodemap, commitCodemap, parseCodemap, stringifyCodemap,
-  headCommit, branchLog, hasUncommittedChanges, checkoutBranch, createBranch, restoreCommit,
+  CODEMAP_EXTENSION,
+  codemapFromDiagrams,
+  createCodemap,
+  commitCodemap,
+  parseCodemap,
+  stringifyCodemap,
+  headCommit,
+  branchLog,
+  hasUncommittedChanges,
+  checkoutBranch,
+  createBranch,
+  restoreCommit,
 } from './document.js';
 
 // Orchestrator
@@ -20,8 +36,17 @@ export type { ScanOptions } from './CodemapService.js';
 
 // IR model
 export type {
-  Language, SymbolKind, MemberKind, Visibility, CodeParam, CodeMember,
-  CodeSymbol, RelationType, CodeRelation, CodeModel, DocMeta,
+  Language,
+  SymbolKind,
+  MemberKind,
+  Visibility,
+  CodeParam,
+  CodeMember,
+  CodeSymbol,
+  RelationType,
+  CodeRelation,
+  CodeModel,
+  DocMeta,
 } from './model/CodeModel.js';
 export { emptyModel, VISIBILITY_SIGIL, sigil } from './model/CodeModel.js';
 export { renderMember, parseMemberText } from './model/render.js';
@@ -38,7 +63,15 @@ export { isGrammarAvailable } from './parsers/treeSitter.js';
 
 // UML view
 export type {
-  UmlKind, RelType, UmlMember, UmlDoc, UmlNodeData, UmlNode, UmlEdgeData, UmlEdge, UmlDiagram,
+  UmlKind,
+  RelType,
+  UmlMember,
+  UmlDoc,
+  UmlNodeData,
+  UmlNode,
+  UmlEdgeData,
+  UmlEdge,
+  UmlDiagram,
 } from './uml/umlTypes.js';
 export { modelToDiagram, kindToUml } from './uml/generateUml.js';
 export { layoutSymbols, handlesFor } from './uml/layout.js';
@@ -47,5 +80,13 @@ export type { ModelChange, ChangeKind, ChangeTarget } from './uml/diffModel.js';
 export { diagramToModel } from './uml/umlToModel.js';
 
 // Code generation
-export { generateCode, generateTs, generateTsSymbol, generatePython, generatePythonSymbol, generateCpp, generateCppSymbol } from './codegen/index.js';
+export {
+  generateCode,
+  generateTs,
+  generateTsSymbol,
+  generatePython,
+  generatePythonSymbol,
+  generateCpp,
+  generateCppSymbol,
+} from './codegen/index.js';
 export type { GeneratedFile } from './codegen/index.js';

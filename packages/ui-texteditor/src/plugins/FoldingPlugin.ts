@@ -3,22 +3,44 @@ import * as monaco from 'monaco-editor';
 
 // Languages with meaningful fold ranges in Monaco
 const FOLD_LANGUAGES = new Set([
-  'json', 'python', 'typescript', 'javascript',
-  'typescriptreact', 'javascriptreact', 'cpp', 'c',
-  'html', 'css', 'yaml', 'xml',
+  'json',
+  'python',
+  'typescript',
+  'javascript',
+  'typescriptreact',
+  'javascriptreact',
+  'cpp',
+  'c',
+  'html',
+  'css',
+  'yaml',
+  'xml',
 ]);
 
 // Languages that support line/block comments
 const COMMENT_LANGUAGES = new Set([
-  'python', 'typescript', 'javascript',
-  'typescriptreact', 'javascriptreact', 'cpp', 'c',
-  'html', 'css', 'yaml', 'xml', 'rust', 'go', 'java',
-  'csharp', 'shell', 'dockerfile',
+  'python',
+  'typescript',
+  'javascript',
+  'typescriptreact',
+  'javascriptreact',
+  'cpp',
+  'c',
+  'html',
+  'css',
+  'yaml',
+  'xml',
+  'rust',
+  'go',
+  'java',
+  'csharp',
+  'shell',
+  'dockerfile',
 ]);
 
 function getActiveEditor(): monaco.editor.ICodeEditor | undefined {
   const editors = monaco.editor.getEditors();
-  return editors.find(e => e.hasTextFocus()) ?? editors[0];
+  return editors.find((e) => e.hasTextFocus()) ?? editors[0];
 }
 
 function runAction(actionId: string) {
@@ -195,5 +217,5 @@ export const FoldingPlugin = defineEditorPlugin(
     api.logger.info('Folding plugin activated');
   },
 
-  () => {},
+  () => {}
 );

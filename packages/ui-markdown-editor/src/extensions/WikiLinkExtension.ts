@@ -18,7 +18,7 @@ export const WikiLink = Link.extend({
         default: false,
         parseHTML: (el: HTMLElement) => el.getAttribute('data-wikilink') === 'true',
         renderHTML: (attrs: { wikilink?: boolean }) =>
-          (attrs.wikilink ? { 'data-wikilink': 'true' } : {}),
+          attrs.wikilink ? { 'data-wikilink': 'true' } : {},
       },
     };
   },

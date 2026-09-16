@@ -31,12 +31,27 @@ const POLA_TECHNICZNE = new Set(['id', 'layerId', 'boundingBox']);
  * niż obiekt-widmo.
  */
 const ZNANE_KSZTALTY = new Set<string>([
-  'line', 'circle', 'polyline', 'rect', 'arc', 'ellipse', 'point',
-  'text', 'image', 'dimension', 'box3d', 'cylinder3d', 'sphere3d', 'freehand',
+  'line',
+  'circle',
+  'polyline',
+  'rect',
+  'arc',
+  'ellipse',
+  'point',
+  'text',
+  'image',
+  'dimension',
+  'box3d',
+  'cylinder3d',
+  'sphere3d',
+  'freehand',
 ]);
 
 class CadEntityNode implements INode {
-  constructor(private scena: CadScene, readonly id: string) {}
+  constructor(
+    private scena: CadScene,
+    readonly id: string
+  ) {}
 
   private get encja(): Entity | null {
     return this.scena.project.entityRegistry.get(this.id) ?? null;
@@ -48,7 +63,9 @@ class CadEntityNode implements INode {
     return e;
   }
 
-  isAlive(): boolean { return this.encja !== null; }
+  isAlive(): boolean {
+    return this.encja !== null;
+  }
 
   /**
    * Nazwa encji.
@@ -72,12 +89,17 @@ class CadEntityNode implements INode {
     const wolna = wolnaNazwa(rodzenstwo, name);
 
     const e = this.zywa;
-    const meta = { ...((e as unknown as { metadata?: Record<string, unknown> }).metadata ?? {}), name: wolna };
+    const meta = {
+      ...((e as unknown as { metadata?: Record<string, unknown> }).metadata ?? {}),
+      name: wolna,
+    };
     this.scena.project.entityRegistry.update(this.id, { metadata: meta } as Partial<Entity>);
     this.scena.powiadom({ kind: 'updated', nodeId: this.id });
   }
 
-  getPath(): string { return sciezkaWezla(this); }
+  getPath(): string {
+    return sciezkaWezla(this);
+  }
 
   getParent(): INode | null {
     const e = this.encja;
@@ -93,7 +115,9 @@ class CadEntityNode implements INode {
   }
 
   /** Encja nie ma dzieci — w CAD 2D kształt nie zawiera kształtów. */
-  getChildren(): INode[] { return []; }
+  getChildren(): INode[] {
+    return [];
+  }
 
   getData(): NodeData {
     const e = this.zywa;
@@ -115,15 +139,22 @@ class CadEntityNode implements INode {
 }
 
 class CadLayerNode implements ILayer {
-  constructor(private scena: CadScene, readonly id: string) {}
+  constructor(
+    private scena: CadScene,
+    readonly id: string
+  ) {}
 
   private get warstwa(): Layer | null {
     return this.scena.project.layerSystem.getAll().find((l) => l.id === this.id) ?? null;
   }
 
-  isAlive(): boolean { return this.warstwa !== null; }
+  isAlive(): boolean {
+    return this.warstwa !== null;
+  }
 
-  getName(): string { return this.warstwa?.name ?? ''; }
+  getName(): string {
+    return this.warstwa?.name ?? '';
+  }
 
   setName(name: string): void {
     const inne = this.scena.getLayers().filter((l) => l.id !== this.id);
@@ -131,13 +162,20 @@ class CadLayerNode implements ILayer {
     this.scena.powiadom({ kind: 'updated', nodeId: this.id });
   }
 
-  getPath(): string { return sciezkaWezla(this); }
+  getPath(): string {
+    return sciezkaWezla(this);
+  }
 
-  getParent(): INode | null { return this.scena.getRoot(); }
-  setParent(): void { /* warstwa jest zawsze bezpośrednio pod korzeniem */ }
+  getParent(): INode | null {
+    return this.scena.getRoot();
+  }
+  setParent(): void {
+    /* warstwa jest zawsze bezpośrednio pod korzeniem */
+  }
 
   getChildren(): INode[] {
-    return this.scena.project.entityRegistry.getAll()
+    return this.scena.project.entityRegistry
+      .getAll()
       .filter((e) => (e.layerId ?? '0') === this.id)
       .map((e) => this.scena.encjaWezel(e.id));
   }
@@ -160,35 +198,59 @@ class CadLayerNode implements ILayer {
     this.scena.powiadom({ kind: 'updated', nodeId: this.id });
   }
 
-  getVisible(): boolean { return this.warstwa?.visible ?? true; }
+  getVisible(): boolean {
+    return this.warstwa?.visible ?? true;
+  }
 
   setVisible(visible: boolean): void {
     this.scena.project.layerSystem.update(this.id, { visible });
     this.scena.powiadom({ kind: 'updated', nodeId: this.id });
   }
 
-  isLocked(): boolean { return this.warstwa?.locked ?? false; }
+  isLocked(): boolean {
+    return this.warstwa?.locked ?? false;
+  }
 
   setLocked(locked: boolean): void {
     this.scena.project.layerSystem.update(this.id, { locked });
     this.scena.powiadom({ kind: 'updated', nodeId: this.id });
   }
 
-  getColor(): string | null { return this.warstwa?.color ?? null; }
+  getColor(): string | null {
+    return this.warstwa?.color ?? null;
+  }
 }
 
 class CadRoot implements INode {
   constructor(private scena: CadScene) {}
   readonly id = '__root__';
-  isAlive(): boolean { return true; }
-  getName(): string { return 'rysunek'; }
-  setName(): void { /* korzeń nie wchodzi do ścieżek */ }
-  getPath(): string { return ''; }
-  getParent(): INode | null { return null; }
-  setParent(): void { /* korzenia nie da się przenieść */ }
-  getChildren(): INode[] { return this.scena.getLayers(); }
-  getData(): NodeData { return { type: 'root' }; }
-  update(): void { /* korzeń nie niesie danych */ }
+  isAlive(): boolean {
+    return true;
+  }
+  getName(): string {
+    return 'rysunek';
+  }
+  setName(): void {
+    /* korzeń nie wchodzi do ścieżek */
+  }
+  getPath(): string {
+    return '';
+  }
+  getParent(): INode | null {
+    return null;
+  }
+  setParent(): void {
+    /* korzenia nie da się przenieść */
+  }
+  getChildren(): INode[] {
+    return this.scena.getLayers();
+  }
+  getData(): NodeData {
+    return { type: 'root' };
+  }
+  update(): void {
+    /* korzeń nie niesie danych */
+  }
 }
 
 export class CadScene implements IScene {
@@ -225,16 +287,22 @@ export class CadScene implements IScene {
     for (const sluchacz of this.sluchacze) sluchacz(zmiana);
   }
 
-  getRoot(): INode { return this.korzen; }
+  getRoot(): INode {
+    return this.korzen;
+  }
 
   getNodeById(id: string): INode | null {
     if (this.jestWarstwa(id)) return this.warstwaWezel(id);
     return this.project.entityRegistry.get(id) ? this.encjaWezel(id) : null;
   }
 
-  getNode(path: string): INode | null { return znajdzPoSciezce(this, path); }
+  getNode(path: string): INode | null {
+    return znajdzPoSciezce(this, path);
+  }
 
-  getNodeIdByPath(path: string): string | null { return this.getNode(path)?.id ?? null; }
+  getNodeIdByPath(path: string): string | null {
+    return this.getNode(path)?.id ?? null;
+  }
 
   nodeCreate(data: NodeData, parent?: INode | null): INode | null {
     const { type, ...reszta } = data;
@@ -254,9 +322,8 @@ export class CadScene implements IScene {
       return this.warstwaWezel(warstwa.id);
     }
 
-    const warstwaId = parent && this.jestWarstwa(parent.id)
-      ? parent.id
-      : this.project.layerSystem.getActiveId();
+    const warstwaId =
+      parent && this.jestWarstwa(parent.id) ? parent.id : this.project.layerSystem.getActiveId();
 
     // Nieznany rodzaj kształtu to „nie umiem", a nie awaria: skrypt pisany dla
     // sceny 3D ma prawo spróbować utworzyć siatkę w rysunku 2D.
@@ -264,7 +331,11 @@ export class CadScene implements IScene {
 
     let encja: Entity;
     try {
-      encja = this.project.entityRegistry.add({ ...reszta, type, layerId: warstwaId } as EntityInput);
+      encja = this.project.entityRegistry.add({
+        ...reszta,
+        type,
+        layerId: warstwaId,
+      } as EntityInput);
     } catch {
       return null;
     }
@@ -291,16 +362,21 @@ export class CadScene implements IScene {
     return true;
   }
 
-  getAllNodes(): INode[] { return obejdzDrzewo(this.korzen); }
+  getAllNodes(): INode[] {
+    return obejdzDrzewo(this.korzen);
+  }
 
-  find(predicate: (node: INode) => boolean): INode[] { return znajdzWezly(this, predicate); }
+  find(predicate: (node: INode) => boolean): INode[] {
+    return znajdzWezly(this, predicate);
+  }
 
   getLayers(): ILayer[] {
     return this.project.layerSystem.getAll().map((l) => this.warstwaWezel(l.id));
   }
 
   getSelection(): INode[] {
-    return this.project.selectionManager.getSelected()
+    return this.project.selectionManager
+      .getSelected()
       .map((id) => this.getNodeById(id))
       .filter((n): n is INode => n !== null);
   }
@@ -312,6 +388,8 @@ export class CadScene implements IScene {
 
   subscribe(listener: (change: SceneChange) => void): () => void {
     this.sluchacze.add(listener);
-    return () => { this.sluchacze.delete(listener); };
+    return () => {
+      this.sluchacze.delete(listener);
+    };
   }
 }

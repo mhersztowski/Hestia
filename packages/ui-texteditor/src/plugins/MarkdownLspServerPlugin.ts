@@ -13,10 +13,22 @@ import type { IPluginAPI } from '../monaco';
 
 /* ── LSP types (minimal subset) ─────────────────────────────────────────── */
 
-interface LspPosition { line: number; character: number; }
-interface LspRange { start: LspPosition; end: LspPosition; }
-interface LspLocation { uri: string; range: LspRange; }
-interface LspTextEdit { range: LspRange; newText: string; }
+interface LspPosition {
+  line: number;
+  character: number;
+}
+interface LspRange {
+  start: LspPosition;
+  end: LspPosition;
+}
+interface LspLocation {
+  uri: string;
+  range: LspRange;
+}
+interface LspTextEdit {
+  range: LspRange;
+  newText: string;
+}
 
 /* ── LSP ↔ Monaco conversion ─────────────────────────────────────────────── */
 
@@ -51,7 +63,9 @@ class LspClient {
   private resolveReady!: () => void;
 
   constructor(ws: WebSocket, workspaceUri: string) {
-    this.readyPromise = new Promise<void>(r => { this.resolveReady = r; });
+    this.readyPromise = new Promise<void>((r) => {
+      this.resolveReady = r;
+    });
     this.ws = ws;
 
     ws.onopen = () => {
@@ -69,16 +83,22 @@ class LspClient {
           workspace: { workspaceFolders: true },
         },
         initializationOptions: {},
-      }).then(() => {
-        this.sendRaw({ jsonrpc: '2.0', method: 'initialized', params: {} });
-        this.initialized = true;
-        this.resolveReady();
-      }).catch(console.error);
+      })
+        .then(() => {
+          this.sendRaw({ jsonrpc: '2.0', method: 'initialized', params: {} });
+          this.initialized = true;
+          this.resolveReady();
+        })
+        .catch(console.error);
     };
 
     ws.onmessage = (e: MessageEvent<string>) => {
       let msg: Record<string, unknown>;
-      try { msg = JSON.parse(e.data); } catch { return; }
+      try {
+        msg = JSON.parse(e.data);
+      } catch {
+        return;
+      }
 
       if (typeof msg.id === 'number' && this.pending.has(msg.id)) {
         const { resolve, reject } = this.pending.get(msg.id)!;
@@ -93,9 +113,13 @@ class LspClient {
     };
   }
 
-  get isReady(): boolean { return this.initialized; }
+  get isReady(): boolean {
+    return this.initialized;
+  }
 
-  waitForReady(): Promise<void> { return this.readyPromise; }
+  waitForReady(): Promise<void> {
+    return this.readyPromise;
+  }
 
   request(method: string, params: unknown): Promise<unknown> {
     return new Promise<unknown>((resolve, reject) => {
@@ -155,17 +179,25 @@ export function createMarkdownLspServerPlugin(authToken: string) {
       openUris.add(uri);
       // Subscribe to content changes for this model
       if (!modelContentSubs.has(uri)) {
-        modelContentSubs.set(uri, model.onDidChangeContent(() => {
-          if (!client?.isReady || !openUris.has(uri)) return;
-          client.notify('textDocument/didChange', {
-            textDocument: { uri, version: ++docVersion },
-            contentChanges: [{ text: model.getValue() }],
-          });
-        }));
+        modelContentSubs.set(
+          uri,
+          model.onDidChangeContent(() => {
+            if (!client?.isReady || !openUris.has(uri)) return;
+            client.notify('textDocument/didChange', {
+              textDocument: { uri, version: ++docVersion },
+              contentChanges: [{ text: model.getValue() }],
+            });
+          })
+        );
       }
       await client!.waitForReady();
       client!.notify('textDocument/didOpen', {
-        textDocument: { uri, languageId: 'markdown', version: ++docVersion, text: model.getValue() },
+        textDocument: {
+          uri,
+          languageId: 'markdown',
+          version: ++docVersion,
+          text: model.getValue(),
+        },
       });
     }
 
@@ -177,11 +209,11 @@ export function createMarkdownLspServerPlugin(authToken: string) {
     // Track future model opens
     eventUnsubs.push(
       api.editor.onDidOpenDocument((rawUri) => {
-        const model = monaco.editor.getModels().find(
-          m => modelToLspUri(m) === rawUri || m.uri.toString() === rawUri,
-        );
+        const model = monaco.editor
+          .getModels()
+          .find((m) => modelToLspUri(m) === rawUri || m.uri.toString() === rawUri);
         if (model) void openDoc(model);
-      }),
+      })
     );
 
     /* ── Monaco providers ───────────────────────────────────────────────── */
@@ -197,10 +229,15 @@ export function createMarkdownLspServerPlugin(authToken: string) {
             textDocument: { uri },
             position: monacoToLspPos(position),
           });
-        } catch { return null; }
+        } catch {
+          return null;
+        }
         if (!result) return null;
         const locs: LspLocation[] = Array.isArray(result) ? result : [result as LspLocation];
-        return locs.map(loc => ({ uri: monaco.Uri.parse(loc.uri), range: lspRangeToMonaco(loc.range) }));
+        return locs.map((loc) => ({
+          uri: monaco.Uri.parse(loc.uri),
+          range: lspRangeToMonaco(loc.range),
+        }));
       },
     });
 
@@ -216,10 +253,15 @@ export function createMarkdownLspServerPlugin(authToken: string) {
             position: monacoToLspPos(position),
             context: { includeDeclaration: true },
           });
-        } catch { return null; }
+        } catch {
+          return null;
+        }
         if (!result) return null;
         const locs: LspLocation[] = Array.isArray(result) ? result : [result as LspLocation];
-        return locs.map(loc => ({ uri: monaco.Uri.parse(loc.uri), range: lspRangeToMonaco(loc.range) }));
+        return locs.map((loc) => ({
+          uri: monaco.Uri.parse(loc.uri),
+          range: lspRangeToMonaco(loc.range),
+        }));
       },
     });
 
@@ -235,7 +277,9 @@ export function createMarkdownLspServerPlugin(authToken: string) {
             position: monacoToLspPos(position),
             newName,
           });
-        } catch { return null; }
+        } catch {
+          return null;
+        }
         if (!result) return null;
 
         type WsEdit = {
@@ -247,7 +291,11 @@ export function createMarkdownLspServerPlugin(authToken: string) {
         const push = (fUri: string, fEdits: LspTextEdit[]) => {
           const mUri = monaco.Uri.parse(fUri);
           for (const e of fEdits) {
-            edits.push({ resource: mUri, versionId: undefined, textEdit: { range: lspRangeToMonaco(e.range), text: e.newText } });
+            edits.push({
+              resource: mUri,
+              versionId: undefined,
+              textEdit: { range: lspRangeToMonaco(e.range), text: e.newText },
+            });
           }
         };
         if (wsEdit.changes) {
@@ -288,6 +336,6 @@ export function createMarkdownLspServerPlugin(authToken: string) {
       contributes: [],
     },
     activate,
-    deactivate,
+    deactivate
   );
 }

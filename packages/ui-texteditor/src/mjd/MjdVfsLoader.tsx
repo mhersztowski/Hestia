@@ -1,7 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent,
-  DialogTitle, Snackbar, TextField, Typography,
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Snackbar,
+  TextField,
+  Typography,
 } from '@mui/material';
 import type { FileSystemProvider } from '@hestia/core';
 import { decodeText, encodeText, mjdDocumentSchema, createMjdDocument } from '@hestia/core';
@@ -26,13 +35,14 @@ interface MjdDataWrapper {
 }
 
 function isWrappedData(j: unknown): j is MjdDataWrapper {
-  return j !== null
-    && typeof j === 'object'
-    && '$data' in j
-    && typeof (j as Record<string, unknown>).$data === 'object'
-    && (j as Record<string, unknown>).$data !== null;
+  return (
+    j !== null &&
+    typeof j === 'object' &&
+    '$data' in j &&
+    typeof (j as Record<string, unknown>).$data === 'object' &&
+    (j as Record<string, unknown>).$data !== null
+  );
 }
-
 
 export interface MjdVfsLoaderProps {
   provider: FileSystemProvider;
@@ -44,7 +54,10 @@ export interface MjdVfsLoaderProps {
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; definition: MjdDocument; data?: Record<string, unknown>;
+  | {
+      status: 'ready';
+      definition: MjdDocument;
+      data?: Record<string, unknown>;
       /** True iff the loaded `.data.json` used the `{$mjd, $data}` wrapper.
        *  Saves preserve the wrapper so the schema link doesn't get stripped
        *  on subsequent edits. */
@@ -66,7 +79,10 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
   // Snackbar — surfaced for both success (created file) and failure
   // (existing file / read-only provider / write failure). Auto-dismisses
   // after 4s; user can also click X.
-  const [toast, setToast] = useState<{ severity: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [toast, setToast] = useState<{
+    severity: 'success' | 'error' | 'info';
+    message: string;
+  } | null>(null);
 
   /** Derive the sibling data-file path from the current `.mjd` path.
    *  Convention: replace the `.mjd` suffix with `.data.json`. Lowered
@@ -85,7 +101,8 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
         const mjdJson = JSON.parse(decodeText(mjdBytes));
         const parsed = mjdDocumentSchema.safeParse(mjdJson);
         if (!parsed.success) {
-          if (!cancelled) setState({ status: 'error', message: `Invalid .mjd file: ${parsed.error.message}` });
+          if (!cancelled)
+            setState({ status: 'error', message: `Invalid .mjd file: ${parsed.error.message}` });
           return;
         }
         const definition = parsed.data as MjdDocument;
@@ -159,18 +176,23 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [provider, mjdPath, dataPath]);
 
   // Debounced save to VFS
-  const saveToVfs = useCallback((path: string, content: unknown) => {
-    if (!provider.writeFile) return;
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => {
-      const json = JSON.stringify(content, null, 2);
-      provider.writeFile!(path, encodeText(json), { create: true, overwrite: true });
-    }, 500);
-  }, [provider]);
+  const saveToVfs = useCallback(
+    (path: string, content: unknown) => {
+      if (!provider.writeFile) return;
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => {
+        const json = JSON.stringify(content, null, 2);
+        provider.writeFile!(path, encodeText(json), { create: true, overwrite: true });
+      }, 500);
+    },
+    [provider]
+  );
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -179,29 +201,35 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
     };
   }, []);
 
-  const handleDefinitionChange = useCallback((doc: MjdDocument) => {
-    setState((prev) => {
-      if (prev.status !== 'ready') return prev;
-      return { ...prev, definition: doc };
-    });
-    saveToVfs(mjdPath, doc);
-  }, [mjdPath, saveToVfs]);
+  const handleDefinitionChange = useCallback(
+    (doc: MjdDocument) => {
+      setState((prev) => {
+        if (prev.status !== 'ready') return prev;
+        return { ...prev, definition: doc };
+      });
+      saveToVfs(mjdPath, doc);
+    },
+    [mjdPath, saveToVfs]
+  );
 
-  const handleDataChange = useCallback((data: Record<string, unknown>) => {
-    let payload: unknown = data;
-    setState((prev) => {
-      if (prev.status !== 'ready') return prev;
-      // Preserve the {$mjd, $data} envelope across edits so the schema link
-      // doesn't disappear after the first save.
-      if (prev.isWrapped) {
-        payload = { $mjd: mjdPath, $data: data };
-      }
-      return { ...prev, data };
-    });
-    // Buffer instead of auto-saving; the Save button flushes it.
-    pendingDataRef.current = payload;
-    setDataDirty(true);
-  }, [mjdPath]);
+  const handleDataChange = useCallback(
+    (data: Record<string, unknown>) => {
+      let payload: unknown = data;
+      setState((prev) => {
+        if (prev.status !== 'ready') return prev;
+        // Preserve the {$mjd, $data} envelope across edits so the schema link
+        // doesn't disappear after the first save.
+        if (prev.isWrapped) {
+          payload = { $mjd: mjdPath, $data: data };
+        }
+        return { ...prev, data };
+      });
+      // Buffer instead of auto-saving; the Save button flushes it.
+      pendingDataRef.current = payload;
+      setDataDirty(true);
+    },
+    [mjdPath]
+  );
 
   // Flush the buffered data document to the VFS (explicit Save).
   const handleSaveData = useCallback(async () => {
@@ -264,10 +292,13 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
       return;
     }
     if (!provider.writeFile) {
-      setToast({ severity: 'error', message: 'Provider tylko do odczytu — nie można zapisać pliku' });
+      setToast({
+        severity: 'error',
+        message: 'Provider tylko do odczytu — nie można zapisać pliku',
+      });
       return;
     }
-    setGenDialog((g) => g ? { ...g, busy: true } : g);
+    setGenDialog((g) => (g ? { ...g, busy: true } : g));
     // Re-check existence — someone could have created the file between
     // dialog open and confirm.
     try {
@@ -278,7 +309,9 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
       // disabled state on the button.
       if (targetPath === derivedDataPath) setDataExists(true);
       return;
-    } catch { /* doesn't exist → proceed */ }
+    } catch {
+      /* doesn't exist → proceed */
+    }
     try {
       const defaults = buildDefaults(state.definition);
       // Wrapper format: $mjd is the absolute schema path (what RemoteFS
@@ -295,13 +328,20 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
         severity: 'error',
         message: `Nie udało się utworzyć pliku danych: ${err instanceof Error ? err.message : String(err)}`,
       });
-      setGenDialog((g) => g ? { ...g, busy: false } : g);
+      setGenDialog((g) => (g ? { ...g, busy: false } : g));
     }
   }, [genDialog, state, provider, derivedDataPath, mjdPath]);
 
   if (state.status === 'loading') {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: height ?? 200 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: height ?? 200,
+        }}
+      >
         <CircularProgress size={24} />
       </Box>
     );
@@ -313,13 +353,17 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
         {/* pre-wrap preserves the recovery instructions' newlines + indented
             JSON snippet; the old plain Typography squashed it into a wall
             of unreadable text. */}
-        <Typography color="error" component="pre" sx={{
-          whiteSpace: 'pre-wrap',
-          fontFamily: 'inherit',
-          margin: 0,
-          fontSize: '0.875rem',
-          lineHeight: 1.5,
-        }}>
+        <Typography
+          color="error"
+          component="pre"
+          sx={{
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'inherit',
+            margin: 0,
+            fontSize: '0.875rem',
+            lineHeight: 1.5,
+          }}
+        >
           {state.message}
         </Typography>
       </Box>
@@ -332,9 +376,29 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
     // Fill the parent flex column so the visual editor canvas can expand fully.
     // When no explicit height is given we stretch to 100% of the parent.
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', ...(height ? { height } : { flex: 1, minHeight: 0 }) }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.75, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
-          <Typography variant="caption" sx={{ flexGrow: 1, color: dataDirty ? 'warning.main' : 'text.secondary' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          ...(height ? { height } : { flex: 1, minHeight: 0 }),
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            px: 1.5,
+            py: 0.75,
+            borderBottom: 1,
+            borderColor: 'divider',
+            flexShrink: 0,
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{ flexGrow: 1, color: dataDirty ? 'warning.main' : 'text.secondary' }}
+          >
             {dataDirty ? 'Unsaved changes' : 'All changes saved'}
           </Typography>
           <Button
@@ -374,10 +438,9 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
           <DialogTitle>Utwórz plik danych</DialogTitle>
           <DialogContent>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-              Plik zostanie utworzony z domyślnymi wartościami z definicji.
-              W środku znajdzie się link <code>$mjd</code> do schematu, dzięki
-              czemu plik o dowolnej nazwie zostanie poprawnie skojarzony przy
-              ponownym otwarciu.
+              Plik zostanie utworzony z domyślnymi wartościami z definicji. W środku znajdzie się
+              link <code>$mjd</code> do schematu, dzięki czemu plik o dowolnej nazwie zostanie
+              poprawnie skojarzony przy ponownym otwarciu.
             </Typography>
             <TextField
               autoFocus
@@ -385,18 +448,26 @@ export function MjdVfsLoader({ provider, mjdPath, dataPath, height }: MjdVfsLoad
               size="small"
               label="Pełna ścieżka pliku"
               value={genDialog.path}
-              onChange={(e) => setGenDialog((g) => g ? { ...g, path: e.target.value } : g)}
+              onChange={(e) => setGenDialog((g) => (g ? { ...g, path: e.target.value } : g))}
               disabled={genDialog.busy}
               helperText="Zmień nazwę / katalog dowolnie — plik wskaże ten schemat przez $mjd."
-              onKeyDown={(e) => { if (e.key === 'Enter') void confirmGenerateData(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void confirmGenerateData();
+              }}
             />
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
               Powiązany schemat: <code>{mjdPath}</code>
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setGenDialog(null)} disabled={genDialog.busy}>Anuluj</Button>
-            <Button variant="contained" onClick={() => void confirmGenerateData()} disabled={genDialog.busy || !genDialog.path.trim()}>
+            <Button onClick={() => setGenDialog(null)} disabled={genDialog.busy}>
+              Anuluj
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => void confirmGenerateData()}
+              disabled={genDialog.busy || !genDialog.path.trim()}
+            >
               Utwórz
             </Button>
           </DialogActions>

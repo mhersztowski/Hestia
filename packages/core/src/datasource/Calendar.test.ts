@@ -86,7 +86,12 @@ describe('Calendar', () => {
     const cal = new Calendar();
     cal.addItem(new CalendarItem(dateKey('2024-01-01'), [evt('a'), evt('b')]));
     cal.addItem(new CalendarItem(dateKey('2024-01-02'), [evt('c')]));
-    expect(cal.getAllEvents().map((e) => e.name).sort()).toEqual(['a', 'b', 'c']);
+    expect(
+      cal
+        .getAllEvents()
+        .map((e) => e.name)
+        .sort()
+    ).toEqual(['a', 'b', 'c']);
   });
 
   it('clear empties the calendar', () => {

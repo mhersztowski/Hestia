@@ -45,13 +45,11 @@ describe('czas płynie w dół', () => {
 });
 
 describe('bloki obejmują zawartość', () => {
-  const l = ulóż([
-    'sequenceDiagram',
-    '  loop Powtarzaj',
-    '    A->>B: ping',
-    '    B->>A: pong',
-    '  end',
-  ].join('\n'));
+  const l = ulóż(
+    ['sequenceDiagram', '  loop Powtarzaj', '    A->>B: ping', '    B->>A: pong', '  end'].join(
+      '\n'
+    )
+  );
 
   it('ramka zaczyna się nad pierwszą wiadomością', () => {
     expect(l.blocks[0].y).toBeLessThan(l.messages[0].y);
@@ -63,27 +61,31 @@ describe('bloki obejmują zawartość', () => {
   });
 
   it('`alt` ma linię rozdzielającą sekcje', () => {
-    const alt = ulóż([
-      'sequenceDiagram',
-      '  alt Tak',
-      '    A->>B: tak',
-      '  else Nie',
-      '    A->>B: nie',
-      '  end',
-    ].join('\n'));
+    const alt = ulóż(
+      [
+        'sequenceDiagram',
+        '  alt Tak',
+        '    A->>B: tak',
+        '  else Nie',
+        '    A->>B: nie',
+        '  end',
+      ].join('\n')
+    );
     expect(alt.blocks[0].dividers).toHaveLength(1);
     expect(alt.blocks[0].dividers[0].title).toBe('Nie');
   });
 
   it('blok wewnętrzny mieści się w zewnętrznym', () => {
-    const zagniezdzone = ulóż([
-      'sequenceDiagram',
-      '  loop Zewnetrzny',
-      '    alt Wewnetrzny',
-      '      A->>B: x',
-      '    end',
-      '  end',
-    ].join('\n'));
+    const zagniezdzone = ulóż(
+      [
+        'sequenceDiagram',
+        '  loop Zewnetrzny',
+        '    alt Wewnetrzny',
+        '      A->>B: x',
+        '    end',
+        '  end',
+      ].join('\n')
+    );
     const outer = zagniezdzone.blocks.find((b) => b.block === 'loop')!;
     const inner = zagniezdzone.blocks.find((b) => b.block === 'alt')!;
     expect(inner.y).toBeGreaterThan(outer.y);
@@ -126,7 +128,9 @@ describe('numerowanie', () => {
 describe('płótno', () => {
   it('rośnie z liczbą uczestników', () => {
     const male = ulóż('sequenceDiagram\n  A->>B: x');
-    const duze = ulóż('sequenceDiagram\n  participant A\n  participant B\n  participant C\n  participant D\n  A->>B: x');
+    const duze = ulóż(
+      'sequenceDiagram\n  participant A\n  participant B\n  participant C\n  participant D\n  A->>B: x'
+    );
     expect(duze.width).toBeGreaterThan(male.width);
   });
 
@@ -199,14 +203,16 @@ describe('przypięte nagłówki', () => {
  * poza lewą krawędź diagramu.
  */
 describe('szerokość notatki', () => {
-  const l = ulóż([
-    'sequenceDiagram',
-    '  participant A',
-    '  participant B',
-    '  participant C',
-    '  Note over A,B: nad dwoma',
-    '  Note over C: nad jednym',
-  ].join('\n'));
+  const l = ulóż(
+    [
+      'sequenceDiagram',
+      '  participant A',
+      '  participant B',
+      '  participant C',
+      '  Note over A,B: nad dwoma',
+      '  Note over C: nad jednym',
+    ].join('\n')
+  );
   const [nadDwoma, nadJednym] = l.notes;
   const x = (id: string) => l.participants.find((p) => p.id === id)!.x;
 
@@ -230,7 +236,7 @@ describe('szerokość notatki', () => {
   });
 
   it('notatka nad jednym jest wyśrodkowana na jego osi', () => {
-    expect(Math.abs((nadJednym.x + nadJednym.width / 2) - x('C'))).toBeLessThan(2);
+    expect(Math.abs(nadJednym.x + nadJednym.width / 2 - x('C'))).toBeLessThan(2);
   });
 });
 
@@ -242,19 +248,21 @@ describe('szerokość notatki', () => {
  * których wcale nie tyka. Mermaid liczy to po zakresie użytych osi.
  */
 describe('szerokość ramki bloku', () => {
-  const l = ulóż([
-    'sequenceDiagram',
-    '  participant A',
-    '  participant B',
-    '  participant C',
-    '  participant D',
-    '  loop szeroki',
-    '    A->>D: przez caly diagram',
-    '    break waski',
-    '      A->>B: tylko dwoje',
-    '    end',
-    '  end',
-  ].join('\n'));
+  const l = ulóż(
+    [
+      'sequenceDiagram',
+      '  participant A',
+      '  participant B',
+      '  participant C',
+      '  participant D',
+      '  loop szeroki',
+      '    A->>D: przez caly diagram',
+      '    break waski',
+      '      A->>B: tylko dwoje',
+      '    end',
+      '  end',
+    ].join('\n')
+  );
   const x = (id: string) => l.participants.find((p) => p.id === id)!.x;
   const szeroki = l.blocks.find((b) => b.block === 'loop')!;
   const waski = l.blocks.find((b) => b.block === 'break')!;
@@ -291,16 +299,18 @@ describe('szerokość ramki bloku', () => {
  * i obie kreski nakładały się na siebie.
  */
 describe('odstęp za zamkniętym blokiem', () => {
-  const l = ulóż([
-    'sequenceDiagram',
-    '  alt pierwszy',
-    '    break awaria',
-    '      A->>B: raport',
-    '    end',
-    '  else drugi',
-    '    A->>B: dalej',
-    '  end',
-  ].join('\n'));
+  const l = ulóż(
+    [
+      'sequenceDiagram',
+      '  alt pierwszy',
+      '    break awaria',
+      '      A->>B: raport',
+      '    end',
+      '  else drugi',
+      '    A->>B: dalej',
+      '  end',
+    ].join('\n')
+  );
 
   it('linia sekcji nie leży na krawędzi zamkniętego bloku', () => {
     const zewnetrzny = l.blocks.find((b) => b.block === 'alt')!;
@@ -318,15 +328,17 @@ describe('odstęp za zamkniętym blokiem', () => {
  * byt pojawia się dopiero w środku.
  */
 describe('cykl życia uczestnika', () => {
-  const l = ulóż([
-    'sequenceDiagram',
-    '  participant A',
-    '  A->>A: przygotowanie',
-    '  create participant B as Nowy',
-    '  A->>B: start',
-    '  destroy B',
-    '  A-xB: koniec',
-  ].join('\n'));
+  const l = ulóż(
+    [
+      'sequenceDiagram',
+      '  participant A',
+      '  A->>A: przygotowanie',
+      '  create participant B as Nowy',
+      '  A->>B: start',
+      '  destroy B',
+      '  A-xB: koniec',
+    ].join('\n')
+  );
   const b = l.participants.find((p) => p.id === 'B')!;
 
   it('powstaje poniżej pierwszej wiadomości', () => {
@@ -351,7 +363,9 @@ describe('cykl życia uczestnika', () => {
 
 describe('autonumber z parametrami', () => {
   it('`autonumber 10 10` numeruje 10, 20, 30', () => {
-    const l = ulóż('sequenceDiagram\n  autonumber 10 10\n  A->>B: raz\n  B->>A: dwa\n  A->>B: trzy');
+    const l = ulóż(
+      'sequenceDiagram\n  autonumber 10 10\n  A->>B: raz\n  B->>A: dwa\n  A->>B: trzy'
+    );
     expect(l.messages.map((m) => m.number)).toEqual([10, 20, 30]);
   });
 

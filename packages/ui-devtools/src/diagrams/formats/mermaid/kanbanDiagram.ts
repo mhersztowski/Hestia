@@ -12,8 +12,11 @@
  */
 import { emptyDiagram, type DiagramDocument } from '../../model/diagram';
 import {
-  emptyKanban, isPriority,
-  type KanbanBoard, type KanbanCard, type KanbanColumn,
+  emptyKanban,
+  isPriority,
+  type KanbanBoard,
+  type KanbanCard,
+  type KanbanColumn,
 } from '../../model/kanban';
 import type { ParseIssue, ParseResult } from '../../model/format';
 import { splitFrontMatter, withFrontMatter } from './frontMatter';
@@ -31,7 +34,9 @@ const BRACKETED = /^(?<id>[A-Za-z0-9_-]+)?\[(?<label>[\s\S]*?)\]\s*(?:@\{(?<meta
 const BARE = /^(?<label>[^[\]@]+?)\s*(?:@\{(?<meta>[\s\S]*)\})?\s*$/;
 
 /** Rozbiera `ticket: MC-1, assigned: 'knsv', priority: 'High'`. */
-export function parseCardMeta(text: string): Pick<KanbanCard, 'assigned' | 'ticket' | 'priority' | 'extra'> {
+export function parseCardMeta(
+  text: string
+): Pick<KanbanCard, 'assigned' | 'ticket' | 'priority' | 'extra'> {
   const result: Pick<KanbanCard, 'assigned' | 'ticket' | 'priority' | 'extra'> = {};
   const extra: Record<string, string> = {};
 
@@ -40,7 +45,10 @@ export function parseCardMeta(text: string): Pick<KanbanCard, 'assigned' | 'tick
     if (at < 0) continue;
     const key = part.slice(0, at).trim();
     // Wartości bywają w apostrofach, cudzysłowach albo bez niczego.
-    const value = part.slice(at + 1).trim().replace(/^['"]([\s\S]*)['"]$/, '$1');
+    const value = part
+      .slice(at + 1)
+      .trim()
+      .replace(/^['"]([\s\S]*)['"]$/, '$1');
     if (!key) continue;
 
     if (key === 'assigned') result.assigned = value;
@@ -78,15 +86,27 @@ export function parseKanbanDiagram(text: string): ParseResult {
     const trimmed = line.trim();
     if (!trimmed) return;
 
-    if (!seenHeader && HEADER.test(line)) { seenHeader = true; return; }
-    if (trimmed.startsWith('%%')) { board.unknown.push({ index, text: line }); return; }
+    if (!seenHeader && HEADER.test(line)) {
+      seenHeader = true;
+      return;
+    }
+    if (trimmed.startsWith('%%')) {
+      board.unknown.push({ index, text: line });
+      return;
+    }
 
     const match = BRACKETED.exec(trimmed) ?? BARE.exec(trimmed);
-    if (!match?.groups) { board.unknown.push({ index, text: line }); return; }
+    if (!match?.groups) {
+      board.unknown.push({ index, text: line });
+      return;
+    }
 
     const g = match.groups;
     const label = (g.label ?? '').trim();
-    if (!label) { board.unknown.push({ index, text: line }); return; }
+    if (!label) {
+      board.unknown.push({ index, text: line });
+      return;
+    }
 
     const indent = indentOf(line);
     if (columnIndent === undefined) columnIndent = indent;
@@ -137,7 +157,8 @@ export function serializeKanbanDiagram(doc: DiagramDocument): string {
 
   // Nierozpoznane linie (komentarze) wracają na koniec — w kanbanie ich pozycja
   // nie zmienia struktury, bo ta wynika wyłącznie z wcięć elementów.
-  for (const line of [...board.unknown].sort((a, b) => a.index - b.index)) out.push(line.text.trim());
+  for (const line of [...board.unknown].sort((a, b) => a.index - b.index))
+    out.push(line.text.trim());
 
   return withFrontMatter(doc.meta?.frontMatter, out.join('\n'));
 }

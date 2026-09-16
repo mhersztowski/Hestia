@@ -34,7 +34,7 @@ function pokaz(code: string, language = 'mermaid') {
   return render(
     <DiagramBlockView code={code} language={language} onChange={vi.fn()} onLanguageChange={vi.fn()}>
       {() => <pre>{code}</pre>}
-    </DiagramBlockView>,
+    </DiagramBlockView>
   );
 }
 
@@ -42,9 +42,14 @@ describe('przełącznik trybów', () => {
   it('zapisuje wybrany tryb w infostringu', async () => {
     const onLanguageChange = vi.fn();
     render(
-      <DiagramBlockView code={POPRAWNY} language="mermaid" onChange={vi.fn()} onLanguageChange={onLanguageChange}>
+      <DiagramBlockView
+        code={POPRAWNY}
+        language="mermaid"
+        onChange={vi.fn()}
+        onLanguageChange={onLanguageChange}
+      >
         {() => <pre>{POPRAWNY}</pre>}
-      </DiagramBlockView>,
+      </DiagramBlockView>
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'View' }));
@@ -53,7 +58,9 @@ describe('przełącznik trybów', () => {
     // Doczekanie renderu przed końcem testu: porzucony render Mermaida zostawia
     // aktualizację stanu poza `act`, przez którą `waitFor` w następnym teście
     // przestaje widzieć zmiany.
-    await waitFor(() => expect(screen.getByRole('button', { name: 'SVG' })).toHaveProperty('disabled', false));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'SVG' })).toHaveProperty('disabled', false)
+    );
   });
 
   it('otwiera blok w trybie zapisanym w infostringu', () => {
@@ -138,7 +145,11 @@ describe('rodzaj bez edytora graficznego', () => {
 describe('most do kodu źródłowego', () => {
   const KLASY = 'classDiagram\n  class Pies {\n    +glos() string\n  }';
   const Z_ZRODLEM = [
-    '---', 'source:', '  dir: mycastle-code/packages/core/src', '  files: [Pies.ts]', '---',
+    '---',
+    'source:',
+    '  dir: mycastle-code/packages/core/src',
+    '  files: [Pies.ts]',
+    '---',
     KLASY,
   ].join('\n');
 
@@ -152,7 +163,7 @@ describe('most do kodu źródłowego', () => {
     render(
       <DiagramBlockView code={POPRAWNY} language="mermaid">
         {() => <pre>{POPRAWNY}</pre>}
-      </DiagramBlockView>,
+      </DiagramBlockView>
     );
     expect(screen.queryByRole('button', { name: 'Z kodu…' })).toBeNull();
   });
@@ -199,55 +210,55 @@ describe('most do kodu źródłowego', () => {
  * całym sensem bloku.
  */
 describe('obszar diagramu nie łapie kursora', () => {
-    /** Najbliższy przodek (z elementem włącznie) z `contenteditable="false"`. */
-    function nieedytowalnyPrzodek(el: HTMLElement | null): HTMLElement | null {
-        for (let w = el; w; w = w.parentElement) {
-            if (w.getAttribute?.('contenteditable') === 'false') return w;
-        }
-        return null;
+  /** Najbliższy przodek (z elementem włącznie) z `contenteditable="false"`. */
+  function nieedytowalnyPrzodek(el: HTMLElement | null): HTMLElement | null {
+    for (let w = el; w; w = w.parentElement) {
+      if (w.getAttribute?.('contenteditable') === 'false') return w;
     }
+    return null;
+  }
 
-    it('podgląd jest nieedytowalny', async () => {
-        pokaz(`${POPRAWNY}\n`, 'mermaid:view');
-        // `waitFor` musi RZUCIĆ, dopóki SVG-a nie ma: `querySelector` oddaje
-        // `null` bez wyjątku, więc oczekiwanie kończyłoby się natychmiast —
-        // przed renderem — i test przechodziłby na pustym miejscu.
-        const svg = await waitFor(() => {
-            const znaleziony = document.querySelector('svg');
-            if (!znaleziony) throw new Error('render Mermaida jeszcze nie zdążył');
-            return znaleziony;
-        });
-        expect(nieedytowalnyPrzodek(svg as unknown as HTMLElement)).not.toBeNull();
+  it('podgląd jest nieedytowalny', async () => {
+    pokaz(`${POPRAWNY}\n`, 'mermaid:view');
+    // `waitFor` musi RZUCIĆ, dopóki SVG-a nie ma: `querySelector` oddaje
+    // `null` bez wyjątku, więc oczekiwanie kończyłoby się natychmiast —
+    // przed renderem — i test przechodziłby na pustym miejscu.
+    const svg = await waitFor(() => {
+      const znaleziony = document.querySelector('svg');
+      if (!znaleziony) throw new Error('render Mermaida jeszcze nie zdążył');
+      return znaleziony;
     });
+    expect(nieedytowalnyPrzodek(svg as unknown as HTMLElement)).not.toBeNull();
+  });
 
-    it('edytor graficzny jest nieedytowalny', async () => {
-        // Płótno edytora mierzy się `ResizeObserver`-em, którego jsdom nie ma.
-        // Atrapa niczego nie udaje poza samym istnieniem — rozmiary w tym
-        // teście nie mają znaczenia, liczy się drzewo DOM.
-        globalThis.ResizeObserver ??= class {
-            observe() {}
-            unobserve() {}
-            disconnect() {}
-        } as unknown as typeof ResizeObserver;
+  it('edytor graficzny jest nieedytowalny', async () => {
+    // Płótno edytora mierzy się `ResizeObserver`-em, którego jsdom nie ma.
+    // Atrapa niczego nie udaje poza samym istnieniem — rozmiary w tym
+    // teście nie mają znaczenia, liczy się drzewo DOM.
+    globalThis.ResizeObserver ??= class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
 
-        pokaz(POPRAWNY, 'mermaid:edit');
-        // Etykieta węzła pochodzi z płótna edytora — czyli z obszaru, w którym
-        // kursor ProseMirror-a nie ma czego szukać.
-        const wezel = await screen.findByText('Start');
-        expect(nieedytowalnyPrzodek(wezel)).not.toBeNull();
-    });
+    pokaz(POPRAWNY, 'mermaid:edit');
+    // Etykieta węzła pochodzi z płótna edytora — czyli z obszaru, w którym
+    // kursor ProseMirror-a nie ma czego szukać.
+    const wezel = await screen.findByText('Start');
+    expect(nieedytowalnyPrzodek(wezel)).not.toBeNull();
+  });
 
-    it('wybór rodzaju pustego diagramu jest nieedytowalny', () => {
-        pokaz('', 'mermaid:edit');
-        const przycisk = screen.getByText('Schemat blokowy');
-        expect(nieedytowalnyPrzodek(przycisk)).not.toBeNull();
-    });
+  it('wybór rodzaju pustego diagramu jest nieedytowalny', () => {
+    pokaz('', 'mermaid:edit');
+    const przycisk = screen.getByText('Schemat blokowy');
+    expect(nieedytowalnyPrzodek(przycisk)).not.toBeNull();
+  });
 
-    // Tryb „Code" to jedyne miejsce, w którym pisanie ma sens — tam kursor
-    // musi działać, więc treść NIE może stać pod nieedytowalnym przodkiem.
-    it('tekst diagramu zostaje edytowalny', () => {
-        const { container } = pokaz(POPRAWNY, 'mermaid:code');
-        const tresc = container.querySelector('pre');
-        expect(nieedytowalnyPrzodek(tresc as HTMLElement)).toBeNull();
-    });
+  // Tryb „Code" to jedyne miejsce, w którym pisanie ma sens — tam kursor
+  // musi działać, więc treść NIE może stać pod nieedytowalnym przodkiem.
+  it('tekst diagramu zostaje edytowalny', () => {
+    const { container } = pokaz(POPRAWNY, 'mermaid:code');
+    const tresc = container.querySelector('pre');
+    expect(nieedytowalnyPrzodek(tresc as HTMLElement)).toBeNull();
+  });
 });

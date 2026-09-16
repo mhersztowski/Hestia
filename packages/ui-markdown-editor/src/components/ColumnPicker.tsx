@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  IconButton,
-  Tooltip,
-  Popover,
-  Box,
-  Typography,
-  Button,
-} from '@mui/material';
+import { IconButton, Tooltip, Popover, Box, Typography, Button } from '@mui/material';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 
 interface ColumnPickerProps {

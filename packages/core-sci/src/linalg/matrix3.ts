@@ -39,7 +39,11 @@ export interface EigenResult3 {
 const ZERO = 1e-9;
 
 export function identityM3(): Matrix3 {
-  return [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+  return [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ];
 }
 
 export function applyM3(m: Matrix3, v: Vector3): Vector3 {
@@ -63,9 +67,11 @@ export function composeM3(a: Matrix3, b: Matrix3): Matrix3 {
 
 /** Wyznacznik — czynnik, przez który mnoży się **objętość**. */
 export function detM3(m: Matrix3): number {
-  return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
-    - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
-    + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+  return (
+    m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+    m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+    m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+  );
 }
 
 function norm(v: Vector3): number {
@@ -78,11 +84,7 @@ function normalize(v: Vector3): Vector3 {
 }
 
 function cross(a: Vector3, b: Vector3): Vector3 {
-  return [
-    a[1] * b[2] - a[2] * b[1],
-    a[2] * b[0] - a[0] * b[2],
-    a[0] * b[1] - a[1] * b[0],
-  ];
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 }
 
 /**
@@ -121,8 +123,9 @@ export function inverseM3(m: Matrix3): Matrix3 | null {
   const dopelnienie = (i: number, j: number): number => {
     const wiersze = [0, 1, 2].filter((x) => x !== i);
     const kolumny = [0, 1, 2].filter((x) => x !== j);
-    const minor = m[wiersze[0]][kolumny[0]] * m[wiersze[1]][kolumny[1]]
-      - m[wiersze[0]][kolumny[1]] * m[wiersze[1]][kolumny[0]];
+    const minor =
+      m[wiersze[0]][kolumny[0]] * m[wiersze[1]][kolumny[1]] -
+      m[wiersze[0]][kolumny[1]] * m[wiersze[1]][kolumny[0]];
     return ((i + j) % 2 === 0 ? 1 : -1) * minor;
   };
 
@@ -145,7 +148,12 @@ export function inverseM3(m: Matrix3): Matrix3 | null {
 export function kernelBasis(m: Matrix3): Vector3[] {
   const wymiarJadra = 3 - rankM3(m);
   if (wymiarJadra === 0) return [];
-  if (wymiarJadra === 3) return [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+  if (wymiarJadra === 3)
+    return [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ];
 
   // Szukamy kierunków spełniających `M·v = 0` wśród iloczynów wektorowych par
   // wierszy: taki iloczyn jest prostopadły do obu, a więc leży w jądrze, gdy
@@ -153,7 +161,11 @@ export function kernelBasis(m: Matrix3): Vector3[] {
   const kandydaci: Vector3[] = [];
   const wiersze = m as unknown as Vector3[];
 
-  for (const [i, j] of [[0, 1], [0, 2], [1, 2]] as Array<[number, number]>) {
+  for (const [i, j] of [
+    [0, 1],
+    [0, 2],
+    [1, 2],
+  ] as Array<[number, number]>) {
     const kandydat = normalize(cross(wiersze[i], wiersze[j]));
     if (norm(kandydat) > ZERO && norm(applyM3(m, kandydat)) < 1e-6) kandydaci.push(kandydat);
   }
@@ -161,7 +173,11 @@ export function kernelBasis(m: Matrix3): Vector3[] {
   // Gdy iloczyny wektorowe nie wystarczą (jądro dwuwymiarowe), bierzemy
   // kierunki osiowe, które giną — dla rzutów to najczęstszy przypadek.
   if (kandydaci.length < wymiarJadra) {
-    for (const os of [[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vector3[]) {
+    for (const os of [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ] as Vector3[]) {
       if (norm(applyM3(m, os)) < 1e-6) kandydaci.push(os);
     }
   }
@@ -232,7 +248,11 @@ function eigenvector3(m: Matrix3, lambda: number): Vector3 | null {
   let najlepszy: Vector3 | null = null;
   let najdluzszy = 1e-7;
 
-  for (const [i, j] of [[0, 1], [0, 2], [1, 2]] as Array<[number, number]>) {
+  for (const [i, j] of [
+    [0, 1],
+    [0, 2],
+    [1, 2],
+  ] as Array<[number, number]>) {
     const kandydat = cross(wiersze[i], wiersze[j]);
     const dlugosc = norm(kandydat);
     if (dlugosc > najdluzszy) {
@@ -248,7 +268,11 @@ function eigenvector3(m: Matrix3, lambda: number): Vector3 | null {
   // prostopadły do niezerowego wiersza.
   for (const wiersz of wiersze) {
     if (norm(wiersz) > ZERO) {
-      for (const os of [[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vector3[]) {
+      for (const os of [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ] as Vector3[]) {
         const kandydat = cross(wiersz, os);
         if (norm(kandydat) > 1e-7) return normalize(kandydat);
       }
@@ -266,9 +290,11 @@ function eigenvector3(m: Matrix3, lambda: number): Vector3 | null {
  */
 export function eigenM3(m: Matrix3): EigenResult3 {
   const slad = m[0][0] + m[1][1] + m[2][2];
-  const suma2x2 = (m[0][0] * m[1][1] - m[0][1] * m[1][0])
-    + (m[0][0] * m[2][2] - m[0][2] * m[2][0])
-    + (m[1][1] * m[2][2] - m[1][2] * m[2][1]);
+  const suma2x2 =
+    m[0][0] * m[1][1] -
+    m[0][1] * m[1][0] +
+    (m[0][0] * m[2][2] - m[0][2] * m[2][0]) +
+    (m[1][1] * m[2][2] - m[1][2] * m[2][1]);
 
   // λ³ − tr·λ² + (suma minorów)·λ − det = 0
   const pierwiastki = cubicRoots(-slad, suma2x2, -detM3(m));

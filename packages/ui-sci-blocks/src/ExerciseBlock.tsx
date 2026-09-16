@@ -22,8 +22,17 @@
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import {
-  buildGraph, buildHints, checkNumeric, compileGraph, exerciseVariant, statedVariant,
-  parseExerciseBlock, qualityOf, type CheckResult, type FormulaBlock, type Quality,
+  buildGraph,
+  buildHints,
+  checkNumeric,
+  compileGraph,
+  exerciseVariant,
+  statedVariant,
+  parseExerciseBlock,
+  qualityOf,
+  type CheckResult,
+  type FormulaBlock,
+  type Quality,
 } from '@hestia/core-sci';
 import { Markdown } from './Markdown';
 import { InkCanvas, type InkRecognizer } from './InkCanvas';
@@ -77,23 +86,33 @@ export interface ExerciseBlockProps {
    * wykład („patrz ((rh1-2-rys6|rys. 2-6b))"). Bez tego treść zadania byłaby
    * jedynym miejscem w bazie, gdzie odsyłacz zostaje surowym zapisem.
    */
-  resolve?: (id: string) => {
-    code?: string;
-    kind?: ReferenceKind;
-    documentTitle?: string;
-    sameDocument: boolean;
-  } | undefined;
+  resolve?: (id: string) =>
+    | {
+        code?: string;
+        kind?: ReferenceKind;
+        documentTitle?: string;
+        sameDocument: boolean;
+      }
+    | undefined;
   onNavigate?: (id: string) => void;
 }
 
 const box: CSSProperties = {
-  border: '1px solid #e2e8f0', borderLeft: '4px solid #7c3aed',
-  borderRadius: 6, background: '#fff', padding: 10,
+  border: '1px solid #e2e8f0',
+  borderLeft: '4px solid #7c3aed',
+  borderRadius: 6,
+  background: '#fff',
+  padding: 10,
 };
 const label: CSSProperties = { fontSize: 11, color: '#64748b' };
 const btn: CSSProperties = {
-  fontSize: 12, padding: '3px 10px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#334155',
+  fontSize: 12,
+  padding: '3px 10px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#334155',
 };
 
 const VERDICT_LOOK: Record<CheckResult['verdict'], { background: string; color: string }> = {
@@ -104,8 +123,17 @@ const VERDICT_LOOK: Record<CheckResult['verdict'], { background: string; color: 
 };
 
 export function ExerciseBlock({
-  id, code, formulas, seed = 1, bare, onAttempt, resolve, onNavigate, recognizeInk,
-  onSolution, solutions,
+  id,
+  code,
+  formulas,
+  seed = 1,
+  bare,
+  onAttempt,
+  resolve,
+  onNavigate,
+  recognizeInk,
+  onSolution,
+  solutions,
 }: ExerciseBlockProps) {
   const [variantSeed, setVariantSeed] = useState(seed);
   const [answer, setAnswer] = useState('');
@@ -132,11 +160,15 @@ export function ExerciseBlock({
   // zadanie liczyłoby z modelu, w którym ta sama wielkość ma kilka definicji.
   const uzyte = useMemo(
     () => (block.uses.length ? formulas.filter((f) => block.uses.includes(f.id)) : formulas),
-    [formulas, block.uses],
+    [formulas, block.uses]
   );
   const graph = useMemo(
-    () => buildGraph(uzyte, formulas.map((f) => f.id)),
-    [uzyte, formulas],
+    () =>
+      buildGraph(
+        uzyte,
+        formulas.map((f) => f.id)
+      ),
+    [uzyte, formulas]
   );
   const model = useMemo(() => compileGraph(graph), [graph]);
 
@@ -144,12 +176,13 @@ export function ExerciseBlock({
   const liczony = Boolean(block.answer);
 
   const variant = useMemo(
-    () => (liczony
-      ? exerciseVariant(block, model, variantSeed)
-      : block.check
-        ? statedVariant(block.check)
-        : { seed: 0, values: {}, shown: {}, issues: [] }),
-    [liczony, block, model, variantSeed],
+    () =>
+      liczony
+        ? exerciseVariant(block, model, variantSeed)
+        : block.check
+          ? statedVariant(block.check)
+          : { seed: 0, values: {}, shown: {}, issues: [] },
+    [liczony, block, model, variantSeed]
   );
 
   const hints = useMemo(() => {
@@ -167,7 +200,9 @@ export function ExerciseBlock({
   /** Odpowiedź da się sprawdzić maszynowo tylko wtedy, gdy jest wartość wzorcowa. */
   const doSprawdzenia = variant.expected !== undefined;
   /** Czy sprawdzamy tylko część odpowiedzi — wtedy trzeba to powiedzieć wprost. */
-  const czesciowe = Boolean(block.expected && block.check && block.check.trim() !== block.expected.trim());
+  const czesciowe = Boolean(
+    block.expected && block.check && block.check.trim() !== block.expected.trim()
+  );
 
   /**
    * Sprawdzenie odpowiedzi w jednym miejscu.
@@ -181,7 +216,11 @@ export function ExerciseBlock({
     // Nieczytelna odpowiedź (pusta, sama jednostka) nie jest próbą — to pomyłka
     // w pisaniu, a nie sygnał o tym, czy czytelnik umie zadanie.
     if (wynik.verdict !== 'unreadable') {
-      onAttempt?.({ id, quality: qualityOf(wynik.verdict === 'correct', hintsShown), hintsUsed: hintsShown });
+      onAttempt?.({
+        id,
+        quality: qualityOf(wynik.verdict === 'correct', hintsShown),
+        hintsUsed: hintsShown,
+      });
     }
   };
 
@@ -194,11 +233,12 @@ export function ExerciseBlock({
   const oceń = (quality: Quality) => {
     setResult({
       verdict: quality === 'wrong' ? 'wrong' : 'correct',
-      message: quality === 'wrong'
-        ? 'Zapisane — zadanie wróci w powtórkach niedługo.'
-        : quality === 'hinted'
-          ? 'Zapisane — zadanie wróci, ale rzadziej.'
-          : 'Zapisane — zadanie wróci za dłuższy czas.',
+      message:
+        quality === 'wrong'
+          ? 'Zapisane — zadanie wróci w powtórkach niedługo.'
+          : quality === 'hinted'
+            ? 'Zapisane — zadanie wróci, ale rzadziej.'
+            : 'Zapisane — zadanie wróci za dłuższy czas.',
     });
     onAttempt?.({ id, quality, hintsUsed: hintsShown });
   };
@@ -212,9 +252,13 @@ export function ExerciseBlock({
   };
 
   return (
-    <div style={bare
-      ? { display: 'flex', flexDirection: 'column', gap: 8 }
-      : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div
+      style={
+        bare
+          ? { display: 'flex', flexDirection: 'column', gap: 8 }
+          : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }
+      }
+    >
       <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
         {!bare && (
           <>
@@ -228,14 +272,26 @@ export function ExerciseBlock({
       </div>
 
       {!bare && issues.length > 0 && (
-        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', borderRadius: 4, padding: '6px 8px' }}>
-          {issues.map((issue, index) => <div key={index}>{issue}</div>)}
+        <div
+          style={{
+            fontSize: 11,
+            color: '#b91c1c',
+            background: '#fef2f2',
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
+          {issues.map((issue, index) => (
+            <div key={index}>{issue}</div>
+          ))}
         </div>
       )}
 
       {/* Treść jest markdownem z matematyką — tym samym rendererem, co czytnik.
           Zadanie z podręcznika bez `$\mathbf{a}$` nie istnieje. */}
-      <div style={{ fontSize: 13, color: '#0f172a', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div
+        style={{ fontSize: 13, color: '#0f172a', display: 'flex', flexDirection: 'column', gap: 6 }}
+      >
         <Markdown source={block.prompt} resolve={resolve} onNavigate={onNavigate} />
       </div>
 
@@ -244,7 +300,9 @@ export function ExerciseBlock({
           {Object.entries(variant.shown).map(([name, value]) => (
             <span key={name} style={{ fontSize: 12 }}>
               <span style={label}>{name} = </span>
-              <strong style={{ color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{value}</strong>
+              <strong style={{ color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+                {value}
+              </strong>
             </span>
           ))}
         </div>
@@ -252,7 +310,8 @@ export function ExerciseBlock({
 
       {czesciowe && (
         <div style={{ ...label, fontStyle: 'italic' }}>
-          Sprawdzam pierwszą wartość odpowiedzi: <strong>{block.check}</strong>. Resztę oceniasz sam.
+          Sprawdzam pierwszą wartość odpowiedzi: <strong>{block.check}</strong>. Resztę oceniasz
+          sam.
         </div>
       )}
 
@@ -266,7 +325,10 @@ export function ExerciseBlock({
             onSolution(draft);
             // Wynik z okna wraca do pola w bloku: sprawdza go ten sam klucz,
             // co odpowiedź wpisaną wprost. Okno nie jest osobnym obiegiem oceny.
-            if (draft.answer) { setAnswer(draft.answer); setResult(undefined); }
+            if (draft.answer) {
+              setAnswer(draft.answer);
+              setResult(undefined);
+            }
             setOkno(null);
           }}
         />
@@ -281,7 +343,10 @@ export function ExerciseBlock({
           mode="latex"
           height={220}
           recognize={recognizeInk}
-          onRecognized={(rozpoznany) => { setAnswer(rozpoznany); setResult(undefined); }}
+          onRecognized={(rozpoznany) => {
+            setAnswer(rozpoznany);
+            setResult(undefined);
+          }}
         />
       )}
 
@@ -290,12 +355,22 @@ export function ExerciseBlock({
           <>
             <input
               value={answer}
-              onChange={(e) => { setAnswer(e.target.value); setResult(undefined); }}
-              onKeyDown={(e) => { if (e.key === 'Enter') sprawdz(); }}
-              placeholder={variant.expectedUnit ? `odpowiedź, np. 1.5 ${variant.expectedUnit}` : 'odpowiedź'}
+              onChange={(e) => {
+                setAnswer(e.target.value);
+                setResult(undefined);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') sprawdz();
+              }}
+              placeholder={
+                variant.expectedUnit ? `odpowiedź, np. 1.5 ${variant.expectedUnit}` : 'odpowiedź'
+              }
               style={{
-                fontSize: 13, padding: '4px 8px', borderRadius: 4,
-                border: '1px solid #cbd5e1', minWidth: 200,
+                fontSize: 13,
+                padding: '4px 8px',
+                borderRadius: 4,
+                border: '1px solid #cbd5e1',
+                minWidth: 200,
               }}
             />
             <button type="button" style={btn} onClick={sprawdz}>
@@ -361,20 +436,33 @@ export function ExerciseBlock({
       {!liczony && !doSprawdzenia && (
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={label}>jak poszło?</span>
-          <button type="button" style={btn} onClick={() => oceń('perfect')}>umiem</button>
-          <button type="button" style={btn} onClick={() => oceń('hinted')}>z trudem</button>
-          <button type="button" style={btn} onClick={() => oceń('wrong')}>nie umiem</button>
+          <button type="button" style={btn} onClick={() => oceń('perfect')}>
+            umiem
+          </button>
+          <button type="button" style={btn} onClick={() => oceń('hinted')}>
+            z trudem
+          </button>
+          <button type="button" style={btn} onClick={() => oceń('wrong')}>
+            nie umiem
+          </button>
         </div>
       )}
 
       {result && (
-        <div style={{
-          ...VERDICT_LOOK[result.verdict],
-          fontSize: 12, borderRadius: 4, padding: '6px 8px',
-        }}>
+        <div
+          style={{
+            ...VERDICT_LOOK[result.verdict],
+            fontSize: 12,
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
           {result.message}
           {result.relativeError !== undefined && result.verdict === 'wrong' && (
-            <span style={{ opacity: 0.75 }}> (różnica: {(result.relativeError * 100).toFixed(1)}%)</span>
+            <span style={{ opacity: 0.75 }}>
+              {' '}
+              (różnica: {(result.relativeError * 100).toFixed(1)}%)
+            </span>
           )}
         </div>
       )}
@@ -382,7 +470,16 @@ export function ExerciseBlock({
       {hintsShown > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {hints.slice(0, hintsShown).map((hint) => (
-            <div key={hint.level} style={{ fontSize: 12, color: '#475569', background: '#f8fafc', borderRadius: 4, padding: '5px 8px' }}>
+            <div
+              key={hint.level}
+              style={{
+                fontSize: 12,
+                color: '#475569',
+                background: '#f8fafc',
+                borderRadius: 4,
+                padding: '5px 8px',
+              }}
+            >
               <strong style={{ color: '#7c3aed' }}>{hint.level}.</strong> {hint.text}
             </div>
           ))}

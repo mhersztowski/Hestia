@@ -41,12 +41,18 @@ const liczba = (x: number) => Number(x.toPrecision(4));
  */
 export function gaussSteps(a: Matrix2, b: Vector2): GaussStep[] {
   const kroki: GaussStep[] = [];
-  let M: Matrix2 = [[a[0][0], a[0][1]], [a[1][0], a[1][1]]];
+  let M: Matrix2 = [
+    [a[0][0], a[0][1]],
+    [a[1][0], a[1][1]],
+  ];
   let R: Vector2 = [b[0], b[1]];
 
   const zapisz = (description: string, solution?: Vector2) => {
     kroki.push({
-      matrix: [[M[0][0], M[0][1]], [M[1][0], M[1][1]]],
+      matrix: [
+        [M[0][0], M[0][1]],
+        [M[1][0], M[1][1]],
+      ],
       rhs: [R[0], R[1]],
       description,
       solution,
@@ -65,15 +71,21 @@ export function gaussSteps(a: Matrix2, b: Vector2): GaussStep[] {
     const mnoznik = M[1][0] / M[0][0];
     M = [M[0], [M[1][0] - mnoznik * M[0][0], M[1][1] - mnoznik * M[0][1]]] as Matrix2;
     R = [R[0], R[1] - mnoznik * R[0]];
-    zapisz(`Od drugiego wiersza odejmujemy pierwszy razy ${liczba(mnoznik)} — pod przekątną zostaje zero.`);
+    zapisz(
+      `Od drugiego wiersza odejmujemy pierwszy razy ${liczba(mnoznik)} — pod przekątną zostaje zero.`
+    );
   }
 
   // Po eliminacji drugie równanie ma postać `0·x + M₁₁·y = R₁`.
   if (Math.abs(M[1][1]) <= ZERO) {
     if (Math.abs(R[1]) > ZERO) {
-      zapisz('Drugie równanie mówi „0 = liczba różna od zera" — układ jest sprzeczny, nie ma rozwiązania.');
+      zapisz(
+        'Drugie równanie mówi „0 = liczba różna od zera" — układ jest sprzeczny, nie ma rozwiązania.'
+      );
     } else {
-      zapisz('Drugie równanie znikło całkowicie — równania są zależne, rozwiązań jest nieskończenie wiele.');
+      zapisz(
+        'Drugie równanie znikło całkowicie — równania są zależne, rozwiązań jest nieskończenie wiele.'
+      );
     }
     return kroki;
   }
@@ -103,18 +115,24 @@ export function gramSchmidtSteps(a: Vector2, b: Vector2): GramSchmidtStep[] {
 
   const dlugoscA = Math.hypot(a[0], a[1]);
   if (dlugoscA <= ZERO) {
-    zapisz({ a, b }, 'Pierwszy wektor jest zerowy — nie wyznacza kierunku, więc nie ma od czego zacząć.');
+    zapisz(
+      { a, b },
+      'Pierwszy wektor jest zerowy — nie wyznacza kierunku, więc nie ma od czego zacząć.'
+    );
     return kroki;
   }
 
   const e1: Vector2 = [a[0] / dlugoscA, a[1] / dlugoscA];
-  zapisz({ a, b, e_1: e1 }, 'Pierwszy kierunek zostaje bez zmian — skracamy go tylko do długości jeden.');
+  zapisz(
+    { a, b, e_1: e1 },
+    'Pierwszy kierunek zostaje bez zmian — skracamy go tylko do długości jeden.'
+  );
 
   const rzutSkalar = b[0] * e1[0] + b[1] * e1[1];
   const p: Vector2 = [e1[0] * rzutSkalar, e1[1] * rzutSkalar];
   zapisz(
     { a, b, e_1: e1, p },
-    `Liczymy rzut b na pierwszy kierunek: p = ${liczba(rzutSkalar)}·e₁. To ta część b, która leży wzdłuż e₁.`,
+    `Liczymy rzut b na pierwszy kierunek: p = ${liczba(rzutSkalar)}·e₁. To ta część b, która leży wzdłuż e₁.`
   );
 
   const reszta: Vector2 = [b[0] - p[0], b[1] - p[1]];
@@ -123,17 +141,20 @@ export function gramSchmidtSteps(a: Vector2, b: Vector2): GramSchmidtStep[] {
   if (dlugoscReszty <= 1e-9) {
     zapisz(
       { a, b, e_1: e1, p },
-      'Po odjęciu rzutu nie zostaje nic — wektory są równoległe i nie rozpinają płaszczyzny.',
+      'Po odjęciu rzutu nie zostaje nic — wektory są równoległe i nie rozpinają płaszczyzny.'
     );
     return kroki;
   }
 
-  zapisz({ a, b, e_1: e1, p, r: reszta }, 'Odejmujemy rzut od b. Reszta jest już prostopadła do e₁.');
+  zapisz(
+    { a, b, e_1: e1, p, r: reszta },
+    'Odejmujemy rzut od b. Reszta jest już prostopadła do e₁.'
+  );
 
   const e2: Vector2 = [reszta[0] / dlugoscReszty, reszta[1] / dlugoscReszty];
   zapisz(
     { e_1: e1, e_2: e2 },
-    'Skracamy resztę do długości jeden. e₁ i e₂ tworzą bazę ortonormalną.',
+    'Skracamy resztę do długości jeden. e₁ i e₂ tworzą bazę ortonormalną.'
   );
 
   return kroki;
@@ -141,9 +162,11 @@ export function gramSchmidtSteps(a: Vector2, b: Vector2): GramSchmidtStep[] {
 
 /** Sprawdza, czy para wektorów jest ortonormalna — do zadań i testów. */
 export function isOrthonormal(e1: Vector2, e2: Vector2, tolerance = 1e-9): boolean {
-  return Math.abs(Math.hypot(...e1) - 1) < tolerance
-    && Math.abs(Math.hypot(...e2) - 1) < tolerance
-    && Math.abs(e1[0] * e2[0] + e1[1] * e2[1]) < tolerance;
+  return (
+    Math.abs(Math.hypot(...e1) - 1) < tolerance &&
+    Math.abs(Math.hypot(...e2) - 1) < tolerance &&
+    Math.abs(e1[0] * e2[0] + e1[1] * e2[1]) < tolerance
+  );
 }
 
 /** Obraz wektora — skrót używany przez sceny procedur. */
@@ -198,9 +221,9 @@ export function gaussStepsN(a: number[][], b: number[]): GaussStepN[] {
       [M[k], M[najlepszy]] = [M[najlepszy], M[k]];
       [R[k], R[najlepszy]] = [R[najlepszy], R[k]];
       zapisz(
-        `Zamieniamy wiersz ${k + 1} z ${najlepszy + 1}: na przekątnej ma stać `
-        + 'największy co do wartości bezwzględnej element kolumny. Dzielenie przez małą '
-        + 'liczbę powiększyłoby błąd zaokrągleń.',
+        `Zamieniamy wiersz ${k + 1} z ${najlepszy + 1}: na przekątnej ma stać ` +
+          'największy co do wartości bezwzględnej element kolumny. Dzielenie przez małą ' +
+          'liczbę powiększyłoby błąd zaokrągleń.'
       );
     }
 
@@ -212,8 +235,8 @@ export function gaussStepsN(a: number[][], b: number[]): GaussStepN[] {
       for (let j = k; j < n; j += 1) M[i][j] -= mnoznik * M[k][j];
       R[i] -= mnoznik * R[k];
       zapisz(
-        `Od wiersza ${i + 1} odejmujemy wiersz ${k + 1} razy ${liczba(mnoznik)} — `
-        + `w kolumnie ${k + 1} zostaje zero.`,
+        `Od wiersza ${i + 1} odejmujemy wiersz ${k + 1} razy ${liczba(mnoznik)} — ` +
+          `w kolumnie ${k + 1} zostaje zero.`
       );
     }
   }
@@ -224,9 +247,13 @@ export function gaussStepsN(a: number[][], b: number[]): GaussStepN[] {
     const pusty = M[i].every((x) => Math.abs(x) <= ZERO);
     if (!pusty) continue;
     if (Math.abs(R[i]) > ZERO) {
-      zapisz(`Wiersz ${i + 1} mówi „0 = ${liczba(R[i])}" — układ jest sprzeczny, rozwiązania nie ma.`);
+      zapisz(
+        `Wiersz ${i + 1} mówi „0 = ${liczba(R[i])}" — układ jest sprzeczny, rozwiązania nie ma.`
+      );
     } else {
-      zapisz(`Wiersz ${i + 1} zniknął w całości — układ jest nieoznaczony, rozwiązań jest nieskończenie wiele.`);
+      zapisz(
+        `Wiersz ${i + 1} zniknął w całości — układ jest nieoznaczony, rozwiązań jest nieskończenie wiele.`
+      );
     }
     return kroki;
   }
@@ -240,9 +267,9 @@ export function gaussStepsN(a: number[][], b: number[]): GaussStepN[] {
   }
 
   zapisz(
-    'Podstawiamy wstecz: ostatnie równanie ma jedną niewiadomą, a każde wyżej '
-    + 'korzysta z już wyliczonych.',
-    x,
+    'Podstawiamy wstecz: ostatnie równanie ma jedną niewiadomą, a każde wyżej ' +
+      'korzysta z już wyliczonych.',
+    x
   );
   return kroki;
 }

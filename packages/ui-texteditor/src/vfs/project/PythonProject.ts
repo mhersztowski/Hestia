@@ -9,15 +9,24 @@ interface DoneEvent {
 }
 
 export class PythonProject extends Project {
-  constructor(context: VfsProjectContext, deps: ProjectDeps) { super(context, deps); }
+  constructor(context: VfsProjectContext, deps: ProjectDeps) {
+    super(context, deps);
+  }
 
-  getTypeLabel() { return 'Python'; }
+  getTypeLabel() {
+    return 'Python';
+  }
 
   getActions(): ProjectAction[] {
     return [
-      { id: 'run',     label: 'Run',     description: 'python3 main.py',              hasOutput: true },
-      { id: 'install', label: 'Install', description: 'pip install -r requirements.txt', hasOutput: true },
-      { id: 'test',    label: 'Test',    description: 'python3 -m pytest',            hasOutput: true },
+      { id: 'run', label: 'Run', description: 'python3 main.py', hasOutput: true },
+      {
+        id: 'install',
+        label: 'Install',
+        description: 'pip install -r requirements.txt',
+        hasOutput: true,
+      },
+      { id: 'test', label: 'Test', description: 'python3 -m pytest', hasOutput: true },
     ];
   }
 
@@ -25,14 +34,11 @@ export class PythonProject extends Project {
     actionId: string,
     selectedPath: string | null,
     onOutput: (l: string) => void,
-    signal: AbortSignal,
+    signal: AbortSignal
   ) {
     // Derive subpath relative to the user's home directory — same logic as NodeJsProject.
     const projectDir = this.context.projectJsonPath.replace(/\/pyproject\.toml$/, '');
-    const prefixes = [
-      '/home/' + this.deps.userName + '/',
-      '/home/',
-    ];
+    const prefixes = ['/home/' + this.deps.userName + '/', '/home/'];
     let subpath = projectDir.replace(/^\//, '');
     for (const p of prefixes) {
       if (projectDir.startsWith(p)) {
@@ -42,7 +48,7 @@ export class PythonProject extends Project {
     }
 
     // For 'run', pass the selected .py file relative to the project root (if any).
-    let script = actionId;
+    const script = actionId;
     let selectedFile: string | undefined;
     if (actionId === 'run' && selectedPath) {
       // Strip the project root prefix to get a file relative to the project dir.
@@ -66,7 +72,7 @@ export class PythonProject extends Project {
       `/users/${encodeURIComponent(this.deps.userName)}/python/run`,
       params,
       onOutput,
-      signal,
+      signal
     );
 
     if (done.error) return { success: false, error: done.error };

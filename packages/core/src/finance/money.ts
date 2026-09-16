@@ -18,12 +18,12 @@ export type MinorUnits = number;
  * including the non-breaking one that bank statements and spreadsheets insert.
  */
 export function toMinorUnits(amount: string | number): MinorUnits {
-    if (typeof amount === 'string') return fromText(amount);
-    if (!Number.isFinite(amount)) throw new Error(`Cannot read amount: ${String(amount)}`);
-    // Round away from zero in both directions: `Math.round(-1.5)` gives -1,
-    // i.e. an expense quietly smaller than the one in the bank.
-    const hundredths = amount * 100;
-    return Math.sign(hundredths) * Math.round(Math.abs(hundredths));
+  if (typeof amount === 'string') return fromText(amount);
+  if (!Number.isFinite(amount)) throw new Error(`Cannot read amount: ${String(amount)}`);
+  // Round away from zero in both directions: `Math.round(-1.5)` gives -1,
+  // i.e. an expense quietly smaller than the one in the bank.
+  const hundredths = amount * 100;
+  return Math.sign(hundredths) * Math.round(Math.abs(hundredths));
 }
 
 /**
@@ -35,21 +35,21 @@ export function toMinorUnits(amount: string | number): MinorUnits {
  * bank is an hour of hunting for where it came from.
  */
 function fromText(written: string): MinorUnits {
-    const cleaned = written.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.');
-    const m = /^([+-]?)(\d*)(?:\.(\d*))?$/.exec(cleaned);
-    if (!m || (!m[2] && !m[3])) throw new Error(`Cannot read amount: ${written}`);
-    const sign = m[1] === '-' ? -1 : 1;
-    const whole = m[2] ? Number(m[2]) : 0;
-    const fraction = (m[3] ?? '').padEnd(3, '0');
-    const hundredths = Number(fraction.slice(0, 2));
-    // The third digit decides the rounding — a statement never carries more.
-    const roundUp = Number(fraction[2]) >= 5 ? 1 : 0;
-    return sign * (whole * 100 + hundredths + roundUp);
+  const cleaned = written.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.');
+  const m = /^([+-]?)(\d*)(?:\.(\d*))?$/.exec(cleaned);
+  if (!m || (!m[2] && !m[3])) throw new Error(`Cannot read amount: ${written}`);
+  const sign = m[1] === '-' ? -1 : 1;
+  const whole = m[2] ? Number(m[2]) : 0;
+  const fraction = (m[3] ?? '').padEnd(3, '0');
+  const hundredths = Number(fraction.slice(0, 2));
+  // The third digit decides the rounding — a statement never carries more.
+  const roundUp = Number(fraction[2]) >= 5 ? 1 : 0;
+  return sign * (whole * 100 + hundredths + roundUp);
 }
 
 /** Minor units → major units; for display or export only. */
 export function toMajorUnits(minor: MinorUnits): number {
-    return minor / 100;
+  return minor / 100;
 }
 
 /*
@@ -61,10 +61,10 @@ const FORMAT = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PL
 
 /** An amount written the way the user's bank writes it, with the currency. */
 export function formatAmount(minor: MinorUnits): string {
-    return FORMAT.format(toMajorUnits(minor));
+  return FORMAT.format(toMajorUnits(minor));
 }
 
 /** Sum of amounts — over minor units, so no rounding error creeps in. */
 export function sumMinorUnits(amounts: readonly MinorUnits[]): MinorUnits {
-    return amounts.reduce((a, b) => a + b, 0);
+  return amounts.reduce((a, b) => a + b, 0);
 }

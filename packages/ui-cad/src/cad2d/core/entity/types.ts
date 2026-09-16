@@ -45,10 +45,10 @@ export interface PolylineEntity extends EntityBase {
    */
   construction?: {
     kind: 'slot' | 'arcSlot' | 'bspline';
-    ctrl: Point2D[];         // punkty kontrolne (grips)
-    radius?: number;         // slot / arcSlot — radius (half the width)
+    ctrl: Point2D[]; // punkty kontrolne (grips)
+    radius?: number; // slot / arcSlot — radius (half the width)
     interpolating?: boolean; // bspline — przez punkty (by knots)
-    periodic?: boolean;      // bspline — closed
+    periodic?: boolean; // bspline — closed
   };
 }
 
@@ -66,7 +66,7 @@ export interface ArcEntity extends EntityBase {
   cy: number;
   radius: number;
   startAngle: number; // radians
-  endAngle: number;   // radians
+  endAngle: number; // radians
 }
 
 export interface TextEntity extends EntityBase {
@@ -74,18 +74,18 @@ export interface TextEntity extends EntityBase {
   x: number;
   y: number;
   content: string;
-  fontSize: number;   // world units
+  fontSize: number; // world units
   fontFamily: string;
-  angle: number;      // radians
+  angle: number; // radians
 }
 
 export interface ImageEntity extends EntityBase {
   type: 'image';
-  x: number;          // bottom-left
+  x: number; // bottom-left
   y: number;
   width: number;
   height: number;
-  src: string;        // data URL or external URL
+  src: string; // data URL or external URL
 }
 
 export interface FreehandEntity extends EntityBase {
@@ -149,11 +149,11 @@ export interface DimensionEntity extends EntityBase {
 // 3D primitive entities — placed in XY plane, extruding along +Z
 export interface Box3dEntity extends EntityBase {
   type: 'box3d';
-  cx: number;  // center X
-  cy: number;  // center Y
+  cx: number; // center X
+  cy: number; // center Y
   width: number;
-  depth: number;   // Y dimension (footprint depth)
-  height: number;  // Z extrusion height
+  depth: number; // Y dimension (footprint depth)
+  height: number; // Z extrusion height
 }
 
 export interface Cylinder3dEntity extends EntityBase {
@@ -161,7 +161,7 @@ export interface Cylinder3dEntity extends EntityBase {
   cx: number;
   cy: number;
   radius: number;
-  height: number;  // Z extrusion height
+  height: number; // Z extrusion height
 }
 
 export interface Sphere3dEntity extends EntityBase {

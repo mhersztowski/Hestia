@@ -18,13 +18,13 @@ import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 
 (globalThis as unknown as { MonacoEnvironment: unknown }).MonacoEnvironment = {
-    getWorker(_id: string, label: string) {
-        if (label === 'typescript' || label === 'javascript') return new TsWorker();
-        if (label === 'json') return new JsonWorker();
-        if (label === 'css' || label === 'scss' || label === 'less') return new CssWorker();
-        if (label === 'html' || label === 'handlebars' || label === 'razor') return new HtmlWorker();
-        return new EditorWorker();
-    },
+  getWorker(_id: string, label: string) {
+    if (label === 'typescript' || label === 'javascript') return new TsWorker();
+    if (label === 'json') return new JsonWorker();
+    if (label === 'css' || label === 'scss' || label === 'less') return new CssWorker();
+    if (label === 'html' || label === 'handlebars' || label === 'razor') return new HtmlWorker();
+    return new EditorWorker();
+  },
 };
 
 /**
@@ -32,16 +32,16 @@ import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
  * application is the deliberate exception there, not the rule.
  */
 const theme = createTheme({
-    palette: { mode: 'light' },
-    shape: { borderRadius: 10 },
-    typography: { fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' },
+  palette: { mode: 'light' },
+  shape: { borderRadius: 10 },
+  typography: { fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' },
 });
 
 createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <App />
-        </ThemeProvider>
-    </StrictMode>,
+  <StrictMode>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <App />
+    </ThemeProvider>
+  </StrictMode>
 );

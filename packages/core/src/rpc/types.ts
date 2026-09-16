@@ -19,10 +19,9 @@ export interface RpcMethodDef<
   fieldMeta?: Record<string, FieldMeta>;
 }
 
-export function defineRpcMethod<
-  TInput extends z.ZodTypeAny,
-  TOutput extends z.ZodTypeAny,
->(def: RpcMethodDef<TInput, TOutput>): RpcMethodDef<TInput, TOutput> {
+export function defineRpcMethod<TInput extends z.ZodTypeAny, TOutput extends z.ZodTypeAny>(
+  def: RpcMethodDef<TInput, TOutput>
+): RpcMethodDef<TInput, TOutput> {
   return def;
 }
 

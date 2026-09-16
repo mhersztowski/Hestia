@@ -12,9 +12,16 @@
  * nieznanych fragmentów.
  */
 import {
-  emptyDiagram, edgeId,
-  type DiagramDocument, type DiagramDirection, type DiagramEdge, type DiagramNode,
-  type EdgeArrowType, type EdgeLineStyle, type NodeShape, type UnknownLine,
+  emptyDiagram,
+  edgeId,
+  type DiagramDocument,
+  type DiagramDirection,
+  type DiagramEdge,
+  type DiagramNode,
+  type EdgeArrowType,
+  type EdgeLineStyle,
+  type NodeShape,
+  type UnknownLine,
 } from '../../model/diagram';
 import type { ParseIssue, ParseResult } from '../../model/format';
 import { splitFrontMatter, withFrontMatter } from './frontMatter';
@@ -29,9 +36,22 @@ const HEADER = /^\s*(?:flowchart|graph)(?:\s+(TB|TD|BT|LR|RL))?\s*$/i;
 const SUBGRAPH = /^\s*subgraph\s+(.+?)\s*$/i;
 const END = /^\s*end\s*$/i;
 /** Słowa, które same w linii nie są nazwą węzła. */
-const KEYWORDS = new Set(['end', 'subgraph', 'direction', 'classdef', 'class', 'click', 'style', 'linkstyle']);
+const KEYWORDS = new Set([
+  'end',
+  'subgraph',
+  'direction',
+  'classdef',
+  'class',
+  'click',
+  'style',
+  'linkstyle',
+]);
 
-interface NodeDecl { id: string; label: string; shape: NodeShape }
+interface NodeDecl {
+  id: string;
+  label: string;
+  shape: NodeShape;
+}
 
 /**
  * Rozbija stronę krawędzi na węzły rozdzielone `&`.
@@ -49,7 +69,10 @@ export function splitEdgeSide(raw: string): string[] {
 
   for (let i = 0; i < raw.length; i++) {
     const char = raw[i];
-    if (char === '"') { quoted = !quoted; continue; }
+    if (char === '"') {
+      quoted = !quoted;
+      continue;
+    }
     if (quoted) continue;
     if ('([{'.includes(char)) depth++;
     else if (')]}'.includes(char)) depth--;
@@ -81,7 +104,13 @@ export function parseNodeRef(raw: string): NodeDecl | null {
 
 /** Zakończenie ze skanera na typ modelu (model nie zna „braku" jako strzałki). */
 function arrowOf(end: EdgeEndToken): EdgeArrowType {
-  return end === 'arrow' ? 'arrow' : end === 'circle' ? 'circle' : end === 'cross' ? 'cross' : 'none';
+  return end === 'arrow'
+    ? 'arrow'
+    : end === 'circle'
+      ? 'circle'
+      : end === 'cross'
+        ? 'cross'
+        : 'none';
 }
 
 /**
@@ -90,14 +119,15 @@ function arrowOf(end: EdgeEndToken): EdgeArrowType {
  * Model nie ma stylu „niewidzialny" (`~~~`) ani zakończenia u źródła — jedno i
  * drugie ląduje w `meta`, żeby zapis oddał dokładnie to, co było w źródle.
  */
-function edgeFromOperator(op: EdgeOperator): Pick<DiagramEdge, 'lineStyle' | 'arrow' | 'label' | 'length' | 'meta'> {
+function edgeFromOperator(
+  op: EdgeOperator
+): Pick<DiagramEdge, 'lineStyle' | 'arrow' | 'label' | 'length' | 'meta'> {
   const meta: Record<string, string> = {};
   if (op.lineStyle === 'invisible') meta.invisible = 'true';
   if (op.start !== 'none') meta.startArrow = arrowOf(op.start);
 
-  const lineStyle: EdgeLineStyle = op.lineStyle === 'dotted' ? 'dotted'
-    : op.lineStyle === 'thick' ? 'thick'
-      : 'solid';
+  const lineStyle: EdgeLineStyle =
+    op.lineStyle === 'dotted' ? 'dotted' : op.lineStyle === 'thick' ? 'thick' : 'solid';
 
   return {
     lineStyle,
@@ -132,7 +162,12 @@ export function parseFlowchart(text: string): ParseResult {
       if (decl.shape !== 'rectangle') existing.shape = decl.shape;
       return existing;
     }
-    const node: DiagramNode = { id: decl.id, label: decl.label, shape: decl.shape, ...(parentId ? { parentId } : {}) };
+    const node: DiagramNode = {
+      id: decl.id,
+      label: decl.label,
+      shape: decl.shape,
+      ...(parentId ? { parentId } : {}),
+    };
     doc.nodes.push(node);
     return node;
   };
@@ -180,7 +215,11 @@ export function parseFlowchart(text: string): ParseResult {
       // prowadzić krawędzie). Duplikat rozsypałby widok, więc węzeł ustępuje.
       const existing = doc.nodes.findIndex((n) => n.id === id);
       if (existing >= 0) doc.nodes.splice(existing, 1);
-      doc.groups.push({ id, label, ...(groupStack.length ? { parentId: groupStack[groupStack.length - 1] } : {}) });
+      doc.groups.push({
+        id,
+        label,
+        ...(groupStack.length ? { parentId: groupStack[groupStack.length - 1] } : {}),
+      });
       groupStack.push(id);
       anchorPending(`group:${id}`);
       return;
@@ -279,7 +318,10 @@ export function serializeFlowchart(doc: DiagramDocument): string {
   const byAnchor = new Map<string, UnknownLine[]>();
   const tail: UnknownLine[] = [];
   for (const line of [...doc.unknown].sort((a, b) => a.index - b.index)) {
-    if (!line.anchor) { tail.push(line); continue; }
+    if (!line.anchor) {
+      tail.push(line);
+      continue;
+    }
     const bucket = byAnchor.get(line.anchor);
     if (bucket) bucket.push(line);
     else byAnchor.set(line.anchor, [line]);

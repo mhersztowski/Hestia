@@ -54,7 +54,11 @@ export class WritableGitHubFS extends GitHubFS {
 
   // ── Overrides: buffer instead of immediate commit ────────────────────────
 
-  override async writeFile(path: string, content: Uint8Array, _options?: WriteFileOptions): Promise<void> {
+  override async writeFile(
+    path: string,
+    content: Uint8Array,
+    _options?: WriteFileOptions
+  ): Promise<void> {
     if (!this.token) throw VfsError.noPermissions(normalize(path));
     const p = normalize(path);
     this.pending.set(p, content);
@@ -88,7 +92,7 @@ export class WritableGitHubFS extends GitHubFS {
       // directory may not exist on GitHub yet
     }
 
-    const entries = new Map(baseEntries.map(e => [e.name, e]));
+    const entries = new Map(baseEntries.map((e) => [e.name, e]));
 
     for (const [pendingPath, content] of this.pending) {
       const pp = normalize(pendingPath);
@@ -131,22 +135,24 @@ export class WritableGitHubFS extends GitHubFS {
 
     // 1. Get HEAD commit SHA for the branch
     const refRes = await this.request(
-      `https://api.github.com/repos/${this.owner}/${this.repo}/git/refs/heads/${this.ref}`,
+      `https://api.github.com/repos/${this.owner}/${this.repo}/git/refs/heads/${this.ref}`
     );
-    if (!refRes.ok) throw new Error(`Failed to get branch ref: ${refRes.status} ${await refRes.text()}`);
-    const refData = await refRes.json() as { object: { sha: string } };
+    if (!refRes.ok)
+      throw new Error(`Failed to get branch ref: ${refRes.status} ${await refRes.text()}`);
+    const refData = (await refRes.json()) as { object: { sha: string } };
     const headCommitSha = refData.object.sha;
 
     // 2. Get base tree SHA from HEAD commit
     const commitRes = await this.request(
-      `https://api.github.com/repos/${this.owner}/${this.repo}/git/commits/${headCommitSha}`,
+      `https://api.github.com/repos/${this.owner}/${this.repo}/git/commits/${headCommitSha}`
     );
     if (!commitRes.ok) throw new Error(`Failed to get commit: ${commitRes.status}`);
-    const commitData = await commitRes.json() as { tree: { sha: string } };
+    const commitData = (await commitRes.json()) as { tree: { sha: string } };
     const baseTreeSha = commitData.tree.sha;
 
     // 3. Create blobs for modified files and build tree entries
-    const treeEntries: Array<{ path: string; mode: string; type: string; sha?: string | null }> = [];
+    const treeEntries: Array<{ path: string; mode: string; type: string; sha?: string | null }> =
+      [];
 
     for (const [filePath, content] of this.pending) {
       const apiPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
@@ -159,10 +165,10 @@ export class WritableGitHubFS extends GitHubFS {
         const blobRes = await this.request(
           `https://api.github.com/repos/${this.owner}/${this.repo}/git/blobs`,
           'POST',
-          { content: uint8ArrayToBase64(content), encoding: 'base64' },
+          { content: uint8ArrayToBase64(content), encoding: 'base64' }
         );
         if (!blobRes.ok) throw new Error(`Failed to create blob for ${apiPath}: ${blobRes.status}`);
-        const blobData = await blobRes.json() as { sha: string };
+        const blobData = (await blobRes.json()) as { sha: string };
         treeEntries.push({ path: apiPath, mode: '100644', type: 'blob', sha: blobData.sha });
       }
     }
@@ -171,27 +177,32 @@ export class WritableGitHubFS extends GitHubFS {
     const treeRes = await this.request(
       `https://api.github.com/repos/${this.owner}/${this.repo}/git/trees`,
       'POST',
-      { base_tree: baseTreeSha, tree: treeEntries },
+      { base_tree: baseTreeSha, tree: treeEntries }
     );
-    if (!treeRes.ok) throw new Error(`Failed to create tree: ${treeRes.status} ${await treeRes.text()}`);
-    const treeData = await treeRes.json() as { sha: string };
+    if (!treeRes.ok)
+      throw new Error(`Failed to create tree: ${treeRes.status} ${await treeRes.text()}`);
+    const treeData = (await treeRes.json()) as { sha: string };
 
     // 5. Create commit
     const newCommitRes = await this.request(
       `https://api.github.com/repos/${this.owner}/${this.repo}/git/commits`,
       'POST',
-      { message: msg, tree: treeData.sha, parents: [headCommitSha] },
+      { message: msg, tree: treeData.sha, parents: [headCommitSha] }
     );
-    if (!newCommitRes.ok) throw new Error(`Failed to create commit: ${newCommitRes.status} ${await newCommitRes.text()}`);
-    const newCommitData = await newCommitRes.json() as { sha: string };
+    if (!newCommitRes.ok)
+      throw new Error(
+        `Failed to create commit: ${newCommitRes.status} ${await newCommitRes.text()}`
+      );
+    const newCommitData = (await newCommitRes.json()) as { sha: string };
 
     // 6. Update branch ref to new commit
     const updateRes = await this.request(
       `https://api.github.com/repos/${this.owner}/${this.repo}/git/refs/heads/${this.ref}`,
       'PATCH',
-      { sha: newCommitData.sha },
+      { sha: newCommitData.sha }
     );
-    if (!updateRes.ok) throw new Error(`Failed to update ref: ${updateRes.status} ${await updateRes.text()}`);
+    if (!updateRes.ok)
+      throw new Error(`Failed to update ref: ${updateRes.status} ${await updateRes.text()}`);
 
     // Clear buffer and refresh cache
     this.pending.clear();

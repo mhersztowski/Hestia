@@ -11,9 +11,7 @@
  * błędów.
  */
 import type { FormulaBlock } from '../formula/parseFormula';
-import {
-  applyM3, composeM3, detM3, inverseM3, type Matrix3, type Vector3,
-} from './matrix3';
+import { applyM3, composeM3, detM3, inverseM3, type Matrix3, type Vector3 } from './matrix3';
 
 export interface LinAlg3Result {
   vectors: Record<string, Vector3>;
@@ -44,7 +42,11 @@ const LICZBY = /-?\d+(?:\.\d+)?(?:e-?\d+)?/g;
 function parseMatrix3(text: string): Matrix3 | null {
   const l = text.match(LICZBY)?.map(Number) ?? [];
   if (l.length !== 9 || !l.every(Number.isFinite)) return null;
-  return [[l[0], l[1], l[2]], [l[3], l[4], l[5]], [l[6], l[7], l[8]]];
+  return [
+    [l[0], l[1], l[2]],
+    [l[3], l[4], l[5]],
+    [l[6], l[7], l[8]],
+  ];
 }
 
 function parseVector3(text: string): Vector3 | null {
@@ -53,20 +55,28 @@ function parseVector3(text: string): Vector3 | null {
   return [l[0], l[1], l[2]];
 }
 
-const nazwaTypu = (v: Value) => ({ scalar: 'liczby', vector: 'wektora', matrix: 'macierzy' }[v.kind]);
+const nazwaTypu = (v: Value) =>
+  ({ scalar: 'liczby', vector: 'wektora', matrix: 'macierzy' })[v.kind];
 
 function pomnoz(a: Value, b: Value): Value | null {
-  if (a.kind === 'matrix' && b.kind === 'vector') return { kind: 'vector', value: applyM3(a.value, b.value) };
-  if (a.kind === 'matrix' && b.kind === 'matrix') return { kind: 'matrix', value: composeM3(a.value, b.value) };
+  if (a.kind === 'matrix' && b.kind === 'vector')
+    return { kind: 'vector', value: applyM3(a.value, b.value) };
+  if (a.kind === 'matrix' && b.kind === 'matrix')
+    return { kind: 'matrix', value: composeM3(a.value, b.value) };
   if (a.kind === 'scalar' && b.kind === 'vector') {
-    return { kind: 'vector', value: [a.value * b.value[0], a.value * b.value[1], a.value * b.value[2]] };
+    return {
+      kind: 'vector',
+      value: [a.value * b.value[0], a.value * b.value[1], a.value * b.value[2]],
+    };
   }
-  if (a.kind === 'scalar' && b.kind === 'scalar') return { kind: 'scalar', value: a.value * b.value };
+  if (a.kind === 'scalar' && b.kind === 'scalar')
+    return { kind: 'scalar', value: a.value * b.value };
   return null;
 }
 
 function dodaj(a: Value, b: Value): Value | null {
-  if (a.kind === 'scalar' && b.kind === 'scalar') return { kind: 'scalar', value: a.value + b.value };
+  if (a.kind === 'scalar' && b.kind === 'scalar')
+    return { kind: 'scalar', value: a.value + b.value };
   if (a.kind === 'vector' && b.kind === 'vector') {
     return {
       kind: 'vector',
@@ -98,7 +108,9 @@ function evaluateAtom(text: string, scope: Record<string, Value>, issues: string
     }
     const wynik = inverseM3(m.value);
     if (!wynik) {
-      issues.push(`Macierzy „${odwrotna[1]}" nie da się odwrócić — zgniata przestrzeń, więc traci informację.`);
+      issues.push(
+        `Macierzy „${odwrotna[1]}" nie da się odwrócić — zgniata przestrzeń, więc traci informację.`
+      );
       return null;
     }
     return { kind: 'matrix', value: wynik };
@@ -106,12 +118,18 @@ function evaluateAtom(text: string, scope: Record<string, Value>, issues: string
 
   if (t.startsWith('[[')) {
     const m = parseMatrix3(t);
-    if (!m) { issues.push(`Nie umiem odczytać macierzy „${t}".`); return null; }
+    if (!m) {
+      issues.push(`Nie umiem odczytać macierzy „${t}".`);
+      return null;
+    }
     return { kind: 'matrix', value: m };
   }
   if (t.startsWith('[')) {
     const v = parseVector3(t);
-    if (!v) { issues.push(`Nie umiem odczytać wektora „${t}".`); return null; }
+    if (!v) {
+      issues.push(`Nie umiem odczytać wektora „${t}".`);
+      return null;
+    }
     return { kind: 'vector', value: v };
   }
   if (/^-?\d/.test(t)) {
@@ -127,15 +145,25 @@ function evaluateAtom(text: string, scope: Record<string, Value>, issues: string
 }
 
 /** Suma iloczynów — ta sama płaska gramatyka co w wersji dwuwymiarowej. */
-function evaluate(expression: string, scope: Record<string, Value>, issues: string[]): Value | null {
+function evaluate(
+  expression: string,
+  scope: Record<string, Value>,
+  issues: string[]
+): Value | null {
   let suma: Value | null = null;
 
   for (const skladnik of rozdzielSume(expression)) {
     let iloczyn: Value | null = null;
-    for (const czynnik of skladnik.split('\\cdot').map((c) => c.trim()).filter(Boolean)) {
+    for (const czynnik of skladnik
+      .split('\\cdot')
+      .map((c) => c.trim())
+      .filter(Boolean)) {
       const wartosc = evaluateAtom(czynnik, scope, issues);
       if (!wartosc) return null;
-      if (!iloczyn) { iloczyn = wartosc; continue; }
+      if (!iloczyn) {
+        iloczyn = wartosc;
+        continue;
+      }
 
       const pomnozone = pomnoz(iloczyn, wartosc);
       if (!pomnozone) {
@@ -145,7 +173,10 @@ function evaluate(expression: string, scope: Record<string, Value>, issues: stri
       iloczyn = pomnozone;
     }
     if (!iloczyn) continue;
-    if (!suma) { suma = iloczyn; continue; }
+    if (!suma) {
+      suma = iloczyn;
+      continue;
+    }
 
     const dodane = dodaj(suma, iloczyn);
     if (!dodane) {
@@ -166,7 +197,11 @@ function rozdzielSume(expression: string): string[] {
   for (const znak of expression) {
     if ('(['.includes(znak)) glebokosc += 1;
     if (')]'.includes(znak)) glebokosc -= 1;
-    if (znak === '+' && glebokosc === 0) { czesci.push(biezaca); biezaca = ''; continue; }
+    if (znak === '+' && glebokosc === 0) {
+      czesci.push(biezaca);
+      biezaca = '';
+      continue;
+    }
     biezaca += znak;
   }
   czesci.push(biezaca);
@@ -190,13 +225,16 @@ export function compileLinAlg3(block: FormulaBlock): LinAlg3Model {
   }
   for (const { name, text } of linalg.vectors) {
     const value = parseVector3(text);
-    if (!value) { issues.push(`Wektor „${name}" musi mieć trzy liczby, np. [1, 0, 0].`); continue; }
+    if (!value) {
+      issues.push(`Wektor „${name}" musi mieć trzy liczby, np. [1, 0, 0].`);
+      continue;
+    }
     vectors.push({ name, value });
   }
 
   const policz = (
     overrides: { vectors?: Record<string, Vector3>; matrices?: Record<string, Matrix3> },
-    zbierz: string[],
+    zbierz: string[]
   ): LinAlg3Result => {
     const scope: Record<string, Value> = {};
     for (const m of matrices) {
@@ -211,8 +249,14 @@ export function compileLinAlg3(block: FormulaBlock): LinAlg3Model {
       // się animować policzoną macierz złożenia.
       const podmieniona = overrides.matrices?.[name];
       const podmieniony = overrides.vectors?.[name];
-      if (podmieniona) { scope[name] = { kind: 'matrix', value: podmieniona }; continue; }
-      if (podmieniony) { scope[name] = { kind: 'vector', value: podmieniony }; continue; }
+      if (podmieniona) {
+        scope[name] = { kind: 'matrix', value: podmieniona };
+        continue;
+      }
+      if (podmieniony) {
+        scope[name] = { kind: 'vector', value: podmieniony };
+        continue;
+      }
 
       const wartosc = evaluate(expression, scope, zbierz);
       if (wartosc) scope[name] = wartosc;

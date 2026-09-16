@@ -98,7 +98,10 @@ describe('kompilacja do wyrażenia', () => {
     // siatki. Setka pociągnięć przy 96×96 to milion wywołań na krok — dlatego
     // rysunek jest przycinany, a nie liczony w nieskończoność.
     const duzo: Stroke[] = Array.from({ length: 500 }, (_, i) => ({
-      x: i / 500, y: 0.5, radius: 0.02, amplitude: 1,
+      x: i / 500,
+      y: 0.5,
+      radius: 0.02,
+      amplitude: 1,
     }));
     // Liczymy `\exp`, a nie plusy: każdy składnik ma własny plus w środku,
     // między kwadratami odległości.

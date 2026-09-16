@@ -47,7 +47,11 @@ export function svgSize(svg: string): { width: number; height: number } {
   const height = Number(/\bheight="([\d.]+)(?:px)?"/.exec(tag)?.[1]);
   if (Number.isFinite(width) && Number.isFinite(height)) return { width, height };
 
-  const viewBox = /viewBox="([^"]+)"/.exec(tag)?.[1]?.trim().split(/[\s,]+/).map(Number);
+  const viewBox = /viewBox="([^"]+)"/
+    .exec(tag)?.[1]
+    ?.trim()
+    .split(/[\s,]+/)
+    .map(Number);
   if (viewBox?.length === 4 && viewBox.every(Number.isFinite)) {
     return { width: viewBox[2], height: viewBox[3] };
   }
@@ -73,7 +77,11 @@ export function prepareSvgForExport(svg: string, options: PrepareOptions = {}): 
 
     // `max-width` od Mermaida ucinałby obraz przy skali większej niż 1.
     head = head.replace(/\s*style="([^"]*)"/, (_, style: string) => {
-      const czysty = style.split(';').filter((rule) => !/max-width/i.test(rule)).join(';').trim();
+      const czysty = style
+        .split(';')
+        .filter((rule) => !/max-width/i.test(rule))
+        .join(';')
+        .trim();
       return czysty ? ` style="${czysty}"` : '';
     });
     return head;
@@ -90,7 +98,15 @@ export function prepareSvgForExport(svg: string, options: PrepareOptions = {}): 
 
 /** Zamiana polskich znaków na łacińskie — nazwa pliku ma być przenośna. */
 const DIAKRYTYKI: Record<string, string> = {
-  ą: 'a', ć: 'c', ę: 'e', ł: 'l', ń: 'n', ó: 'o', ś: 's', ź: 'z', ż: 'z',
+  ą: 'a',
+  ć: 'c',
+  ę: 'e',
+  ł: 'l',
+  ń: 'n',
+  ó: 'o',
+  ś: 's',
+  ź: 'z',
+  ż: 'z',
 };
 
 function slug(text: string): string {
@@ -104,7 +120,10 @@ function slug(text: string): string {
 
 /** Pierwsze słowo nagłówka — `stateDiagram-v2` → `statediagram`. */
 function kindOf(code: string): string | undefined {
-  const first = code.split('\n').map((l) => l.trim()).find((l) => l && !l.startsWith('---'));
+  const first = code
+    .split('\n')
+    .map((l) => l.trim())
+    .find((l) => l && !l.startsWith('---'));
   const word = /^([A-Za-z][A-Za-z0-9]*)/.exec(first ?? '')?.[1];
   return word?.toLowerCase();
 }
@@ -120,9 +139,7 @@ export function diagramFileName(code: string, extension: 'svg' | 'png'): string 
   const frontMatterTitle = /^---\r?\n(?:.*\r?\n)*?title:\s*(.+?)\s*\r?\n/m.exec(code)?.[1];
   const inlineTitle = /^\s*title\s+(.+?)\s*$/m.exec(code)?.[1];
 
-  const base = slug(frontMatterTitle ?? inlineTitle ?? '')
-    || slug(kindOf(code) ?? '')
-    || 'diagram';
+  const base = slug(frontMatterTitle ?? inlineTitle ?? '') || slug(kindOf(code) ?? '') || 'diagram';
 
   return `${base}.${extension}`;
 }

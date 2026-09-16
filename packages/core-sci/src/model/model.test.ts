@@ -16,7 +16,10 @@ import { suggestViews } from '../graph/visualization';
 describe('model ręczny', () => {
   const model = defineModel({
     parameters: [{ name: 'a', unit: 'm/s^2', value: 2, min: 0, max: 10 }],
-    observables: [{ name: 'x', kind: 'series', unit: 'm' }, { name: 'droga', kind: 'scalar', unit: 'm' }],
+    observables: [
+      { name: 'x', kind: 'series', unit: 'm' },
+      { name: 'droga', kind: 'scalar', unit: 'm' },
+    ],
     run: (values, tSpan, dt) => {
       const series: Array<[number, number]> = [];
       for (let t = tSpan[0]; t <= tSpan[1]; t += dt) series.push([t, 0.5 * values.a * t * t]);
@@ -51,7 +54,11 @@ describe('model ręczny', () => {
   });
 
   it('model bez wielkości do pokazania jest zgłaszany', () => {
-    const pusty = defineModel({ parameters: [{ name: 'a' }], observables: [], run: () => ({ scalars: {}, series: {} }) });
+    const pusty = defineModel({
+      parameters: [{ name: 'a' }],
+      observables: [],
+      run: () => ({ scalars: {}, series: {} }),
+    });
     expect(pusty.issues.join(' ')).toMatch(/wielkości do pokazania/);
   });
 });
@@ -119,8 +126,12 @@ return defineModel({
   });
 
   it('błąd wykonania jest odróżniony od błędu składni', () => {
-    const { issues } = runScript('return defineModel({ parameters: [], observables: [], run: () => { throw new Error("bum"); } });');
-    const model = runScript('return defineModel({ parameters: [{name:"a"}], observables: [{name:"x"}], run: () => { throw new Error("bum"); } });').model;
+    const { issues } = runScript(
+      'return defineModel({ parameters: [], observables: [], run: () => { throw new Error("bum"); } });'
+    );
+    const model = runScript(
+      'return defineModel({ parameters: [{name:"a"}], observables: [{name:"x"}], run: () => { throw new Error("bum"); } });'
+    ).model;
     expect(issues.join(' ')).not.toMatch(/składni/i);
     expect(() => model!.run({}, [0, 1], 0.1)).toThrow(/bum/);
   });
@@ -142,10 +153,14 @@ return defineModel({
   });
 
   it('przeglądarka jest zasłonięta — model fizyczny nie sięga po nią przez pomyłkę', () => {
-    const { issues } = runScript('return defineModel({ parameters: [{name:"a"}], observables: [{name:"x"}], run: () => { fetch("/x"); return { scalars: {}, series: {} }; } });');
+    const { issues } = runScript(
+      'return defineModel({ parameters: [{name:"a"}], observables: [{name:"x"}], run: () => { fetch("/x"); return { scalars: {}, series: {} }; } });'
+    );
     expect(issues).toEqual([]);
 
-    const model = runScript('return defineModel({ parameters: [{name:"a"}], observables: [{name:"x"}], run: () => { fetch("/x"); return { scalars: {}, series: {} }; } });').model;
+    const model = runScript(
+      'return defineModel({ parameters: [{name:"a"}], observables: [{name:"x"}], run: () => { fetch("/x"); return { scalars: {}, series: {} }; } });'
+    ).model;
     expect(() => model!.run({}, [0, 1], 0.1)).toThrow(/fetch is not a function|undefined/);
   });
 
@@ -185,10 +200,21 @@ return defineModel({
 });
 
 describe('ten sam kontrakt co model z grafu', () => {
-  const zGrafu = compileGraph(buildGraph([
-    parseFormulaBlock('ode', ['@ode', '@state x, v', '@d x = v', '@d v = -x',
-      '@init x = 1, v = 0', '@vars x: m, v: m/s'].join('\n')),
-  ]));
+  const zGrafu = compileGraph(
+    buildGraph([
+      parseFormulaBlock(
+        'ode',
+        [
+          '@ode',
+          '@state x, v',
+          '@d x = v',
+          '@d v = -x',
+          '@init x = 1, v = 0',
+          '@vars x: m, v: m/s',
+        ].join('\n')
+      ),
+    ])
+  );
 
   const zeSkryptu = runScript(`
     return defineModel({

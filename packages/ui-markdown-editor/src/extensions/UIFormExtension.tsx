@@ -54,14 +54,19 @@ const UIFormPickerDialog: React.FC<UIFormPickerDialogProps> = ({
 
   useEffect(() => {
     if (open) {
-      if (!uiFormService) { setLoading(false); return; }
+      if (!uiFormService) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       uiFormService.loadForms().then((loadedForms) => {
-        setForms(loadedForms.map(f => ({
-          id: f.id,
-          name: f.name,
-          description: f.description,
-        })));
+        setForms(
+          loadedForms.map((f) => ({
+            id: f.id,
+            name: f.name,
+            description: f.description,
+          }))
+        );
         setLoading(false);
       });
     }
@@ -70,9 +75,10 @@ const UIFormPickerDialog: React.FC<UIFormPickerDialogProps> = ({
   const filteredForms = useMemo(() => {
     if (!filter.trim()) return forms;
     const lowerFilter = filter.toLowerCase();
-    return forms.filter(f =>
-      f.name.toLowerCase().includes(lowerFilter) ||
-      f.description?.toLowerCase().includes(lowerFilter)
+    return forms.filter(
+      (f) =>
+        f.name.toLowerCase().includes(lowerFilter) ||
+        f.description?.toLowerCase().includes(lowerFilter)
     );
   }, [forms, filter]);
 
@@ -85,7 +91,9 @@ const UIFormPickerDialog: React.FC<UIFormPickerDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
         <DashboardIcon color="primary" />
-        <Typography variant="h6" sx={{ flex: 1 }}>Select UI form</Typography>
+        <Typography variant="h6" sx={{ flex: 1 }}>
+          Select UI form
+        </Typography>
         <IconButton size="small" onClick={onClose}>
           <CloseIcon />
         </IconButton>
@@ -116,9 +124,7 @@ const UIFormPickerDialog: React.FC<UIFormPickerDialogProps> = ({
           </Box>
         ) : filteredForms.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
-            {forms.length === 0
-              ? 'Brak zdefiniowanych formularzy'
-              : 'No forms found'}
+            {forms.length === 0 ? 'Brak zdefiniowanych formularzy' : 'No forms found'}
           </Box>
         ) : (
           <List sx={{ maxHeight: 300, overflow: 'auto' }}>
@@ -131,10 +137,7 @@ const UIFormPickerDialog: React.FC<UIFormPickerDialogProps> = ({
                 <ListItemIcon sx={{ minWidth: 40 }}>
                   <DashboardIcon color={form.id === selectedId ? 'primary' : 'action'} />
                 </ListItemIcon>
-                <ListItemText
-                  primary={form.name}
-                  secondary={form.description}
-                />
+                <ListItemText primary={form.name} secondary={form.description} />
               </ListItemButton>
             ))}
           </List>
@@ -163,7 +166,11 @@ const UIFormNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, selec
   useEffect(() => {
     const loadForm = async () => {
       setLoading(true);
-      if (!uiFormService) { setForm(null); setLoading(false); return; }
+      if (!uiFormService) {
+        setForm(null);
+        setLoading(false);
+        return;
+      }
 
       if (inlineData) {
         // Parsuj inline JSON
@@ -210,9 +217,7 @@ const UIFormNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, selec
           onClick={() => setDialogOpen(true)}
         >
           <DashboardIcon sx={{ fontSize: 40, color: 'action.active', mb: 1 }} />
-          <Typography color="text.secondary">
-            Kliknij aby wybrać formularz UI
-          </Typography>
+          <Typography color="text.secondary">Kliknij aby wybrać formularz UI</Typography>
         </Paper>
 
         <UIFormPickerDialog
@@ -285,9 +290,7 @@ const UIFormNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, selec
         )}
 
         {/* Render form */}
-        <Box sx={{ pointerEvents: 'none' }}>
-          {!!form && uiFormService?.render(form, 'view')}
-        </Box>
+        <Box sx={{ pointerEvents: 'none' }}>{!!form && uiFormService?.render(form, 'view')}</Box>
       </Paper>
 
       <UIFormPickerDialog
@@ -311,7 +314,7 @@ export const UIFormEmbed = Node.create({
   addAttributes() {
     return {
       formId: { default: '' },
-      inlineData: { default: undefined },  // Dla inline JSON
+      inlineData: { default: undefined }, // Dla inline JSON
     };
   },
 
@@ -354,12 +357,14 @@ export const UIFormEmbed = Node.create({
 
   addCommands() {
     return {
-      insertUIForm: (formId: string = '', inlineData?: string) => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: { formId, inlineData },
-        });
-      },
+      insertUIForm:
+        (formId: string = '', inlineData?: string) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: { formId, inlineData },
+          });
+        },
     };
   },
 });

@@ -52,7 +52,7 @@ export interface ComparisonResult {
 export function compareRuns(
   model: PhenomenonModel,
   runs: ComparisonRun[],
-  options: ComparisonOptions,
+  options: ComparisonOptions
 ): ComparisonResult {
   const issues: string[] = [];
   const policzone: ComparisonResult['runs'] = [];

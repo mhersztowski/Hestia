@@ -116,7 +116,7 @@ describe('FileSystem', () => {
       expect(tree.children).toBeDefined();
 
       // Directories first, then files alphabetically
-      const childNames = tree.children!.map(c => c.name);
+      const childNames = tree.children!.map((c) => c.name);
       expect(childNames[0]).toBe('sub'); // directory first
       expect(childNames).toContain('a.txt');
       expect(childNames).toContain('b.txt');
@@ -136,9 +136,7 @@ describe('FileSystem', () => {
 
   describe('path traversal rejection', () => {
     it('rejects path outside root', async () => {
-      await expect(
-        fileSystem.readFile('../../etc/passwd')
-      ).rejects.toThrow('Access denied');
+      await expect(fileSystem.readFile('../../etc/passwd')).rejects.toThrow('Access denied');
     });
   });
 

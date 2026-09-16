@@ -13,15 +13,39 @@
  */
 
 // The document and its history
-export type { Codemap, CodemapSnapshot, CodemapCommit, CodemapHistory, SyncResult } from './codemap/document.js';
+export type {
+  Codemap,
+  CodemapSnapshot,
+  CodemapCommit,
+  CodemapHistory,
+  SyncResult,
+} from './codemap/document.js';
 export {
-  CODEMAP_EXTENSION, codemapFromDiagrams, createCodemap, commitCodemap, parseCodemap, stringifyCodemap,
-  headCommit, branchLog, hasUncommittedChanges, checkoutBranch, createBranch, restoreCommit,
+  CODEMAP_EXTENSION,
+  codemapFromDiagrams,
+  createCodemap,
+  commitCodemap,
+  parseCodemap,
+  stringifyCodemap,
+  headCommit,
+  branchLog,
+  hasUncommittedChanges,
+  checkoutBranch,
+  createBranch,
+  restoreCommit,
 } from './codemap/document.js';
 
 // The UML view
 export type {
-  UmlKind, RelType, UmlMember, UmlDoc, UmlNodeData, UmlNode, UmlEdgeData, UmlEdge, UmlDiagram,
+  UmlKind,
+  RelType,
+  UmlMember,
+  UmlDoc,
+  UmlNodeData,
+  UmlNode,
+  UmlEdgeData,
+  UmlEdge,
+  UmlDiagram,
 } from './codemap/uml/umlTypes.js';
 export { diffDiagrams, summarizeChanges, describeChanges } from './codemap/uml/diffModel.js';
 export type { ModelChange, ChangeKind, ChangeTarget } from './codemap/uml/diffModel.js';

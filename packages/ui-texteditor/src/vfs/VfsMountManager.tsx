@@ -16,12 +16,7 @@ import Alert from '@mui/material/Alert';
 
 import type { CompositeFS } from '@hestia/core';
 import type { VfsProviderDef } from './providerRegistry';
-import {
-  loadPresets,
-  savePreset,
-  deletePreset,
-  generatePresetId,
-} from './vfsMountPresets';
+import { loadPresets, savePreset, deletePreset, generatePresetId } from './vfsMountPresets';
 import type { VfsMountPreset } from './vfsMountPresets';
 
 /* ── Types ── */
@@ -47,16 +42,40 @@ interface MountDialogState {
 
 function AddIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
-      <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      style={{ display: 'block' }}
+    >
+      <path
+        d="M8 2v12M2 8h12"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        fill="none"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 
 function CloseIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
-      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      style={{ display: 'block' }}
+    >
+      <path
+        d="M4 4l8 8M12 4l-8 8"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        fill="none"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -64,7 +83,13 @@ function CloseIcon() {
 function MountIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ display: 'block' }}>
-      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M3 8h10M9 4l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -72,15 +97,37 @@ function MountIcon() {
 function CheckIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ display: 'block' }}>
-      <path d="M3 8l4 4 6-6" stroke="#89d185" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M3 8l4 4 6-6"
+        stroke="#89d185"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
 function ChevronIcon({ open }: { open: boolean }) {
   return (
-    <svg width="10" height="10" viewBox="0 0 16 16" fill="none" style={{ display: 'block', transition: 'transform 0.15s', transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-      <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 16 16"
+      fill="none"
+      style={{
+        display: 'block',
+        transition: 'transform 0.15s',
+        transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+      }}
+    >
+      <path
+        d="M6 4l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -142,7 +189,12 @@ const rowSx = {
 
 /* ── Component ── */
 
-export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPresets, onMountsChanged }: VfsMountManagerProps) {
+export function VfsMountManager({
+  compositeFs,
+  providerRegistry,
+  defaultMountPresets,
+  onMountsChanged,
+}: VfsMountManagerProps) {
   const [version, setVersion] = useState(0);
   const mounts = useMemo(() => compositeFs.getMounts(), [compositeFs, version]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -155,11 +207,11 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
   // yielding, so setTimeout(0) fires after every effect in the tree has run.
   useEffect(() => {
     const id = setTimeout(() => {
-      setVersion(v => v + 1);
-      onMountsChangedRef.current();   // triggers tree.refresh() in VfsExplorer
+      setVersion((v) => v + 1);
+      onMountsChangedRef.current(); // triggers tree.refresh() in VfsExplorer
     }, 0);
     return () => clearTimeout(id);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const [expanded, setExpanded] = useState(false);
   const [presetError, setPresetError] = useState<string | null>(null);
@@ -175,34 +227,37 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
   });
 
   const selectedDef = useMemo(
-    () => providerRegistry.find(d => d.type === dialog.selectedType) ?? null,
-    [providerRegistry, dialog.selectedType],
+    () => providerRegistry.find((d) => d.type === dialog.selectedType) ?? null,
+    [providerRegistry, dialog.selectedType]
   );
 
-  const openDialog = useCallback((preset?: VfsMountPreset) => {
-    if (preset) {
-      setDialog({
-        open: true,
-        selectedType: preset.providerType,
-        mountPoint: preset.mountPoint,
-        config: { ...preset.config },
-        presetName: preset.name,
-        error: null,
-      });
-    } else {
-      setDialog({
-        open: true,
-        selectedType: providerRegistry.length > 0 ? providerRegistry[0].type : null,
-        mountPoint: '/',
-        config: {},
-        presetName: '',
-        error: null,
-      });
-    }
-  }, [providerRegistry]);
+  const openDialog = useCallback(
+    (preset?: VfsMountPreset) => {
+      if (preset) {
+        setDialog({
+          open: true,
+          selectedType: preset.providerType,
+          mountPoint: preset.mountPoint,
+          config: { ...preset.config },
+          presetName: preset.name,
+          error: null,
+        });
+      } else {
+        setDialog({
+          open: true,
+          selectedType: providerRegistry.length > 0 ? providerRegistry[0].type : null,
+          mountPoint: '/',
+          config: {},
+          presetName: '',
+          error: null,
+        });
+      }
+    },
+    [providerRegistry]
+  );
 
   const closeDialog = useCallback(() => {
-    setDialog(prev => ({ ...prev, open: false, error: null }));
+    setDialog((prev) => ({ ...prev, open: false, error: null }));
   }, []);
 
   const handleMount = useCallback(async () => {
@@ -210,13 +265,13 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
     const mp = dialog.mountPoint.trim();
 
     if (!mp || !mp.startsWith('/')) {
-      setDialog(prev => ({ ...prev, error: 'Mount point must start with /' }));
+      setDialog((prev) => ({ ...prev, error: 'Mount point must start with /' }));
       return;
     }
 
     for (const field of selectedDef.configFields ?? []) {
       if (field.required && !dialog.config[field.name]?.trim()) {
-        setDialog(prev => ({ ...prev, error: `${field.label} is required` }));
+        setDialog((prev) => ({ ...prev, error: `${field.label} is required` }));
         return;
       }
     }
@@ -228,20 +283,21 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
         provider = await selectedDef.asyncFactory();
       } else {
         for (const field of selectedDef.configFields ?? []) {
-          resolvedConfig[field.name] = dialog.config[field.name]?.trim() || field.defaultValue || '';
+          resolvedConfig[field.name] =
+            dialog.config[field.name]?.trim() || field.defaultValue || '';
         }
         provider = selectedDef.factory(resolvedConfig);
       }
 
       compositeFs.mount(mp, provider);
-      setVersion(v => v + 1);
+      setVersion((v) => v + 1);
       onMountsChanged();
 
       // Save preset if name provided
       const name = dialog.presetName.trim();
       if (name) {
         const existing = presets.find(
-          p => p.name === name && p.providerType === selectedDef.type && p.mountPoint === mp,
+          (p) => p.name === name && p.providerType === selectedDef.type && p.mountPoint === mp
         );
         const preset: VfsMountPreset = {
           id: existing?.id ?? generatePresetId(),
@@ -257,57 +313,68 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
       closeDialog();
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
-      setDialog(prev => ({
+      setDialog((prev) => ({
         ...prev,
         error: err instanceof Error ? err.message : String(err),
       }));
     }
   }, [dialog, selectedDef, compositeFs, onMountsChanged, closeDialog, presets]);
 
-  const handleUnmount = useCallback((mountPoint: string) => {
-    try {
-      compositeFs.unmount(mountPoint);
-      setVersion(v => v + 1);
-      onMountsChanged();
-    } catch {
-      // Already unmounted
-    }
-  }, [compositeFs, onMountsChanged]);
+  const handleUnmount = useCallback(
+    (mountPoint: string) => {
+      try {
+        compositeFs.unmount(mountPoint);
+        setVersion((v) => v + 1);
+        onMountsChanged();
+      } catch {
+        // Already unmounted
+      }
+    },
+    [compositeFs, onMountsChanged]
+  );
 
   const handleDeletePreset = useCallback((id: string) => {
     deletePreset(id);
     setPresets(loadPresets());
   }, []);
 
-  const handleMountPreset = useCallback(async (preset: VfsMountPreset) => {
-    const def = providerRegistry.find(d => d.type === preset.providerType);
-    if (!def) { setPresetError(`Unknown provider type: ${preset.providerType}`); return; }
-
-    setPresetError(null);
-    try {
-      let provider;
-      if (def.needsUserGesture && def.asyncFactory) {
-        provider = await def.asyncFactory();
-      } else {
-        provider = def.factory(preset.config);
+  const handleMountPreset = useCallback(
+    async (preset: VfsMountPreset) => {
+      const def = providerRegistry.find((d) => d.type === preset.providerType);
+      if (!def) {
+        setPresetError(`Unknown provider type: ${preset.providerType}`);
+        return;
       }
-      compositeFs.mount(preset.mountPoint, provider);
-      setVersion(v => v + 1);
-      onMountsChanged();
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return;
-      // Refresh stale mount list so the UI reflects current state
-      setVersion(v => v + 1);
-      const msg = err instanceof Error ? err.message : String(err);
-      setPresetError(`Mount failed: ${msg}`);
-    }
-  }, [providerRegistry, compositeFs, onMountsChanged]);
+
+      setPresetError(null);
+      try {
+        let provider;
+        if (def.needsUserGesture && def.asyncFactory) {
+          provider = await def.asyncFactory();
+        } else {
+          provider = def.factory(preset.config);
+        }
+        compositeFs.mount(preset.mountPoint, provider);
+        setVersion((v) => v + 1);
+        onMountsChanged();
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        // Refresh stale mount list so the UI reflects current state
+        setVersion((v) => v + 1);
+        const msg = err instanceof Error ? err.message : String(err);
+        setPresetError(`Mount failed: ${msg}`);
+      }
+    },
+    [providerRegistry, compositeFs, onMountsChanged]
+  );
 
   // isMounted reads directly from compositeFs (not stale mounts cache)
   // to correctly reflect external mounts (e.g. auto-mount from UserDataEditorPage).
-  const isMounted = useCallback((preset: VfsMountPreset) =>
-    compositeFs.getMounts().some(m => m.mountPoint === preset.mountPoint),
-  [mounts]);
+  const isMounted = useCallback(
+    (preset: VfsMountPreset) =>
+      compositeFs.getMounts().some((m) => m.mountPoint === preset.mountPoint),
+    [mounts]
+  );
 
   const mountCount = mounts.length;
   const presetCount = presets.length;
@@ -322,7 +389,7 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
           userSelect: 'none',
           '&:hover': { bgcolor: 'rgba(255,255,255,0.04)' },
         }}
-        onClick={() => setExpanded(v => !v)}
+        onClick={() => setExpanded((v) => !v)}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <ChevronIcon open={expanded} />
@@ -333,14 +400,15 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
             </span>
           )}
           {presetCount > 0 && (
-            <span style={{ fontSize: 10, color: '#858585', fontWeight: 400 }}>
-              /{presetCount}p
-            </span>
+            <span style={{ fontSize: 10, color: '#858585', fontWeight: 400 }}>/{presetCount}p</span>
           )}
         </Box>
         <IconButton
           size="small"
-          onClick={e => { e.stopPropagation(); openDialog(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            openDialog();
+          }}
           sx={{ color: '#cccccc', p: 0.25 }}
           title="Add mount"
         >
@@ -351,14 +419,27 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
       {expanded && (
         <>
           {/* ── Active mounts ── */}
-          {mounts.map(m => (
+          {mounts.map((m) => (
             <Box key={m.mountPoint} sx={rowSx}>
               <Chip
                 label={m.provider.scheme}
                 size="small"
-                sx={{ height: 16, fontSize: 10, bgcolor: '#3c3c3c', color: '#cccccc', '& .MuiChip-label': { px: 0.75 } }}
+                sx={{
+                  height: 16,
+                  fontSize: 10,
+                  bgcolor: '#3c3c3c',
+                  color: '#cccccc',
+                  '& .MuiChip-label': { px: 0.75 },
+                }}
               />
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span
+                style={{
+                  flex: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {m.mountPoint}
               </span>
               <IconButton
@@ -380,10 +461,36 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
           {/* ── Preset error ── */}
           {presetError && (
             <Box
-              sx={{ px: 1, py: 0.5, fontSize: 11, color: '#f48771', bgcolor: 'rgba(244,135,113,0.08)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}
+              sx={{
+                px: 1,
+                py: 0.5,
+                fontSize: 11,
+                color: '#f48771',
+                bgcolor: 'rgba(244,135,113,0.08)',
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 0.5,
+              }}
             >
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{presetError}</span>
-              <Box component="span" onClick={() => setPresetError(null)} sx={{ cursor: 'pointer', opacity: 0.7, '&:hover': { opacity: 1 } }}>✕</Box>
+              <span
+                style={{
+                  flex: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {presetError}
+              </span>
+              <Box
+                component="span"
+                onClick={() => setPresetError(null)}
+                sx={{ cursor: 'pointer', opacity: 0.7, '&:hover': { opacity: 1 } }}
+              >
+                ✕
+              </Box>
             </Box>
           )}
 
@@ -394,18 +501,38 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
             </Box>
           )}
 
-          {defaultMountPresets?.map(preset => {
+          {defaultMountPresets?.map((preset) => {
             const mounted = isMounted(preset);
             return (
               <Box key={preset.id} sx={rowSx}>
                 <Box sx={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
-                  <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11 }}>
+                  <span
+                    style={{
+                      display: 'block',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      fontSize: 11,
+                    }}
+                  >
                     {preset.name}
                   </span>
-                  <span style={{ fontSize: 10, color: '#666', display: 'block' }}>{preset.mountPoint}</span>
+                  <span style={{ fontSize: 10, color: '#666', display: 'block' }}>
+                    {preset.mountPoint}
+                  </span>
                 </Box>
                 {mounted ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#89d185', fontSize: 10, px: 0.5, flexShrink: 0 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      color: '#89d185',
+                      fontSize: 10,
+                      px: 0.5,
+                      flexShrink: 0,
+                    }}
+                  >
                     <CheckIcon />
                     <span>active</span>
                   </Box>
@@ -430,22 +557,36 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
             </Box>
           )}
 
-          {presets.map(preset => {
+          {presets.map((preset) => {
             const mounted = isMounted(preset);
             return (
               <Box key={preset.id} sx={rowSx}>
                 <Box sx={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
-                  <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11 }}>
+                  <span
+                    style={{
+                      display: 'block',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      fontSize: 11,
+                    }}
+                  >
                     {preset.name}
                   </span>
-                  <span style={{ fontSize: 10, color: '#666', display: 'block' }}>{preset.mountPoint}</span>
+                  <span style={{ fontSize: 10, color: '#666', display: 'block' }}>
+                    {preset.mountPoint}
+                  </span>
                 </Box>
                 <IconButton
                   size="small"
                   title={mounted ? 'Already mounted' : 'Mount'}
                   disabled={mounted}
                   onClick={() => handleMountPreset(preset)}
-                  sx={{ color: mounted ? '#444' : '#89d185', p: 0.25, '&:hover': { color: '#a8e6a0' } }}
+                  sx={{
+                    color: mounted ? '#444' : '#89d185',
+                    p: 0.25,
+                    '&:hover': { color: '#a8e6a0' },
+                  }}
                 >
                   <MountIcon />
                 </IconButton>
@@ -480,17 +621,26 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
             <Select
               value={dialog.selectedType ?? ''}
               label="Provider Type"
-              onChange={e =>
-                setDialog(prev => ({ ...prev, selectedType: e.target.value, config: {}, error: null }))
+              onChange={(e) =>
+                setDialog((prev) => ({
+                  ...prev,
+                  selectedType: e.target.value,
+                  config: {},
+                  error: null,
+                }))
               }
               sx={selectSx}
               MenuProps={{
                 PaperProps: {
-                  sx: { bgcolor: '#3c3c3c', color: '#cccccc', '& .MuiMenuItem-root:hover': { bgcolor: '#094771' } },
+                  sx: {
+                    bgcolor: '#3c3c3c',
+                    color: '#cccccc',
+                    '& .MuiMenuItem-root:hover': { bgcolor: '#094771' },
+                  },
                 },
               }}
             >
-              {providerRegistry.map(def => (
+              {providerRegistry.map((def) => (
                 <MenuItem key={def.type} value={def.type} sx={{ fontSize: 13 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <span>{def.label}</span>
@@ -508,12 +658,14 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
             size="small"
             label="Mount Point"
             value={dialog.mountPoint}
-            onChange={e => setDialog(prev => ({ ...prev, mountPoint: e.target.value, error: null }))}
+            onChange={(e) =>
+              setDialog((prev) => ({ ...prev, mountPoint: e.target.value, error: null }))
+            }
             placeholder="/my-mount"
             sx={{ ...textFieldSx, mb: 2 }}
           />
 
-          {selectedDef?.configFields?.map(field => (
+          {selectedDef?.configFields?.map((field) => (
             <TextField
               key={field.name}
               fullWidth
@@ -522,8 +674,8 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
               type={field.type === 'password' ? 'password' : 'text'}
               placeholder={field.placeholder}
               value={dialog.config[field.name] ?? field.defaultValue ?? ''}
-              onChange={e =>
-                setDialog(prev => ({
+              onChange={(e) =>
+                setDialog((prev) => ({
                   ...prev,
                   config: { ...prev.config, [field.name]: e.target.value },
                   error: null,
@@ -538,7 +690,7 @@ export function VfsMountManager({ compositeFs, providerRegistry, defaultMountPre
             size="small"
             label="Preset name (optional — saves for reuse)"
             value={dialog.presetName}
-            onChange={e => setDialog(prev => ({ ...prev, presetName: e.target.value }))}
+            onChange={(e) => setDialog((prev) => ({ ...prev, presetName: e.target.value }))}
             placeholder="e.g. MinisProjects GitHub"
             sx={{ ...textFieldSx, mt: 0.5 }}
           />

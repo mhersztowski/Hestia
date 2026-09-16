@@ -22,8 +22,12 @@ export class MinisProjectDefNode extends NodeBase<MinisProjectDefModel> {
     this.blocklyDef = model.blocklyDef;
   }
 
-  static fromModel(model: MinisProjectDefModel): MinisProjectDefNode { return new MinisProjectDefNode(model); }
-  static fromModels(models: MinisProjectDefModel[]): MinisProjectDefNode[] { return models.map(m => new MinisProjectDefNode(m)); }
+  static fromModel(model: MinisProjectDefModel): MinisProjectDefNode {
+    return new MinisProjectDefNode(model);
+  }
+  static fromModels(models: MinisProjectDefModel[]): MinisProjectDefNode[] {
+    return models.map((m) => new MinisProjectDefNode(m));
+  }
 
   getDisplayName(): string {
     return `${this.name} v${this.version}`;

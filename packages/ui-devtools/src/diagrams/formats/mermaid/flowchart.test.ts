@@ -41,17 +41,24 @@ describe('węzły i kształty', () => {
   });
 
   it('rozpoznaje pozostałe kształty Mermaida', () => {
-    const doc = parse([
-      'flowchart TD',
-      '  a(zaokrąglony)',
-      '  b([stadium])',
-      '  c[[podprogram]]',
-      '  d[(baza)]',
-      '  e{{sześciokąt}}',
-      '  f[/równoległobok/]',
-    ].join('\n')).document;
+    const doc = parse(
+      [
+        'flowchart TD',
+        '  a(zaokrąglony)',
+        '  b([stadium])',
+        '  c[[podprogram]]',
+        '  d[(baza)]',
+        '  e{{sześciokąt}}',
+        '  f[/równoległobok/]',
+      ].join('\n')
+    ).document;
     expect(doc.nodes.map((n) => n.shape)).toEqual([
-      'rounded', 'stadium', 'subroutine', 'cylinder', 'hexagon', 'parallelogram',
+      'rounded',
+      'stadium',
+      'subroutine',
+      'cylinder',
+      'hexagon',
+      'parallelogram',
     ]);
   });
 
@@ -72,7 +79,13 @@ describe('krawędzie', () => {
   it('czyta strzałkę, styl i etykietę w pionowych kreskach', () => {
     const doc = parse('flowchart TD\n  A -->|tak| B').document;
     expect(doc.edges).toHaveLength(1);
-    expect(doc.edges[0]).toMatchObject({ source: 'A', target: 'B', label: 'tak', lineStyle: 'solid', arrow: 'arrow' });
+    expect(doc.edges[0]).toMatchObject({
+      source: 'A',
+      target: 'B',
+      label: 'tak',
+      lineStyle: 'solid',
+      arrow: 'arrow',
+    });
   });
 
   it('czyta etykietę w formie `-- tekst -->`', () => {
@@ -81,14 +94,9 @@ describe('krawędzie', () => {
   });
 
   it('rozróżnia styl linii i zakończenie', () => {
-    const doc = parse([
-      'flowchart TD',
-      '  A --- B',
-      '  B -.-> C',
-      '  C ==> D',
-      '  D --o E',
-      '  E --x F',
-    ].join('\n')).document;
+    const doc = parse(
+      ['flowchart TD', '  A --- B', '  B -.-> C', '  C ==> D', '  D --o E', '  E --x F'].join('\n')
+    ).document;
     expect(doc.edges.map((e) => [e.lineStyle, e.arrow])).toEqual([
       ['solid', 'none'],
       ['dotted', 'arrow'],
@@ -109,13 +117,15 @@ describe('krawędzie', () => {
 
 describe('podgrafy', () => {
   it('tworzy grupę i przypisuje do niej węzły', () => {
-    const doc = parse([
-      'flowchart TD',
-      '  subgraph proces [Proces główny]',
-      '    A --> B',
-      '  end',
-      '  B --> C',
-    ].join('\n')).document;
+    const doc = parse(
+      [
+        'flowchart TD',
+        '  subgraph proces [Proces główny]',
+        '    A --> B',
+        '  end',
+        '  B --> C',
+      ].join('\n')
+    ).document;
 
     expect(doc.groups).toEqual([{ id: 'proces', label: 'Proces główny' }]);
     expect(doc.nodes.find((n) => n.id === 'A')?.parentId).toBe('proces');
@@ -135,7 +145,9 @@ describe('zachowanie nierozpoznanych linii', () => {
     const doc = parse(source).document;
 
     expect(doc.unknown.map((u) => u.text.trim())).toEqual([
-      '%% komentarz', 'classDef ważne fill:#f9f', 'click A "https://example.com"',
+      '%% komentarz',
+      'classDef ważne fill:#f9f',
+      'click A "https://example.com"',
     ]);
   });
 
@@ -177,7 +189,8 @@ describe('serializacja i round-trip', () => {
     const first = parse(ROUND_TRIP_SOURCE).document;
     const second = parse(serialize(first)).document;
 
-    const byId = <T extends { id: string }>(items: T[]) => [...items].sort((a, b) => a.id.localeCompare(b.id));
+    const byId = <T extends { id: string }>(items: T[]) =>
+      [...items].sort((a, b) => a.id.localeCompare(b.id));
     // Kolejność deklaracji w pliku nie niesie znaczenia (serializer grupuje
     // podgrafy na początku), więc porównujemy zawartość, nie ustawienie linii.
     expect(byId(second.nodes)).toEqual(byId(first.nodes));
@@ -216,7 +229,13 @@ describe('detect', () => {
 });
 
 describe('front matter we flowcharcie', () => {
-  const WITH_FM = ['---', 'title: Algorytm', '---', 'flowchart TD', '  A[Start] --> B[Koniec]'].join('\n');
+  const WITH_FM = [
+    '---',
+    'title: Algorytm',
+    '---',
+    'flowchart TD',
+    '  A[Start] --> B[Koniec]',
+  ].join('\n');
 
   it('wraca na początek pliku, przed nagłówkiem diagramu', () => {
     const lines = serialize(parse(WITH_FM).document).split('\n');
@@ -244,15 +263,22 @@ describe('krawędzie z `&`', () => {
     const doc = parse('flowchart TD\n  A & B --> C & D').document;
 
     expect(doc.nodes.map((n) => n.id).sort()).toEqual(['A', 'B', 'C', 'D']);
-    expect(doc.edges.map((e) => `${e.source}->${e.target}`).sort())
-      .toEqual(['A->C', 'A->D', 'B->C', 'B->D']);
+    expect(doc.edges.map((e) => `${e.source}->${e.target}`).sort()).toEqual([
+      'A->C',
+      'A->D',
+      'B->C',
+      'B->D',
+    ]);
   });
 
   it('czyta kształty i etykiety po obu stronach', () => {
     const doc = parse('flowchart TD\n  R1[Ra] & R2[Rb] --> R3[Rc] & R4[Rd]').document;
 
     expect(doc.nodes.map((n) => [n.id, n.label])).toEqual([
-      ['R1', 'Ra'], ['R2', 'Rb'], ['R3', 'Rc'], ['R4', 'Rd'],
+      ['R1', 'Ra'],
+      ['R2', 'Rb'],
+      ['R3', 'Rc'],
+      ['R4', 'Rd'],
     ]);
     expect(doc.edges).toHaveLength(4);
   });

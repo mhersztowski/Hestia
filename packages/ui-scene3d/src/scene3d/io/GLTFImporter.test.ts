@@ -70,23 +70,27 @@ function modelGltf(): ArrayBuffer {
       { name: 'Koło', mesh: 0, scale: [2, 2, 2] },
     ],
     meshes: [{ name: 'Koło', primitives: [{ attributes: { POSITION: 0 }, material: 0 }] }],
-    materials: [{
-      name: 'Lakier',
-      pbrMetallicRoughness: {
-        baseColorFactor: [1, 0, 0, 1],
-        metallicFactor: 0.25,
-        roughnessFactor: 0.75,
+    materials: [
+      {
+        name: 'Lakier',
+        pbrMetallicRoughness: {
+          baseColorFactor: [1, 0, 0, 1],
+          metallicFactor: 0.25,
+          roughnessFactor: 0.75,
+        },
+        emissiveFactor: [0, 0, 0],
       },
-      emissiveFactor: [0, 0, 0],
-    }],
-    accessors: [{
-      bufferView: 0,
-      componentType: 5126,
-      count: 3,
-      type: 'VEC3',
-      min: [0, 0, 0],
-      max: [1, 1, 0],
-    }],
+    ],
+    accessors: [
+      {
+        bufferView: 0,
+        componentType: 5126,
+        count: 3,
+        type: 'VEC3',
+        min: [0, 0, 0],
+        max: [1, 1, 0],
+      },
+    ],
     bufferViews: [{ buffer: 0, byteOffset: 0, byteLength: WIERZCHOLKI.byteLength }],
     buffers: [{ byteLength: WIERZCHOLKI.byteLength }],
   };
@@ -144,16 +148,21 @@ describe('import glTF', () => {
 
   it('uszkodzony plik kończy się zrozumiałym błędem, nie pustą sceną', async () => {
     const smiec = new TextEncoder().encode('to nie jest glTF').buffer as ArrayBuffer;
-    await expect(GLTFImporter.importFromBuffer(smiec, 'zepsuty.gltf')).rejects.toThrow(/glTF|gltf/i);
+    await expect(GLTFImporter.importFromBuffer(smiec, 'zepsuty.gltf')).rejects.toThrow(
+      /glTF|gltf/i
+    );
   });
 
   it('model bez siatek jest zgłaszany, a nie cicho pomijany', async () => {
-    const puste = glb({
-      asset: { version: '2.0' },
-      scene: 0,
-      scenes: [{ nodes: [0] }],
-      nodes: [{ name: 'Pusty' }],
-    }, new Float32Array(0));
+    const puste = glb(
+      {
+        asset: { version: '2.0' },
+        scene: 0,
+        scenes: [{ nodes: [0] }],
+        nodes: [{ name: 'Pusty' }],
+      },
+      new Float32Array(0)
+    );
 
     const wynik = await GLTFImporter.importFromBuffer(puste, 'puste.gltf');
     expect(wynik.meshCount).toBe(0);
@@ -181,22 +190,32 @@ describe('współrzędne tekstury', () => {
     bin.set(wierzcholki, 0);
     bin.set(uv, wierzcholki.length);
 
-    return glb({
-      asset: { version: '2.0' },
-      scene: 0,
-      scenes: [{ nodes: [0] }],
-      nodes: [{ name: 'Kostka', mesh: 0 }],
-      meshes: [{ name: 'Kostka', primitives: [{ attributes: { POSITION: 0, TEXCOORD_0: 1 } }] }],
-      accessors: [
-        { bufferView: 0, componentType: 5126, count: 3, type: 'VEC3', min: [0, 0, 0], max: [1, 1, 0] },
-        { bufferView: 1, componentType: 5126, count: 3, type: 'VEC2', min: [0, 0], max: [1, 1] },
-      ],
-      bufferViews: [
-        { buffer: 0, byteOffset: 0, byteLength: wierzcholki.byteLength },
-        { buffer: 0, byteOffset: wierzcholki.byteLength, byteLength: uv.byteLength },
-      ],
-      buffers: [{ byteLength: bin.byteLength }],
-    }, bin);
+    return glb(
+      {
+        asset: { version: '2.0' },
+        scene: 0,
+        scenes: [{ nodes: [0] }],
+        nodes: [{ name: 'Kostka', mesh: 0 }],
+        meshes: [{ name: 'Kostka', primitives: [{ attributes: { POSITION: 0, TEXCOORD_0: 1 } }] }],
+        accessors: [
+          {
+            bufferView: 0,
+            componentType: 5126,
+            count: 3,
+            type: 'VEC3',
+            min: [0, 0, 0],
+            max: [1, 1, 0],
+          },
+          { bufferView: 1, componentType: 5126, count: 3, type: 'VEC2', min: [0, 0], max: [1, 1] },
+        ],
+        bufferViews: [
+          { buffer: 0, byteOffset: 0, byteLength: wierzcholki.byteLength },
+          { buffer: 0, byteOffset: wierzcholki.byteLength, byteLength: uv.byteLength },
+        ],
+        buffers: [{ byteLength: bin.byteLength }],
+      },
+      bin
+    );
   }
 
   it('geometria niesie UV, gdy plik je ma', async () => {
@@ -240,7 +259,11 @@ describe('sposób nakładania tekstury', () => {
   });
 
   it('nie dopisuje ustawień, gdy plik ich nie wymaga', () => {
-    const opis = opiszMaterial(materialZTekstura(THREE.ClampToEdgeWrapping), { rysownik }, () => {});
+    const opis = opiszMaterial(
+      materialZTekstura(THREE.ClampToEdgeWrapping),
+      { rysownik },
+      () => {}
+    );
 
     expect(opis.textureSettings).toEqual({ flipY: false });
   });

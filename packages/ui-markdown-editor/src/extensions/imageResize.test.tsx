@@ -25,11 +25,19 @@ function pole(width: string | null = null) {
   Object.defineProperty(rodzic, 'offsetWidth', { value: KOLUMNA, configurable: true });
   rodzic.appendChild(wrapper);
 
-  render(<ImageResizeHandle width={width} updateAttributes={updateAttributes} elementRef={{ current: wrapper }} />);
+  render(
+    <ImageResizeHandle
+      width={width}
+      updateAttributes={updateAttributes}
+      elementRef={{ current: wrapper }}
+    />
+  );
   return { updateAttributes };
 }
 
-beforeEach(() => { vi.restoreAllMocks(); });
+beforeEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('uchwyt', () => {
   it('jest opisany, żeby dało się go znaleźć bez myszy', () => {

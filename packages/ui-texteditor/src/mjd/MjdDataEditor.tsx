@@ -69,16 +69,17 @@ function FieldControl({
     case 'boolean':
       return (
         <FormControlLabel
-          control={
-            <Switch
-              checked={Boolean(value)}
-              onChange={(e) => onChange(e.target.checked)}
-            />
+          control={<Switch checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} />}
+          label={
+            <>
+              {label}
+              {helperText && (
+                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  {helperText}
+                </Typography>
+              )}
+            </>
           }
-          label={<>
-            {label}
-            {helperText && <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>{helperText}</Typography>}
-          </>}
         />
       );
     case 'date':
@@ -105,10 +106,16 @@ function FieldControl({
             onChange={(e) => onChange(e.target.value)}
           >
             {(field.options ?? []).map((opt) => (
-              <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+              <MenuItem key={opt} value={opt}>
+                {opt}
+              </MenuItem>
             ))}
           </Select>
-          {helperText && <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>{helperText}</Typography>}
+          {helperText && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+              {helperText}
+            </Typography>
+          )}
         </FormControl>
       );
     case 'array':
@@ -197,9 +204,13 @@ function ArrayFieldControl({
 
   return (
     <Box ref={containerRef}>
-      <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>{label}</Typography>
+      <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+        {label}
+      </Typography>
       {field.description && (
-        <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>{field.description}</Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+          {field.description}
+        </Typography>
       )}
       {items.map((item, i) => (
         <Box
@@ -209,7 +220,14 @@ function ArrayFieldControl({
         >
           <Box sx={{ flex: 1 }}>
             <FieldControl
-              field={{ ...field, name: `${field.name}[${i}]`, type: itemType, label: `#${i + 1}`, description: undefined, tags: [] }}
+              field={{
+                ...field,
+                name: `${field.name}[${i}]`,
+                type: itemType,
+                label: `#${i + 1}`,
+                description: undefined,
+                tags: [],
+              }}
               value={item}
               onChange={(v) => updateItem(i, v)}
             />
@@ -219,10 +237,17 @@ function ArrayFieldControl({
           </IconButton>
         </Box>
       ))}
-      <Button size="small" onClick={addItem}>+ Add item</Button>
+      <Button size="small" onClick={addItem}>
+        + Add item
+      </Button>
       {items.length > 0 && (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, ml: 1, display: 'block' }}>
-          Enter \u2014 zako\u0144cz edycj\u0119 bie\u017c\u0105cego itemu i przejd\u017a do nast\u0119pnego (lub utw\u00f3rz nowy gdy jeste\u015b na ostatnim).
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mt: 0.5, ml: 1, display: 'block' }}
+        >
+          Enter \u2014 zako\u0144cz edycj\u0119 bie\u017c\u0105cego itemu i przejd\u017a do
+          nast\u0119pnego (lub utw\u00f3rz nowy gdy jeste\u015b na ostatnim).
         </Typography>
       )}
     </Box>
@@ -231,12 +256,18 @@ function ArrayFieldControl({
 
 function getDefaultForType(type: MjdFieldType): unknown {
   switch (type) {
-    case 'string': return '';
-    case 'number': return 0;
-    case 'boolean': return false;
-    case 'date': return '';
-    case 'enum': return '';
-    case 'array': return [];
+    case 'string':
+      return '';
+    case 'number':
+      return 0;
+    case 'boolean':
+      return false;
+    case 'date':
+      return '';
+    case 'enum':
+      return '';
+    case 'array':
+      return [];
   }
 }
 
@@ -252,14 +283,19 @@ export function MjdDataEditor({ definition, value, onChange }: MjdDataEditorProp
     return getFieldsForView(definition, view.tag);
   }, [definition, selectedView]);
 
-  const updateFieldValue = useCallback((fieldName: string, fieldValue: unknown) => {
-    onChange({ ...value, [fieldName]: fieldValue });
-  }, [value, onChange]);
+  const updateFieldValue = useCallback(
+    (fieldName: string, fieldValue: unknown) => {
+      onChange({ ...value, [fieldName]: fieldValue });
+    },
+    [value, onChange]
+  );
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Mode toggle */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1.5, pt: 1, pb: 0.5, flexShrink: 0 }}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'flex-end', px: 1.5, pt: 1, pb: 0.5, flexShrink: 0 }}
+      >
         <ToggleButtonGroup size="small" value={mode} exclusive onChange={(_, v) => v && setMode(v)}>
           <ToggleButton value="form" sx={{ gap: 0.5, px: 1.5 }}>
             <TableRowsIcon sx={{ fontSize: 15 }} />
@@ -287,7 +323,9 @@ export function MjdDataEditor({ definition, value, onChange }: MjdDataEditorProp
                 onChange={(e) => setSelectedView(e.target.value)}
               >
                 {definition.views.map((v) => (
-                  <MenuItem key={v.name} value={v.name}>{v.name}</MenuItem>
+                  <MenuItem key={v.name} value={v.name}>
+                    {v.name}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>

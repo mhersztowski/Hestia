@@ -1,13 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import { emptyProgress } from './schedule';
 import {
-  recordSolution, solutionsFor, pruneSolutions, SOLUTION_HISTORY_LIMIT,
-  type ProgressWithSolutions, type Solution,
+  recordSolution,
+  solutionsFor,
+  pruneSolutions,
+  SOLUTION_HISTORY_LIMIT,
+  type ProgressWithSolutions,
+  type Solution,
 } from './solutions';
 
 const T = Date.UTC(2026, 7, 4);
-const rozw = (at: number, mode: Solution['mode'] = 'md'): Solution =>
-  ({ at, mode, content: `treść ${at}`, answer: '0,28 s' });
+const rozw = (at: number, mode: Solution['mode'] = 'md'): Solution => ({
+  at,
+  mode,
+  content: `treść ${at}`,
+  answer: '0,28 s',
+});
 
 describe('historia rozwiązań', () => {
   it('zapisuje treść, tryb, odpowiedź i datę', () => {

@@ -13,15 +13,35 @@ import { addRow, createPlotDocument, serializePlotDocument } from '@hestia/core-
 import { SciPlot } from './SciPlot';
 
 beforeAll(() => {
-  globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} } as never;
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as never;
   Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 400 });
   Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, value: 400 });
   HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
-    setTransform: vi.fn(), fillRect: vi.fn(), clearRect: vi.fn(), beginPath: vi.fn(),
-    moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(), fill: vi.fn(), fillText: vi.fn(),
-    arc: vi.fn(), save: vi.fn(), restore: vi.fn(), setLineDash: vi.fn(),
-    fillStyle: '', strokeStyle: '', lineWidth: 1, font: '', textAlign: '', textBaseline: '',
-    lineJoin: '', lineCap: '',
+    setTransform: vi.fn(),
+    fillRect: vi.fn(),
+    clearRect: vi.fn(),
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    stroke: vi.fn(),
+    fill: vi.fn(),
+    fillText: vi.fn(),
+    arc: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    setLineDash: vi.fn(),
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+    font: '',
+    textAlign: '',
+    textBaseline: '',
+    lineJoin: '',
+    lineCap: '',
   })) as never;
 });
 
@@ -106,7 +126,12 @@ describe('suwaki', () => {
      * każde drgnięcie palcem brudziłoby notatkę i zapełniało historię zmian.
      */
     const onDocumentChange = vi.fn();
-    render(<SciPlot initialDocument={addRow(createPlotDocument(), 'a = 2')} onDocumentChange={onDocumentChange} />);
+    render(
+      <SciPlot
+        initialDocument={addRow(createPlotDocument(), 'a = 2')}
+        onDocumentChange={onDocumentChange}
+      />
+    );
 
     fireEvent.change(screen.getByLabelText('suwak a'), { target: { value: '5' } });
     expect(onDocumentChange).not.toHaveBeenCalled();
@@ -161,7 +186,9 @@ describe('animacja suwaka', () => {
         const next = kolejka.shift();
         next?.(czas);
       },
-      get oczekujace() { return kolejka.length; },
+      get oczekujace() {
+        return kolejka.length;
+      },
     };
   }
 
@@ -182,7 +209,10 @@ describe('animacja suwaka', () => {
     fireEvent.click(screen.getByLabelText('Animuj a'));
     // Pierwsza klatka tylko ustawia punkt odniesienia czasu; ruch zaczyna się
     // od drugiej.
-    act(() => { klatki.klatka(0); klatki.klatka(100); });
+    act(() => {
+      klatki.klatka(0);
+      klatki.klatka(100);
+    });
 
     /*
      * Wartość czytamy z suwaka, nie z tekstu: KaTeX składa wzór wiersza
@@ -229,10 +259,18 @@ describe('animacja suwaka', () => {
     // Ruch parametru to podgląd, nie zmiana treści notatki.
     const klatki = przejmijKlatki();
     const onDocumentChange = vi.fn();
-    render(<SciPlot initialDocument={addRow(createPlotDocument(), 'a = 0')} onDocumentChange={onDocumentChange} />);
+    render(
+      <SciPlot
+        initialDocument={addRow(createPlotDocument(), 'a = 0')}
+        onDocumentChange={onDocumentChange}
+      />
+    );
 
     fireEvent.click(screen.getByLabelText('Animuj a'));
-    act(() => { klatki.klatka(50); klatki.klatka(50); });
+    act(() => {
+      klatki.klatka(50);
+      klatki.klatka(50);
+    });
 
     expect(onDocumentChange).not.toHaveBeenCalled();
     vi.unstubAllGlobals();
@@ -244,7 +282,12 @@ describe('zakres suwaka', () => {
     // Zakres jest własnością wiersza, nie chwilowym stanem podglądu — więc
     // w odróżnieniu od wartości musi wrócić do zapisu.
     const onDocumentChange = vi.fn();
-    render(<SciPlot initialDocument={addRow(createPlotDocument(), 'a = 2')} onDocumentChange={onDocumentChange} />);
+    render(
+      <SciPlot
+        initialDocument={addRow(createPlotDocument(), 'a = 2')}
+        onDocumentChange={onDocumentChange}
+      />
+    );
 
     fireEvent.click(screen.getByLabelText('Zakres suwaka a'));
     fireEvent.change(screen.getByLabelText('do suwaka a'), { target: { value: '100' } });

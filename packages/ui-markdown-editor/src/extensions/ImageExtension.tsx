@@ -27,7 +27,12 @@ import { ImageResizeHandle } from './ImageResizeHandle';
 
 type ImageAlign = 'left' | 'center' | 'right' | 'inline';
 
-const ImageNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, deleteNode, selected }) => {
+const ImageNodeView: React.FC<NodeViewProps> = ({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}) => {
   // Start in edit mode if src is empty
   const [isEditing, setIsEditing] = useState(!node.attrs.src);
   const [isHovered, setIsHovered] = useState(false);
@@ -286,7 +291,8 @@ const ImageNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, delete
                     p: 1,
                     bgcolor: '#f5f5f5',
                     borderRadius: 1,
-                    textAlign: editAlign === 'center' ? 'center' : editAlign === 'right' ? 'right' : 'left',
+                    textAlign:
+                      editAlign === 'center' ? 'center' : editAlign === 'right' ? 'right' : 'left',
                   }}
                 >
                   <img
@@ -309,7 +315,9 @@ const ImageNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, delete
               </Box>
             )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}
+            >
               <Typography variant="caption" color="text.secondary">
                 Ctrl+Enter aby zapisać, Escape aby anulować
               </Typography>
@@ -317,12 +325,7 @@ const ImageNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, delete
                 <Button size="small" onClick={handleCancel}>
                   Anuluj
                 </Button>
-                <Button
-                  size="small"
-                  variant="contained"
-                  onClick={handleSave}
-                  disabled={!editSrc}
-                >
+                <Button size="small" variant="contained" onClick={handleSave} disabled={!editSrc}>
                   Save
                 </Button>
               </Box>
@@ -416,10 +419,7 @@ const ImageNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, delete
   }
 
   return (
-    <NodeViewWrapper
-      className="image-node-wrapper"
-      style={nodeWrapperStyle}
-    >
+    <NodeViewWrapper className="image-node-wrapper" style={nodeWrapperStyle}>
       <Box
         ref={boxRef}
         onMouseEnter={() => setIsHovered(true)}
@@ -724,12 +724,20 @@ export const EditableImage = Node.create({
 
   addCommands() {
     return {
-      setImage: (options: { src: string; alt?: string; title?: string; width?: string; align?: ImageAlign }) => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: options,
-        });
-      },
+      setImage:
+        (options: {
+          src: string;
+          alt?: string;
+          title?: string;
+          width?: string;
+          align?: ImageAlign;
+        }) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: options,
+          });
+        },
     };
   },
 });
@@ -738,7 +746,13 @@ export const EditableImage = Node.create({
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     image: {
-      setImage: (options: { src: string; alt?: string; title?: string; width?: string; align?: 'left' | 'center' | 'right' | 'inline' }) => ReturnType;
+      setImage: (options: {
+        src: string;
+        alt?: string;
+        title?: string;
+        width?: string;
+        align?: 'left' | 'center' | 'right' | 'inline';
+      }) => ReturnType;
     };
   }
 }

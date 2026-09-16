@@ -10,38 +10,68 @@ import { closestPointOnSegment } from '../utils/geometry';
 
 function endpoints(e: Entity): Point2D[] {
   switch (e.type) {
-    case 'line': return [{ x: e.x1, y: e.y1 }, { x: e.x2, y: e.y2 }];
+    case 'line':
+      return [
+        { x: e.x1, y: e.y1 },
+        { x: e.x2, y: e.y2 },
+      ];
     case 'polyline':
-    case 'freehand': return e.points.length ? [e.points[0], e.points[e.points.length - 1]] : [];
-    case 'rect': return [{ x: e.x, y: e.y }, { x: e.x + e.width, y: e.y }, { x: e.x + e.width, y: e.y + e.height }, { x: e.x, y: e.y + e.height }];
-    case 'arc': return [
-      { x: e.cx + e.radius * Math.cos(e.startAngle), y: e.cy + e.radius * Math.sin(e.startAngle) },
-      { x: e.cx + e.radius * Math.cos(e.endAngle), y: e.cy + e.radius * Math.sin(e.endAngle) },
-    ];
-    case 'point': return [{ x: e.x, y: e.y }];
-    default: return [];
+    case 'freehand':
+      return e.points.length ? [e.points[0], e.points[e.points.length - 1]] : [];
+    case 'rect':
+      return [
+        { x: e.x, y: e.y },
+        { x: e.x + e.width, y: e.y },
+        { x: e.x + e.width, y: e.y + e.height },
+        { x: e.x, y: e.y + e.height },
+      ];
+    case 'arc':
+      return [
+        {
+          x: e.cx + e.radius * Math.cos(e.startAngle),
+          y: e.cy + e.radius * Math.sin(e.startAngle),
+        },
+        { x: e.cx + e.radius * Math.cos(e.endAngle), y: e.cy + e.radius * Math.sin(e.endAngle) },
+      ];
+    case 'point':
+      return [{ x: e.x, y: e.y }];
+    default:
+      return [];
   }
 }
 
 function midpoints(e: Entity): Point2D[] {
   switch (e.type) {
-    case 'line': return [{ x: (e.x1 + e.x2) / 2, y: (e.y1 + e.y2) / 2 }];
+    case 'line':
+      return [{ x: (e.x1 + e.x2) / 2, y: (e.y1 + e.y2) / 2 }];
     case 'polyline': {
       const m: Point2D[] = [];
-      for (let i = 0; i < e.points.length - 1; i++) m.push({ x: (e.points[i].x + e.points[i + 1].x) / 2, y: (e.points[i].y + e.points[i + 1].y) / 2 });
+      for (let i = 0; i < e.points.length - 1; i++)
+        m.push({
+          x: (e.points[i].x + e.points[i + 1].x) / 2,
+          y: (e.points[i].y + e.points[i + 1].y) / 2,
+        });
       return m;
     }
-    default: return [];
+    default:
+      return [];
   }
 }
 
 function center(e: Entity): Point2D | null {
   switch (e.type) {
-    case 'circle': case 'arc': return { x: e.cx, y: e.cy };
-    case 'rect': return { x: e.x + e.width / 2, y: e.y + e.height / 2 };
-    case 'cylinder3d': case 'sphere3d': return { x: e.cx, y: e.cy };
-    case 'box3d': return { x: e.cx, y: e.cy };
-    default: return null;
+    case 'circle':
+    case 'arc':
+      return { x: e.cx, y: e.cy };
+    case 'rect':
+      return { x: e.x + e.width / 2, y: e.y + e.height / 2 };
+    case 'cylinder3d':
+    case 'sphere3d':
+      return { x: e.cx, y: e.cy };
+    case 'box3d':
+      return { x: e.cx, y: e.cy };
+    default:
+      return null;
   }
 }
 
@@ -62,7 +92,10 @@ function dist(a: Point2D, b: Point2D): number {
 
 // ── closest point on an entity's outline → a point-on anchor ─────────────────────
 
-function closestPointOn(e: Entity, p: Point2D): { point: Point2D; dist: number; anchor: DimAnchor } | null {
+function closestPointOn(
+  e: Entity,
+  p: Point2D
+): { point: Point2D; dist: number; anchor: DimAnchor } | null {
   switch (e.type) {
     case 'line': {
       const c = closestPointOnSegment(p.x, p.y, e.x1, e.y1, e.x2, e.y2);
@@ -74,10 +107,16 @@ function closestPointOn(e: Entity, p: Point2D): { point: Point2D; dist: number; 
       let best: { point: Point2D; dist: number; anchor: DimAnchor } | null = null;
       const segCount = e.type === 'polyline' && e.closed ? pts.length : pts.length - 1;
       for (let i = 0; i < segCount; i++) {
-        const a = pts[i], b = pts[(i + 1) % pts.length];
+        const a = pts[i],
+          b = pts[(i + 1) % pts.length];
         const c = closestPointOnSegment(p.x, p.y, a.x, a.y, b.x, b.y);
         const d = dist(p, c);
-        if (!best || d < best.dist) best = { point: c, dist: d, anchor: { entityId: e.id, kind: 'point-on', index: i, t: c.t } };
+        if (!best || d < best.dist)
+          best = {
+            point: c,
+            dist: d,
+            anchor: { entityId: e.id, kind: 'point-on', index: i, t: c.t },
+          };
       }
       return best;
     }
@@ -87,25 +126,39 @@ function closestPointOn(e: Entity, p: Point2D): { point: Point2D; dist: number; 
         const [a, b] = rectEdge(e, edge);
         const c = closestPointOnSegment(p.x, p.y, a.x, a.y, b.x, b.y);
         const d = dist(p, c);
-        if (!best || d < best.dist) best = { point: c, dist: d, anchor: { entityId: e.id, kind: 'point-on', index: edge, t: c.t } };
+        if (!best || d < best.dist)
+          best = {
+            point: c,
+            dist: d,
+            anchor: { entityId: e.id, kind: 'point-on', index: edge, t: c.t },
+          };
       }
       return best;
     }
     case 'circle': {
       const ang = Math.atan2(p.y - e.cy, p.x - e.cx);
       const point = { x: e.cx + e.radius * Math.cos(ang), y: e.cy + e.radius * Math.sin(ang) };
-      return { point, dist: Math.abs(dist(p, { x: e.cx, y: e.cy }) - e.radius), anchor: { entityId: e.id, kind: 'point-on', angle: ang } };
+      return {
+        point,
+        dist: Math.abs(dist(p, { x: e.cx, y: e.cy }) - e.radius),
+        anchor: { entityId: e.id, kind: 'point-on', angle: ang },
+      };
     }
     case 'arc': {
       const ang = Math.atan2(p.y - e.cy, p.x - e.cx);
       const point = { x: e.cx + e.radius * Math.cos(ang), y: e.cy + e.radius * Math.sin(ang) };
-      return { point, dist: Math.abs(dist(p, { x: e.cx, y: e.cy }) - e.radius), anchor: { entityId: e.id, kind: 'point-on', angle: ang } };
+      return {
+        point,
+        dist: Math.abs(dist(p, { x: e.cx, y: e.cy }) - e.radius),
+        anchor: { entityId: e.id, kind: 'point-on', angle: ang },
+      };
     }
     case 'point': {
       const q = { x: e.x, y: e.y };
       return { point: q, dist: dist(p, q), anchor: { entityId: e.id, kind: 'endpoint', index: 0 } };
     }
-    default: return null;
+    default:
+      return null;
   }
 }
 
@@ -121,10 +174,13 @@ export function makeDimAnchor(
   point: Point2D,
   entities: Entity[],
   threshold: number,
-  snap?: { entityId?: string; mode?: string },
+  snap?: { entityId?: string; mode?: string }
 ): DimAnchor | null {
-  if (snap?.entityId && (snap.mode === 'endpoint' || snap.mode === 'midpoint' || snap.mode === 'center')) {
-    const e = entities.find(en => en.id === snap.entityId);
+  if (
+    snap?.entityId &&
+    (snap.mode === 'endpoint' || snap.mode === 'midpoint' || snap.mode === 'center')
+  ) {
+    const e = entities.find((en) => en.id === snap.entityId);
     if (e) {
       if (snap.mode === 'center' && center(e)) return { entityId: e.id, kind: 'center' };
       if (snap.mode === 'endpoint') {
@@ -144,9 +200,16 @@ export function makeDimAnchor(
   const cands: Array<{ dist: number; anchor: DimAnchor }> = [];
   for (const e of entities) {
     const eps = endpoints(e);
-    for (let i = 0; i < eps.length; i++) { const d = dist(eps[i], point); if (d <= threshold) cands.push({ dist: d, anchor: { entityId: e.id, kind: 'endpoint', index: i } }); }
+    for (let i = 0; i < eps.length; i++) {
+      const d = dist(eps[i], point);
+      if (d <= threshold)
+        cands.push({ dist: d, anchor: { entityId: e.id, kind: 'endpoint', index: i } });
+    }
     const c = center(e);
-    if (c) { const d = dist(c, point); if (d <= threshold) cands.push({ dist: d, anchor: { entityId: e.id, kind: 'center' } }); }
+    if (c) {
+      const d = dist(c, point);
+      if (d <= threshold) cands.push({ dist: d, anchor: { entityId: e.id, kind: 'center' } });
+    }
     const po = closestPointOn(e, point);
     if (po && po.dist <= threshold) cands.push({ dist: po.dist, anchor: po.anchor });
   }
@@ -156,8 +219,15 @@ export function makeDimAnchor(
 }
 
 function nearestIndex(pts: Point2D[], p: Point2D): number {
-  let bi = -1, bd = Infinity;
-  for (let i = 0; i < pts.length; i++) { const d = dist(pts[i], p); if (d < bd) { bd = d; bi = i; } }
+  let bi = -1,
+    bd = Infinity;
+  for (let i = 0; i < pts.length; i++) {
+    const d = dist(pts[i], p);
+    if (d < bd) {
+      bd = d;
+      bi = i;
+    }
+  }
   return bi;
 }
 
@@ -165,18 +235,26 @@ function nearestIndex(pts: Point2D[], p: Point2D): number {
 export function resolveDimAnchor(anchor: DimAnchor, entity: Entity | undefined): Point2D | null {
   if (!entity) return null;
   switch (anchor.kind) {
-    case 'endpoint': return endpoints(entity)[anchor.index ?? 0] ?? null;
-    case 'midpoint': return midpoints(entity)[anchor.index ?? 0] ?? null;
-    case 'center': return center(entity);
+    case 'endpoint':
+      return endpoints(entity)[anchor.index ?? 0] ?? null;
+    case 'midpoint':
+      return midpoints(entity)[anchor.index ?? 0] ?? null;
+    case 'center':
+      return center(entity);
     case 'point-on': {
       const t = anchor.t ?? 0.5;
       switch (entity.type) {
-        case 'line': return { x: entity.x1 + t * (entity.x2 - entity.x1), y: entity.y1 + t * (entity.y2 - entity.y1) };
+        case 'line':
+          return {
+            x: entity.x1 + t * (entity.x2 - entity.x1),
+            y: entity.y1 + t * (entity.y2 - entity.y1),
+          };
         case 'polyline':
         case 'freehand': {
           const pts = entity.points;
           const i = anchor.index ?? 0;
-          const a = pts[i], b = pts[(i + 1) % pts.length];
+          const a = pts[i],
+            b = pts[(i + 1) % pts.length];
           if (!a || !b) return null;
           return { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
         }
@@ -187,11 +265,16 @@ export function resolveDimAnchor(anchor: DimAnchor, entity: Entity | undefined):
         case 'circle':
         case 'arc': {
           const ang = anchor.angle ?? 0;
-          return { x: entity.cx + entity.radius * Math.cos(ang), y: entity.cy + entity.radius * Math.sin(ang) };
+          return {
+            x: entity.cx + entity.radius * Math.cos(ang),
+            y: entity.cy + entity.radius * Math.sin(ang),
+          };
         }
-        default: return null;
+        default:
+          return null;
       }
     }
-    default: return null;
+    default:
+      return null;
   }
 }

@@ -32,7 +32,9 @@ export function useMdViewSettings(): MdViewSettings {
     const f = () => setS(current);
     subs.add(f);
     f(); // sync na wypadek zmiany między renderem a subskrypcją
-    return () => { subs.delete(f); };
+    return () => {
+      subs.delete(f);
+    };
   }, []);
   return s;
 }

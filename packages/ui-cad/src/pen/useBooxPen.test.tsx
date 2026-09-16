@@ -9,7 +9,10 @@ import type { BooxPenBridge, BooxPenMessage, CanvasPenPoint } from './booxPen';
 class FakeResizeObserver {
   static last: FakeResizeObserver | null = null;
   callback: () => void;
-  constructor(cb: () => void) { this.callback = cb; FakeResizeObserver.last = this; }
+  constructor(cb: () => void) {
+    this.callback = cb;
+    FakeResizeObserver.last = this;
+  }
   observe() {}
   disconnect() {}
 }
@@ -51,7 +54,9 @@ function Harness({ active, onStroke }: HarnessProps) {
       <span data-testid="available">{String(status.available)}</span>
       <span data-testid="error">{status.error ?? ''}</span>
       <span data-testid="strokes">{String(status.strokes)}</span>
-      <span data-testid="outside">{status.lastOutside === null ? '-' : String(status.lastOutside)}</span>
+      <span data-testid="outside">
+        {status.lastOutside === null ? '-' : String(status.lastOutside)}
+      </span>
     </>
   );
 }
@@ -61,7 +66,9 @@ function installBridge(available = true): { bridge: BooxPenBridge; sent: BooxPen
   const bridge: BooxPenBridge = {
     available,
     info: available ? 'Boox Go 10.3' : 'this is not an Onyx device',
-    send: (m) => { sent.push(m); },
+    send: (m) => {
+      sent.push(m);
+    },
     onStroke: null,
     onStatus: null,
   };
@@ -124,14 +131,18 @@ describe('useBooxPen', () => {
     expect(sent).toContainEqual({ type: 'boox:enabled', enabled: true });
     expect(getByTestId('engaged').textContent).toBe('false');
 
-    act(() => { bridge.onStatus?.({ engaged: true, error: null }); });
+    act(() => {
+      bridge.onStatus?.({ engaged: true, error: null });
+    });
     expect(getByTestId('engaged').textContent).toBe('true');
   });
 
   it('the driver refusing reaches the page together with the reason', () => {
     const { bridge } = installBridge();
     const { getByTestId } = render(<Harness active onStroke={vi.fn()} />);
-    act(() => { bridge.onStatus?.({ engaged: false, error: 'brak obszaru rysowania' }); });
+    act(() => {
+      bridge.onStatus?.({ engaged: false, error: 'brak obszaru rysowania' });
+    });
     expect(getByTestId('engaged').textContent).toBe('false');
     expect(getByTestId('error').textContent).toBe('brak obszaru rysowania');
   });
@@ -208,7 +219,9 @@ describe('useBooxPen', () => {
     const { sent } = installBridge();
     render(<Harness active onStroke={vi.fn()} />);
     currentRect = { ...AREA_CSS };
-    act(() => { FakeResizeObserver.last?.callback(); });
+    act(() => {
+      FakeResizeObserver.last?.callback();
+    });
     expect(sent.map((m) => m.type)).toEqual(['boox:area', 'boox:enabled']);
   });
 
@@ -240,7 +253,9 @@ describe('useBooxPen', () => {
     const { sent } = installBridge();
     render(<Harness active onStroke={vi.fn()} />);
     sent.length = 0;
-    act(() => { FakeResizeObserver.last?.callback(); });
+    act(() => {
+      FakeResizeObserver.last?.callback();
+    });
     expect(sent.map((m) => m.type)).toContain('boox:area');
   });
 });

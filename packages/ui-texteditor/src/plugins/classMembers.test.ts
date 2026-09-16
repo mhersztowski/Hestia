@@ -70,15 +70,23 @@ describe('formatSignalArgs', () => {
   });
 
   it('pomija nazwy, gdy żaden argument ich nie ma', () => {
-    expect(formatSignalArgs([{ name: '', type: 'number' }, { name: '', type: 'string' }]))
-      .toBe('[number, string]');
+    expect(
+      formatSignalArgs([
+        { name: '', type: 'number' },
+        { name: '', type: 'string' },
+      ])
+    ).toBe('[number, string]');
   });
 
   // TS nie pozwala mieszać nazwanych i nienazwanych elementów tupli, więc
   // brakujące nazwy dostają zastępcze — inaczej powstałby kod, który się nie kompiluje.
   it('dopełnia brakujące nazwy, gdy choć jeden argument jest nazwany', () => {
-    expect(formatSignalArgs([{ name: 'x', type: 'number' }, { name: '', type: 'string' }]))
-      .toBe('[x: number, arg2: string]');
+    expect(
+      formatSignalArgs([
+        { name: 'x', type: 'number' },
+        { name: '', type: 'string' },
+      ])
+    ).toBe('[x: number, arg2: string]');
   });
 
   it('argument bez typu dostaje unknown', () => {
@@ -93,16 +101,19 @@ describe('formatSignalArgs', () => {
 
 describe('generatory deklaracji', () => {
   it('signal', () => {
-    expect(buildSignalMember('clicked', [{ name: 'x', type: 'number' }]))
-      .toBe('readonly clicked = new Signal<[x: number]>();');
+    expect(buildSignalMember('clicked', [{ name: 'x', type: 'number' }])).toBe(
+      'readonly clicked = new Signal<[x: number]>();'
+    );
     expect(buildSignalMember('done', [])).toBe('readonly done = new Signal<[]>();');
   });
 
   it('property', () => {
-    expect(buildPropertyMember('count', 'number', '0'))
-      .toBe('readonly count = new MProperty<number>(0);');
-    expect(buildPropertyMember('count', '', ''))
-      .toBe('readonly count = new MProperty<unknown>(undefined);');
+    expect(buildPropertyMember('count', 'number', '0')).toBe(
+      'readonly count = new MProperty<number>(0);'
+    );
+    expect(buildPropertyMember('count', '', '')).toBe(
+      'readonly count = new MProperty<unknown>(undefined);'
+    );
   });
 
   it('variable', () => {
@@ -143,8 +154,12 @@ describe('findClassBody', () => {
 
 describe('replaceFieldInCode', () => {
   it('podmienia deklarację sygnału', () => {
-    const out = replaceFieldInCode(SRC, 'Licznik', 'zmieniony',
-      'readonly zmieniony = new Signal<[wartosc: number, delta: number]>();');
+    const out = replaceFieldInCode(
+      SRC,
+      'Licznik',
+      'zmieniony',
+      'readonly zmieniony = new Signal<[wartosc: number, delta: number]>();'
+    );
     expect(out).not.toBeNull();
     expect(out).toContain('new Signal<[wartosc: number, delta: number]>();');
     expect(out).not.toContain('new Signal<[wartosc: number]>();');
@@ -154,8 +169,12 @@ describe('replaceFieldInCode', () => {
   });
 
   it('podmienia deklarację property i zmiennej', () => {
-    const a = replaceFieldInCode(SRC, 'Licznik', 'stan',
-      'readonly stan = new MProperty<string>("x");')!;
+    const a = replaceFieldInCode(
+      SRC,
+      'Licznik',
+      'stan',
+      'readonly stan = new MProperty<string>("x");'
+    )!;
     expect(a).toContain('new MProperty<string>("x");');
     const b = replaceFieldInCode(SRC, 'Licznik', 'krok', 'krok: number = 5;')!;
     expect(b).toContain('krok: number = 5;');
@@ -165,8 +184,12 @@ describe('replaceFieldInCode', () => {
   // Nazwa pola pojawia się też w ciele metody (`this.stan.value`). Podmiana
   // musi trafić w deklarację, nie w pierwsze lepsze wystąpienie nazwy.
   it('nie rusza wystąpień nazwy w ciele metody', () => {
-    const out = replaceFieldInCode(SRC, 'Licznik', 'stan',
-      'readonly stan = new MProperty<number>(7);')!;
+    const out = replaceFieldInCode(
+      SRC,
+      'Licznik',
+      'stan',
+      'readonly stan = new MProperty<number>(7);'
+    )!;
     expect(out).toContain('this.stan.value = this.stan.value + v;');
   });
 
@@ -286,32 +309,48 @@ describe('parseSignalPorts — tylko składowe klasy', () => {
   };
 
   it('nie bierze parametru metody za sygnał', () => {
-    expect(parseSignalPorts(body(`class A extends MObject {
+    expect(
+      parseSignalPorts(
+        body(`class A extends MObject {
   policz(s: Signal<[number]>): void {}
-}`))).toEqual([]);
+}`)
+      )
+    ).toEqual([]);
   });
 
   it('nie bierze parametru metody za property', () => {
-    expect(parseSignalPorts(body(`class A extends MObject {
+    expect(
+      parseSignalPorts(
+        body(`class A extends MObject {
   policz(p: MProperty<number>): void {}
-}`))).toEqual([]);
+}`)
+      )
+    ).toEqual([]);
   });
 
   it('nie bierze zmiennej lokalnej za sygnał', () => {
-    expect(parseSignalPorts(body(`class A extends MObject {
+    expect(
+      parseSignalPorts(
+        body(`class A extends MObject {
   policz(v: number): void {
     const lokalny = new Signal<[number]>();
     lokalny.emit(v);
   }
-}`))).toEqual([]);
+}`)
+      )
+    ).toEqual([]);
   });
 
   it('nadal czyta prawdziwe składowe obok metod', () => {
-    expect(parseSignalPorts(body(`class A extends MObject {
+    expect(
+      parseSignalPorts(
+        body(`class A extends MObject {
   policz(s: Signal<[number]>): void {}
   readonly gotowe = new Signal<[x: number]>();
   readonly stan = new MProperty<number>(0);
-}`))).toEqual([
+}`)
+      )
+    ).toEqual([
       { name: 'gotowe', type: '[x: number]' },
       { name: 'stan.changed', type: 'number' },
     ]);

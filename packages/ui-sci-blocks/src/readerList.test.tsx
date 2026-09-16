@@ -12,7 +12,10 @@ import { ReaderView } from './ReaderView';
 describe('lista w czytniku', () => {
   it('punktowana pozycja złamana na wiersze składa się z powrotem', () => {
     const { container } = render(
-      <ReaderView markdown={'- pierwsza pozycja, która\n  ciągnie się dalej\n- druga pozycja'} path="t.md" />,
+      <ReaderView
+        markdown={'- pierwsza pozycja, która\n  ciągnie się dalej\n- druga pozycja'}
+        path="t.md"
+      />
     );
     const items = [...container.querySelectorAll('li')].map((li) => li.textContent);
     expect(items).toEqual(['pierwsza pozycja, która ciągnie się dalej', 'druga pozycja']);
@@ -20,7 +23,7 @@ describe('lista w czytniku', () => {
 
   it('numerowana pozycja też', () => {
     const { container } = render(
-      <ReaderView markdown={'1. pytanie o to,\n   co dalej\n2. drugie pytanie'} path="t.md" />,
+      <ReaderView markdown={'1. pytanie o to,\n   co dalej\n2. drugie pytanie'} path="t.md" />
     );
     const items = [...container.querySelectorAll('li')].map((li) => li.textContent);
     expect(items).toEqual(['pytanie o to, co dalej', 'drugie pytanie']);
@@ -28,7 +31,7 @@ describe('lista w czytniku', () => {
 
   it('wyróżnienia w kontynuacji działają tak samo jak w pierwszym wierszu', () => {
     const { container } = render(
-      <ReaderView markdown={'- początek pozycji\n  i **mocny** ciąg dalszy'} path="t.md" />,
+      <ReaderView markdown={'- początek pozycji\n  i **mocny** ciąg dalszy'} path="t.md" />
     );
     expect(container.querySelector('li')?.textContent).toBe('początek pozycji i mocny ciąg dalszy');
     expect(container.querySelector('li strong')?.textContent).toBe('mocny');
@@ -43,7 +46,7 @@ describe('lista w czytniku', () => {
 describe('zagnieżdżenia w wyróżnieniu', () => {
   it('matematyka wewnątrz kursywy się składa', () => {
     const { container } = render(
-      <ReaderView markdown={'zdanie *Jeżeli stała $b$ jest mała*, dalej.'} path="t.md" />,
+      <ReaderView markdown={'zdanie *Jeżeli stała $b$ jest mała*, dalej.'} path="t.md" />
     );
     expect(container.textContent).not.toContain('$');
     expect(container.querySelector('em .katex')).toBeTruthy();
@@ -51,14 +54,16 @@ describe('zagnieżdżenia w wyróżnieniu', () => {
 
   it('matematyka wewnątrz pogrubienia też', () => {
     const { container } = render(
-      <ReaderView markdown={'**stała $k$ jest dodatnia**'} path="t.md" />,
+      <ReaderView markdown={'**stała $k$ jest dodatnia**'} path="t.md" />
     );
     expect(container.textContent).not.toContain('$');
     expect(container.querySelector('strong .katex')).toBeTruthy();
   });
 
   it('kod w linii wewnątrz pogrubienia działa', () => {
-    const { container } = render(<ReaderView markdown={'**blok `@relation` tutaj**'} path="t.md" />);
+    const { container } = render(
+      <ReaderView markdown={'**blok `@relation` tutaj**'} path="t.md" />
+    );
     expect(container.textContent).not.toContain('`');
     expect(container.querySelector('strong code')?.textContent).toBe('@relation');
   });
@@ -77,7 +82,15 @@ describe('zagnieżdżenia w wyróżnieniu', () => {
  */
 describe('numeracja listy przez przerwy', () => {
   it('lista po akapicie wtrąconym liczy dalej, a nie od nowa', () => {
-    const md = ['1. Pierwsze.', '2. Drugie.', '', 'Akapit w środku.', '', '3. Trzecie.', '4. Czwarte.'].join('\n');
+    const md = [
+      '1. Pierwsze.',
+      '2. Drugie.',
+      '',
+      'Akapit w środku.',
+      '',
+      '3. Trzecie.',
+      '4. Czwarte.',
+    ].join('\n');
     const { container } = render(<ReaderView markdown={md} path="t.md" />);
     const listy = [...container.querySelectorAll('ol')];
     expect(listy).toHaveLength(2);
@@ -86,14 +99,19 @@ describe('numeracja listy przez przerwy', () => {
   });
 
   it('lista zaczynająca się od dużego numeru zachowuje go', () => {
-    const { container } = render(<ReaderView markdown={'29. Dwudzieste dziewiąte.\n30. Trzydzieste.'} path="t.md" />);
+    const { container } = render(
+      <ReaderView markdown={'29. Dwudzieste dziewiąte.\n30. Trzydzieste.'} path="t.md" />
+    );
     expect(container.querySelector('ol')?.getAttribute('start')).toBe('29');
   });
 
   it('lista od jedynki nie potrzebuje niczego więcej', () => {
     const { container } = render(<ReaderView markdown={'1. Jeden.\n2. Dwa.'} path="t.md" />);
     expect(container.querySelector('ol')?.getAttribute('start')).toBe('1');
-    expect([...container.querySelectorAll('li')].map((l) => l.textContent)).toEqual(['Jeden.', 'Dwa.']);
+    expect([...container.querySelectorAll('li')].map((l) => l.textContent)).toEqual([
+      'Jeden.',
+      'Dwa.',
+    ]);
   });
 });
 
@@ -107,7 +125,10 @@ describe('numeracja listy przez przerwy', () => {
 describe('matematyka w linii złamana na wiersze', () => {
   it('składa się z powrotem w jeden wzór', () => {
     const { container } = render(
-      <ReaderView markdown={'Ale $\\mathrm{d}\\mathbf{r}/\\mathrm{d}t =\n\\mathbf{v}$ jest prędkością.'} path="t.md" />,
+      <ReaderView
+        markdown={'Ale $\\mathrm{d}\\mathbf{r}/\\mathrm{d}t =\n\\mathbf{v}$ jest prędkością.'}
+        path="t.md"
+      />
     );
     const t = container.textContent ?? '';
     // KaTeX dokłada do drzewa własną kopię źródła (MathML `annotation`), więc
@@ -120,7 +141,7 @@ describe('matematyka w linii złamana na wiersze', () => {
 
   it('pusty wiersz dalej kończy akapit, więc samotny dolar nie połyka tekstu', () => {
     const { container } = render(
-      <ReaderView markdown={'Cena to 5 $ za sztukę.\n\nDrugi akapit z $x$ w środku.'} path="t.md" />,
+      <ReaderView markdown={'Cena to 5 $ za sztukę.\n\nDrugi akapit z $x$ w środku.'} path="t.md" />
     );
     const akapity = [...container.querySelectorAll('p')].map((p) => p.textContent);
     expect(akapity[0]).toContain('5 $ za sztukę.');

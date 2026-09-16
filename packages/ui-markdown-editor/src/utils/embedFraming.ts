@@ -36,10 +36,23 @@ export interface EmbedCheckResult {
  * dotychczas.
  */
 const BLOCKED_HOSTS = [
-  'claude.ai', 'chatgpt.com', 'chat.openai.com', 'openai.com',
-  'facebook.com', 'instagram.com', 'x.com', 'twitter.com', 'linkedin.com',
-  'accounts.google.com', 'mail.google.com', 'drive.google.com',
-  'github.com', 'gitlab.com', 'notion.so', 'slack.com', 'discord.com',
+  'claude.ai',
+  'chatgpt.com',
+  'chat.openai.com',
+  'openai.com',
+  'facebook.com',
+  'instagram.com',
+  'x.com',
+  'twitter.com',
+  'linkedin.com',
+  'accounts.google.com',
+  'mail.google.com',
+  'drive.google.com',
+  'github.com',
+  'gitlab.com',
+  'notion.so',
+  'slack.com',
+  'discord.com',
 ];
 
 function hostOf(url: string): string | null {
@@ -70,7 +83,9 @@ export function framingAllowed(headers: Record<string, string>, pageUrl: string)
 
   const csp = lower['content-security-policy'];
   if (csp) {
-    const directive = csp.split(';').map((d) => d.trim())
+    const directive = csp
+      .split(';')
+      .map((d) => d.trim())
       .find((d) => d.toLowerCase().startsWith('frame-ancestors'));
     if (directive) {
       const value = directive.slice('frame-ancestors'.length).trim().toLowerCase();
@@ -106,6 +121,10 @@ export function embedDecision(url: string, check: EmbedCheckResult | null): Embe
       : { mode: 'card', reason: check.reason, title: check.title };
   }
   return knownBlockedHost(url)
-    ? { mode: 'card', reason: 'Ten serwis nie pozwala na osadzanie stron w ramce.', title: check?.title }
+    ? {
+        mode: 'card',
+        reason: 'Ten serwis nie pozwala na osadzanie stron w ramce.',
+        title: check?.title,
+      }
     : { mode: 'iframe', title: check?.title };
 }

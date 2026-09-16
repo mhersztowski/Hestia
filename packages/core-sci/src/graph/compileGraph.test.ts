@@ -11,27 +11,37 @@ import { buildGraph } from './formulaGraph';
 import { compileGraph, defaultValues, applyOverrides } from './compileGraph';
 
 const PENDULUM = [
-  ['pendulum-ode', [
-    '@ode',
-    '@state theta, omega',
-    '@d theta = \\omega',
-    '@d omega = -\\frac{g}{L}\\sin(\\theta)',
-    '@init theta = \\theta_0, omega = 0',
-    '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s',
-  ].join('\n')],
-  ['pendulum-period', [
-    'T = 2\\pi\\sqrt{\\frac{L}{g}}',
-    '@vars T: s, L: m, g: m/s^2',
-    '@derivedFrom pendulum-ode',
-    '@assume small-angles',
-  ].join('\n')],
-  ['pendulum-energy', [
-    'E = \\frac{1}{2} \\cdot m \\cdot L^2 \\cdot \\omega^2 + m \\cdot g \\cdot L \\cdot (1 - \\cos(\\theta))',
-    '@vars E: J, m: kg, L: m, g: m/s^2',
-  ].join('\n')],
+  [
+    'pendulum-ode',
+    [
+      '@ode',
+      '@state theta, omega',
+      '@d theta = \\omega',
+      '@d omega = -\\frac{g}{L}\\sin(\\theta)',
+      '@init theta = \\theta_0, omega = 0',
+      '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s',
+    ].join('\n'),
+  ],
+  [
+    'pendulum-period',
+    [
+      'T = 2\\pi\\sqrt{\\frac{L}{g}}',
+      '@vars T: s, L: m, g: m/s^2',
+      '@derivedFrom pendulum-ode',
+      '@assume small-angles',
+    ].join('\n'),
+  ],
+  [
+    'pendulum-energy',
+    [
+      'E = \\frac{1}{2} \\cdot m \\cdot L^2 \\cdot \\omega^2 + m \\cdot g \\cdot L \\cdot (1 - \\cos(\\theta))',
+      '@vars E: J, m: kg, L: m, g: m/s^2',
+    ].join('\n'),
+  ],
 ] as Array<[string, string]>;
 
-const model = () => compileGraph(buildGraph(PENDULUM.map(([id, body]) => parseFormulaBlock(id, body))));
+const model = () =>
+  compileGraph(buildGraph(PENDULUM.map(([id, body]) => parseFormulaBlock(id, body))));
 
 describe('model skompilowany z dokumentu', () => {
   it('powstaje bez uwag', () => {
@@ -39,7 +49,11 @@ describe('model skompilowany z dokumentu', () => {
   });
 
   it('parametry rozpoznają się same, bez deklarowania ich gdziekolwiek', () => {
-    expect(model().parameters.map((p) => p.name).sort()).toEqual(['L', 'g', 'm', 'theta_0']);
+    expect(
+      model()
+        .parameters.map((p) => p.name)
+        .sort()
+    ).toEqual(['L', 'g', 'm', 'theta_0']);
   });
 
   it('g dostaje wartość ziemską jako podpowiedź, nie jako przymus', () => {
@@ -82,7 +96,11 @@ describe('wyniki zgadzają się z fizyką', () => {
 
   it('energia całkowita się zachowuje — standardowy test każdego modelu mechaniki', () => {
     const m = model();
-    const result = m.run({ ...defaultValues(m), L: 1, g: 9.81, m: 2, theta_0: 0.4 }, [0, 20], 0.002);
+    const result = m.run(
+      { ...defaultValues(m), L: 1, g: 9.81, m: 2, theta_0: 0.4 },
+      [0, 20],
+      0.002
+    );
 
     const energy = result.series.E!.map(([, value]) => value);
     const min = Math.min(...energy);
@@ -93,7 +111,11 @@ describe('wyniki zgadzają się z fizyką', () => {
   it('przy dużej amplitudzie okres rośnie — wzór małych drgań przestaje wystarczać', () => {
     const m = model();
     const okresZSymulacji = (theta0: number) => {
-      const result = m.run({ ...defaultValues(m), L: 1, g: 9.81, m: 1, theta_0: theta0 }, [0, 20], 0.002);
+      const result = m.run(
+        { ...defaultValues(m), L: 1, g: 9.81, m: 1, theta_0: theta0 },
+        [0, 20],
+        0.002
+      );
       const theta = result.series.theta!;
       const crossings: number[] = [];
       for (let i = 1; i < theta.length; i += 1) {
@@ -130,28 +152,38 @@ describe('stała fizyczna jako podpowiedź, nie przechwycenie symbolu', () => {
     // `sigma` w równaniach Lorenza jest bezwymiarowa i znaczy liczbę Prandtla.
     // Podstawienie stałej Stefana-Boltzmanna (5,67e-8 W/(m²K⁴)) daje układ,
     // który zbiega do punktu zamiast krążyć wokół dwóch skrzydeł atraktora.
-    const model = compileGraph(buildGraph([
-      parseFormulaBlock('lorenz', [
-        '@ode', '@state x, y, z',
-        '@d x = \\sigma \\cdot (y - x)',
-        '@d y = x \\cdot (\\rho - z) - y',
-        '@d z = x \\cdot y - \\beta \\cdot z',
-        '@init x = 1, y = 1, z = 1',
-        '@vars x: 1, y: 1, z: 1, sigma: 1, rho: 1, beta: 1',
-      ].join('\n')),
-    ]));
+    const model = compileGraph(
+      buildGraph([
+        parseFormulaBlock(
+          'lorenz',
+          [
+            '@ode',
+            '@state x, y, z',
+            '@d x = \\sigma \\cdot (y - x)',
+            '@d y = x \\cdot (\\rho - z) - y',
+            '@d z = x \\cdot y - \\beta \\cdot z',
+            '@init x = 1, y = 1, z = 1',
+            '@vars x: 1, y: 1, z: 1, sigma: 1, rho: 1, beta: 1',
+          ].join('\n')
+        ),
+      ])
+    );
 
     const sigma = model.parameters.find((p) => p.name === 'sigma')!;
     expect(sigma.value).toBe(1);
   });
 
   it('podstawia stałą, gdy wymiar się zgadza', () => {
-    const model = compileGraph(buildGraph([
-      parseFormulaBlock('promieniowanie', [
-        'P = \\sigma \\cdot A \\cdot T^4',
-        '@vars P: W, sigma: W/(m^2 K^4), A: m^2, T: K',
-      ].join('\n')),
-    ]));
+    const model = compileGraph(
+      buildGraph([
+        parseFormulaBlock(
+          'promieniowanie',
+          ['P = \\sigma \\cdot A \\cdot T^4', '@vars P: W, sigma: W/(m^2 K^4), A: m^2, T: K'].join(
+            '\n'
+          )
+        ),
+      ])
+    );
 
     expect(model.parameters.find((p) => p.name === 'sigma')!.value).toBeCloseTo(5.670374419e-8, 15);
   });

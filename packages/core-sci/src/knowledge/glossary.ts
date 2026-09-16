@@ -76,7 +76,12 @@ export function parseTermBlock(id: string, code: string): TermBlock {
         block.source = reszta;
         return;
       case 'aka':
-        block.aka.push(...reszta.split(',').map((s) => s.trim()).filter(Boolean));
+        block.aka.push(
+          ...reszta
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        );
         return;
       default:
         block.unknown.push(linia);
@@ -88,7 +93,9 @@ export function parseTermBlock(id: string, code: string): TermBlock {
     block.issues.push({ message: 'Hasło bez nazwy — pierwszy wiersz bloku ma być nazwą terminu.' });
   }
   if (!block.definition) {
-    block.issues.push({ message: `Hasło „${block.term || id}" nie ma definicji („@definition …").` });
+    block.issues.push({
+      message: `Hasło „${block.term || id}" nie ma definicji („@definition …").`,
+    });
   }
 
   return block;

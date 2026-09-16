@@ -1,18 +1,25 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { FileSystemProvider } from '@hestia/core';
 import '@xterm/xterm/css/xterm.css';
-import {
-  MonacoMultiEditor, WordCountPluginV2, GenerateUuidPlugin,
-} from '../monaco';
+import { MonacoMultiEditor, WordCountPluginV2, GenerateUuidPlugin } from '../monaco';
 import type { ReactNode } from 'react';
 import type { IPlugin } from '../monaco';
 import type { VfsProviderDef, VfsMountPreset, VfsProjectContext } from '../vfs';
 import type { ProjectDeps } from '../vfs/project/types';
 import {
-  FoldingPlugin, MarkdownPreviewPlugin, createMjdEditorPlugin, createTypeScriptPlugin,
-  createPythonPlugin, createCppPlugin, createSnippetsPlugin, createCommentToolsPlugin,
-  createBlocklyPlugin, VisualMinisLibPlugin, type UmlProjectSource,
-  createMarkdownLspPlugin, createMarkdownLspServerPlugin,
+  FoldingPlugin,
+  MarkdownPreviewPlugin,
+  createMjdEditorPlugin,
+  createTypeScriptPlugin,
+  createPythonPlugin,
+  createCppPlugin,
+  createSnippetsPlugin,
+  createCommentToolsPlugin,
+  createBlocklyPlugin,
+  VisualMinisLibPlugin,
+  type UmlProjectSource,
+  createMarkdownLspPlugin,
+  createMarkdownLspServerPlugin,
 } from '../plugins';
 import { ArduinoBoardConfigDialog } from './ArduinoBoardConfigDialog';
 import { RemoteTerminalConfigDialog } from './RemoteTerminalConfigDialog';
@@ -67,7 +74,7 @@ export interface TextEditorWorkspaceProps {
   onDialogAction?: (
     actionId: string,
     context: VfsProjectContext,
-    saveProjectJson: (updates: Record<string, unknown>) => Promise<void>,
+    saveProjectJson: (updates: Record<string, unknown>) => Promise<void>
   ) => void;
   /**
    * Where the block editor gets its UML diagrams, which is what its palette is
@@ -116,7 +123,10 @@ export function TextEditorWorkspace({
   blocklyUmlSource,
 }: TextEditorWorkspaceProps) {
   // Plugins built from the editor's filesystem provider.
-  const tsPlugin = useMemo(() => createTypeScriptPlugin(provider, { preloadDts: tsPreloadDts }), [provider, tsPreloadDts]);
+  const tsPlugin = useMemo(
+    () => createTypeScriptPlugin(provider, { preloadDts: tsPreloadDts }),
+    [provider, tsPreloadDts]
+  );
   const pyPlugin = useMemo(() => createPythonPlugin(provider), [provider]);
   const cppPlugin = useMemo(() => createCppPlugin(provider), [provider]);
   const mjdPlugin = useMemo(() => createMjdEditorPlugin(provider), [provider]);
@@ -126,44 +136,73 @@ export function TextEditorWorkspace({
   // needs nothing but the file system, so it belongs in the built-in set.
   const commentToolsPlugin = useMemo(() => createCommentToolsPlugin(provider), [provider]);
   const blocklyPlugin = useMemo(
-    () => createBlocklyPlugin({
-      fileSystem: provider,
-      ...(blocklyUmlSource ? { umlSource: blocklyUmlSource } : {}),
-    }),
-    [provider, blocklyUmlSource],
+    () =>
+      createBlocklyPlugin({
+        fileSystem: provider,
+        ...(blocklyUmlSource ? { umlSource: blocklyUmlSource } : {}),
+      }),
+    [provider, blocklyUmlSource]
   );
   const mdLspServerPlugin = useMemo(
     () => (authToken ? createMarkdownLspServerPlugin(authToken) : null),
     // recreate only when the token presence flips, not on every value change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [!!authToken],
+    [!!authToken]
   );
 
-  const plugins = useMemo<IPlugin[]>(() => [
-    WordCountPluginV2, GenerateUuidPlugin, FoldingPlugin, MarkdownPreviewPlugin,
-    mjdPlugin, tsPlugin, pyPlugin, cppPlugin, VisualMinisLibPlugin, snippetsPlugin, commentToolsPlugin,
-    mdLspPlugin, blocklyPlugin,
-    ...(mdLspServerPlugin ? [mdLspServerPlugin] : []),
-    ...(extraPlugins ?? []),
-  ], [mjdPlugin, tsPlugin, pyPlugin, cppPlugin, snippetsPlugin, commentToolsPlugin, mdLspPlugin,
-      blocklyPlugin, mdLspServerPlugin, extraPlugins]);
+  const plugins = useMemo<IPlugin[]>(
+    () => [
+      WordCountPluginV2,
+      GenerateUuidPlugin,
+      FoldingPlugin,
+      MarkdownPreviewPlugin,
+      mjdPlugin,
+      tsPlugin,
+      pyPlugin,
+      cppPlugin,
+      VisualMinisLibPlugin,
+      snippetsPlugin,
+      commentToolsPlugin,
+      mdLspPlugin,
+      blocklyPlugin,
+      ...(mdLspServerPlugin ? [mdLspServerPlugin] : []),
+      ...(extraPlugins ?? []),
+    ],
+    [
+      mjdPlugin,
+      tsPlugin,
+      pyPlugin,
+      cppPlugin,
+      snippetsPlugin,
+      commentToolsPlugin,
+      mdLspPlugin,
+      blocklyPlugin,
+      mdLspServerPlugin,
+      extraPlugins,
+    ]
+  );
 
   // ── Board-config dialog (project action `board-config`) ──────────────────
   const [boardConfigContext, setBoardConfigContext] = useState<VfsProjectContext | null>(null);
-  const boardConfigSaveRef = useRef<((updates: Record<string, unknown>) => Promise<void>) | null>(null);
+  const boardConfigSaveRef = useRef<((updates: Record<string, unknown>) => Promise<void>) | null>(
+    null
+  );
 
-  const handleDialogAction = useCallback((
-    actionId: string,
-    context: VfsProjectContext,
-    saveProjectJson: (updates: Record<string, unknown>) => Promise<void>,
-  ) => {
-    if (actionId === 'board-config') {
-      boardConfigSaveRef.current = saveProjectJson;
-      setBoardConfigContext(context);
-    } else {
-      onDialogAction?.(actionId, context, saveProjectJson);
-    }
-  }, [onDialogAction]);
+  const handleDialogAction = useCallback(
+    (
+      actionId: string,
+      context: VfsProjectContext,
+      saveProjectJson: (updates: Record<string, unknown>) => Promise<void>
+    ) => {
+      if (actionId === 'board-config') {
+        boardConfigSaveRef.current = saveProjectJson;
+        setBoardConfigContext(context);
+      } else {
+        onDialogAction?.(actionId, context, saveProjectJson);
+      }
+    },
+    [onDialogAction]
+  );
 
   const handleBoardConfigSave = useCallback(async (updates: Record<string, unknown>) => {
     await boardConfigSaveRef.current?.(updates);
@@ -171,16 +210,22 @@ export function TextEditorWorkspace({
 
   // ── Remote-terminal API key — persisted in localStorage, separate from JWT ─
   const [terminalToken, setTerminalToken] = useState<string>(
-    () => (typeof localStorage !== 'undefined' ? localStorage.getItem(terminalTokenStorageKey) : null) ?? '',
+    () =>
+      (typeof localStorage !== 'undefined'
+        ? localStorage.getItem(terminalTokenStorageKey)
+        : null) ?? ''
   );
   const [terminalConfigOpen, setTerminalConfigOpen] = useState(false);
 
-  const handleSaveTerminalToken = useCallback((value: string) => {
-    if (value) localStorage.setItem(terminalTokenStorageKey, value);
-    else localStorage.removeItem(terminalTokenStorageKey);
-    setTerminalToken(value);
-    setTerminalConfigOpen(false);
-  }, [terminalTokenStorageKey]);
+  const handleSaveTerminalToken = useCallback(
+    (value: string) => {
+      if (value) localStorage.setItem(terminalTokenStorageKey, value);
+      else localStorage.removeItem(terminalTokenStorageKey);
+      setTerminalToken(value);
+      setTerminalConfigOpen(false);
+    },
+    [terminalTokenStorageKey]
+  );
 
   return (
     <>

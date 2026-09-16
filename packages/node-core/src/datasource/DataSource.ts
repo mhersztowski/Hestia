@@ -164,68 +164,164 @@ export class DataSource extends EventEmitter implements IDataSource {
 
   // --- IDataSource delegation ---
 
-  get persons(): PersonNode[] { return this._store.persons; }
-  getPersonById(id: string): PersonNode | undefined { return this._store.getPersonById(id); }
-  findPersons(query: string): PersonNode[] { return this._store.findPersons(query); }
+  get persons(): PersonNode[] {
+    return this._store.persons;
+  }
+  getPersonById(id: string): PersonNode | undefined {
+    return this._store.getPersonById(id);
+  }
+  findPersons(query: string): PersonNode[] {
+    return this._store.findPersons(query);
+  }
 
-  get tasks(): TaskNode[] { return this._store.tasks; }
-  getTaskById(id: string): TaskNode | undefined { return this._store.getTaskById(id); }
-  findTasks(query: string): TaskNode[] { return this._store.findTasks(query); }
-  getTasksByProjectId(projectId: string): TaskNode[] { return this._store.getTasksByProjectId(projectId); }
-  getUnassignedTasks(): TaskNode[] { return this._store.getUnassignedTasks(); }
+  get tasks(): TaskNode[] {
+    return this._store.tasks;
+  }
+  getTaskById(id: string): TaskNode | undefined {
+    return this._store.getTaskById(id);
+  }
+  findTasks(query: string): TaskNode[] {
+    return this._store.findTasks(query);
+  }
+  getTasksByProjectId(projectId: string): TaskNode[] {
+    return this._store.getTasksByProjectId(projectId);
+  }
+  getUnassignedTasks(): TaskNode[] {
+    return this._store.getUnassignedTasks();
+  }
 
-  get projects(): ProjectNode[] { return this._store.projects; }
-  getProjectById(id: string): ProjectNode | undefined { return this._store.getProjectById(id); }
-  findProjects(query: string): ProjectNode[] { return this._store.findProjects(query); }
-  findProjectByIdDeep(id: string): ProjectNode | undefined { return this._store.findProjectByIdDeep(id); }
-  getAllProjectsFlat(): ProjectNode[] { return this._store.getAllProjectsFlat(); }
+  get projects(): ProjectNode[] {
+    return this._store.projects;
+  }
+  getProjectById(id: string): ProjectNode | undefined {
+    return this._store.getProjectById(id);
+  }
+  findProjects(query: string): ProjectNode[] {
+    return this._store.findProjects(query);
+  }
+  findProjectByIdDeep(id: string): ProjectNode | undefined {
+    return this._store.findProjectByIdDeep(id);
+  }
+  getAllProjectsFlat(): ProjectNode[] {
+    return this._store.getAllProjectsFlat();
+  }
 
-  get shoppingLists(): ShoppingListNode[] { return this._store.shoppingLists; }
-  getShoppingListById(id: string): ShoppingListNode | undefined { return this._store.getShoppingListById(id); }
-  findShoppingLists(query: string): ShoppingListNode[] { return this._store.findShoppingLists(query); }
-  getActiveShoppingLists(): ShoppingListNode[] { return this._store.getActiveShoppingLists(); }
-  getCompletedShoppingLists(): ShoppingListNode[] { return this._store.getCompletedShoppingLists(); }
-  getShoppingItemsByPersonId(personId: string): { list: ShoppingListNode; item: ShoppingItemModel }[] {
+  get shoppingLists(): ShoppingListNode[] {
+    return this._store.shoppingLists;
+  }
+  getShoppingListById(id: string): ShoppingListNode | undefined {
+    return this._store.getShoppingListById(id);
+  }
+  findShoppingLists(query: string): ShoppingListNode[] {
+    return this._store.findShoppingLists(query);
+  }
+  getActiveShoppingLists(): ShoppingListNode[] {
+    return this._store.getActiveShoppingLists();
+  }
+  getCompletedShoppingLists(): ShoppingListNode[] {
+    return this._store.getCompletedShoppingLists();
+  }
+  getShoppingItemsByPersonId(
+    personId: string
+  ): { list: ShoppingListNode; item: ShoppingItemModel }[] {
     return this._store.getShoppingItemsByPersonId(personId);
   }
 
-  get events(): EventNode[] { return this._store.events; }
-  get calendar(): Calendar { return this._calendar; }
-  getEventsByDate(date: Date): EventNode[] { return this._store.getEventsByDate(date); }
-  findEvents(query: string): EventNode[] { return this._store.findEvents(query); }
-  getEventsByTaskId(taskId: string): EventNode[] { return this._store.getEventsByTaskId(taskId); }
-  getLastEventByTaskId(taskId: string): EventNode | undefined { return this._store.getLastEventByTaskId(taskId); }
+  get events(): EventNode[] {
+    return this._store.events;
+  }
+  get calendar(): Calendar {
+    return this._calendar;
+  }
+  getEventsByDate(date: Date): EventNode[] {
+    return this._store.getEventsByDate(date);
+  }
+  findEvents(query: string): EventNode[] {
+    return this._store.findEvents(query);
+  }
+  getEventsByTaskId(taskId: string): EventNode[] {
+    return this._store.getEventsByTaskId(taskId);
+  }
+  getLastEventByTaskId(taskId: string): EventNode | undefined {
+    return this._store.getLastEventByTaskId(taskId);
+  }
 
-  get minisModuleDefs(): MinisModuleDefNode[] { return this._store.minisModuleDefs; }
-  getMinisModuleDefById(id: string): MinisModuleDefNode | undefined { return this._store.getMinisModuleDefById(id); }
-  findMinisModuleDefs(query: string): MinisModuleDefNode[] { return this._store.findMinisModuleDefs(query); }
+  get minisModuleDefs(): MinisModuleDefNode[] {
+    return this._store.minisModuleDefs;
+  }
+  getMinisModuleDefById(id: string): MinisModuleDefNode | undefined {
+    return this._store.getMinisModuleDefById(id);
+  }
+  findMinisModuleDefs(query: string): MinisModuleDefNode[] {
+    return this._store.findMinisModuleDefs(query);
+  }
 
-  get minisModules(): MinisModuleNode[] { return this._store.minisModules; }
-  getMinisModuleById(id: string): MinisModuleNode | undefined { return this._store.getMinisModuleById(id); }
-  findMinisModules(query: string): MinisModuleNode[] { return this._store.findMinisModules(query); }
+  get minisModules(): MinisModuleNode[] {
+    return this._store.minisModules;
+  }
+  getMinisModuleById(id: string): MinisModuleNode | undefined {
+    return this._store.getMinisModuleById(id);
+  }
+  findMinisModules(query: string): MinisModuleNode[] {
+    return this._store.findMinisModules(query);
+  }
 
-  get minisDeviceDefs(): MinisDeviceDefNode[] { return this._store.minisDeviceDefs; }
-  getMinisDeviceDefById(id: string): MinisDeviceDefNode | undefined { return this._store.getMinisDeviceDefById(id); }
-  findMinisDeviceDefs(query: string): MinisDeviceDefNode[] { return this._store.findMinisDeviceDefs(query); }
+  get minisDeviceDefs(): MinisDeviceDefNode[] {
+    return this._store.minisDeviceDefs;
+  }
+  getMinisDeviceDefById(id: string): MinisDeviceDefNode | undefined {
+    return this._store.getMinisDeviceDefById(id);
+  }
+  findMinisDeviceDefs(query: string): MinisDeviceDefNode[] {
+    return this._store.findMinisDeviceDefs(query);
+  }
 
-  get minisDevices(): MinisDeviceNode[] { return this._store.minisDevices; }
-  getMinisDeviceById(id: string): MinisDeviceNode | undefined { return this._store.getMinisDeviceById(id); }
-  findMinisDevices(query: string): MinisDeviceNode[] { return this._store.findMinisDevices(query); }
+  get minisDevices(): MinisDeviceNode[] {
+    return this._store.minisDevices;
+  }
+  getMinisDeviceById(id: string): MinisDeviceNode | undefined {
+    return this._store.getMinisDeviceById(id);
+  }
+  findMinisDevices(query: string): MinisDeviceNode[] {
+    return this._store.findMinisDevices(query);
+  }
 
-  get minisProjectDefs(): MinisProjectDefNode[] { return this._store.minisProjectDefs; }
-  getMinisProjectDefById(id: string): MinisProjectDefNode | undefined { return this._store.getMinisProjectDefById(id); }
-  findMinisProjectDefs(query: string): MinisProjectDefNode[] { return this._store.findMinisProjectDefs(query); }
+  get minisProjectDefs(): MinisProjectDefNode[] {
+    return this._store.minisProjectDefs;
+  }
+  getMinisProjectDefById(id: string): MinisProjectDefNode | undefined {
+    return this._store.getMinisProjectDefById(id);
+  }
+  findMinisProjectDefs(query: string): MinisProjectDefNode[] {
+    return this._store.findMinisProjectDefs(query);
+  }
 
-  get minisProjects(): MinisProjectNode[] { return this._store.minisProjects; }
-  getMinisProjectById(id: string): MinisProjectNode | undefined { return this._store.getMinisProjectById(id); }
-  findMinisProjects(query: string): MinisProjectNode[] { return this._store.findMinisProjects(query); }
+  get minisProjects(): MinisProjectNode[] {
+    return this._store.minisProjects;
+  }
+  getMinisProjectById(id: string): MinisProjectNode | undefined {
+    return this._store.getMinisProjectById(id);
+  }
+  findMinisProjects(query: string): MinisProjectNode[] {
+    return this._store.findMinisProjects(query);
+  }
 
-  get users(): UserNode[] { return this._store.users; }
-  getUserById(id: string): UserNode | undefined { return this._store.getUserById(id); }
-  findUsers(query: string): UserNode[] { return this._store.findUsers(query); }
+  get users(): UserNode[] {
+    return this._store.users;
+  }
+  getUserById(id: string): UserNode | undefined {
+    return this._store.getUserById(id);
+  }
+  findUsers(query: string): UserNode[] {
+    return this._store.findUsers(query);
+  }
 
-  get isLoaded(): boolean { return this._store.isLoaded; }
-  getStats(): DataSourceStats { return this._store.getStats(); }
+  get isLoaded(): boolean {
+    return this._store.isLoaded;
+  }
+  getStats(): DataSourceStats {
+    return this._store.getStats();
+  }
 
   clear(): void {
     this._store.clear();

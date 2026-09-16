@@ -1,5 +1,5 @@
 /**
- * example.ts — how to drive the browser-Qt widgets through the minislib TreeNode
+ * example.ts — how to drive the browser-Qt widgets through the minislib CoreObject
  * wrappers (`QtNode` / `QtProperty` / typed widget nodes).
  *
  * Two ways to run it:
@@ -11,7 +11,7 @@
  *       const { log } = runQtExamples(globalThis);
  *       // …then add the returned native widgets to a QtCanvas layout.
  *
- *  2. **Anywhere (TreeNode/tests/docs)** with no Qt globals — call it with no args and
+ *  2. **Anywhere (Node/tests/docs)** with no Qt globals — call it with no args and
  *     it uses the tiny in-memory {@link createDemoProvider} below, which implements
  *     the same meta-object contract so the wrappers behave identically:
  *
@@ -198,13 +198,21 @@ export function runQtExamples(provider: QtClassProvider = createDemoProvider()):
 class DemoSignal {
   #conns = new Set<(...a: unknown[]) => void>();
   constructor(private readonly _name = '') {}
-  name(): string { return this._name; }
+  name(): string {
+    return this._name;
+  }
   connect(slot: (...a: unknown[]) => void) {
     this.#conns.add(slot);
     return { disconnect: () => this.#conns.delete(slot) };
   }
-  disconnect(): boolean { this.#conns.clear(); return true; }
-  emit(...a: unknown[]): boolean { for (const c of [...this.#conns]) c(...a); return this.#conns.size > 0; }
+  disconnect(): boolean {
+    this.#conns.clear();
+    return true;
+  }
+  emit(...a: unknown[]): boolean {
+    for (const c of [...this.#conns]) c(...a);
+    return this.#conns.size > 0;
+  }
 }
 
 /** Base object implementing the same reflective contract as browser-Qt QObject. */
@@ -218,28 +226,52 @@ class DemoQObject {
   _destroyed = false;
   destroyed = new DemoSignal('destroyed');
 
-  constructor(objectName = '') { this._objectName = objectName; }
+  constructor(objectName = '') {
+    this._objectName = objectName;
+  }
 
-  objectName(): string { return this._objectName; }
-  setObjectName(n: string): this { this._objectName = String(n); return this; }
-  className(): string { return this.constructor.name.replace(/^Demo(?:Q)?/, 'Q'); }
-  inherits(name: string): boolean { return this.className() === name; }
-  isDestroyed(): boolean { return this._destroyed; }
+  objectName(): string {
+    return this._objectName;
+  }
+  setObjectName(n: string): this {
+    this._objectName = String(n);
+    return this;
+  }
+  className(): string {
+    return this.constructor.name.replace(/^Demo(?:Q)?/, 'Q');
+  }
+  inherits(name: string): boolean {
+    return this.className() === name;
+  }
+  isDestroyed(): boolean {
+    return this._destroyed;
+  }
 
   private meta(field: 'properties' | 'signals'): Record<string, any> {
     const chain: any[] = [];
     let c: any = this.constructor;
-    while (c && c !== Object && c !== Function.prototype) { chain.unshift(c); c = Object.getPrototypeOf(c); }
+    while (c && c !== Object && c !== Function.prototype) {
+      chain.unshift(c);
+      c = Object.getPrototypeOf(c);
+    }
     const out: Record<string, any> = {};
     for (const k of chain) {
       if (Object.prototype.hasOwnProperty.call(k, field)) Object.assign(out, k[field]);
     }
     return out;
   }
-  metaProperties(): Record<string, any> { return this.meta('properties'); }
-  metaSignals(): Record<string, any> { return this.meta('signals'); }
-  propertyNames(): string[] { return Object.keys(this.metaProperties()); }
-  signalNames(): string[] { return Object.keys(this.metaSignals()); }
+  metaProperties(): Record<string, any> {
+    return this.meta('properties');
+  }
+  metaSignals(): Record<string, any> {
+    return this.meta('signals');
+  }
+  propertyNames(): string[] {
+    return Object.keys(this.metaProperties());
+  }
+  signalNames(): string[] {
+    return Object.keys(this.metaSignals());
+  }
 
   property(key: string): unknown {
     const m = this.metaProperties()[key];
@@ -249,95 +281,223 @@ class DemoQObject {
     const m = this.metaProperties()[key];
     if (m && m.set) {
       m.set(this, v);
-      if (m.notify && (this as any)[m.notify] instanceof DemoSignal) (this as any)[m.notify].emit(v);
+      if (m.notify && (this as any)[m.notify] instanceof DemoSignal)
+        (this as any)[m.notify].emit(v);
     } else {
       (this as any)['_' + key] = v;
     }
     return this;
   }
 
-  parent(): DemoQObject | null { return this._parent; }
-  children(): DemoQObject[] { return this._children.slice(); }
-  destroy(): void { if (this._destroyed) return; this._destroyed = true; this.destroyed.emit(this); }
+  parent(): DemoQObject | null {
+    return this._parent;
+  }
+  children(): DemoQObject[] {
+    return this._children.slice();
+  }
+  destroy(): void {
+    if (this._destroyed) return;
+    this._destroyed = true;
+    this.destroyed.emit(this);
+  }
 }
 
 class DemoSlider extends DemoQObject {
   static properties = {
-    value: { get: (o: any) => o._value, set: (o: any, v: any) => { o._value = clampInt(v, o._min, o._max); }, notify: 'valueChanged', type: 'number' },
-    minimum: { get: (o: any) => o._min, set: (o: any, v: any) => { o._min = v; }, type: 'number' },
-    maximum: { get: (o: any) => o._max, set: (o: any, v: any) => { o._max = v; }, type: 'number' },
+    value: {
+      get: (o: any) => o._value,
+      set: (o: any, v: any) => {
+        o._value = clampInt(v, o._min, o._max);
+      },
+      notify: 'valueChanged',
+      type: 'number',
+    },
+    minimum: {
+      get: (o: any) => o._min,
+      set: (o: any, v: any) => {
+        o._min = v;
+      },
+      type: 'number',
+    },
+    maximum: {
+      get: (o: any) => o._max,
+      set: (o: any, v: any) => {
+        o._max = v;
+      },
+      type: 'number',
+    },
   };
   static signals = { valueChanged: { params: ['value'] } };
-  _value = 0; _min = 0; _max = 100;
+  _value = 0;
+  _min = 0;
+  _max = 100;
   valueChanged = new DemoSignal('valueChanged');
   /** Simulate the user dragging the handle (fires notify like the real widget). */
-  drag(v: number): void { this._value = clampInt(v, this._min, this._max); this.valueChanged.emit(this._value); }
+  drag(v: number): void {
+    this._value = clampInt(v, this._min, this._max);
+    this.valueChanged.emit(this._value);
+  }
 }
 
 class DemoProgressBar extends DemoQObject {
   static properties = {
-    value: { get: (o: any) => o._value, set: (o: any, v: any) => { o._value = v; }, type: 'number' },
+    value: {
+      get: (o: any) => o._value,
+      set: (o: any, v: any) => {
+        o._value = v;
+      },
+      type: 'number',
+    },
     minimum: { get: (o: any) => o._min, type: 'number' },
     maximum: { get: (o: any) => o._max, type: 'number' },
   };
-  _value = 0; _min = 0; _max = 100;
+  _value = 0;
+  _min = 0;
+  _max = 100;
 }
 
 class DemoButton extends DemoQObject {
   static properties = {
-    text: { get: (o: any) => o._text, set: (o: any, v: any) => { o._text = String(v); }, type: 'string' },
-    checkable: { get: (o: any) => o._checkable, set: (o: any, v: any) => { o._checkable = !!v; }, type: 'bool' },
-    checked: { get: (o: any) => o._checked, set: (o: any, v: any) => { o._checked = !!v; }, notify: 'toggled', type: 'bool' },
-    enabled: { get: (o: any) => o._enabled, set: (o: any, v: any) => { o._enabled = !!v; }, type: 'bool' },
+    text: {
+      get: (o: any) => o._text,
+      set: (o: any, v: any) => {
+        o._text = String(v);
+      },
+      type: 'string',
+    },
+    checkable: {
+      get: (o: any) => o._checkable,
+      set: (o: any, v: any) => {
+        o._checkable = !!v;
+      },
+      type: 'bool',
+    },
+    checked: {
+      get: (o: any) => o._checked,
+      set: (o: any, v: any) => {
+        o._checked = !!v;
+      },
+      notify: 'toggled',
+      type: 'bool',
+    },
+    enabled: {
+      get: (o: any) => o._enabled,
+      set: (o: any, v: any) => {
+        o._enabled = !!v;
+      },
+      type: 'bool',
+    },
   };
   static signals = { clicked: { params: [] }, toggled: { params: ['checked'] } };
-  _text = ''; _checkable = false; _checked = false; _enabled = true;
+  _text = '';
+  _checkable = false;
+  _checked = false;
+  _enabled = true;
   clicked = new DemoSignal('clicked');
   toggled = new DemoSignal('toggled');
-  override className(): string { return 'QPushButton'; }
-  override inherits(n: string): boolean { return ['QPushButton', 'QAbstractButton', 'QWidget'].includes(n); }
+  override className(): string {
+    return 'QPushButton';
+  }
+  override inherits(n: string): boolean {
+    return ['QPushButton', 'QAbstractButton', 'QWidget'].includes(n);
+  }
   /** Simulate a native click: toggles when checkable, then emits `clicked`. */
   click(): void {
-    if (this._checkable) { this._checked = !this._checked; this.toggled.emit(this._checked); }
+    if (this._checkable) {
+      this._checked = !this._checked;
+      this.toggled.emit(this._checked);
+    }
     this.clicked.emit();
   }
 }
 
 class DemoLineEdit extends DemoQObject {
   static properties = {
-    text: { get: (o: any) => o._text, set: (o: any, v: any) => { o._text = String(v); }, notify: 'textChanged', type: 'string' },
+    text: {
+      get: (o: any) => o._text,
+      set: (o: any, v: any) => {
+        o._text = String(v);
+      },
+      notify: 'textChanged',
+      type: 'string',
+    },
   };
   static signals = { textChanged: { params: ['text'] } };
   _text = '';
   textChanged = new DemoSignal('textChanged');
-  override className(): string { return 'QLineEdit'; }
-  override inherits(n: string): boolean { return ['QLineEdit', 'QWidget'].includes(n); }
+  override className(): string {
+    return 'QLineEdit';
+  }
+  override inherits(n: string): boolean {
+    return ['QLineEdit', 'QWidget'].includes(n);
+  }
   /** Simulate typing (fires notify). */
-  typeText(t: string): void { this._text = String(t); this.textChanged.emit(this._text); }
+  typeText(t: string): void {
+    this._text = String(t);
+    this.textChanged.emit(this._text);
+  }
 }
 
 class DemoSpinBox extends DemoQObject {
   static properties = {
-    value: { get: (o: any) => o._value, set: (o: any, v: any) => { o._value = clampInt(v, o._min, o._max); }, notify: 'valueChanged', type: 'number' },
-    minimum: { get: (o: any) => o._min, set: (o: any, v: any) => { o._min = v; }, type: 'number' },
-    maximum: { get: (o: any) => o._max, set: (o: any, v: any) => { o._max = v; }, type: 'number' },
+    value: {
+      get: (o: any) => o._value,
+      set: (o: any, v: any) => {
+        o._value = clampInt(v, o._min, o._max);
+      },
+      notify: 'valueChanged',
+      type: 'number',
+    },
+    minimum: {
+      get: (o: any) => o._min,
+      set: (o: any, v: any) => {
+        o._min = v;
+      },
+      type: 'number',
+    },
+    maximum: {
+      get: (o: any) => o._max,
+      set: (o: any, v: any) => {
+        o._max = v;
+      },
+      type: 'number',
+    },
   };
   static signals = { valueChanged: { params: ['value'] } };
-  _value = 0; _min = 0; _max = 100;
+  _value = 0;
+  _min = 0;
+  _max = 100;
   valueChanged = new DemoSignal('valueChanged');
-  override className(): string { return 'QSpinBox'; }
-  override inherits(n: string): boolean { return ['QSpinBox', 'QWidget'].includes(n); }
+  override className(): string {
+    return 'QSpinBox';
+  }
+  override inherits(n: string): boolean {
+    return ['QSpinBox', 'QWidget'].includes(n);
+  }
   /** Simulate a native value change (fires notify). */
-  setNative(v: number): void { this._value = clampInt(v, this._min, this._max); this.valueChanged.emit(this._value); }
+  setNative(v: number): void {
+    this._value = clampInt(v, this._min, this._max);
+    this.valueChanged.emit(this._value);
+  }
 }
 
 class DemoLabel extends DemoQObject {
   static properties = {
-    text: { get: (o: any) => o._text, set: (o: any, v: any) => { o._text = String(v); }, type: 'string' },
+    text: {
+      get: (o: any) => o._text,
+      set: (o: any, v: any) => {
+        o._text = String(v);
+      },
+      type: 'string',
+    },
   };
   _text = '';
-  override className(): string { return 'QLabel'; }
-  override inherits(n: string): boolean { return ['QLabel', 'QWidget'].includes(n); }
+  override className(): string {
+    return 'QLabel';
+  }
+  override inherits(n: string): boolean {
+    return ['QLabel', 'QWidget'].includes(n);
+  }
 }
 
 function clampInt(v: number, min: number, max: number): number {
@@ -346,7 +506,7 @@ function clampInt(v: number, min: number, max: number): number {
 
 /**
  * A minimal {@link QtClassProvider} implementing the browser-Qt meta contract —
- * lets {@link createQt} run without the real canvas widgets (TreeNode, tests, docs).
+ * lets {@link createQt} run without the real canvas widgets (Node, tests, docs).
  */
 export function createDemoProvider(): QtClassProvider {
   return {

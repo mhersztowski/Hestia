@@ -16,18 +16,33 @@ export interface SketchConstraintLite {
  * horizontal at the top and bottom. The symbols then spread out as they do in
  * FreeCAD, even though a rectangle is a single entity here.
  */
-function rectAutoAnchor(project: Project, c: { id: string; type: string; refs: string[] }): Point2D | null {
+function rectAutoAnchor(
+  project: Project,
+  c: { id: string; type: string; refs: string[] }
+): Point2D | null {
   const m = /^rect-(.+)-(coincident|vertical|horizontal)-(\d+)$/.exec(c.id);
   if (!m) return null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const e = project.entityRegistry.get(m[1]) as any;
   if (!e || e.type !== 'rect') return null;
   const i = Number(m[3]);
-  const x0 = e.x, y0 = e.y, x1 = e.x + e.width, y1 = e.y + e.height;
-  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-  if (c.type === 'coincident') return [{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }][i] ?? null;
-  if (c.type === 'vertical') return i === 0 ? { x: x0, y: cy } : { x: x1, y: cy };   // boki pionowe
-  return i === 0 ? { x: cx, y: y0 } : { x: cx, y: y1 };                              // horizontal: boki poziome
+  const x0 = e.x,
+    y0 = e.y,
+    x1 = e.x + e.width,
+    y1 = e.y + e.height;
+  const cx = (x0 + x1) / 2,
+    cy = (y0 + y1) / 2;
+  if (c.type === 'coincident')
+    return (
+      [
+        { x: x0, y: y0 },
+        { x: x1, y: y0 },
+        { x: x1, y: y1 },
+        { x: x0, y: y1 },
+      ][i] ?? null
+    );
+  if (c.type === 'vertical') return i === 0 ? { x: x0, y: cy } : { x: x1, y: cy }; // boki pionowe
+  return i === 0 ? { x: cx, y: y0 } : { x: cx, y: y1 }; // horizontal: boki poziome
 }
 
 /** Where a symbol attaches for a given ref — the middle of an edge, a vertex, or a circle's centre. */
@@ -68,8 +83,13 @@ export function ConstraintSymbolsOverlay({ constraints, project, renderer, versi
   useEffect(() => {
     if (!renderer) return;
     const prev = renderer.onViewChange;
-    renderer.onViewChange = () => { prev?.(); force(v => v + 1); };
-    return () => { renderer.onViewChange = prev; };
+    renderer.onViewChange = () => {
+      prev?.();
+      force((v) => v + 1);
+    };
+    return () => {
+      renderer.onViewChange = prev;
+    };
   }, [renderer]);
 
   void version; // the parent re-renders when entities or constraints change
@@ -94,7 +114,7 @@ export function ConstraintSymbolsOverlay({ constraints, project, renderer, versi
 
   return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-      {glyphs.map(g => (
+      {glyphs.map((g) => (
         <img
           key={g.key}
           src={g.url}

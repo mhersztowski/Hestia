@@ -4,9 +4,9 @@ import * as THREE from 'three';
 // ── Axes gizmo ────────────────────────────────────────────────────────────────
 
 const GIZMO_AXES = [
-  { dir: [1, 0, 0] as [number,number,number], color: '#e05555', label: 'X' },
-  { dir: [0, 1, 0] as [number,number,number], color: '#55cc55', label: 'Y' },
-  { dir: [0, 0, 1] as [number,number,number], color: '#4488ff', label: 'Z' },
+  { dir: [1, 0, 0] as [number, number, number], color: '#e05555', label: 'X' },
+  { dir: [0, 1, 0] as [number, number, number], color: '#55cc55', label: 'Y' },
+  { dir: [0, 0, 1] as [number, number, number], color: '#4488ff', label: 'Z' },
 ];
 
 function drawAxesGizmo(canvas: HTMLCanvasElement | null, camera: THREE.Camera): void {
@@ -15,7 +15,8 @@ function drawAxesGizmo(canvas: HTMLCanvasElement | null, camera: THREE.Camera): 
   if (!ctx) return;
 
   const S = canvas.width;
-  const cx = S / 2, cy = S / 2;
+  const cx = S / 2,
+    cy = S / 2;
   const len = S * 0.33;
 
   ctx.clearRect(0, 0, S, S);
@@ -78,9 +79,15 @@ import { DATUM_TYPES } from '../model/types';
 import { evaluateFeatureTreeAsync } from '../model/evaluate';
 import type { Project } from '../../cad2d/barrel';
 import {
-  type SubSelectMode, type SubHit,
-  toNDC, pickFace, pickEdge, pickVertex,
-  buildOverlay, HOVER_COLOR, SELECT_COLOR,
+  type SubSelectMode,
+  type SubHit,
+  toNDC,
+  pickFace,
+  pickEdge,
+  pickVertex,
+  buildOverlay,
+  HOVER_COLOR,
+  SELECT_COLOR,
 } from '../model/subSelect';
 
 interface Props {
@@ -106,7 +113,11 @@ interface ViewportState {
   selectGroup: THREE.Group;
 }
 
-function fitCamera(camera: THREE.PerspectiveCamera, controls: OrbitControls, root: THREE.Object3D): void {
+function fitCamera(
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  root: THREE.Object3D
+): void {
   const box = new THREE.Box3().setFromObject(root);
   if (box.isEmpty()) return;
   const center = box.getCenter(new THREE.Vector3());
@@ -125,18 +136,40 @@ function fitCamera(camera: THREE.PerspectiveCamera, controls: OrbitControls, roo
 
 function OccSpinner() {
   return (
-    <svg width={14} height={14} viewBox="0 0 14 14" style={{ animation: 'occ-spin 0.9s linear infinite' }}>
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 14 14"
+      style={{ animation: 'occ-spin 0.9s linear infinite' }}
+    >
       <style>{`@keyframes occ-spin { to { transform: rotate(360deg); } }`}</style>
-      <circle cx={7} cy={7} r={5} fill="none" stroke="#4fc3f7" strokeWidth={2} strokeDasharray="20 10" />
+      <circle
+        cx={7}
+        cy={7}
+        r={5}
+        fill="none"
+        stroke="#4fc3f7"
+        strokeWidth={2}
+        strokeDasharray="20 10"
+      />
     </svg>
   );
 }
 
-export function Cad3dViewport({ tree, project, version, subSelectMode, style, onSceneChange, onSubSelect, selectedId }: Props) {
+export function Cad3dViewport({
+  tree,
+  project,
+  version,
+  subSelectMode,
+  style,
+  onSceneChange,
+  onSubSelect,
+  selectedId,
+}: Props) {
   const mountRef = useRef<HTMLDivElement>(null);
   const gizmoCanvasRef = useRef<HTMLCanvasElement>(null);
   const prevTreeRef = useRef<FeatureTree>(tree);
-  const prevFeatureIdsRef = useRef<string>(tree.features.map(f => f.id).join(','));
+  const prevFeatureIdsRef = useRef<string>(tree.features.map((f) => f.id).join(','));
   const stateRef = useRef<ViewportState | null>(null);
   const [occLoading, setOccLoading] = useState(false);
   // Abort token for in-flight evaluations — avoids stale updates
@@ -208,7 +241,16 @@ export function Cad3dViewport({ tree, project, version, subSelectMode, style, on
     });
     ro.observe(el);
 
-    stateRef.current = { renderer, scene, camera, controls, raf, cadRoot: null, hoverGroup, selectGroup };
+    stateRef.current = {
+      renderer,
+      scene,
+      camera,
+      controls,
+      raf,
+      cadRoot: null,
+      hoverGroup,
+      selectGroup,
+    };
 
     return () => {
       cancelAnimationFrame(raf);
@@ -228,7 +270,7 @@ export function Cad3dViewport({ tree, project, version, subSelectMode, style, on
     // Fit the camera ONLY when the tree's composition changes (a feature added
     // or removed). Changing an existing feature's parameters must not refit —
     // symmetric and reversed would otherwise be hidden by the reframing.
-    const currentFeatureIds = tree.features.map(f => f.id).join(',');
+    const currentFeatureIds = tree.features.map((f) => f.id).join(',');
     const treeChanged = prevFeatureIdsRef.current !== currentFeatureIds;
     prevTreeRef.current = tree;
     prevFeatureIdsRef.current = currentFeatureIds;
@@ -238,29 +280,36 @@ export function Cad3dViewport({ tree, project, version, subSelectMode, style, on
     const token = { cancelled: false };
     evalAbortRef.current = token;
 
-    if (s.cadRoot) { s.scene.remove(s.cadRoot); s.cadRoot = null; }
+    if (s.cadRoot) {
+      s.scene.remove(s.cadRoot);
+      s.cadRoot = null;
+    }
     s.hoverGroup.clear();
     s.selectGroup.clear();
 
-    const hasSolids = tree.features.some(f => f.enabled && f.type !== 'sketch' && !DATUM_TYPES.has(f.type));
+    const hasSolids = tree.features.some(
+      (f) => f.enabled && f.type !== 'sketch' && !DATUM_TYPES.has(f.type)
+    );
 
     setOccLoading(hasSolids);
 
-    void evaluateFeatureTreeAsync(tree, project, selectedId).then(root => {
-      if (token.cancelled) return; // superseded by newer evaluation
-      setOccLoading(false);
-      const s2 = stateRef.current;
-      if (!s2) return;
-      if (s2.cadRoot) s2.scene.remove(s2.cadRoot);
-      s2.scene.add(root);
-      s2.cadRoot = root;
-      if (treeChanged) fitCamera(s2.camera, s2.controls, root);
-      onSceneChange?.(root);
-    }).catch(err => {
-      if (token.cancelled) return;
-      setOccLoading(false);
-      console.error('OCC evaluation error:', err);
-    });
+    void evaluateFeatureTreeAsync(tree, project, selectedId)
+      .then((root) => {
+        if (token.cancelled) return; // superseded by newer evaluation
+        setOccLoading(false);
+        const s2 = stateRef.current;
+        if (!s2) return;
+        if (s2.cadRoot) s2.scene.remove(s2.cadRoot);
+        s2.scene.add(root);
+        s2.cadRoot = root;
+        if (treeChanged) fitCamera(s2.camera, s2.controls, root);
+        onSceneChange?.(root);
+      })
+      .catch((err) => {
+        if (token.cancelled) return;
+        setOccLoading(false);
+        console.error('OCC evaluation error:', err);
+      });
   }, [tree, project, version, onSceneChange, selectedId]);
 
   // ── Sub-selection event handlers ──────────────────────────────────────────
@@ -279,39 +328,42 @@ export function Cad3dViewport({ tree, project, version, subSelectMode, style, on
     const ndc = toNDC(e.clientX, e.clientY, mountRef.current);
     let hit: SubHit | null = null;
 
-    if (mode === 'face')   hit = pickFace(ndc, s.camera, s.scene);
-    if (mode === 'edge')   hit = pickEdge(ndc, s.camera, s.scene, s.controls);
+    if (mode === 'face') hit = pickFace(ndc, s.camera, s.scene);
+    if (mode === 'edge') hit = pickEdge(ndc, s.camera, s.scene, s.controls);
     if (mode === 'vertex') hit = pickVertex(ndc, s.camera, s.renderer, s.scene);
 
     s.hoverGroup.clear();
     if (hit) s.hoverGroup.add(buildOverlay(hit, HOVER_COLOR));
   }, []);
 
-  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    const mode = subModeRef.current;
-    if (mode === 'object') return;
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const mode = subModeRef.current;
+      if (mode === 'object') return;
 
-    const press = pressRef.current;
-    pressRef.current = null;
-    if (!press) return;
+      const press = pressRef.current;
+      pressRef.current = null;
+      if (!press) return;
 
-    // Ignore drag (> 5 px movement)
-    if (Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5) return;
+      // Ignore drag (> 5 px movement)
+      if (Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5) return;
 
-    const s = stateRef.current;
-    if (!s || !mountRef.current) return;
+      const s = stateRef.current;
+      if (!s || !mountRef.current) return;
 
-    const ndc = toNDC(e.clientX, e.clientY, mountRef.current);
-    let hit: SubHit | null = null;
+      const ndc = toNDC(e.clientX, e.clientY, mountRef.current);
+      let hit: SubHit | null = null;
 
-    if (mode === 'face')   hit = pickFace(ndc, s.camera, s.scene);
-    if (mode === 'edge')   hit = pickEdge(ndc, s.camera, s.scene, s.controls);
-    if (mode === 'vertex') hit = pickVertex(ndc, s.camera, s.renderer, s.scene);
+      if (mode === 'face') hit = pickFace(ndc, s.camera, s.scene);
+      if (mode === 'edge') hit = pickEdge(ndc, s.camera, s.scene, s.controls);
+      if (mode === 'vertex') hit = pickVertex(ndc, s.camera, s.renderer, s.scene);
 
-    s.selectGroup.clear();
-    if (hit) s.selectGroup.add(buildOverlay(hit, SELECT_COLOR));
-    onSubSelect?.(hit);
-  }, [onSubSelect]);
+      s.selectGroup.clear();
+      if (hit) s.selectGroup.add(buildOverlay(hit, SELECT_COLOR));
+      onSubSelect?.(hit);
+    },
+    [onSubSelect]
+  );
 
   // Clear hover/select overlays when switching back to object mode
   useEffect(() => {
@@ -320,11 +372,19 @@ export function Cad3dViewport({ tree, project, version, subSelectMode, style, on
     s.hoverGroup.clear();
     s.selectGroup.clear();
     onSubSelect?.(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subSelectMode]);
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', background: '#1a1a1a', ...style }}>
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        background: '#1a1a1a',
+        ...style,
+      }}
+    >
       <div
         ref={mountRef}
         onPointerDown={handlePointerDown}
@@ -345,18 +405,20 @@ export function Cad3dViewport({ tree, project, version, subSelectMode, style, on
         }}
       />
       {occLoading && (
-        <div style={{
-          position: 'absolute',
-          top: 10,
-          right: 14,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          background: 'rgba(0,0,0,0.55)',
-          borderRadius: 6,
-          padding: '4px 10px',
-          pointerEvents: 'none',
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 14,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'rgba(0,0,0,0.55)',
+            borderRadius: 6,
+            padding: '4px 10px',
+            pointerEvents: 'none',
+          }}
+        >
           <OccSpinner />
           <span style={{ color: '#aaa', fontSize: 11, fontFamily: 'monospace' }}>Computing…</span>
         </div>

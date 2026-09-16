@@ -102,7 +102,9 @@ describe('Układ Słoneczny z efemeryd', () => {
   });
 
   it('odległość Marsa zmienia się kilkukrotnie', () => {
-    const odleglosci = zbuduj().run({ lata: 4, start: 0 }, [0, 1], 0.1).series.odleglosc_Marsa.map(([, d]) => d);
+    const odleglosci = zbuduj()
+      .run({ lata: 4, start: 0 }, [0, 1], 0.1)
+      .series.odleglosc_Marsa.map(([, d]) => d);
     expect(Math.max(...odleglosci) / Math.min(...odleglosci)).toBeGreaterThan(2.5);
   });
 });

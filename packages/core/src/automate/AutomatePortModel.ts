@@ -2,7 +2,8 @@
  * Port model - a connection point on a node
  */
 
-export type AutomatePortDataType = 'flow' | 'string' | 'number' | 'boolean' | 'object' | 'any' | 'error';
+export type AutomatePortDataType =
+  'flow' | 'string' | 'number' | 'boolean' | 'object' | 'any' | 'error';
 
 export type AutomatePortDirection = 'input' | 'output';
 

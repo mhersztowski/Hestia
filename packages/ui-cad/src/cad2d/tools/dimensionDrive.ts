@@ -1,7 +1,9 @@
 import type { DimensionEntity, Entity, Point2D, Project } from '../core';
 import { translateEntity } from './entityTransform';
 
-function dist(a: Point2D, b: Point2D): number { return Math.hypot(a.x - b.x, a.y - b.y); }
+function dist(a: Point2D, b: Point2D): number {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
 /** The entities the dimension refers to, taken from its anchors. */
 export function dimRefs(dim: DimensionEntity): string[] {
   return [dim.anchor1?.entityId, dim.anchor2?.entityId].filter((x): x is string => !!x);
@@ -35,14 +37,16 @@ export function applyDimensionValue(project: Project, dim: DimensionEntity, valu
     return;
   }
 
-  const p1 = { x: dim.x1, y: dim.y1 }, p2 = { x: dim.x2, y: dim.y2 };
+  const p1 = { x: dim.x1, y: dim.y1 },
+    p2 = { x: dim.x2, y: dim.y2 };
   const cur = dist(p1, p2);
   if (cur < 1e-6) return;
   const dir = { x: (p2.x - p1.x) / cur, y: (p2.y - p1.y) / cur };
 
   // The same line — move whichever end is nearer p2 and hold the other.
   if (e1 && e2 && e1.id === e2.id && e1.type === 'line') {
-    const lp1 = { x: e1.x1, y: e1.y1 }, lp2 = { x: e1.x2, y: e1.y2 };
+    const lp1 = { x: e1.x1, y: e1.y1 },
+      lp2 = { x: e1.x2, y: e1.y2 };
     const keep1 = dist(p1, lp1) + dist(p2, lp2) <= dist(p1, lp2) + dist(p2, lp1);
     if (keep1) apply(project, e1.id, { x2: lp1.x + dir.x * value, y2: lp1.y + dir.y * value });
     else apply(project, e1.id, { x1: lp2.x + dir.x * value, y1: lp2.y + dir.y * value });

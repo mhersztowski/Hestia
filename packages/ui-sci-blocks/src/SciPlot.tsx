@@ -16,8 +16,14 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import {
-  addRow, createPlotDocument, evaluateDocument, removeRow, sampleSurface, updateRow,
-  type PlotDocument, type Viewport,
+  addRow,
+  createPlotDocument,
+  evaluateDocument,
+  removeRow,
+  sampleSurface,
+  updateRow,
+  type PlotDocument,
+  type Viewport,
 } from '@hestia/core-sci';
 import { PlotRowList } from './PlotRowList';
 import { PlotView } from './PlotView';
@@ -34,7 +40,12 @@ export interface SciPlotProps {
   panelWidth?: number;
 }
 
-export function SciPlot({ initialDocument, onDocumentChange, height = 460, panelWidth = 320 }: SciPlotProps) {
+export function SciPlot({
+  initialDocument,
+  onDocumentChange,
+  height = 460,
+  panelWidth = 320,
+}: SciPlotProps) {
   const [doc, setDoc] = useState<PlotDocument>(() => initialDocument ?? createPlotDocument());
   const [parameters, setParameters] = useState<Record<string, number>>({});
   /** Parametry, które właśnie biegną. Nazwa, nie identyfikator wiersza —
@@ -42,10 +53,13 @@ export function SciPlot({ initialDocument, onDocumentChange, height = 460, panel
   const [animating, setAnimating] = useState<Set<string>>(new Set());
 
   /** Zmiana treści: przelicz, zgłoś na zewnątrz. */
-  const zmien = useCallback((next: PlotDocument) => {
-    setDoc(next);
-    onDocumentChange?.(next);
-  }, [onDocumentChange]);
+  const zmien = useCallback(
+    (next: PlotDocument) => {
+      setDoc(next);
+      onDocumentChange?.(next);
+    },
+    [onDocumentChange]
+  );
 
   /*
    * Przesunięcie widoku nie idzie przez `onDocumentChange`.
@@ -66,7 +80,10 @@ export function SciPlot({ initialDocument, onDocumentChange, height = 460, panel
    * Suwak musi mieć wartość, zanim ktokolwiek go dotknie — inaczej pierwsze
    * przesunięcie skakałoby z zera do miejsca kliknięcia.
    */
-  const wartosci = useMemo(() => ({ ...evaluated.scope, ...parameters }), [evaluated.scope, parameters]);
+  const wartosci = useMemo(
+    () => ({ ...evaluated.scope, ...parameters }),
+    [evaluated.scope, parameters]
+  );
 
   /** Suwaki do animowania — z wierszy, których parametr jest włączony. */
   const animatedSliders = useMemo<AnimatedSlider[]>(() => {
@@ -86,16 +103,19 @@ export function SciPlot({ initialDocument, onDocumentChange, height = 460, panel
     return out;
   }, [doc.rows, animating, wartosci]);
 
-  useSliderAnimation(animatedSliders, useCallback((values, finished) => {
-    setParameters((p) => ({ ...p, ...values }));
-    if (finished.length > 0) {
-      setAnimating((a) => {
-        const next = new Set(a);
-        for (const name of finished) next.delete(name);
-        return next;
-      });
-    }
-  }, []));
+  useSliderAnimation(
+    animatedSliders,
+    useCallback((values, finished) => {
+      setParameters((p) => ({ ...p, ...values }));
+      if (finished.length > 0) {
+        setAnimating((a) => {
+          const next = new Set(a);
+          for (const name of finished) next.delete(name);
+          return next;
+        });
+      }
+    }, [])
+  );
 
   const issuesByRow = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -112,19 +132,28 @@ export function SciPlot({ initialDocument, onDocumentChange, height = 460, panel
    * tyle, ile widać, a każdy ruch suwaka przelicza je od nowa.
    */
   const powierzchnie = useMemo(
-    () => doc.rows
-      .filter((row) => row.parsed.kind === 'surface' && !row.hidden)
-      .map((row) => ({
-        id: row.id,
-        latex: row.latex,
-        grid: sampleSurface(row.parsed.body, doc.viewport, wartosci, 48),
-      }))
-      .filter((p) => p.grid.values.length > 0),
-    [doc.rows, doc.viewport, wartosci],
+    () =>
+      doc.rows
+        .filter((row) => row.parsed.kind === 'surface' && !row.hidden)
+        .map((row) => ({
+          id: row.id,
+          latex: row.latex,
+          grid: sampleSurface(row.parsed.body, doc.viewport, wartosci, 48),
+        }))
+        .filter((p) => p.grid.values.length > 0),
+    [doc.rows, doc.viewport, wartosci]
   );
 
   return (
-    <div style={{ display: 'flex', height, border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
+    <div
+      style={{
+        display: 'flex',
+        height,
+        border: '1px solid #e2e8f0',
+        borderRadius: 6,
+        overflow: 'hidden',
+      }}
+    >
       <div style={{ width: panelWidth, flexShrink: 0, borderRight: '1px solid #e2e8f0' }}>
         <PlotRowList
           document={doc}
@@ -133,38 +162,56 @@ export function SciPlot({ initialDocument, onDocumentChange, height = 460, panel
           onChangeRow={(id, latex) => zmien(updateRow(doc, id, latex))}
           onAddRow={() => zmien(addRow(doc, ''))}
           onRemoveRow={(id) => zmien(removeRow(doc, id))}
-          onToggleHidden={(id) => zmien({
-            ...doc,
-            rows: doc.rows.map((r) => (r.id === id ? { ...r, hidden: !r.hidden } : r)),
-          })}
+          onToggleHidden={(id) =>
+            zmien({
+              ...doc,
+              rows: doc.rows.map((r) => (r.id === id ? { ...r, hidden: !r.hidden } : r)),
+            })
+          }
           onParameterChange={(name, value) => {
             // Chwyt za suwak zatrzymuje animację — inaczej wartość wyrywałaby
             // się spod palca przy każdej klatce.
-            setAnimating((a) => { const next = new Set(a); next.delete(name); return next; });
+            setAnimating((a) => {
+              const next = new Set(a);
+              next.delete(name);
+              return next;
+            });
             setParameters((p) => ({ ...p, [name]: value }));
           }}
           animating={animating}
-          onToggleAnimation={(name) => setAnimating((a) => {
-            const next = new Set(a);
-            if (next.has(name)) next.delete(name); else next.add(name);
-            return next;
-          })}
-          onSliderSpecChange={(id, spec) => zmien({
-            ...doc,
-            rows: doc.rows.map((r) => (r.id === id ? { ...r, slider: spec } : r)),
-          })}
+          onToggleAnimation={(name) =>
+            setAnimating((a) => {
+              const next = new Set(a);
+              if (next.has(name)) next.delete(name);
+              else next.add(name);
+              return next;
+            })
+          }
+          onSliderSpecChange={(id, spec) =>
+            zmien({
+              ...doc,
+              rows: doc.rows.map((r) => (r.id === id ? { ...r, slider: spec } : r)),
+            })
+          }
         />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <PlotView document={doc} onViewportChange={zmienWidok} parameters={wartosci} height="100%" />
+        <PlotView
+          document={doc}
+          onViewportChange={zmienWidok}
+          parameters={wartosci}
+          height="100%"
+        />
 
         {/* Powierzchnie mają własną scenę: rzut płaski nie pokazuje siodła ani
             ekstremów, a to jedyny powód, dla którego ktoś pisze `z = f(x, y)`.
             Stoi pod wykresem płaskim, bo dokument bywa mieszany. */}
         {powierzchnie.map((p) => (
           <div key={p.id} style={{ padding: 8 }}>
-            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4, fontFamily: 'monospace' }}>
+            <div
+              style={{ fontSize: 11, color: '#64748b', marginBottom: 4, fontFamily: 'monospace' }}
+            >
               {p.latex}
             </div>
             <SurfaceStage grid={p.grid} />
@@ -173,8 +220,18 @@ export function SciPlot({ initialDocument, onDocumentChange, height = 460, panel
       </div>
 
       {evaluated.issues.length > 0 && (
-        <div style={{ position: 'absolute', bottom: 8, left: panelWidth + 16, fontSize: 12, color: '#b91c1c' }}>
-          {evaluated.issues.map((issue) => <div key={issue}>{issue}</div>)}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 8,
+            left: panelWidth + 16,
+            fontSize: 12,
+            color: '#b91c1c',
+          }}
+        >
+          {evaluated.issues.map((issue) => (
+            <div key={issue}>{issue}</div>
+          ))}
         </div>
       )}
     </div>

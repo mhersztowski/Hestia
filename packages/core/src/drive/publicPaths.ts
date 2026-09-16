@@ -27,7 +27,7 @@
  */
 export const PUBLIC_DRIVE_DIRS = ['public', 'knowledge', 'git'] as const;
 
-export type PublicDriveDir = typeof PUBLIC_DRIVE_DIRS[number];
+export type PublicDriveDir = (typeof PUBLIC_DRIVE_DIRS)[number];
 
 /** A path relative to `drive/`, normalised for comparison. */
 function normalize(relPath: string): string {
@@ -49,7 +49,7 @@ export function publicDriveRoot(relPath: string): PublicDriveDir | undefined {
   return PUBLIC_DRIVE_DIRS.find(
     // The slash matters: `public-notes` begins with "public" and has nothing
     // to do with it.
-    (dir) => path === dir || path.startsWith(`${dir}/`),
+    (dir) => path === dir || path.startsWith(`${dir}/`)
   );
 }
 
@@ -67,7 +67,7 @@ export function isPublicDrivePath(relPath: string): boolean {
 export function publicDriveUrl(
   origin: string,
   userName: string,
-  relPath: string,
+  relPath: string
 ): string | undefined {
   if (!isPublicDrivePath(relPath)) return undefined;
 

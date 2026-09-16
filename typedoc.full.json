@@ -40,7 +40,7 @@
   "exclude": [
     "**/*.test.ts",
     "**/*.test.tsx",
-    "**/test-setup.ts",
+    "**/testSetup.ts",
     "**/vite-env.d.ts",
     "**/node_modules/**"
   ],

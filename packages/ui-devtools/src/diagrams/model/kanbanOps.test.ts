@@ -8,27 +8,42 @@
 import { describe, it, expect } from 'vitest';
 import { parseKanbanDiagram, serializeKanbanDiagram } from '../formats/mermaid/kanbanDiagram';
 import {
-  addColumn, updateColumn, removeColumn, moveColumn,
-  addCard, updateCard, removeCard, moveCard, moveCardToColumn,
+  addColumn,
+  updateColumn,
+  removeColumn,
+  moveColumn,
+  addCard,
+  updateCard,
+  removeCard,
+  moveCard,
+  moveCardToColumn,
 } from './kanbanOps';
 import { cardCount } from './kanban';
 import type { DiagramDocument } from './diagram';
 
-const doc = () => parseKanbanDiagram([
-  'kanban',
-  '  Todo',
-  '    [Pierwsze]',
-  "    id2[Drugie]@{ ticket: MC-1, assigned: 'ala', priority: 'High' }",
-  '  W trakcie',
-  '    [Trzecie]',
-  '  Gotowe',
-].join('\n')).document;
+const doc = () =>
+  parseKanbanDiagram(
+    [
+      'kanban',
+      '  Todo',
+      '    [Pierwsze]',
+      "    id2[Drugie]@{ ticket: MC-1, assigned: 'ala', priority: 'High' }",
+      '  W trakcie',
+      '    [Trzecie]',
+      '  Gotowe',
+    ].join('\n')
+  ).document;
 const kolumny = (d: DiagramDocument) => d.kanban!.columns;
 const zapis = (d: DiagramDocument) => serializeKanbanDiagram(d);
 
 describe('kolumny', () => {
   it('dodaje na koniec', () => {
-    expect(kolumny(addColumn(doc())).map((c) => c.label)).toEqual(['Todo', 'W trakcie', 'Gotowe', 'Nowa kolumna']);
+    expect(kolumny(addColumn(doc())).map((c) => c.label)).toEqual([
+      'Todo',
+      'W trakcie',
+      'Gotowe',
+      'Nowa kolumna',
+    ]);
   });
 
   it('dodaje za wskazaną', () => {
@@ -57,7 +72,11 @@ describe('karty', () => {
 
   it('dodaje za wskazaną kartą', () => {
     const after = addCard(doc(), 0, 'Wstawione', 0);
-    expect(kolumny(after)[0].cards.map((c) => c.label)).toEqual(['Pierwsze', 'Wstawione', 'Drugie']);
+    expect(kolumny(after)[0].cards.map((c) => c.label)).toEqual([
+      'Pierwsze',
+      'Wstawione',
+      'Drugie',
+    ]);
   });
 
   it('nie powiela nazw', () => {
@@ -67,7 +86,9 @@ describe('karty', () => {
   });
 
   it('zmiana priorytetu wychodzi do Mermaida', () => {
-    expect(zapis(updateCard(doc(), 0, 0, { priority: 'Very High' }))).toContain("priority: 'Very High'");
+    expect(zapis(updateCard(doc(), 0, 0, { priority: 'Very High' }))).toContain(
+      "priority: 'Very High'"
+    );
   });
 
   it('puste pole usuwa metadaną zamiast zapisywać pustkę', () => {
@@ -95,7 +116,10 @@ describe('przeniesienie karty między kolumnami', () => {
   it('zachowuje wszystkie metadane', () => {
     const after = moveCardToColumn(doc(), 0, 1, 2);
     expect(kolumny(after)[2].cards[0]).toMatchObject({
-      id: 'id2', ticket: 'MC-1', assigned: 'ala', priority: 'High',
+      id: 'id2',
+      ticket: 'MC-1',
+      assigned: 'ala',
+      priority: 'High',
     });
   });
 

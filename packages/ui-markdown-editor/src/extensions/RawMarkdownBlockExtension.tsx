@@ -61,7 +61,12 @@ export function isRawMarkdownBlock(editor: Editor, pos: number): boolean {
   return editor.state.doc.nodeAt(pos)?.type.name === 'rawMarkdownBlock';
 }
 
-const RawMarkdownNodeView: React.FC<NodeViewProps> = ({ node, editor, updateAttributes, getPos }) => {
+const RawMarkdownNodeView: React.FC<NodeViewProps> = ({
+  node,
+  editor,
+  updateAttributes,
+  getPos,
+}) => {
   const source = (node.attrs.source as string) || '';
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   // Base line count drives the `rows` attribute so the box has the right height
@@ -91,7 +96,10 @@ const RawMarkdownNodeView: React.FC<NodeViewProps> = ({ node, editor, updateAttr
   };
 
   return (
-    <NodeViewWrapper className="md-rawblock" data-block-id={(node.attrs.blockId as string) || undefined}>
+    <NodeViewWrapper
+      className="md-rawblock"
+      data-block-id={(node.attrs.blockId as string) || undefined}
+    >
       <Box className="md-rawblock-head" contentEditable={false}>
         <CodeIcon sx={{ fontSize: 14 }} />
         <span className="md-rawblock-label">Markdown (surowy)</span>

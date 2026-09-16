@@ -15,9 +15,13 @@ export default defineConfig({
   // it from `node_modules`. `@hestia/node-devtools/format` is resolved by the
   // host from the workspace, so there is one copy of the format code in a page.
   external: [
-    'react', 'react-dom', 'react/jsx-runtime',
-    '@mui/material', /^@mui\/icons-material(\/.*)?$/,
-    '@emotion/react', '@emotion/styled',
+    'react',
+    'react-dom',
+    'react/jsx-runtime',
+    '@mui/material',
+    /^@mui\/icons-material(\/.*)?$/,
+    '@emotion/react',
+    '@emotion/styled',
     /^@xyflow\/react(\/.*)?$/,
     /^@hestia\/node-devtools(\/.*)?$/,
   ],

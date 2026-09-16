@@ -97,7 +97,12 @@ describe('GeometrySegmentNode', () => {
   });
 
   it('toData serializes and round-trips', () => {
-    const s = new GeometrySegmentNode({ id: 's1', start: [1, 2, 3], end: [4, 5, 6], startBinding: 'x' });
+    const s = new GeometrySegmentNode({
+      id: 's1',
+      start: [1, 2, 3],
+      end: [4, 5, 6],
+      startBinding: 'x',
+    });
     const d = s.toData();
     expect(d.start).toEqual([1, 2, 3]);
     expect(d.end).toEqual([4, 5, 6]);
@@ -142,7 +147,12 @@ describe('GeometryLineNode', () => {
   });
 
   it('toData round-trips', () => {
-    const l = new GeometryLineNode({ id: 'l1', origin: [1, 1, 1], direction: [0, 1, 0], label: 'z' });
+    const l = new GeometryLineNode({
+      id: 'l1',
+      origin: [1, 1, 1],
+      direction: [0, 1, 0],
+      label: 'z',
+    });
     expect(new GeometryLineNode(l.toData()).toData()).toEqual(l.toData());
   });
 });

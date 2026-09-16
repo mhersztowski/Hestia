@@ -27,31 +27,31 @@ const DATA_DIR = path.resolve(APP_DIR, process.env.HESTIA_DATA_DIR ?? 'data');
 const PUBLIC_DIR = path.join(APP_DIR, 'public');
 
 async function main(): Promise<void> {
-    const store = new JsonStore(path.join(DATA_DIR, 'finances.json'), Data, emptyData);
+  const store = new JsonStore(path.join(DATA_DIR, 'finances.json'), Data, emptyData);
 
-    // Samples only into an empty store — see `seed.ts`.
-    const current = await store.read();
-    if (current.accounts.length === 0 && current.transactions.length === 0) {
-        await store.write(seedData());
-        console.log('[hestia] empty store — wrote the sample data');
-    }
+  // Samples only into an empty store — see `seed.ts`.
+  const current = await store.read();
+  if (current.accounts.length === 0 && current.transactions.length === 0) {
+    await store.write(seedData());
+    console.log('[hestia] empty store — wrote the sample data');
+  }
 
-    const server = new HttpServer({ port: PORT, publicDir: PUBLIC_DIR });
-    registerApi(server, store);
-    const port = await server.start();
+  const server = new HttpServer({ port: PORT, publicDir: PUBLIC_DIR });
+  registerApi(server, store);
+  const port = await server.start();
 
-    console.log(`[hestia] server running at http://localhost:${port}`);
-    console.log(`[hestia] data: ${DATA_DIR}`);
+  console.log(`[hestia] server running at http://localhost:${port}`);
+  console.log(`[hestia] data: ${DATA_DIR}`);
 
-    for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-        process.on(signal, () => {
-            console.log(`\n[hestia] ${signal} — shutting down`);
-            void server.stop().then(() => process.exit(0));
-        });
-    }
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+    process.on(signal, () => {
+      console.log(`\n[hestia] ${signal} — shutting down`);
+      void server.stop().then(() => process.exit(0));
+    });
+  }
 }
 
 main().catch((e) => {
-    console.error('[hestia] failed to start:', e);
-    process.exit(1);
+  console.error('[hestia] failed to start:', e);
+  process.exit(1);
 });

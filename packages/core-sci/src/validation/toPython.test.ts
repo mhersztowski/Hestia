@@ -28,13 +28,24 @@ const py = (latex: string) => latexToPython(latex).code;
 function oblicz(code: string, scope: Record<string, number>): number {
   const nazwy = Object.keys(scope);
   const funkcje = {
-    sin: Math.sin, cos: Math.cos, tan: Math.tan, exp: Math.exp,
-    log: Math.log, log10: Math.log10, sqrt: Math.sqrt, fabs: Math.abs,
-    asin: Math.asin, acos: Math.acos, atan: Math.atan,
-    sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
-    pi: Math.PI, e: Math.E,
+    sin: Math.sin,
+    cos: Math.cos,
+    tan: Math.tan,
+    exp: Math.exp,
+    log: Math.log,
+    log10: Math.log10,
+    sqrt: Math.sqrt,
+    fabs: Math.abs,
+    asin: Math.asin,
+    acos: Math.acos,
+    atan: Math.atan,
+    sinh: Math.sinh,
+    cosh: Math.cosh,
+    tanh: Math.tanh,
+    pi: Math.PI,
+    e: Math.E,
   };
-  // eslint-disable-next-line no-new-func
+
   const fn = new Function(...Object.keys(funkcje), ...nazwy, `return ${code};`);
   return fn(...Object.values(funkcje), ...nazwy.map((n) => scope[n]));
 }
@@ -97,10 +108,11 @@ describe('latexToPython', () => {
   it('cały wzór wahadła zgadza się co do wartości', () => {
     // Sprawdzian najbliższy temu, o co chodzi w cross-walidacji: prawa strona
     // równania ruchu policzona dwiema drogami musi dać tę samą liczbę.
-    const { wRdzeniu, wPythonie } = zgodneZRdzeniem(
-      '-\\frac{g}{L}\\sin(\\theta)',
-      { g: 9.81, L: 1.2, theta: 0.37 },
-    );
+    const { wRdzeniu, wPythonie } = zgodneZRdzeniem('-\\frac{g}{L}\\sin(\\theta)', {
+      g: 9.81,
+      L: 1.2,
+      theta: 0.37,
+    });
     expect(wPythonie).toBeCloseTo(wRdzeniu, 12);
   });
 
@@ -116,8 +128,11 @@ describe('latexToPython', () => {
   it('podaje symbole użyte w wyrażeniu', () => {
     // Skrypt Pythona musi wiedzieć, co podstawić — bez listy zgadywałby po
     // nazwach zmiennych w kodzie.
-    expect(latexToPython('-\\frac{g}{L}\\sin(\\theta)').symbols.sort())
-      .toEqual(['L', 'g', 'theta']);
+    expect(latexToPython('-\\frac{g}{L}\\sin(\\theta)').symbols.sort()).toEqual([
+      'L',
+      'g',
+      'theta',
+    ]);
   });
 
   it('nieznana konstrukcja jest zgłaszana, nie zgadywana', () => {

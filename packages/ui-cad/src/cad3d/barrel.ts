@@ -31,13 +31,24 @@ export type { Cad3dState } from './hooks/useCad3d';
 
 // The model: the feature tree and what it is made of
 export * from './model/types';
-export { evaluateFeatureTreeAsync, buildDatumHelpers, buildSketchWireframes } from './model/evaluate';
+export {
+  evaluateFeatureTreeAsync,
+  buildDatumHelpers,
+  buildSketchWireframes,
+} from './model/evaluate';
 export { solveConstraints, constraintTypeLabel } from './model/sketchConstraints';
 export type { SketchConstraint, ConstraintType, SketchEntity } from './model/sketchConstraints';
 
 // Picking vertices, edges and faces in the viewport, and the plane or datum a
 // picked face defines
-export { pickFace, pickEdge, pickVertex, planeFromFace, datumParamsFromFace, buildOverlay } from './model/subSelect';
+export {
+  pickFace,
+  pickEdge,
+  pickVertex,
+  planeFromFace,
+  datumParamsFromFace,
+  buildOverlay,
+} from './model/subSelect';
 export type { SubSelectMode, SubHit, HitFace, HitEdge, HitVertex } from './model/subSelect';
 
 // The parts of the page, for a host that composes its own layout

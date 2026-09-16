@@ -23,7 +23,10 @@ export interface CalloutBlockProps {
 }
 
 /** Rodzaj notki widać po ikonie i barwie, zanim czytelnik przeczyta tytuł. */
-const RODZAJE: Record<CalloutKind, { etykieta: string; ikona: string; kolor: string; tlo: string }> = {
+const RODZAJE: Record<
+  CalloutKind,
+  { etykieta: string; ikona: string; kolor: string; tlo: string }
+> = {
   law: { etykieta: 'Prawo fizyczne', ikona: '§', kolor: '#7c3aed', tlo: '#f5f3ff' },
   person: { etykieta: 'Postać nauki', ikona: '☺', kolor: '#0369a1', tlo: '#f0f9ff' },
   device: { etykieta: 'Urządzenie i doświadczenie', ikona: '⚙', kolor: '#b45309', tlo: '#fffbeb' },
@@ -49,16 +52,16 @@ export function CalloutBlock({ id, code, compact }: CalloutBlockProps) {
   return (
     <aside id={compact ? undefined : `ref-${id}`} style={ramka}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-        <span aria-hidden style={{ color: styl.kolor, fontWeight: 700 }}>{styl.ikona}</span>
+        <span aria-hidden style={{ color: styl.kolor, fontWeight: 700 }}>
+          {styl.ikona}
+        </span>
         <strong style={{ color: styl.kolor }}>{notka.title || id}</strong>
         <span style={{ fontSize: compact ? 10 : 11, color: styl.kolor, opacity: 0.8 }}>
           {styl.etykieta}
         </span>
       </div>
 
-      {notka.body && (
-        <div style={{ lineHeight: 1.6, color: '#1e293b' }}>{inline(notka.body)}</div>
-      )}
+      {notka.body && <div style={{ lineHeight: 1.6, color: '#1e293b' }}>{inline(notka.body)}</div>}
 
       {/*
         Stopka jest tu **treścią, nie ozdobą**: mówi czytelnikowi, że tego akapitu

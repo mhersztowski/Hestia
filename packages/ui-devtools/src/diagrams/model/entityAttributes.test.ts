@@ -8,20 +8,35 @@
 import { describe, it, expect } from 'vitest';
 import { emptyDiagram, type DiagramDocument } from './diagram';
 import {
-  addAttribute, updateAttribute, toggleAttributeKey, removeAttribute, moveAttribute,
-  formatAttribute, emptyAttribute,
+  addAttribute,
+  updateAttribute,
+  toggleAttributeKey,
+  removeAttribute,
+  moveAttribute,
+  formatAttribute,
+  emptyAttribute,
 } from './entityAttributes';
 import { serializeErDiagram } from '../formats/mermaid/erDiagram';
 
 function encja(): DiagramDocument {
   const doc = emptyDiagram('er');
-  doc.nodes = [{
-    id: 'DEVICE', label: 'DEVICE', shape: 'rectangle',
-    attributes: [
-      { raw: 'int id PK "autoincrement"', type: 'int', name: 'id', keys: ['PK'], comment: 'autoincrement' },
-      { raw: 'string mac UK', type: 'string', name: 'mac', keys: ['UK'] },
-    ],
-  }];
+  doc.nodes = [
+    {
+      id: 'DEVICE',
+      label: 'DEVICE',
+      shape: 'rectangle',
+      attributes: [
+        {
+          raw: 'int id PK "autoincrement"',
+          type: 'int',
+          name: 'id',
+          keys: ['PK'],
+          comment: 'autoincrement',
+        },
+        { raw: 'string mac UK', type: 'string', name: 'mac', keys: ['UK'] },
+      ],
+    },
+  ];
   return doc;
 }
 const atrybuty = (doc: DiagramDocument) => doc.nodes[0].attributes!;
@@ -32,14 +47,19 @@ describe('zapis kanoniczny atrybutu', () => {
     [{ type: 'int', name: 'id' }, 'int id'],
     [{ type: 'int', name: 'id', keys: ['PK'] as const }, 'int id PK'],
     [{ type: 'int', name: 'id', keys: ['PK', 'FK'] as const }, 'int id PK, FK'],
-    [{ type: 'string', name: 'mac', keys: ['UK'] as const, comment: 'adres MAC' }, 'string mac UK "adres MAC"'],
+    [
+      { type: 'string', name: 'mac', keys: ['UK'] as const, comment: 'adres MAC' },
+      'string mac UK "adres MAC"',
+    ],
     [{ type: 'string', name: 'nazwa', comment: 'bez klucza' }, 'string nazwa "bez klucza"'],
   ])('%o → %s', (attribute, expected) => {
     expect(formatAttribute({ raw: '', ...attribute })).toBe(expected);
   });
 
   it('nierozpoznany atrybut zostaje nietknięty', () => {
-    expect(formatAttribute({ raw: 'dziwny zapis bez struktury' })).toBe('dziwny zapis bez struktury');
+    expect(formatAttribute({ raw: 'dziwny zapis bez struktury' })).toBe(
+      'dziwny zapis bez struktury'
+    );
   });
 });
 
@@ -60,17 +80,21 @@ describe('dodawanie i zmiana', () => {
   });
 
   it('zmienia typ i przelicza zapis', () => {
-    expect(atrybuty(updateAttribute(encja(), 'DEVICE', 0, { type: 'bigint' }))[0].raw)
-      .toBe('bigint id PK "autoincrement"');
+    expect(atrybuty(updateAttribute(encja(), 'DEVICE', 0, { type: 'bigint' }))[0].raw).toBe(
+      'bigint id PK "autoincrement"'
+    );
   });
 
   it('zmienia komentarz', () => {
-    expect(atrybuty(updateAttribute(encja(), 'DEVICE', 1, { comment: 'unikalny' }))[1].raw)
-      .toBe('string mac UK "unikalny"');
+    expect(atrybuty(updateAttribute(encja(), 'DEVICE', 1, { comment: 'unikalny' }))[1].raw).toBe(
+      'string mac UK "unikalny"'
+    );
   });
 
   it('pusty komentarz znika z zapisu', () => {
-    expect(atrybuty(updateAttribute(encja(), 'DEVICE', 0, { comment: '' }))[0].raw).toBe('int id PK');
+    expect(atrybuty(updateAttribute(encja(), 'DEVICE', 0, { comment: '' }))[0].raw).toBe(
+      'int id PK'
+    );
   });
 });
 
@@ -91,7 +115,9 @@ describe('role kluczy', () => {
   });
 
   it('zmiana ról wychodzi do Mermaida', () => {
-    expect(zapis(toggleAttributeKey(encja(), 'DEVICE', 0, 'FK'))).toContain('int id PK, FK "autoincrement"');
+    expect(zapis(toggleAttributeKey(encja(), 'DEVICE', 0, 'FK'))).toContain(
+      'int id PK, FK "autoincrement"'
+    );
   });
 });
 
@@ -107,7 +133,9 @@ describe('usuwanie i kolejność', () => {
   });
 
   it('kolejność w zapisie odpowiada kolejności na liście', () => {
-    const lines = zapis(moveAttribute(encja(), 'DEVICE', 1, 0)).split('\n').map((l) => l.trim());
+    const lines = zapis(moveAttribute(encja(), 'DEVICE', 1, 0))
+      .split('\n')
+      .map((l) => l.trim());
     expect(lines.indexOf('string mac UK')).toBeLessThan(lines.indexOf('int id PK "autoincrement"'));
   });
 });

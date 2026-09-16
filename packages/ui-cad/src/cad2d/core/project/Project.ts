@@ -71,14 +71,30 @@ export class Project {
         if (!a1 && !a2 && !dim.axis) continue;
         const p1 = a1 ? resolveDimAnchor(a1, this.entityRegistry.get(a1.entityId)) : null;
         const p2 = a2 ? resolveDimAnchor(a2, this.entityRegistry.get(a2.entityId)) : null;
-        const nx1 = p1?.x ?? dim.x1, ny1 = p1?.y ?? dim.y1;
-        let nx2 = p2?.x ?? dim.x2, ny2 = p2?.y ?? dim.y2;
+        const nx1 = p1?.x ?? dim.x1,
+          ny1 = p1?.y ?? dim.y1;
+        let nx2 = p2?.x ?? dim.x2,
+          ny2 = p2?.y ?? dim.y2;
         // A dimension to an axis: the foot of the perpendicular is computed from the anchored vertex (x1,y1).
-        if (dim.axis === 'x') { nx2 = nx1; ny2 = 0; }
-        else if (dim.axis === 'y') { nx2 = 0; ny2 = ny1; }
-        if (Math.abs(nx1 - dim.x1) > 1e-6 || Math.abs(ny1 - dim.y1) > 1e-6 ||
-            Math.abs(nx2 - dim.x2) > 1e-6 || Math.abs(ny2 - dim.y2) > 1e-6) {
-          const updated = this.entityRegistry.update(dim.id, { x1: nx1, y1: ny1, x2: nx2, y2: ny2 });
+        if (dim.axis === 'x') {
+          nx2 = nx1;
+          ny2 = 0;
+        } else if (dim.axis === 'y') {
+          nx2 = 0;
+          ny2 = ny1;
+        }
+        if (
+          Math.abs(nx1 - dim.x1) > 1e-6 ||
+          Math.abs(ny1 - dim.y1) > 1e-6 ||
+          Math.abs(nx2 - dim.x2) > 1e-6 ||
+          Math.abs(ny2 - dim.y2) > 1e-6
+        ) {
+          const updated = this.entityRegistry.update(dim.id, {
+            x1: nx1,
+            y1: ny1,
+            x2: nx2,
+            y2: ny2,
+          });
           if (updated) this.eventBus.emit('entity:updated', updated);
         }
       }
@@ -157,7 +173,10 @@ export class Project {
     this.eventBus.emit('entity:updated', after);
   }
 
-  batchUpdate(operations: Array<{ id: string; changes: Partial<Entity> }>, description = 'Batch update'): void {
+  batchUpdate(
+    operations: Array<{ id: string; changes: Partial<Entity> }>,
+    description = 'Batch update'
+  ): void {
     const befores: Entity[] = [];
     const afters: Entity[] = [];
 
@@ -226,7 +245,7 @@ export class Project {
 
   removeSelected(): void {
     const ids = this.selectionManager.getSelected();
-    const entities = ids.map(id => this.entityRegistry.get(id)).filter(Boolean) as Entity[];
+    const entities = ids.map((id) => this.entityRegistry.get(id)).filter(Boolean) as Entity[];
     if (entities.length === 0) return;
 
     for (const e of entities) {

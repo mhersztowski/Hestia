@@ -5,8 +5,9 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '4-Pytania.md';
-const pliki = [DOK, '4-3-rzut-ukosny.md', '4-5-przyspieszenie-styczne.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '4-3-rzut-ukosny.md', '4-5-przyspieszenie-styczne.md', 'Slownik.md'].map(
+  (p) => ({ path: p, markdown: readDocument(p) })
+);
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const cel = (id: string) =>
@@ -14,12 +15,13 @@ const cel = (id: string) =>
 const resolveRef = (id: string) => {
   const c = cel(id);
   if (!c.found || !c.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[c.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[c.path] ?? ''
+  );
   return { code: m?.[1], kind: c.kind, sameDocument: c.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 const tresc = () => bodies[DOK].split('## Uwagi redakcyjne')[0];
 
@@ -47,8 +49,12 @@ describe('Pytania rozdziału 4 w czytniku', () => {
     const d = index.documents.find((x) => x.path === DOK);
     expect(d?.figures.map((f) => f.id)).toEqual(['rh1-4-rys13']);
     const zrodlo = tresc();
-    expect(zrodlo.indexOf('Co się nie zgadza')).toBeLessThan(zrodlo.indexOf('```figure:rh1-4-rys13'));
-    expect(zrodlo.indexOf('Winda jedzie w dół')).toBeLessThan(zrodlo.indexOf('```figure:rh1-4-rys13'));
+    expect(zrodlo.indexOf('Co się nie zgadza')).toBeLessThan(
+      zrodlo.indexOf('```figure:rh1-4-rys13')
+    );
+    expect(zrodlo.indexOf('Winda jedzie w dół')).toBeLessThan(
+      zrodlo.indexOf('```figure:rh1-4-rys13')
+    );
     expect(tekst()).toContain('Rys. 4-13. Pytanie 15');
   });
 
@@ -74,8 +80,12 @@ describe('Pytania rozdziału 4 w czytniku', () => {
   });
 
   it('cztery odsyłacze do słownika, wszystkie do haseł tego rozdziału', () => {
-    for (const id of ['rh1-poj-rzut-ukosny', 'rh1-poj-ruch-dwuwymiarowy',
-      'rh1-poj-przyspieszenie-styczne', 'rh1-poj-przyspieszenie-dosrodkowe']) {
+    for (const id of [
+      'rh1-poj-rzut-ukosny',
+      'rh1-poj-ruch-dwuwymiarowy',
+      'rh1-poj-przyspieszenie-styczne',
+      'rh1-poj-przyspieszenie-dosrodkowe',
+    ]) {
       expect(cel(id).path, id).toBe('Slownik.md');
     }
     // Ani jednego odsyłacza do wzoru czy rysunku z wykładu — trzeci raz z rzędu.

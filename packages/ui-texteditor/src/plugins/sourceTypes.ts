@@ -9,13 +9,30 @@
 
 /** Typy wbudowane — pierwsze na liście, bo najczęściej używane. */
 export const BUILTIN_TS_TYPES = [
-  'string', 'number', 'boolean', 'bigint', 'symbol',
-  'any', 'unknown', 'void', 'never', 'object',
-  'Date', 'RegExp', 'Error',
-  'string[]', 'number[]', 'boolean[]',
-  'Array<string>', 'Array<number>',
-  'Record<string, unknown>', 'Map<string, string>', 'Set<string>',
-  'Promise<void>', 'Promise<string>', 'Promise<number>',
+  'string',
+  'number',
+  'boolean',
+  'bigint',
+  'symbol',
+  'any',
+  'unknown',
+  'void',
+  'never',
+  'object',
+  'Date',
+  'RegExp',
+  'Error',
+  'string[]',
+  'number[]',
+  'boolean[]',
+  'Array<string>',
+  'Array<number>',
+  'Record<string, unknown>',
+  'Map<string, string>',
+  'Set<string>',
+  'Promise<void>',
+  'Promise<string>',
+  'Promise<number>',
 ] as const;
 
 export interface TypeOption {
@@ -71,7 +88,10 @@ export function collectImportedTypes(code: string): Array<{ name: string; from: 
       }
     }
     // Import domyślny / przestrzeń nazw: `import Foo from`, `import * as Foo from`.
-    const head = clause.replace(/\{[^}]*\}/, '').replace(/,/g, ' ').trim();
+    const head = clause
+      .replace(/\{[^}]*\}/, '')
+      .replace(/,/g, ' ')
+      .trim();
     const ns = head.match(/\*\s+as\s+([A-Za-z_$][\w$]*)/);
     if (ns) push(ns[1], from);
     else if (head && /^[A-Za-z_$][\w$]*$/.test(head)) push(head, from);
@@ -116,7 +136,8 @@ export function buildTypeOptions(code: string, extra: TypeOption[] = []): TypeOp
 export function lastImportEnd(code: string): number {
   const src = String(code ?? '');
   // Trzy kształty: `import … from 'x'`, `import 'x'` (side-effect), `import type … from 'x'`.
-  const re = /(^|\n)[ \t]*import\b(?:[^'"();]|\{[\s\S]*?\})*?from\s*['"][^'"]+['"][ \t]*;?|(^|\n)[ \t]*import\s*['"][^'"]+['"][ \t]*;?/g;
+  const re =
+    /(^|\n)[ \t]*import\b(?:[^'"();]|\{[\s\S]*?\})*?from\s*['"][^'"]+['"][ \t]*;?|(^|\n)[ \t]*import\s*['"][^'"]+['"][ \t]*;?/g;
   let end = 0;
   for (const m of src.matchAll(re)) {
     end = (m.index ?? 0) + m[0].length;
@@ -136,5 +157,10 @@ export function insertImportLine(code: string, line: string): string {
   if (at <= 0) return withNewline + src;
   const rest = src.slice(at);
   // Po ostatnim imporcie zwykle jest już `\n` — nie dokładamy drugiego.
-  return src.slice(0, at) + '\n' + withNewline.replace(/\n$/, '') + (rest.startsWith('\n') ? rest : `\n${rest}`);
+  return (
+    src.slice(0, at) +
+    '\n' +
+    withNewline.replace(/\n$/, '') +
+    (rest.startsWith('\n') ? rest : `\n${rest}`)
+  );
 }

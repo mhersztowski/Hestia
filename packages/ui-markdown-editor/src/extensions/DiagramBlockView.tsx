@@ -26,12 +26,18 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { registerBlockRenderer } from './blockRenderers';
 import { useEditorServices } from '../capabilities';
 import {
-  languageWithMode, matchesDiagramLanguage, readMode, type DiagramBlockMode,
+  languageWithMode,
+  matchesDiagramLanguage,
+  readMode,
+  type DiagramBlockMode,
 } from './diagramBlockMode';
 import { downloadPng, downloadSvg } from './diagramExport';
 import { formatIssue, issueSummary, type DiagramIssue } from './diagramIssues';
 import {
-  currentUserName, describeDiff, readCodeSource, writeCodeSource,
+  currentUserName,
+  describeDiff,
+  readCodeSource,
+  writeCodeSource,
 } from './diagramCodeImport';
 
 /**
@@ -42,14 +48,29 @@ import {
  * gdzie tej aplikacji nie ma — w podglądzie, w eksporcie statycznym i w
  * testach. Import z kodu jest wtedy po prostu niedostępny, a diagram działa.
  */
-const DiagramCodeImportDialog = lazy(() => import('./DiagramCodeImportDialog')
-  .then((m) => ({ default: m.DiagramCodeImportDialog })));
-const DiagramCodeExportDialog = lazy(() => import('./DiagramCodeExportDialog')
-  .then((m) => ({ default: m.DiagramCodeExportDialog })));
+const DiagramCodeImportDialog = lazy(() =>
+  import('./DiagramCodeImportDialog').then((m) => ({ default: m.DiagramCodeImportDialog }))
+);
+const DiagramCodeExportDialog = lazy(() =>
+  import('./DiagramCodeExportDialog').then((m) => ({ default: m.DiagramCodeExportDialog }))
+);
 import {
-  DiagramEditor, SequenceEditor, PacketEditor, KanbanEditor, GanttEditor, TimelineEditor,
-  diagramFormats, mergeLayout, mermaidFormat, starterDiagram, DIAGRAM_STARTERS, umlDiagramToDocument,
-  type DiagramDocument, type DiagramFormat, type DiagramKind, type UmlDiagramLike,
+  DiagramEditor,
+  SequenceEditor,
+  PacketEditor,
+  KanbanEditor,
+  GanttEditor,
+  TimelineEditor,
+  diagramFormats,
+  mergeLayout,
+  mermaidFormat,
+  starterDiagram,
+  DIAGRAM_STARTERS,
+  umlDiagramToDocument,
+  type DiagramDocument,
+  type DiagramFormat,
+  type DiagramKind,
+  type UmlDiagramLike,
 } from '@hestia/ui-devtools/diagrams';
 import '@xyflow/react/dist/style.css';
 
@@ -68,17 +89,28 @@ interface Props {
 
 /** Drobny przycisk paska podglądu — mniejszy niż przełącznik trybów. */
 const miniBtn: React.CSSProperties = {
-  fontSize: 11, padding: '1px 8px', borderRadius: 4, cursor: 'pointer',
-  border: '1px solid #cbd5e1', background: '#fff', color: '#334155',
+  fontSize: 11,
+  padding: '1px 8px',
+  borderRadius: 4,
+  cursor: 'pointer',
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  color: '#334155',
 };
 
 /** Przycisk nieczynny — ma wyglądać na nieczynny, a nie tylko nie reagować. */
 const disabledBtn: React.CSSProperties = {
-  opacity: 0.45, cursor: 'not-allowed', background: '#f8fafc', color: '#94a3b8',
+  opacity: 0.45,
+  cursor: 'not-allowed',
+  background: '#f8fafc',
+  color: '#94a3b8',
 };
 
 const btn = (active: boolean): React.CSSProperties => ({
-  fontSize: 12, padding: '2px 10px', borderRadius: 4, cursor: 'pointer',
+  fontSize: 12,
+  padding: '2px 10px',
+  borderRadius: 4,
+  cursor: 'pointer',
   border: `1px solid ${active ? '#2563eb' : '#cbd5e1'}`,
   background: active ? '#dbeafe' : '#fff',
   color: active ? '#1e40af' : '#334155',
@@ -118,22 +150,29 @@ function MermaidPreview({ code, onSvg }: { code: string; onSvg?: (svg: string) =
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [code, onSvg]);
 
   // Escape zamyka pełny ekran — nakładka przykrywa cały dokument, więc musi
   // dać się zamknąć bez szukania przycisku.
   useEffect(() => {
     if (!fullscreen) return undefined;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFullscreen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFullscreen(false);
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [fullscreen]);
 
   if (error) {
     return (
-      <pre style={{ margin: 0, padding: 12, color: '#b91c1c', fontSize: 12, whiteSpace: 'pre-wrap' }}>
-        Nie udało się wyrenderować diagramu:{'\n'}{error}
+      <pre
+        style={{ margin: 0, padding: 12, color: '#b91c1c', fontSize: 12, whiteSpace: 'pre-wrap' }}
+      >
+        Nie udało się wyrenderować diagramu:{'\n'}
+        {error}
       </pre>
     );
   }
@@ -164,13 +203,22 @@ function MermaidPreview({ code, onSvg }: { code: string; onSvg?: (svg: string) =
   );
 
   const pasek = (
-    <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '2px 8px' }} contentEditable={false}>
-      <button type="button" style={miniBtn} onClick={() => krok(-1)} title="Pomniejsz">−</button>
+    <div
+      style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '2px 8px' }}
+      contentEditable={false}
+    >
+      <button type="button" style={miniBtn} onClick={() => krok(-1)} title="Pomniejsz">
+        −
+      </button>
       <span style={{ fontSize: 11, color: '#64748b', minWidth: 38, textAlign: 'center' }}>
         {Math.round(zoom * 100)}%
       </span>
-      <button type="button" style={miniBtn} onClick={() => krok(1)} title="Powiększ">+</button>
-      <button type="button" style={miniBtn} onClick={() => setZoom(1)} title="Rozmiar naturalny">1:1</button>
+      <button type="button" style={miniBtn} onClick={() => krok(1)} title="Powiększ">
+        +
+      </button>
+      <button type="button" style={miniBtn} onClick={() => setZoom(1)} title="Rozmiar naturalny">
+        1:1
+      </button>
       <span style={{ flex: 1 }} />
       <button
         type="button"
@@ -187,8 +235,12 @@ function MermaidPreview({ code, onSvg }: { code: string; onSvg?: (svg: string) =
     return (
       <div
         style={{
-          position: 'fixed', inset: 0, zIndex: 1400, background: '#fff',
-          display: 'flex', flexDirection: 'column',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1400,
+          background: '#fff',
+          display: 'flex',
+          flexDirection: 'column',
         }}
         contentEditable={false}
       >
@@ -220,10 +272,15 @@ function IssuePanel({ issues, untouched }: { issues: DiagramIssue[]; untouched: 
   const podsumowanie = [
     issueSummary(issues),
     untouched > 0 ? `${untouched} linii bez zmian` : undefined,
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
-    <div style={{ padding: '4px 10px', borderTop: '1px solid rgba(0,0,0,0.06)' }} contentEditable={false}>
+    <div
+      style={{ padding: '4px 10px', borderTop: '1px solid rgba(0,0,0,0.06)' }}
+      contentEditable={false}
+    >
       <button
         type="button"
         onClick={() => setOtwarte((v) => !v)}
@@ -249,9 +306,9 @@ function IssuePanel({ issues, untouched }: { issues: DiagramIssue[]; untouched: 
           )}
           {untouched > 0 && (
             <p style={{ margin: '4px 0 0', fontSize: 11, color: '#64748b' }}>
-              {untouched === 1 ? 'Jedna linia jest' : `${untouched} linii jest`} poza modelem edytora
-              (styl, <code>click</code>, komentarz, składnia spoza obsługiwanej).
-              Edytor graficzny ich nie pokaże, ale zapis odda je nietknięte.
+              {untouched === 1 ? 'Jedna linia jest' : `${untouched} linii jest`} poza modelem
+              edytora (styl, <code>click</code>, komentarz, składnia spoza obsługiwanej). Edytor
+              graficzny ich nie pokaże, ale zapis odda je nietknięte.
             </p>
           )}
         </>
@@ -269,19 +326,28 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
    */
   const zapisany = readMode(language ?? 'mermaid');
   const [mode, setMode] = useState<DiagramBlockMode>(zapisany);
-  useEffect(() => { setMode(zapisany); }, [zapisany]);
+  useEffect(() => {
+    setMode(zapisany);
+  }, [zapisany]);
 
-  const zmienTryb = useCallback((next: DiagramBlockMode) => {
-    setMode(next);
-    if (language && onLanguageChange) onLanguageChange(languageWithMode(language, next));
-  }, [language, onLanguageChange]);
+  const zmienTryb = useCallback(
+    (next: DiagramBlockMode) => {
+      setMode(next);
+      if (language && onLanguageChange) onLanguageChange(languageWithMode(language, next));
+    },
+    [language, onLanguageChange]
+  );
 
   const format: DiagramFormat | undefined = useMemo(() => {
     // Rozpoznanie z treści ma pierwszeństwo: blok związany z plikiem
     // `.umlproj.json` bywa oznaczony jako `mermaid` z czasów, gdy adaptera
     // projektu jeszcze nie było.
     const przedrostek = (language ?? 'mermaid').split(':')[0];
-    return diagramFormats.detect(code) ?? diagramFormats.get(przedrostek) ?? diagramFormats.get('mermaid');
+    return (
+      diagramFormats.detect(code) ??
+      diagramFormats.get(przedrostek) ??
+      diagramFormats.get('mermaid')
+    );
   }, [code, language]);
 
   /**
@@ -292,7 +358,9 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
    * i to jest uczciwe: pobieramy dokładnie to, co widać.
    */
   const [renderedSvg, setRenderedSvg] = useState('');
-  useEffect(() => { setRenderedSvg(''); }, [code]);
+  useEffect(() => {
+    setRenderedSvg('');
+  }, [code]);
 
   const [exportError, setExportError] = useState('');
 
@@ -310,7 +378,6 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
   useEffect(() => {
     if (code !== diffForRef.current) setDiff(null);
   }, [code]);
-
 
   /**
    * Rodzaj diagramu, którego adapter nie umie edytować (`mindmap`, `pie`…).
@@ -339,7 +406,8 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
    * ale też nie skasuje".
    */
   const diagnostyka = useMemo(() => {
-    if (!format || !code.trim() || unsupported) return { issues: [] as DiagramIssue[], untouched: 0 };
+    if (!format || !code.trim() || unsupported)
+      return { issues: [] as DiagramIssue[], untouched: 0 };
     try {
       const wynik = format.parse(code);
       return { issues: wynik.issues, untouched: wynik.document.unknown.length };
@@ -413,8 +481,11 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
 
       if (!umlCodeSync) throw new Error('Odświeżenie wymaga hosta z synchronizacją UML');
       const wynik = await umlCodeSync.syncUmlFromCode<{ diagrams: UmlDiagramLike[] }>(
-        user, codeSource.dir, undefined, undefined,
-        codeSource.files.length > 0 ? codeSource.files : undefined,
+        user,
+        codeSource.dir,
+        undefined,
+        undefined,
+        codeSource.files.length > 0 ? codeSource.files : undefined
       );
       const swiezy = wynik.project.diagrams[0];
       if (!swiezy) throw new Error('Backend nie zwrócił diagramu');
@@ -436,31 +507,61 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
     }
   }, [codeSource, onChange, format, code]);
 
-  const handleDocChange = useCallback((next: DiagramDocument) => {
-    setDoc(next);
-    if (!format || !onChange) return;
-    const text = format.serialize(next);
-    selfWrittenRef.current = text;
-    onChange(text);
-  }, [format, onChange]);
+  const handleDocChange = useCallback(
+    (next: DiagramDocument) => {
+      setDoc(next);
+      if (!format || !onChange) return;
+      const text = format.serialize(next);
+      selfWrittenRef.current = text;
+      onChange(text);
+    },
+    [format, onChange]
+  );
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '4px 8px', borderBottom: '1px solid rgba(0,0,0,0.08)' }} contentEditable={false}>
-        <button type="button" style={btn(mode === 'code')} onClick={() => zmienTryb('code')} title="Edycja tekstu diagramu">Code</button>
-        <button type="button" style={btn(mode === 'view')} onClick={() => zmienTryb('view')} title="Podgląd wyrenderowany przez Mermaid">View</button>
+      <div
+        style={{
+          display: 'flex',
+          gap: 6,
+          alignItems: 'center',
+          padding: '4px 8px',
+          borderBottom: '1px solid rgba(0,0,0,0.08)',
+        }}
+        contentEditable={false}
+      >
+        <button
+          type="button"
+          style={btn(mode === 'code')}
+          onClick={() => zmienTryb('code')}
+          title="Edycja tekstu diagramu"
+        >
+          Code
+        </button>
+        <button
+          type="button"
+          style={btn(mode === 'view')}
+          onClick={() => zmienTryb('view')}
+          title="Podgląd wyrenderowany przez Mermaid"
+        >
+          View
+        </button>
         <button
           type="button"
           style={{ ...btn(mode === 'edit'), ...(unsupported ? disabledBtn : undefined) }}
           onClick={() => !unsupported && zmienTryb('edit')}
           disabled={!!unsupported}
-          title={unsupported
-            ? `Diagram „${unsupported}" nie ma jeszcze edytora graficznego — zostaje podgląd i edycja tekstu`
-            : 'Edytor graficzny'}
+          title={
+            unsupported
+              ? `Diagram „${unsupported}" nie ma jeszcze edytora graficznego — zostaje podgląd i edycja tekstu`
+              : 'Edytor graficzny'
+          }
         >
           Edit
         </button>
-        {format && <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 4 }}>{format.label}</span>}
+        {format && (
+          <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 4 }}>{format.label}</span>
+        )}
         {unsupported && (
           <span style={{ fontSize: 11, color: '#b45309' }}>
             {unsupported} — bez edycji graficznej
@@ -491,7 +592,9 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
             type="button"
             style={{ ...miniBtn, ...(refreshing ? disabledBtn : undefined) }}
             disabled={refreshing}
-            onClick={() => { void odswiez(); }}
+            onClick={() => {
+              void odswiez();
+            }}
             title={`Wczytaj ponownie z ${codeSource.dir}`}
           >
             {refreshing ? 'Odświeżam…' : 'Odśwież z kodu'}
@@ -548,13 +651,19 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
       </div>
 
       {exportError && (
-        <div style={{ padding: '4px 10px', fontSize: 11, color: '#b91c1c' }} contentEditable={false}>
+        <div
+          style={{ padding: '4px 10px', fontSize: 11, color: '#b91c1c' }}
+          contentEditable={false}
+        >
           Nie udało się zapisać obrazu: {exportError}
         </div>
       )}
 
       {refreshError && (
-        <div style={{ padding: '4px 10px', fontSize: 11, color: '#b91c1c' }} contentEditable={false}>
+        <div
+          style={{ padding: '4px 10px', fontSize: 11, color: '#b91c1c' }}
+          contentEditable={false}
+        >
           Nie udało się odświeżyć z kodu: {refreshError}
         </div>
       )}
@@ -566,11 +675,15 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
           style={{ padding: '4px 10px', fontSize: 11, color: '#334155', background: '#f8fafc' }}
           contentEditable={false}
         >
-          {diff.length === 0 ? 'Odświeżono — bez zmian względem kodu.' : (
+          {diff.length === 0 ? (
+            'Odświeżono — bez zmian względem kodu.'
+          ) : (
             <>
               <strong>Po odświeżeniu:</strong>
               <ul style={{ margin: '2px 0 0', paddingLeft: 18 }}>
-                {diff.map((line) => <li key={line}>{line}</li>)}
+                {diff.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
               </ul>
             </>
           )}
@@ -593,7 +706,10 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
             open={importOpen}
             onClose={() => setImportOpen(false)}
             initialDir={codeSource?.dir}
-            onImport={(next) => { setDiff(null); onChange?.(next); }}
+            onImport={(next) => {
+              setDiff(null);
+              onChange?.(next);
+            }}
           />
         </Suspense>
       )}
@@ -611,19 +727,27 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
       */}
       {mode === 'view' && (
         <div contentEditable={false}>
-          {format?.id === 'mermaid'
-            ? <MermaidPreview code={code} onSvg={setRenderedSvg} />
+          {format?.id === 'mermaid' ? (
+            <MermaidPreview code={code} onSvg={setRenderedSvg} />
+          ) : (
             // Projekt UML nie ma renderera tekstowego — Mermaid nie czyta JSON-a.
             // Podglądem jest wtedy edytor graficzny w trybie tylko do odczytu, bo
             // to on wie, jak narysować diagram klas z modelu.
-            : <MermaidPreview code={format ? mermaidFormat.serialize(format.parse(code).document) : code} onSvg={setRenderedSvg} />}
+            <MermaidPreview
+              code={format ? mermaidFormat.serialize(format.parse(code).document) : code}
+              onSvg={setRenderedSvg}
+            />
+          )}
         </div>
       )}
       {/* Pusty blok: zanim pokażemy płótno, trzeba wiedzieć, co rysujemy.
           Wybór rodzaju od razu wstawia poprawny szkielet, bo pusty diagram
           Mermaida kończy się komunikatem o błędzie składni. */}
       {mode === 'edit' && !code.trim() && onChange && (
-        <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }} contentEditable={false}>
+        <div
+          style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}
+          contentEditable={false}
+        >
           <div style={{ fontSize: 13, color: '#334155' }}>Wybierz rodzaj diagramu:</div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {DIAGRAM_STARTERS.map((starter) => (
@@ -636,8 +760,13 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
                   onChange(target.serialize(starterDiagram(starter.kind as DiagramKind)));
                 }}
                 style={{
-                  textAlign: 'left', padding: '8px 12px', borderRadius: 6, cursor: 'pointer',
-                  border: '1px solid #cbd5e1', background: '#fff', minWidth: 200,
+                  textAlign: 'left',
+                  padding: '8px 12px',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  minWidth: 200,
                 }}
               >
                 <div style={{ fontSize: 13, fontWeight: 600 }}>{starter.label}</div>
@@ -652,43 +781,75 @@ export function DiagramBlockView({ code, onChange, language, onLanguageChange, c
         // Płótno edytora graficznego — jak wyżej: bez tego kursor ProseMirror-a
         // ląduje między kształtami, a pisanie idzie do dokumentu.
         <div contentEditable={false}>
-        {!format ? (
-          <div style={{ padding: 12, fontSize: 12, color: '#b91c1c' }}>
-            Nie rozpoznano formatu diagramu — edycja graficzna niedostępna.
-          </div>
-        ) : parseError ? (
-          <div style={{ padding: 12, fontSize: 12, color: '#b91c1c' }}>Błąd odczytu diagramu: {parseError}</div>
-        ) : doc?.kind === 'timeline' ? (
-          // Oś wydarzeń to układ kolumn, nie graf — własny edytor.
-          <TimelineEditor document={doc} onChange={handleDocChange} readOnly={!onChange} height={520} />
-        ) : doc?.kind === 'gantt' ? (
-          // Harmonogram to oś czasu, nie graf — własny edytor.
-          <GanttEditor document={doc} onChange={handleDocChange} readOnly={!onChange} height={520} />
-        ) : doc?.kind === 'kanban' ? (
-          // Tablica kanban to układ pudełek, nie graf — własny edytor.
-          <KanbanEditor document={doc} onChange={handleDocChange} readOnly={!onChange} height={520} />
-        ) : doc?.kind === 'packet' ? (
-          // Mapa bitów ma własny edytor: pole opisuje zakres bitów, a nie
-          // położenie w grafie.
-          <PacketEditor document={doc} onChange={handleDocChange} readOnly={!onChange} height={520} />
-        ) : doc?.kind === 'sequence' ? (
-          // Sekwencja ma własny edytor: jej układ wynika z kolejności w czasie,
-          // a nie z pozycji elementów, więc płótno grafowe tu nie pasuje.
-          <SequenceEditor document={doc} onChange={handleDocChange} readOnly={!onChange} height={560} />
-        ) : doc ? (
-          <DiagramEditor
-            document={doc}
-            onChange={handleDocChange}
-            readOnly={!onChange}
-            // Wysokość rośnie z diagramem: przy stałych 460 px diagram z
-            // kilkunastoma węzłami był ściskany do nieczytelności albo ucinany.
-            // Klasa liczy się podwójnie — ma ciało (pola i metody), więc zajmuje
-            // wielokrotnie więcej miejsca w pionie niż zwykły węzeł.
-            height={Math.min(760, Math.max(420, 160 + doc.nodes.reduce(
-              (sum, node) => sum + 26 + (node.members?.length ?? 0) * 8, 0,
-            )))}
-          />
-        ) : null}
+          {!format ? (
+            <div style={{ padding: 12, fontSize: 12, color: '#b91c1c' }}>
+              Nie rozpoznano formatu diagramu — edycja graficzna niedostępna.
+            </div>
+          ) : parseError ? (
+            <div style={{ padding: 12, fontSize: 12, color: '#b91c1c' }}>
+              Błąd odczytu diagramu: {parseError}
+            </div>
+          ) : doc?.kind === 'timeline' ? (
+            // Oś wydarzeń to układ kolumn, nie graf — własny edytor.
+            <TimelineEditor
+              document={doc}
+              onChange={handleDocChange}
+              readOnly={!onChange}
+              height={520}
+            />
+          ) : doc?.kind === 'gantt' ? (
+            // Harmonogram to oś czasu, nie graf — własny edytor.
+            <GanttEditor
+              document={doc}
+              onChange={handleDocChange}
+              readOnly={!onChange}
+              height={520}
+            />
+          ) : doc?.kind === 'kanban' ? (
+            // Tablica kanban to układ pudełek, nie graf — własny edytor.
+            <KanbanEditor
+              document={doc}
+              onChange={handleDocChange}
+              readOnly={!onChange}
+              height={520}
+            />
+          ) : doc?.kind === 'packet' ? (
+            // Mapa bitów ma własny edytor: pole opisuje zakres bitów, a nie
+            // położenie w grafie.
+            <PacketEditor
+              document={doc}
+              onChange={handleDocChange}
+              readOnly={!onChange}
+              height={520}
+            />
+          ) : doc?.kind === 'sequence' ? (
+            // Sekwencja ma własny edytor: jej układ wynika z kolejności w czasie,
+            // a nie z pozycji elementów, więc płótno grafowe tu nie pasuje.
+            <SequenceEditor
+              document={doc}
+              onChange={handleDocChange}
+              readOnly={!onChange}
+              height={560}
+            />
+          ) : doc ? (
+            <DiagramEditor
+              document={doc}
+              onChange={handleDocChange}
+              readOnly={!onChange}
+              // Wysokość rośnie z diagramem: przy stałych 460 px diagram z
+              // kilkunastoma węzłami był ściskany do nieczytelności albo ucinany.
+              // Klasa liczy się podwójnie — ma ciało (pola i metody), więc zajmuje
+              // wielokrotnie więcej miejsca w pionie niż zwykły węzeł.
+              height={Math.min(
+                760,
+                Math.max(
+                  420,
+                  160 +
+                    doc.nodes.reduce((sum, node) => sum + 26 + (node.members?.length ?? 0) * 8, 0)
+                )
+              )}
+            />
+          ) : null}
         </div>
       )}
     </div>

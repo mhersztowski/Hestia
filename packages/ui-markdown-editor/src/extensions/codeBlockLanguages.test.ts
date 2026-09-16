@@ -60,8 +60,13 @@ describe('nazwa bloku', () => {
 
 describe('polecenia slash', () => {
   it('wstawiają wszystkie bloki bazy wiedzy', () => {
-    for (const title of ['Wzór (baza wiedzy)', 'Układ równań (baza wiedzy)',
-      'Symulacja (baza wiedzy)', 'Model w skrypcie (baza wiedzy)', 'Zadanie (baza wiedzy)']) {
+    for (const title of [
+      'Wzór (baza wiedzy)',
+      'Układ równań (baza wiedzy)',
+      'Symulacja (baza wiedzy)',
+      'Model w skrypcie (baza wiedzy)',
+      'Zadanie (baza wiedzy)',
+    ]) {
       expect(SLASH, title).toContain(title);
     }
   });
@@ -78,16 +83,23 @@ describe('polecenia slash', () => {
 
 describe('tryby bloków', () => {
   const REGISTER = readFileSync(
-    resolve(__dirname, '../../../ui-sci-blocks/src/register.ts'), 'utf8',
+    resolve(__dirname, '../../../ui-sci-blocks/src/register.ts'),
+    'utf8'
   );
   const SHELL = readFileSync(
-    resolve(__dirname, '../../../ui-sci-blocks/src/BlockShell.tsx'), 'utf8',
+    resolve(__dirname, '../../../ui-sci-blocks/src/BlockShell.tsx'),
+    'utf8'
   );
 
   it('każdy blok bazy wiedzy dostaje ramkę z przełącznikiem', () => {
     // Bez przełącznika autor mógłby poprawić wzór wyłącznie w pliku — a pętla
     // „edytuję i widzę" jest powodem, dla którego całość mieszka w MdEditorze.
-    for (const renderer of ['FormulaRenderer', 'SimRenderer', 'ScriptRenderer', 'ExerciseRenderer']) {
+    for (const renderer of [
+      'FormulaRenderer',
+      'SimRenderer',
+      'ScriptRenderer',
+      'ExerciseRenderer',
+    ]) {
       const fragment = REGISTER.slice(REGISTER.indexOf(`function ${renderer}`));
       expect(fragment.slice(0, 700), renderer).toContain('BlockShell');
       expect(fragment.slice(0, 700), renderer).toContain('children');
@@ -101,7 +113,8 @@ describe('tryby bloków', () => {
   it('blok w ramce hosta nie rysuje drugiej ramki', () => {
     for (const name of ['SimBlock', 'ScriptBlock', 'ExerciseBlock', 'FormulaBlockView']) {
       const source = readFileSync(
-        resolve(__dirname, `../../../ui-sci-blocks/src/${name}.tsx`), 'utf8',
+        resolve(__dirname, `../../../ui-sci-blocks/src/${name}.tsx`),
+        'utf8'
       );
       expect(source, name).toMatch(/bare\?: boolean/);
       expect(source, name).toMatch(/bare\s*$|bare[,}]|bare\s*\?/m);

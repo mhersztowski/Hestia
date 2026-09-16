@@ -29,7 +29,7 @@ export class EventBus {
   }
 
   emit(type: CadEventType, payload?: unknown): void {
-    this.handlers.get(type)?.forEach(h => h(payload));
+    this.handlers.get(type)?.forEach((h) => h(payload));
   }
 
   clear(): void {

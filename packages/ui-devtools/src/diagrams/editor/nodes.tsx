@@ -45,20 +45,40 @@ const STROKE_SELECTED = '#2563eb';
 function contentPadding(shape: NodeShape): CSSProperties {
   if (shape === 'rhombus' || shape === 'choice') return { padding: '18px 26px' };
   if (shape === 'cylinder') return { padding: '18px 16px 12px' };
-  if (shape === 'hexagon' || shape === 'parallelogram' || shape === 'parallelogramAlt'
-    || shape === 'trapezoid' || shape === 'trapezoidAlt' || shape === 'asymmetric') {
+  if (
+    shape === 'hexagon' ||
+    shape === 'parallelogram' ||
+    shape === 'parallelogramAlt' ||
+    shape === 'trapezoid' ||
+    shape === 'trapezoidAlt' ||
+    shape === 'asymmetric'
+  ) {
     return { padding: '10px 26px' };
   }
   return {};
 }
 
-export function DiagramNodeView({ id, data, selected, width, height }: NodeProps<Node<FlowNodeData>>) {
+export function DiagramNodeView({
+  id,
+  data,
+  selected,
+  width,
+  height,
+}: NodeProps<Node<FlowNodeData>>) {
   const isBar = data.shape === 'fork' || data.shape === 'join';
 
   if (isBar) {
     return (
-      <div style={{ background: '#0f172a', minWidth: 100, height: 10, borderRadius: 2, position: 'relative',
-        ...(selected ? { outline: '2px solid #2563eb', outlineOffset: 3 } : {}) }}>
+      <div
+        style={{
+          background: '#0f172a',
+          minWidth: 100,
+          height: 10,
+          borderRadius: 2,
+          position: 'relative',
+          ...(selected ? { outline: '2px solid #2563eb', outlineOffset: 3 } : {}),
+        }}
+      >
         <NodeAnchors />
       </div>
     );
@@ -97,7 +117,9 @@ export function DiagramPseudoNodeView({ data, selected }: NodeProps<Node<FlowNod
     <div
       title={isEnd ? 'Stan końcowy' : 'Stan początkowy'}
       style={{
-        width: 22, height: 22, borderRadius: '50%',
+        width: 22,
+        height: 22,
+        borderRadius: '50%',
         background: isEnd ? '#f8fafc' : '#0f172a',
         border: isEnd ? '3px double #0f172a' : '2px solid #0f172a',
         ...(selected ? { outline: '2px solid #2563eb', outlineOffset: 2 } : {}),
@@ -120,17 +142,35 @@ export function DiagramGroupView({ id, data, selected }: NodeProps<Node<FlowNode
   return (
     <div
       style={{
-        width: '100%', height: '100%',
-        border: '1px dashed #94a3b8', borderRadius: 8,
+        width: '100%',
+        height: '100%',
+        border: '1px dashed #94a3b8',
+        borderRadius: 8,
         background: 'rgba(148,163,184,0.08)',
         ...(selected ? { borderColor: '#2563eb' } : {}),
       }}
     >
       {/* Uchwyty w rogach — ramka bywa za ciasna albo za luźna po ręcznym
           poprzestawianiu stanów, a przeliczenie układu zresetowałoby pozycje. */}
-      <NodeResizer minWidth={160} minHeight={100} isVisible={selected} lineStyle={{ borderColor: '#2563eb' }} />
+      <NodeResizer
+        minWidth={160}
+        minHeight={100}
+        isVisible={selected}
+        lineStyle={{ borderColor: '#2563eb' }}
+      />
       <Handle type="target" position={Position.Top} />
-      <div style={{ position: 'absolute', top: -10, left: 10, padding: '0 6px', fontSize: 11, background: '#f8fafc', color: '#475569', maxWidth: '80%' }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: -10,
+          left: 10,
+          padding: '0 6px',
+          fontSize: 11,
+          background: '#f8fafc',
+          color: '#475569',
+          maxWidth: '80%',
+        }}
+      >
         <InlineLabel
           value={data.label}
           placeholder={data.fallback}

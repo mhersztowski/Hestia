@@ -36,7 +36,11 @@ describe('rysunek z krzywych', () => {
 
   it('czyta podpis krzywej, wzór i styl', () => {
     const [panel] = parseFigureBlock('x', RYS).plot!.panels;
-    expect(panel.curves[0]).toMatchObject({ label: 'I', expression: '\\cos(2\\pi t)', dashed: false });
+    expect(panel.curves[0]).toMatchObject({
+      label: 'I',
+      expression: '\\cos(2\\pi t)',
+      dashed: false,
+    });
     expect(panel.curves[1]).toMatchObject({ label: 'II', dashed: true });
   });
 

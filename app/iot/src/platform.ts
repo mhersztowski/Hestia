@@ -15,67 +15,70 @@
  */
 
 export interface PlatformOptions {
-    /** Address of `app/backend`, e.g. `http://localhost:4990`. */
-    url: string;
+  /** Address of `app/backend`, e.g. `http://localhost:4990`. */
+  url: string;
 }
 
 export interface UserIdentity {
-    userId: string;
-    userName: string;
-    isAdmin: boolean;
-    roles: string[];
+  userId: string;
+  userName: string;
+  isAdmin: boolean;
+  roles: string[];
 }
 
 export class PlatformError extends Error {
-    constructor(public readonly code: number, message: string) {
-        super(message);
-    }
+  constructor(
+    public readonly code: number,
+    message: string
+  ) {
+    super(message);
+  }
 }
 
 export class PlatformClient {
-    constructor(private readonly options: PlatformOptions) { }
+  constructor(private readonly options: PlatformOptions) {}
 
-    /** Who holds the token; `null` when it is wrong or has expired. */
-    async whoIs(token: string): Promise<UserIdentity | null> {
-        const res = await fetch(`${this.options.url}/api/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return null;
-        return (await res.json() as { user: UserIdentity }).user;
-    }
+  /** Who holds the token; `null` when it is wrong or has expired. */
+  async whoIs(token: string): Promise<UserIdentity | null> {
+    const res = await fetch(`${this.options.url}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    return ((await res.json()) as { user: UserIdentity }).user;
+  }
 
-    /** Contents of a file from the user's directory; `null` when there is none. */
-    async read(token: string, path: string): Promise<string | null> {
-        const res = await fetch(
-            `${this.options.url}/api/vfs/readFile?path=${encodeURIComponent(path)}`,
-            { headers: { Authorization: `Bearer ${token}` } },
-        );
-        if (res.status === 404 || res.status === 500) return null;   // no such file
-        if (!res.ok) throw new PlatformError(res.status, await this.reason(res));
-        return (await res.json() as { content: string }).content;
-    }
+  /** Contents of a file from the user's directory; `null` when there is none. */
+  async read(token: string, path: string): Promise<string | null> {
+    const res = await fetch(
+      `${this.options.url}/api/vfs/readFile?path=${encodeURIComponent(path)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (res.status === 404 || res.status === 500) return null; // no such file
+    if (!res.ok) throw new PlatformError(res.status, await this.reason(res));
+    return ((await res.json()) as { content: string }).content;
+  }
 
-    async write(token: string, path: string, content: string): Promise<void> {
-        const res = await fetch(`${this.options.url}/api/vfs/writeFile`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path, content }),
-        });
-        if (!res.ok) throw new PlatformError(res.status, await this.reason(res));
-    }
+  async write(token: string, path: string, content: string): Promise<void> {
+    const res = await fetch(`${this.options.url}/api/vfs/writeFile`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path, content }),
+    });
+    if (!res.ok) throw new PlatformError(res.status, await this.reason(res));
+  }
 
-    /** Where the applications should look for the broker. */
-    async info(): Promise<{ name: string; mqtt: string; capabilities: string[] }> {
-        const res = await fetch(`${this.options.url}/api/platform/info`);
-        if (!res.ok) throw new PlatformError(res.status, 'The platform is not responding');
-        return await res.json() as { name: string; mqtt: string; capabilities: string[] };
-    }
+  /** Where the applications should look for the broker. */
+  async info(): Promise<{ name: string; mqtt: string; capabilities: string[] }> {
+    const res = await fetch(`${this.options.url}/api/platform/info`);
+    if (!res.ok) throw new PlatformError(res.status, 'The platform is not responding');
+    return (await res.json()) as { name: string; mqtt: string; capabilities: string[] };
+  }
 
-    private async reason(res: Response): Promise<string> {
-        try {
-            return (await res.json() as { error?: string }).error ?? `HTTP ${res.status}`;
-        } catch {
-            return `HTTP ${res.status}`;
-        }
+  private async reason(res: Response): Promise<string> {
+    try {
+      return ((await res.json()) as { error?: string }).error ?? `HTTP ${res.status}`;
+    } catch {
+      return `HTTP ${res.status}`;
     }
+  }
 }

@@ -10,7 +10,10 @@ import { resolveInlineEdit, inlineEditKey, initialEditValue } from './inlineEdit
 
 describe('resolveInlineEdit', () => {
   it('zmieniony tekst trafia do modelu', () => {
-    expect(resolveInlineEdit('Idle', 'Oczekiwanie', false)).toEqual({ changed: true, value: 'Oczekiwanie' });
+    expect(resolveInlineEdit('Idle', 'Oczekiwanie', false)).toEqual({
+      changed: true,
+      value: 'Oczekiwanie',
+    });
   });
 
   it('ten sam tekst nie generuje zmiany — nie chcemy pustych wpisów w historii', () => {
@@ -18,7 +21,10 @@ describe('resolveInlineEdit', () => {
   });
 
   it('białe znaki na brzegach są obcinane', () => {
-    expect(resolveInlineEdit('Idle', '  Praca  ', false)).toEqual({ changed: true, value: 'Praca' });
+    expect(resolveInlineEdit('Idle', '  Praca  ', false)).toEqual({
+      changed: true,
+      value: 'Praca',
+    });
   });
 
   it('pusty tekst tam, gdzie nazwa jest wymagana, przywraca poprzednią', () => {

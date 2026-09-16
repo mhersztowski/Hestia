@@ -41,7 +41,14 @@ describe('oznaczanie przeczytanego', () => {
   });
 
   it('nie rusza harmonogramu zadań', () => {
-    const p = markRead({ ...emptyProgress(), items: { 'a.md:z1': { attempts: 1, streak: 1, lapses: 0, lastAt: 1, dueAt: 2 } } }, 'a.md', CZAS);
+    const p = markRead(
+      {
+        ...emptyProgress(),
+        items: { 'a.md:z1': { attempts: 1, streak: 1, lapses: 0, lastAt: 1, dueAt: 2 } },
+      },
+      'a.md',
+      CZAS
+    );
     expect(p.items['a.md:z1'].attempts).toBe(1);
   });
 
@@ -85,6 +92,10 @@ describe('statystyki czytania', () => {
     p = markRead(p, '15-2.md', CZAS + 5000);
     p = markRead(p, '15-3.md', CZAS + 1000);
 
-    expect(readingStats(p, baza).recent.map((r) => r.path)).toEqual(['15-2.md', '15-3.md', '15-1.md']);
+    expect(readingStats(p, baza).recent.map((r) => r.path)).toEqual([
+      '15-2.md',
+      '15-3.md',
+      '15-1.md',
+    ]);
   });
 });

@@ -45,9 +45,15 @@ export function SurfaceStage({ grid, width = 420, height = 320 }: SurfaceStagePr
   useEffect(() => {
     let cancelled = false;
     import('three')
-      .then((mod) => { if (!cancelled) setThree(mod); })
-      .catch(() => { if (!cancelled) setError('Nie udało się wczytać silnika 3D.'); });
-    return () => { cancelled = true; };
+      .then((mod) => {
+        if (!cancelled) setThree(mod);
+      })
+      .catch(() => {
+        if (!cancelled) setError('Nie udało się wczytać silnika 3D.');
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -131,7 +137,10 @@ export function SurfaceStage({ grid, width = 420, height = 320 }: SurfaceStagePr
     <div
       ref={hostRef}
       style={{
-        width, height, borderRadius: 4, border: '1px solid #e2e8f0',
+        width,
+        height,
+        borderRadius: 4,
+        border: '1px solid #e2e8f0',
         background: '#f8fafc',
       }}
     />

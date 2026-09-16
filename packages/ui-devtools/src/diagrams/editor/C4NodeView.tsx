@@ -85,14 +85,14 @@ export function C4NodeView({ id, data, selected }: NodeProps<Node<FlowNodeData>>
       </div>
 
       {/* Technologia w nawiasach kwadratowych — tak zapisuje ją notacja C4. */}
-      {info.technology && (
-        <div style={{ fontSize: 10, color: '#475569' }}>[{info.technology}]</div>
-      )}
+      {info.technology && <div style={{ fontSize: 10, color: '#475569' }}>[{info.technology}]</div>}
       {info.external && !info.technology && (
         <div style={{ fontSize: 9, color: '#94a3b8' }}>zewnętrzny</div>
       )}
       {info.description && (
-        <div style={{ fontSize: 10, color: '#64748b', whiteSpace: 'normal' }}>{info.description}</div>
+        <div style={{ fontSize: 10, color: '#64748b', whiteSpace: 'normal' }}>
+          {info.description}
+        </div>
       )}
     </div>
   );

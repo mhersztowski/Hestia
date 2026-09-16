@@ -28,12 +28,7 @@ export const HighlightLinePlugin = definePlugin(
 
       decorationIds = model.deltaDecorations(decorationIds, [
         {
-          range: new monaco.Range(
-            position.lineNumber,
-            1,
-            position.lineNumber,
-            1
-          ),
+          range: new monaco.Range(position.lineNumber, 1, position.lineNumber, 1),
           options: {
             isWholeLine: true,
             className: 'current-line-highlight',
@@ -56,10 +51,7 @@ export const HighlightLinePlugin = definePlugin(
     document.head.appendChild(style);
 
     // Update on cursor change
-    const subscription = context.editor.on(
-      'cursorPositionChanged',
-      updateHighlight
-    );
+    const subscription = context.editor.on('cursorPositionChanged', updateHighlight);
     disposables.push(subscription);
     disposables.push({ dispose: () => style.remove() });
     disposables.push({

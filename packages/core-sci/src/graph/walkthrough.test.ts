@@ -7,18 +7,40 @@ const graphOf = (...defs: Array<[string, string]>) =>
   buildGraph(defs.map(([id, body]) => parseFormulaBlock(id, body)));
 
 const REZONANS = graphOf(
-  ['amplituda', ['A = \\frac{F_0}{m \\cdot (\\omega_0^2 - \\Omega^2)}',
-    '@vars A: m, F_0: N, m: kg, Omega: s^-1, omega_0: s^-1',
-    '@derivedFrom oscylator', '@assume stan-ustalony'].join('\n')],
-  ['oscylator', ['@ode', '@state x, v', '@d x = v', '@d v = -\\omega_0^2 \\cdot x',
-    '@init x = 0, v = 0', '@vars x: m, v: m/s, omega_0: s^-1'].join('\n')],
-  ['czestosc', ['\\omega_0 = \\sqrt{\\frac{k}{m}}', '@vars omega_0: s^-1, k: N/m, m: kg'].join('\n')],
+  [
+    'amplituda',
+    [
+      'A = \\frac{F_0}{m \\cdot (\\omega_0^2 - \\Omega^2)}',
+      '@vars A: m, F_0: N, m: kg, Omega: s^-1, omega_0: s^-1',
+      '@derivedFrom oscylator',
+      '@assume stan-ustalony',
+    ].join('\n'),
+  ],
+  [
+    'oscylator',
+    [
+      '@ode',
+      '@state x, v',
+      '@d x = v',
+      '@d v = -\\omega_0^2 \\cdot x',
+      '@init x = 0, v = 0',
+      '@vars x: m, v: m/s, omega_0: s^-1',
+    ].join('\n'),
+  ],
+  [
+    'czestosc',
+    ['\\omega_0 = \\sqrt{\\frac{k}{m}}', '@vars omega_0: s^-1, k: N/m, m: kg'].join('\n'),
+  ]
 );
 
 describe('wyprowadzenie krok po kroku', () => {
   it('idzie w kolejności obliczeń, nie w kolejności zapisu', () => {
     // W dokumencie amplituda stoi pierwsza, ale wynika z dwóch pozostałych.
-    expect(walkthrough(REZONANS).map((s) => s.formulaId)).toEqual(['czestosc', 'oscylator', 'amplituda']);
+    expect(walkthrough(REZONANS).map((s) => s.formulaId)).toEqual([
+      'czestosc',
+      'oscylator',
+      'amplituda',
+    ]);
   });
 
   it('pochodzenie wzoru przesuwa go w wykładzie, choć obliczeniowo jest niezależny', () => {
@@ -26,15 +48,36 @@ describe('wyprowadzenie krok po kroku', () => {
     // pierwszą. Ale wywodzi się z równania ruchu i tak musi być opowiedziana.
     const bezWywodu = graphOf(
       ['amplituda', ['A = \\frac{F_0}{m}', '@vars A: m, F_0: N, m: kg'].join('\n')],
-      ['oscylator', ['@ode', '@state x, v', '@d x = v', '@d v = -x', '@init x = 1, v = 0',
-        '@vars x: m, v: m/s'].join('\n')],
+      [
+        'oscylator',
+        [
+          '@ode',
+          '@state x, v',
+          '@d x = v',
+          '@d v = -x',
+          '@init x = 1, v = 0',
+          '@vars x: m, v: m/s',
+        ].join('\n'),
+      ]
     );
     expect(walkthrough(bezWywodu).map((s) => s.formulaId)).toEqual(['amplituda', 'oscylator']);
 
     const zWywodem = graphOf(
-      ['amplituda', ['A = \\frac{F_0}{m}', '@vars A: m, F_0: N, m: kg', '@derivedFrom oscylator'].join('\n')],
-      ['oscylator', ['@ode', '@state x, v', '@d x = v', '@d v = -x', '@init x = 1, v = 0',
-        '@vars x: m, v: m/s'].join('\n')],
+      [
+        'amplituda',
+        ['A = \\frac{F_0}{m}', '@vars A: m, F_0: N, m: kg', '@derivedFrom oscylator'].join('\n'),
+      ],
+      [
+        'oscylator',
+        [
+          '@ode',
+          '@state x, v',
+          '@d x = v',
+          '@d v = -x',
+          '@init x = 1, v = 0',
+          '@vars x: m, v: m/s',
+        ].join('\n'),
+      ]
     );
     expect(walkthrough(zWywodem).map((s) => s.formulaId)).toEqual(['oscylator', 'amplituda']);
   });

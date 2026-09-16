@@ -15,7 +15,7 @@ export interface ToolExecutionResult {
 
 export async function executeVfsTool(
   toolCall: AiToolCall,
-  provider: FileSystemProvider,
+  provider: FileSystemProvider
 ): Promise<ToolExecutionResult> {
   const args = JSON.parse(toolCall.function.arguments);
   const affectedFiles: string[] = [];
@@ -39,7 +39,7 @@ export async function executeVfsTool(
 
       case 'vfs_list_directory': {
         const entries = await provider.readDirectory(args.path);
-        const items = entries.map(e => ({
+        const items = entries.map((e) => ({
           name: e.name,
           type: e.type === FileType.Directory ? 'directory' : 'file',
         }));
@@ -61,7 +61,13 @@ export async function executeVfsTool(
       }
 
       case 'vfs_search_files': {
-        const matches = await searchRecursive(provider, args.path, args.pattern, args.maxDepth ?? 5, 0);
+        const matches = await searchRecursive(
+          provider,
+          args.path,
+          args.pattern,
+          args.maxDepth ?? 5,
+          0
+        );
         return { result: JSON.stringify({ pattern: args.pattern, matches }), affectedFiles };
       }
 
@@ -74,15 +80,22 @@ export async function executeVfsTool(
         if (typeof args.content !== 'string' || args.content.length === 0) {
           return {
             result: JSON.stringify({
-              error: 'Refused empty write. Provide the COMPLETE file content as a string in a single vfs_write_file call. Never write an empty file to fix it later — it would erase the existing content.',
+              error:
+                'Refused empty write. Provide the COMPLETE file content as a string in a single vfs_write_file call. Never write an empty file to fix it later — it would erase the existing content.',
               path: args.path,
             }),
             affectedFiles,
           };
         }
-        await provider.writeFile!(args.path, encodeText(args.content), { create: true, overwrite: true });
+        await provider.writeFile!(args.path, encodeText(args.content), {
+          create: true,
+          overwrite: true,
+        });
         affectedFiles.push(args.path);
-        return { result: JSON.stringify({ success: true, path: args.path, bytes: args.content.length }), affectedFiles };
+        return {
+          result: JSON.stringify({ success: true, path: args.path, bytes: args.content.length }),
+          affectedFiles,
+        };
       }
 
       case 'vfs_mkdir': {
@@ -110,13 +123,20 @@ export async function executeVfsTool(
         await provider.copy!(args.source, args.destination, { overwrite: true });
         affectedFiles.push(args.source, args.destination);
         return {
-          result: JSON.stringify({ success: true, source: args.source, destination: args.destination }),
+          result: JSON.stringify({
+            success: true,
+            source: args.source,
+            destination: args.destination,
+          }),
           affectedFiles,
         };
       }
 
       default:
-        return { result: JSON.stringify({ error: `Unknown tool: ${toolCall.function.name}` }), affectedFiles };
+        return {
+          result: JSON.stringify({ error: `Unknown tool: ${toolCall.function.name}` }),
+          affectedFiles,
+        };
     }
   } catch (err) {
     return {
@@ -131,7 +151,7 @@ async function searchRecursive(
   dirPath: string,
   pattern: string,
   maxDepth: number,
-  currentDepth: number,
+  currentDepth: number
 ): Promise<string[]> {
   if (currentDepth >= maxDepth) return [];
 

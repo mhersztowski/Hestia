@@ -5,8 +5,10 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '4-6-predkosc-wzgledna.md';
-const pliki = [DOK, '4-5-przyspieszenie-styczne.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '4-5-przyspieszenie-styczne.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const cel = (id: string) =>
@@ -14,12 +16,13 @@ const cel = (id: string) =>
 const resolveRef = (id: string) => {
   const c = cel(id);
   if (!c.found || !c.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[c.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[c.path] ?? ''
+  );
   return { code: m?.[1], kind: c.kind, sameDocument: c.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 const wyklad = () => bodies[DOK].split('## Uwagi redakcyjne')[0];
@@ -65,7 +68,11 @@ describe('4-6 w czytniku', () => {
     expect(cel('rh1-poj-predkosc-wzgledna').path).toBe('Slownik.md');
     expect(resolveRef('rh1-poj-predkosc-wzgledna')?.code).toContain('@source 4-6, s. 82');
     expect(wyklad()).not.toContain('rh1-poj-');
-    for (const nacisk of ['*zawsze różnią się*', '*prędkością stałą*', '*to samo przyspieszenie*']) {
+    for (const nacisk of [
+      '*zawsze różnią się*',
+      '*prędkością stałą*',
+      '*to samo przyspieszenie*',
+    ]) {
       expect(wyklad(), nacisk).toContain(nacisk);
     }
   });

@@ -9,7 +9,7 @@
 
 /** Whether "Unpack" makes any sense for this file. */
 export function isArchive(name: string): boolean {
-    return /\.zip$/i.test(name);
+  return /\.zip$/i.test(name);
 }
 
 /**
@@ -21,8 +21,8 @@ export function isArchive(name: string): boolean {
  * archive so it is obvious where they came from.
  */
 export function folderNameFor(archiveName: string): string {
-    const withoutExtension = archiveName.replace(/\.zip$/i, '').trim();
-    return withoutExtension || 'archiwum';
+  const withoutExtension = archiveName.replace(/\.zip$/i, '').trim();
+  return withoutExtension || 'archiwum';
 }
 
 /**
@@ -33,6 +33,6 @@ export function folderNameFor(archiveName: string): string {
  * could not be unpacked by the menu entry, which goes by the extension.
  */
 export function archiveNameFor(folderName: string): string {
-    const clean = folderName.replace(/\/+$/, '').trim();
-    return `${clean || 'archiwum'}.zip`;
+  const clean = folderName.replace(/\/+$/, '').trim();
+  return `${clean || 'archiwum'}.zip`;
 }

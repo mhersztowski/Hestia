@@ -11,12 +11,26 @@ import type { CSSProperties } from 'react';
 import type { DiagramDocument } from '../model/diagram';
 import {
   isBlock,
-  type SequenceArrow, type SequenceBlock, type SequenceMessage, type SequenceNote,
-  type SequenceStep, type StepPath,
+  type SequenceArrow,
+  type SequenceBlock,
+  type SequenceMessage,
+  type SequenceNote,
+  type SequenceStep,
+  type StepPath,
 } from '../model/sequence';
 import {
-  addParticipant, addSection, insertIntoSection, insertStep, moveStep, newBlock,
-  removeParticipant, removeStep, renameParticipant, setAutonumber, updateParticipant, updateStep,
+  addParticipant,
+  addSection,
+  insertIntoSection,
+  insertStep,
+  moveStep,
+  newBlock,
+  removeParticipant,
+  removeStep,
+  renameParticipant,
+  setAutonumber,
+  updateParticipant,
+  updateStep,
 } from '../model/sequenceOps';
 import { SequenceView } from './SequenceView';
 
@@ -39,7 +53,10 @@ const ARROWS: Array<{ value: SequenceArrow; label: string }> = [
   { value: 'biSolid', label: '↔ dwustronna' },
 ];
 
-const BLOCKS: Array<{ value: 'loop' | 'alt' | 'opt' | 'par' | 'critical' | 'break' | 'rect'; label: string }> = [
+const BLOCKS: Array<{
+  value: 'loop' | 'alt' | 'opt' | 'par' | 'critical' | 'break' | 'rect';
+  label: string;
+}> = [
   { value: 'loop', label: 'pętla' },
   { value: 'alt', label: 'wybór (alt/else)' },
   { value: 'opt', label: 'opcjonalnie' },
@@ -50,15 +67,31 @@ const BLOCKS: Array<{ value: 'loop' | 'alt' | 'opt' | 'par' | 'critical' | 'brea
 ];
 
 const btn: CSSProperties = {
-  fontSize: 11, padding: '3px 8px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#334155',
+  fontSize: 11,
+  padding: '3px 8px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#334155',
 };
 const input: CSSProperties = {
-  fontSize: 11, padding: '2px 4px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', minWidth: 0, width: '100%', boxSizing: 'border-box',
+  fontSize: 11,
+  padding: '2px 4px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  minWidth: 0,
+  width: '100%',
+  boxSizing: 'border-box',
 };
 
-export function SequenceEditor({ document: doc, onChange, readOnly, height = 520 }: SequenceEditorProps) {
+export function SequenceEditor({
+  document: doc,
+  onChange,
+  readOnly,
+  height = 520,
+}: SequenceEditorProps) {
   const script = doc.sequence ?? { participants: [], steps: [] };
   const [selected, setSelected] = useState<StepPath | undefined>();
   const [selectedParticipant, setSelectedParticipant] = useState<string | undefined>();
@@ -81,27 +114,42 @@ export function SequenceEditor({ document: doc, onChange, readOnly, height = 520
 
   const dodajWiadomosc = useCallback(() => {
     const step: SequenceMessage = {
-      kind: 'message', from: domyslny(0), to: domyslny(1), arrow: 'solidArrow', text: 'wiadomość',
+      kind: 'message',
+      from: domyslny(0),
+      to: domyslny(1),
+      arrow: 'solidArrow',
+      text: 'wiadomość',
     };
     // Zaznaczony blok przyjmuje krok do środka — najczęściej właśnie po to się
     // go zaznacza. Zaznaczona wiadomość dostaje nową tuż pod sobą.
-    const doBloku = !!selected && isBlock(stepUnder(script.steps, selected) ?? { kind: 'raw', text: '' });
-    emit(doBloku
-      ? insertIntoSection(doc, [...selected!, 0], step)
-      : insertStep(doc, selected ?? [], step));
+    const doBloku =
+      !!selected && isBlock(stepUnder(script.steps, selected) ?? { kind: 'raw', text: '' });
+    emit(
+      doBloku
+        ? insertIntoSection(doc, [...selected!, 0], step)
+        : insertStep(doc, selected ?? [], step)
+    );
     // Zaznaczenie przechodzi na nowy krok: bez tego kolejne „+ Wiadomość"
     // wstawiały się wciąż w to samo miejsce, więc powstawały w odwrotnej
     // kolejności niż pisane.
     setSelected(nextSelection(script.steps, selected, doBloku));
   }, [doc, script, selected, emit]);
 
-  const dodajBlok = useCallback((kind: typeof BLOCKS[number]['value']) => {
-    emit(insertStep(doc, selected ?? [], newBlock(kind, kind === 'alt' ? 'warunek' : 'opis')));
-    setSelected(nextSelection(script.steps, selected, false));
-  }, [doc, script, selected, emit]);
+  const dodajBlok = useCallback(
+    (kind: (typeof BLOCKS)[number]['value']) => {
+      emit(insertStep(doc, selected ?? [], newBlock(kind, kind === 'alt' ? 'warunek' : 'opis')));
+      setSelected(nextSelection(script.steps, selected, false));
+    },
+    [doc, script, selected, emit]
+  );
 
   const dodajNotatke = useCallback(() => {
-    const step: SequenceNote = { kind: 'note', placement: 'over', targets: [domyslny(0)], text: 'notatka' };
+    const step: SequenceNote = {
+      kind: 'note',
+      placement: 'over',
+      targets: [domyslny(0)],
+      text: 'notatka',
+    };
     emit(insertStep(doc, selected ?? [], step));
   }, [doc, selected, emit]);
 
@@ -113,16 +161,47 @@ export function SequenceEditor({ document: doc, onChange, readOnly, height = 520
    * końcu, więc wstawianie w środek wydawało się niemożliwe.
    */
   const zaznaczonyKrok = selected ? stepUnder(script.steps, selected) : undefined;
-  const gdzie = !zaznaczonyKrok ? 'na koniec'
-    : isBlock(zaznaczonyKrok) ? `do bloku ${zaznaczonyKrok.block}`
+  const gdzie = !zaznaczonyKrok
+    ? 'na koniec'
+    : isBlock(zaznaczonyKrok)
+      ? `do bloku ${zaznaczonyKrok.block}`
       : 'po zaznaczonym';
 
   return (
-    <div style={{ height, display: 'flex', flexDirection: 'column', border: '1px solid #e2e8f0', borderRadius: 6 }}>
+    <div
+      style={{
+        height,
+        display: 'flex',
+        flexDirection: 'column',
+        border: '1px solid #e2e8f0',
+        borderRadius: 6,
+      }}
+    >
       {!readOnly && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', padding: 6, borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-          <button type="button" style={btn} onClick={() => emit(addParticipant(doc, `U${script.participants.length + 1}`))}>+ Uczestnik</button>
-          <button type="button" style={btn} onClick={dodajWiadomosc} title={`Wstaw wiadomość ${gdzie}`}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 6,
+            alignItems: 'center',
+            padding: 6,
+            borderBottom: '1px solid #e2e8f0',
+            background: '#f8fafc',
+          }}
+        >
+          <button
+            type="button"
+            style={btn}
+            onClick={() => emit(addParticipant(doc, `U${script.participants.length + 1}`))}
+          >
+            + Uczestnik
+          </button>
+          <button
+            type="button"
+            style={btn}
+            onClick={dodajWiadomosc}
+            title={`Wstaw wiadomość ${gdzie}`}
+          >
             + Wiadomość
           </button>
           <button type="button" style={btn} onClick={dodajNotatke} title={`Wstaw notatkę ${gdzie}`}>
@@ -132,12 +211,26 @@ export function SequenceEditor({ document: doc, onChange, readOnly, height = 520
             style={{ ...btn, width: 'auto' }}
             value=""
             title={`Wstaw blok ${gdzie}`}
-            onChange={(e) => { if (e.target.value) dodajBlok(e.target.value as typeof BLOCKS[number]['value']); }}
+            onChange={(e) => {
+              if (e.target.value) dodajBlok(e.target.value as (typeof BLOCKS)[number]['value']);
+            }}
           >
             <option value="">+ Blok…</option>
-            {BLOCKS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+            {BLOCKS.map((b) => (
+              <option key={b.value} value={b.value}>
+                {b.label}
+              </option>
+            ))}
           </select>
-          <label style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <label
+            style={{
+              fontSize: 11,
+              color: '#64748b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
             <input
               type="checkbox"
               checked={!!script.autonumber}
@@ -166,24 +259,34 @@ export function SequenceEditor({ document: doc, onChange, readOnly, height = 520
         {/* Rysunek: czytanie i wskazywanie. */}
         <div
           ref={paneRef}
-          onScroll={(e) => setScroll({ top: e.currentTarget.scrollTop, height: e.currentTarget.clientHeight })}
+          onScroll={(e) =>
+            setScroll({ top: e.currentTarget.scrollTop, height: e.currentTarget.clientHeight })
+          }
           style={{ flex: 1, minWidth: 0, overflow: 'auto', padding: 8 }}
         >
           <SequenceView
             script={script}
             selected={selected}
-            onSelect={readOnly ? undefined : (path) => {
-              setSelected(path);
-              setSelectedParticipant(undefined);
-              // Klik w element to prośba o jego właściwości — schowany panel
-              // sprawiałby wrażenie, że zaznaczenie nic nie robi.
-              setPanelOpen(true);
-            }}
-            onSelectParticipant={readOnly ? undefined : (id) => {
-              setSelectedParticipant(id);
-              setSelected(undefined);
-              setPanelOpen(true);
-            }}
+            onSelect={
+              readOnly
+                ? undefined
+                : (path) => {
+                    setSelected(path);
+                    setSelectedParticipant(undefined);
+                    // Klik w element to prośba o jego właściwości — schowany panel
+                    // sprawiałby wrażenie, że zaznaczenie nic nie robi.
+                    setPanelOpen(true);
+                  }
+            }
+            onSelectParticipant={
+              readOnly
+                ? undefined
+                : (id) => {
+                    setSelectedParticipant(id);
+                    setSelected(undefined);
+                    setPanelOpen(true);
+                  }
+            }
             selectedParticipant={selectedParticipant}
             scrollTop={scroll.top}
             viewportHeight={scroll.height}
@@ -191,13 +294,30 @@ export function SequenceEditor({ document: doc, onChange, readOnly, height = 520
         </div>
 
         {!readOnly && panelOpen && (
-          <div style={{ width: 264, flexShrink: 0, borderLeft: '1px solid #e2e8f0', overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div
+            style={{
+              width: 264,
+              flexShrink: 0,
+              borderLeft: '1px solid #e2e8f0',
+              overflowY: 'auto',
+              padding: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}
+          >
             {selectedParticipant ? (
               <ParticipantForm
                 doc={doc}
                 id={selectedParticipant}
-                onChange={(next, nextId) => { emit(next); if (nextId) setSelectedParticipant(nextId); }}
-                onRemove={() => { emit(removeParticipant(doc, selectedParticipant)); setSelectedParticipant(undefined); }}
+                onChange={(next, nextId) => {
+                  emit(next);
+                  if (nextId) setSelectedParticipant(nextId);
+                }}
+                onRemove={() => {
+                  emit(removeParticipant(doc, selectedParticipant));
+                  setSelectedParticipant(undefined);
+                }}
               />
             ) : selected ? (
               <StepForm
@@ -206,7 +326,10 @@ export function SequenceEditor({ document: doc, onChange, readOnly, height = 520
                 step={stepUnder(script.steps, selected)}
                 participants={uczestnicy}
                 onChange={emit}
-                onRemove={() => { emit(removeStep(doc, selected)); setSelected(undefined); }}
+                onRemove={() => {
+                  emit(removeStep(doc, selected));
+                  setSelected(undefined);
+                }}
               />
             ) : (
               <div style={{ fontSize: 11, color: '#94a3b8' }}>
@@ -229,7 +352,7 @@ export function SequenceEditor({ document: doc, onChange, readOnly, height = 520
 function nextSelection(
   steps: SequenceStep[],
   selected: StepPath | undefined,
-  intoBlock: boolean,
+  intoBlock: boolean
 ): StepPath | undefined {
   if (!selected) return undefined;
   if (!intoBlock) return [...selected.slice(0, -1), selected[selected.length - 1] + 1];
@@ -248,7 +371,12 @@ function stepUnder(steps: SequenceStep[], path: StepPath): SequenceStep | undefi
   return current;
 }
 
-function ParticipantForm({ doc, id, onChange, onRemove }: {
+function ParticipantForm({
+  doc,
+  id,
+  onChange,
+  onRemove,
+}: {
   doc: DiagramDocument;
   id: string;
   onChange: (next: DiagramDocument, nextId?: string) => void;
@@ -265,7 +393,12 @@ function ParticipantForm({ doc, id, onChange, onRemove }: {
         <input
           style={input}
           value={participant.id}
-          onChange={(e) => onChange(renameParticipant(doc, id, e.target.value), e.target.value.replace(/[^A-Za-z0-9_]/g, ''))}
+          onChange={(e) =>
+            onChange(
+              renameParticipant(doc, id, e.target.value),
+              e.target.value.replace(/[^A-Za-z0-9_]/g, '')
+            )
+          }
         />
       </label>
       <label style={{ fontSize: 10, color: '#94a3b8' }}>
@@ -277,7 +410,9 @@ function ParticipantForm({ doc, id, onChange, onRemove }: {
           onChange={(e) => onChange(updateParticipant(doc, id, { label: e.target.value }))}
         />
       </label>
-      <label style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+      <label
+        style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}
+      >
         <input
           type="checkbox"
           checked={!!participant.isActor}
@@ -285,12 +420,21 @@ function ParticipantForm({ doc, id, onChange, onRemove }: {
         />
         aktor (ludzik)
       </label>
-      <button type="button" style={btn} onClick={onRemove}>Usuń uczestnika</button>
+      <button type="button" style={btn} onClick={onRemove}>
+        Usuń uczestnika
+      </button>
     </>
   );
 }
 
-function StepForm({ doc, path, step, participants, onChange, onRemove }: {
+function StepForm({
+  doc,
+  path,
+  step,
+  participants,
+  onChange,
+  onRemove,
+}: {
   doc: DiagramDocument;
   path: StepPath;
   step?: SequenceStep;
@@ -305,11 +449,33 @@ function StepForm({ doc, path, step, participants, onChange, onRemove }: {
     <>
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
         <strong style={{ fontSize: 12, flex: 1 }}>
-          {step.kind === 'message' ? 'Wiadomość' : step.kind === 'note' ? 'Notatka' : isBlock(step) ? 'Blok' : step.kind}
+          {step.kind === 'message'
+            ? 'Wiadomość'
+            : step.kind === 'note'
+              ? 'Notatka'
+              : isBlock(step)
+                ? 'Blok'
+                : step.kind}
         </strong>
-        <button type="button" style={btn} title="W górę" onClick={() => onChange(moveStep(doc, path, -1))}>↑</button>
-        <button type="button" style={btn} title="W dół" onClick={() => onChange(moveStep(doc, path, 1))}>↓</button>
-        <button type="button" style={btn} title="Usuń" onClick={onRemove}>×</button>
+        <button
+          type="button"
+          style={btn}
+          title="W górę"
+          onClick={() => onChange(moveStep(doc, path, -1))}
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          style={btn}
+          title="W dół"
+          onClick={() => onChange(moveStep(doc, path, 1))}
+        >
+          ↓
+        </button>
+        <button type="button" style={btn} title="Usuń" onClick={onRemove}>
+          ×
+        </button>
       </div>
 
       {step.kind === 'message' && (
@@ -317,42 +483,92 @@ function StepForm({ doc, path, step, participants, onChange, onRemove }: {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             <label style={{ fontSize: 10, color: '#94a3b8' }}>
               od
-              <select style={input} value={step.from} onChange={(e) => zmien({ from: e.target.value } as Partial<SequenceMessage>)}>
-                {participants.map((p) => <option key={p} value={p}>{p}</option>)}
+              <select
+                style={input}
+                value={step.from}
+                onChange={(e) => zmien({ from: e.target.value } as Partial<SequenceMessage>)}
+              >
+                {participants.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
               </select>
             </label>
             <label style={{ fontSize: 10, color: '#94a3b8' }}>
               do
-              <select style={input} value={step.to} onChange={(e) => zmien({ to: e.target.value } as Partial<SequenceMessage>)}>
-                {participants.map((p) => <option key={p} value={p}>{p}</option>)}
+              <select
+                style={input}
+                value={step.to}
+                onChange={(e) => zmien({ to: e.target.value } as Partial<SequenceMessage>)}
+              >
+                {participants.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
           <label style={{ fontSize: 10, color: '#94a3b8' }}>
             treść
-            <input style={input} value={step.text} onChange={(e) => zmien({ text: e.target.value } as Partial<SequenceMessage>)} />
+            <input
+              style={input}
+              value={step.text}
+              onChange={(e) => zmien({ text: e.target.value } as Partial<SequenceMessage>)}
+            />
           </label>
           <label style={{ fontSize: 10, color: '#94a3b8' }}>
             rodzaj strzałki
-            <select style={input} value={step.arrow} onChange={(e) => zmien({ arrow: e.target.value as SequenceArrow } as Partial<SequenceMessage>)}>
-              {ARROWS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+            <select
+              style={input}
+              value={step.arrow}
+              onChange={(e) =>
+                zmien({ arrow: e.target.value as SequenceArrow } as Partial<SequenceMessage>)
+              }
+            >
+              {ARROWS.map((a) => (
+                <option key={a.value} value={a.value}>
+                  {a.label}
+                </option>
+              ))}
             </select>
           </label>
           {/* Aktywacja i dezaktywacja wykluczają się: jedna wiadomość nie może
               jednocześnie otwierać i zamykać paska aktywności. */}
-          <label style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <label
+            style={{
+              fontSize: 11,
+              color: '#64748b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
             <input
               type="checkbox"
               checked={!!step.activate}
-              onChange={(e) => zmien({ activate: e.target.checked, deactivate: false } as Partial<SequenceMessage>)}
+              onChange={(e) =>
+                zmien({ activate: e.target.checked, deactivate: false } as Partial<SequenceMessage>)
+              }
             />
             uruchamia odbiorcę (+)
           </label>
-          <label style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <label
+            style={{
+              fontSize: 11,
+              color: '#64748b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
             <input
               type="checkbox"
               checked={!!step.deactivate}
-              onChange={(e) => zmien({ deactivate: e.target.checked, activate: false } as Partial<SequenceMessage>)}
+              onChange={(e) =>
+                zmien({ deactivate: e.target.checked, activate: false } as Partial<SequenceMessage>)
+              }
             />
             kończy nadawcę (−)
           </label>
@@ -363,11 +579,19 @@ function StepForm({ doc, path, step, participants, onChange, onRemove }: {
         <>
           <label style={{ fontSize: 10, color: '#94a3b8' }}>
             treść
-            <input style={input} value={step.text} onChange={(e) => zmien({ text: e.target.value } as Partial<SequenceNote>)} />
+            <input
+              style={input}
+              value={step.text}
+              onChange={(e) => zmien({ text: e.target.value } as Partial<SequenceNote>)}
+            />
           </label>
           <label style={{ fontSize: 10, color: '#94a3b8' }}>
             położenie
-            <select style={input} value={step.placement} onChange={(e) => zmien({ placement: e.target.value } as Partial<SequenceNote>)}>
+            <select
+              style={input}
+              value={step.placement}
+              onChange={(e) => zmien({ placement: e.target.value } as Partial<SequenceNote>)}
+            >
               <option value="over">nad</option>
               <option value="left of">po lewej</option>
               <option value="right of">po prawej</option>
@@ -378,7 +602,14 @@ function StepForm({ doc, path, step, participants, onChange, onRemove }: {
             <input
               style={input}
               value={step.targets.join(',')}
-              onChange={(e) => zmien({ targets: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) } as Partial<SequenceNote>)}
+              onChange={(e) =>
+                zmien({
+                  targets: e.target.value
+                    .split(',')
+                    .map((t) => t.trim())
+                    .filter(Boolean),
+                } as Partial<SequenceNote>)
+              }
             />
           </label>
         </>
@@ -388,12 +619,20 @@ function StepForm({ doc, path, step, participants, onChange, onRemove }: {
         <>
           <label style={{ fontSize: 10, color: '#94a3b8' }}>
             tytuł
-            <input style={input} value={step.title ?? ''} onChange={(e) => zmien({ title: e.target.value } as Partial<SequenceBlock>)} />
+            <input
+              style={input}
+              value={step.title ?? ''}
+              onChange={(e) => zmien({ title: e.target.value } as Partial<SequenceBlock>)}
+            />
           </label>
           <div style={{ fontSize: 11, color: '#64748b' }}>
             {step.block} · sekcji: {step.sections.length}
           </div>
-          <button type="button" style={btn} onClick={() => onChange(addSection(doc, path, 'kolejna'))}>
+          <button
+            type="button"
+            style={btn}
+            onClick={() => onChange(addSection(doc, path, 'kolejna'))}
+          >
             + sekcja ({step.block === 'alt' ? 'else' : step.block === 'par' ? 'and' : 'option'})
           </button>
           <div style={{ fontSize: 10, color: '#94a3b8' }}>

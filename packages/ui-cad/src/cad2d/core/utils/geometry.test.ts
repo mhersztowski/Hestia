@@ -77,7 +77,7 @@ describe('geometry utils', () => {
     it('finds two intersection points through a circle', () => {
       const hits = lineSegmentCircleIntersections(-10, 0, 10, 0, 0, 0, 5);
       expect(hits).toHaveLength(2);
-      const xs = hits.map(h => h.point.x).sort((a, b) => a - b);
+      const xs = hits.map((h) => h.point.x).sort((a, b) => a - b);
       expect(xs[0]).toBeCloseTo(-5);
       expect(xs[1]).toBeCloseTo(5);
     });

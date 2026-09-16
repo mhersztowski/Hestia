@@ -10,14 +10,18 @@ import { render, screen } from '@testing-library/react';
 import { parseFormulaBlock } from '@hestia/core-sci';
 import { SimBlock } from './SimBlock';
 
-const LORENZ = parseFormulaBlock('lorenz-ode', [
-  '@ode', '@state x, y, z',
-  '@d x = \\sigma \\cdot (y - x)',
-  '@d y = x \\cdot (\\rho - z) - y',
-  '@d z = x \\cdot y - \\beta \\cdot z',
-  '@init x = x_0, y = 1, z = 1',
-  '@vars x: 1, y: 1, z: 1, sigma: 1, rho: 1, beta: 1, x_0: 1',
-].join('\n'));
+const LORENZ = parseFormulaBlock(
+  'lorenz-ode',
+  [
+    '@ode',
+    '@state x, y, z',
+    '@d x = \\sigma \\cdot (y - x)',
+    '@d y = x \\cdot (\\rho - z) - y',
+    '@d z = x \\cdot y - \\beta \\cdot z',
+    '@init x = x_0, y = 1, z = 1',
+    '@vars x: 1, y: 1, z: 1, sigma: 1, rho: 1, beta: 1, x_0: 1',
+  ].join('\n')
+);
 
 describe('SimBlock', () => {
   it('startuje z wartości podanych w bloku, nie z domyślnych modelu', () => {
@@ -26,7 +30,7 @@ describe('SimBlock', () => {
         bare
         code={JSON.stringify({ sigma: 10, rho: 28, beta: 2.667, x_0: 1, duration: 40 })}
         formulas={[LORENZ]}
-      />,
+      />
     );
 
     const suwak = (nazwa: string) =>
@@ -41,7 +45,11 @@ describe('SimBlock', () => {
     // Zakres liczony z wartości domyślnej modelu ucinałby wartość autora do
     // maksimum — suwak pokazywałby co innego niż dokument.
     render(
-      <SimBlock bare code={JSON.stringify({ sigma: 10, rho: 28, beta: 2.667 })} formulas={[LORENZ]} />,
+      <SimBlock
+        bare
+        code={JSON.stringify({ sigma: 10, rho: 28, beta: 2.667 })}
+        formulas={[LORENZ]}
+      />
     );
 
     const rho = screen.getByLabelText('rho', { exact: false }) as HTMLInputElement;

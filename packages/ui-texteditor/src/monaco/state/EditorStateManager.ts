@@ -105,10 +105,7 @@ export class EditorStateManager implements Disposable {
   /**
    * Creates a debounced autosave function
    */
-  createAutosave(
-    editorId: EditorId,
-    getState: () => SerializableEditorState
-  ): Disposable {
+  createAutosave(editorId: EditorId, getState: () => SerializableEditorState): Disposable {
     const debouncedSave = debounce(() => {
       const state = getState();
       this.saveState(editorId, state, true);

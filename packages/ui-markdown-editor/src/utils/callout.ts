@@ -23,11 +23,11 @@ export interface CalloutStyle {
 
 /** Pięć typów zgodnych z alertami GitHuba — ten sam zestaw, te same nazwy. */
 export const CALLOUT_VARIANTS: Record<CalloutVariant, CalloutStyle> = {
-  note:      { label: 'Notatka',  color: '#0969da', emoji: 'ℹ️' },
-  tip:       { label: 'Wskazówka', color: '#1a7f37', emoji: '💡' },
-  important: { label: 'Ważne',    color: '#8250df', emoji: '❗' },
-  warning:   { label: 'Uwaga',    color: '#9a6700', emoji: '⚠️' },
-  caution:   { label: 'Ostrzeżenie', color: '#cf222e', emoji: '🛑' },
+  note: { label: 'Notatka', color: '#0969da', emoji: 'ℹ️' },
+  tip: { label: 'Wskazówka', color: '#1a7f37', emoji: '💡' },
+  important: { label: 'Ważne', color: '#8250df', emoji: '❗' },
+  warning: { label: 'Uwaga', color: '#9a6700', emoji: '⚠️' },
+  caution: { label: 'Ostrzeżenie', color: '#cf222e', emoji: '🛑' },
 };
 
 export function isCalloutVariant(value: string): value is CalloutVariant {

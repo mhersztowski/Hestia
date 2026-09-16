@@ -1,7 +1,5 @@
 export type GeoNodeType =
-  | 'box' | 'sphere' | 'cylinder' | 'plane' | 'cone' | 'torus'
-  | 'transform' | 'merge'
-  | 'output';
+  'box' | 'sphere' | 'cylinder' | 'plane' | 'cone' | 'torus' | 'transform' | 'merge' | 'output';
 
 export interface GeoNodeDef {
   id: string;
@@ -26,7 +24,13 @@ export interface GeoNodeGraph {
 
 export const DEFAULT_GEO_NODE_GRAPH: GeoNodeGraph = {
   nodes: [
-    { id: 'n1', type: 'box', x: 80, y: 100, params: { width: 1, height: 1, depth: 1, wSeg: 1, hSeg: 1, dSeg: 1 } },
+    {
+      id: 'n1',
+      type: 'box',
+      x: 80,
+      y: 100,
+      params: { width: 1, height: 1, depth: 1, wSeg: 1, hSeg: 1, dSeg: 1 },
+    },
     { id: 'out', type: 'output', x: 400, y: 100, params: {} },
   ],
   edges: [

@@ -20,7 +20,11 @@
  * tabs — the MyCastle `mycastle-code/` prefix, turned into configuration.
  */
 import {
-  CODEMAP_EXTENSION, parseCodemap, stringifyCodemap, type Codemap, type SyncResult,
+  CODEMAP_EXTENSION,
+  parseCodemap,
+  stringifyCodemap,
+  type Codemap,
+  type SyncResult,
 } from '@hestia/node-devtools/format';
 import { normalizeCodemap } from './model';
 
@@ -85,7 +89,9 @@ export function pathIn(dir: string, name: string): string {
 
 /** Directories first, then by name — the order the picker shows. */
 export function sortEntries(entries: StoreEntry[]): StoreEntry[] {
-  return [...entries].sort((a, b) => (a.directory !== b.directory ? (a.directory ? -1 : 1) : a.name.localeCompare(b.name)));
+  return [...entries].sort((a, b) =>
+    a.directory !== b.directory ? (a.directory ? -1 : 1) : a.name.localeCompare(b.name)
+  );
 }
 
 /**
@@ -103,7 +109,9 @@ export function codemapFileName(raw: string): string {
 
 /** The name shown to the user: the file name without the extension. */
 export function codemapDisplayName(file: string): string {
-  return file.toLowerCase().endsWith(CODEMAP_EXTENSION) ? file.slice(0, -CODEMAP_EXTENSION.length) : file;
+  return file.toLowerCase().endsWith(CODEMAP_EXTENSION)
+    ? file.slice(0, -CODEMAP_EXTENSION.length)
+    : file;
 }
 
 /** Codemap files in the store's codemap directory, sorted by name. */
@@ -120,7 +128,11 @@ export async function readCodemap(store: CodemapStore, file: string): Promise<Co
   return normalizeCodemap(parseCodemap(await store.read(pathIn(store.codemapDir, file))));
 }
 
-export async function writeCodemap(store: CodemapStore, file: string, codemap: Codemap): Promise<void> {
+export async function writeCodemap(
+  store: CodemapStore,
+  file: string,
+  codemap: Codemap
+): Promise<void> {
   await store.write(pathIn(store.codemapDir, file), stringifyCodemap(codemap));
 }
 
@@ -130,7 +142,12 @@ export async function writeCodemap(store: CodemapStore, file: string, codemap: C
  * removal fails, the error says which file is which, so the user is not left
  * with two copies and no idea which is current.
  */
-export async function renameCodemapFile(store: CodemapStore, from: string, to: string, codemap: Codemap): Promise<void> {
+export async function renameCodemapFile(
+  store: CodemapStore,
+  from: string,
+  to: string,
+  codemap: Codemap
+): Promise<void> {
   const src = pathIn(store.codemapDir, from);
   const dst = pathIn(store.codemapDir, to);
   if (store.rename) {
@@ -143,6 +160,9 @@ export async function renameCodemapFile(store: CodemapStore, from: string, to: s
   try {
     await store.remove(src);
   } catch (e) {
-    throw new Error(`saved as ${to}, but the old ${from} could not be removed (${e instanceof Error ? e.message : String(e)}) — ${to} is the current one`);
+    throw new Error(
+      `saved as ${to}, but the old ${from} could not be removed (${e instanceof Error ? e.message : String(e)}) — ${to} is the current one`,
+      { cause: e }
+    );
   }
 }

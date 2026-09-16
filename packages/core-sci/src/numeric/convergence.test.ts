@@ -11,15 +11,15 @@ import { euler, rk4, verlet } from './solvers';
 import { studyConvergence, richardson } from './convergence';
 
 /** Oscylator harmoniczny: y = [x, v], x'' = -ω²x. */
-const oscillator = (omega: number) => (_t: number, [x, v]: number[]) => [v, -omega * omega * x];
+const oscillator =
+  (omega: number) =>
+  (_t: number, [x, v]: number[]) => [v, -omega * omega * x];
 /** Rozwiązanie dokładne dla x(0)=1, v(0)=0. */
 const exact = (omega: number, t: number) => Math.cos(omega * t);
 
 const runRk4 = (dt: number) => rk4(oscillator(1), [1, 0], [0, 10], { dt });
 const runEuler = (dt: number) => euler(oscillator(1), [1, 0], [0, 5], { dt });
-const runVerlet = (dt: number) => verlet(
-  (_t, x) => x.map((xi) => -xi), [1], [0], [0, 10], { dt },
-);
+const runVerlet = (dt: number) => verlet((_t, x) => x.map((xi) => -xi), [1], [0], [0, 10], { dt });
 
 describe('rząd metody odczytany z zagęszczania kroku', () => {
   it('rozpoznaje RK4 jako metodę czwartego rzędu', () => {
@@ -81,10 +81,9 @@ describe('przypadki, w których rzędu nie da się odczytać', () => {
   it('melduje precyzję maszynową zamiast zmyślać rząd', () => {
     // Ruch jednostajnie przyspieszony leży w klasie, którą RK4 odtwarza bez
     // błędu metody — różnice między siatkami to sam szum arytmetyki.
-    const report = studyConvergence(
-      (dt) => rk4((_t, [, v]) => [v, 3], [0, 0], [0, 2], { dt }),
-      { dt: 0.1 },
-    );
+    const report = studyConvergence((dt) => rk4((_t, [, v]) => [v, 3], [0, 0], [0, 2], { dt }), {
+      dt: 0.1,
+    });
 
     expect(report.order).toBeUndefined();
     expect(report.issues.join(' ')).toMatch(/precyzj/i);
@@ -92,10 +91,9 @@ describe('przypadki, w których rzędu nie da się odczytać', () => {
 
   it('melduje rozbieżność zamiast zwracać NaN jako wynik', () => {
     // Krok dobrany tak, że jawna metoda przy tej sztywności eksploduje.
-    const report = studyConvergence(
-      (dt) => euler((_t, [y]) => [-1e6 * y], [1], [0, 1], { dt }),
-      { dt: 0.01 },
-    );
+    const report = studyConvergence((dt) => euler((_t, [y]) => [-1e6 * y], [1], [0, 1], { dt }), {
+      dt: 0.01,
+    });
 
     expect(report.order).toBeUndefined();
     expect(report.issues.join(' ')).toMatch(/rozbieg|nieskończon/i);
@@ -104,7 +102,7 @@ describe('przypadki, w których rzędu nie da się odczytać', () => {
   it('melduje niezgodne długości stanu zamiast porównywać co popadnie', () => {
     const report = studyConvergence(
       (dt) => rk4(oscillator(1), dt > 0.05 ? [1, 0] : [1, 0, 0], [0, 1], { dt }),
-      { dt: 0.1 },
+      { dt: 0.1 }
     );
     expect(report.issues.length).toBeGreaterThan(0);
     expect(report.order).toBeUndefined();

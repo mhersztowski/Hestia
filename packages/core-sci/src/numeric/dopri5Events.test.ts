@@ -34,9 +34,12 @@ describe('chwila zdarzenia', () => {
   });
 
   it('nie zależy od kroku startowego ani od tolerancji', () => {
-    const czas = (rtol: number, dt: number) => dopri5(spadek, [5, 0], [0, 10], {
-      rtol, dt, events: [ziemia({ stop: true })],
-    }).t1;
+    const czas = (rtol: number, dt: number) =>
+      dopri5(spadek, [5, 0], [0, 10], {
+        rtol,
+        dt,
+        events: [ziemia({ stop: true })],
+      }).t1;
 
     // Metoda liczy wielomian bezbłędnie przy każdej tolerancji, więc gdyby
     // zdarzenie było wykrywane po kroku, każda z tych liczb byłaby inna.
@@ -114,7 +117,9 @@ describe('kierunek przejścia', () => {
     // raz w dół. Zdarzenie „w dół" ma złapać wyłącznie to drugie.
     const rzut = (_t: number, [, v]: number[]) => [v, -10];
     const próg = (direction: 'up' | 'down'): EventSpec => ({
-      g: (_t, [y]) => y - 3, direction, stop: true,
+      g: (_t, [y]) => y - 3,
+      direction,
+      stop: true,
     });
 
     const wGóre = dopri5(rzut, [0, 10], [0, 3], { rtol: 1e-9, events: [próg('up')] });

@@ -48,7 +48,15 @@ describe('szukanie chwili zdarzenia', () => {
 
   it('zatrzymuje się na zadanej dokładności, nie kręci się w kółko', () => {
     let wywołania = 0;
-    findEventTime((x) => { wywołania += 1; return Math.sin(x) - 0.5; }, 0, 3, 1e-10);
+    findEventTime(
+      (x) => {
+        wywołania += 1;
+        return Math.sin(x) - 0.5;
+      },
+      0,
+      3,
+      1e-10
+    );
     // Sama bisekcja potrzebowałaby ~35 kroków; z interpolacją ma być wyraźnie mniej.
     expect(wywołania).toBeLessThan(25);
   });

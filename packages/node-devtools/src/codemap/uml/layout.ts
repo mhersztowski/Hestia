@@ -1,13 +1,20 @@
 import { CodeRelation, CodeSymbol } from '../model/CodeModel.js';
 
-export interface XY { x: number; y: number }
+export interface XY {
+  x: number;
+  y: number;
+}
 
 /**
  * Inheritance-aware grid layout: a symbol's row is its longest generalization /
  * realization chain depth (base classes on top), columns spread within a row.
  * Cycle-guarded so malformed hierarchies still lay out.
  */
-export function layoutSymbols(symbols: CodeSymbol[], relations: CodeRelation[], spacing: { dx?: number; dy?: number } = {}): Map<string, XY> {
+export function layoutSymbols(
+  symbols: CodeSymbol[],
+  relations: CodeRelation[],
+  spacing: { dx?: number; dy?: number } = {}
+): Map<string, XY> {
   const dx = spacing.dx ?? 260;
   const dy = spacing.dy ?? 240;
 
@@ -47,7 +54,11 @@ export function handlesFor(from: XY, to: XY): { sourceHandle: string; targetHand
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   if (Math.abs(dy) >= Math.abs(dx)) {
-    return dy >= 0 ? { sourceHandle: 'b', targetHandle: 't' } : { sourceHandle: 't', targetHandle: 'b' };
+    return dy >= 0
+      ? { sourceHandle: 'b', targetHandle: 't' }
+      : { sourceHandle: 't', targetHandle: 'b' };
   }
-  return dx >= 0 ? { sourceHandle: 'r', targetHandle: 'l' } : { sourceHandle: 'l', targetHandle: 'r' };
+  return dx >= 0
+    ? { sourceHandle: 'r', targetHandle: 'l' }
+    : { sourceHandle: 'l', targetHandle: 'r' };
 }

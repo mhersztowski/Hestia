@@ -17,7 +17,7 @@ export class OpenAiCompatibleProvider implements AiProvider {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body: Record<string, any> = {
       model: request.model || config.defaultModel,
-      messages: request.messages.map(m => {
+      messages: request.messages.map((m) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const msg: Record<string, any> = { role: m.role, content: m.content };
         if (m.tool_calls) msg.tool_calls = m.tool_calls;
@@ -51,11 +51,13 @@ export class OpenAiCompatibleProvider implements AiProvider {
     return {
       content: choice?.message?.content || '',
       model: data.model || request.model || config.defaultModel,
-      usage: data.usage ? {
-        promptTokens: data.usage.prompt_tokens || 0,
-        completionTokens: data.usage.completion_tokens || 0,
-        totalTokens: data.usage.total_tokens || 0,
-      } : undefined,
+      usage: data.usage
+        ? {
+            promptTokens: data.usage.prompt_tokens || 0,
+            completionTokens: data.usage.completion_tokens || 0,
+            totalTokens: data.usage.total_tokens || 0,
+          }
+        : undefined,
       finishReason: choice?.finish_reason,
       toolCalls: choice?.message?.tool_calls || undefined,
     };

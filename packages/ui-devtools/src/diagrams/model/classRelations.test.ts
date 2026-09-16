@@ -9,10 +9,15 @@
 import { describe, it, expect } from 'vitest';
 import { mermaidFormat } from '../formats/mermaid';
 import {
-  classRelations, relationOf, setEdgeRelation, swapRelationSides,
-  RELATION_LOOK, RELATION_MEANING, CLASS_RELATION_KINDS,
+  classRelations,
+  relationOf,
+  setEdgeRelation,
+  swapRelationSides,
+  RELATION_LOOK,
+  RELATION_MEANING,
+  CLASS_RELATION_KINDS,
 } from './classRelations';
-import type { ClassRelationKind } from './diagram';
+import type {} from './diagram';
 
 const parse = (text: string) => mermaidFormat.parse(`classDiagram\n  ${text}`).document;
 const relacja = (text: string) => classRelations(parse(text))[0];
@@ -53,7 +58,11 @@ describe('strony relacji są jednoznaczne', () => {
     const wprost = relacja('Zamowienie "1" --> "0..*" Pozycja');
     expect(wprost).toMatchObject({ fromCardinality: '1', toCardinality: '0..*' });
     const odwrotnie = relacja('Pozycja "0..*" <-- "1" Zamowienie');
-    expect(odwrotnie).toMatchObject({ from: 'Zamowienie', fromCardinality: '1', toCardinality: '0..*' });
+    expect(odwrotnie).toMatchObject({
+      from: 'Zamowienie',
+      fromCardinality: '1',
+      toCardinality: '0..*',
+    });
   });
 
   it('opis relacji zostaje', () => {
@@ -113,7 +122,11 @@ describe('zamiana stron', () => {
     const before = parse('Zwierze <|-- Pies');
     const after = swapRelationSides(before, before.edges[0].id);
     const again = mermaidFormat.parse(mermaidFormat.serialize(after)).document;
-    expect(classRelations(again)[0]).toMatchObject({ from: 'Pies', to: 'Zwierze', kind: 'inheritance' });
+    expect(classRelations(again)[0]).toMatchObject({
+      from: 'Pies',
+      to: 'Zwierze',
+      kind: 'inheritance',
+    });
   });
 });
 
@@ -122,7 +135,12 @@ describe('diagram bez zadeklarowanych relacji', () => {
     // Krawędź zbudowana ręcznie, bez pola `relation` — tak wyglądają dokumenty
     // zapisane wcześniej albo przyniesione z formatu, który relacji nie zna.
     const doc = parse('A -- B');
-    const edge = { ...doc.edges[0], relation: undefined, arrow: 'triangle' as const, lineStyle: 'dotted' as const };
+    const edge = {
+      ...doc.edges[0],
+      relation: undefined,
+      arrow: 'triangle' as const,
+      lineStyle: 'dotted' as const,
+    };
     expect(relationOf(edge)).toBe('realization');
   });
 });
@@ -140,7 +158,11 @@ describe('generowanie kodu na podstawie modelu', () => {
       if (relation.kind === 'realization') {
         implementuje.set(relation.to, [...(implementuje.get(relation.to) ?? []), relation.from]);
       }
-      if (relation.kind === 'composition' || relation.kind === 'aggregation' || relation.kind === 'association') {
+      if (
+        relation.kind === 'composition' ||
+        relation.kind === 'aggregation' ||
+        relation.kind === 'association'
+      ) {
         const wiele = (relation.toCardinality ?? '').includes('*');
         const typ = wiele ? `List<${relation.to}>` : relation.to;
         pola.set(relation.from, [...(pola.get(relation.from) ?? []), typ]);
@@ -149,7 +171,9 @@ describe('generowanie kodu na podstawie modelu', () => {
 
     return doc.nodes.map((node) => {
       const extend = rozszerza.get(node.id) ? ` extends ${rozszerza.get(node.id)}` : '';
-      const impl = implementuje.get(node.id)?.length ? ` implements ${implementuje.get(node.id)!.join(', ')}` : '';
+      const impl = implementuje.get(node.id)?.length
+        ? ` implements ${implementuje.get(node.id)!.join(', ')}`
+        : '';
       const body = (pola.get(node.id) ?? []).map((t) => `${t} pole;`).join(' ');
       return `class ${node.id}${extend}${impl} { ${body}}`.replace(/\s+}/, ' }');
     });
@@ -172,7 +196,9 @@ describe('generowanie kodu na podstawie modelu', () => {
   });
 
   it('krotność `0..*` daje kolekcję', () => {
-    expect(generuj(SOURCE).find((l) => l.startsWith('class Zamowienie'))).toContain('List<Pozycja>');
+    expect(generuj(SOURCE).find((l) => l.startsWith('class Zamowienie'))).toContain(
+      'List<Pozycja>'
+    );
   });
 
   it('klasa bez relacji zostaje pusta', () => {

@@ -52,7 +52,7 @@ export function stepSlider(
   state: SliderAnimation,
   spec: SliderSpecLike,
   playback: SliderPlayback,
-  dtSeconds: number,
+  dtSeconds: number
 ): SliderAnimation {
   const min = Math.min(spec.min, spec.max);
   const max = Math.max(spec.min, spec.max);

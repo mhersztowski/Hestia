@@ -9,9 +9,13 @@ export default defineConfig({
   clean: true,
   // React, MUI and Emotion stay on the host's side — one copy of each.
   external: [
-    'react', 'react-dom', 'react/jsx-runtime',
-    '@mui/material', /^@mui\/icons-material(\/.*)?$/,
-    '@emotion/react', '@emotion/styled',
+    'react',
+    'react-dom',
+    'react/jsx-runtime',
+    '@mui/material',
+    /^@mui\/icons-material(\/.*)?$/,
+    '@emotion/react',
+    '@emotion/styled',
   ],
   treeshake: true,
 });

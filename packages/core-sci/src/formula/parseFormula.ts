@@ -178,7 +178,8 @@ export interface FormulaBlock {
  * Nawias jest w **tej samej grupie** co nazwa, a nie w osobnej — dzięki temu
  * numery grup zostają, a używa ich sześć innych miejsc w tym pliku.
  */
-const ASSIGNMENT = /^\s*((?:\\?[A-Za-z][A-Za-z0-9]*(?:_\{?[A-Za-z0-9]+\}?)?)(?:\([^)\s][^)]*\))?)\s*=\s*([\s\S]+?)\s*$/;
+const ASSIGNMENT =
+  /^\s*((?:\\?[A-Za-z][A-Za-z0-9]*(?:_\{?[A-Za-z0-9]+\}?)?)(?:\([^)\s][^)]*\))?)\s*=\s*([\s\S]+?)\s*$/;
 
 /**
  * Warianty greckich liter, którym Compute Engine nadaje **inną nazwę, niż
@@ -297,8 +298,12 @@ function rozdzielLancuch(prawaStrona: string): string[] {
 
     const poprzedni = prawaStrona[i - 1];
     const nastepny = prawaStrona[i + 1];
-    const czescOperatora = poprzedni === '<' || poprzedni === '>' || poprzedni === '!'
-      || nastepny === '=' || poprzedni === '=';
+    const czescOperatora =
+      poprzedni === '<' ||
+      poprzedni === '>' ||
+      poprzedni === '!' ||
+      nastepny === '=' ||
+      poprzedni === '=';
 
     if (znak === '=' && glebokosc === 0 && !czescOperatora) {
       czlony.push(biezacy.trim());
@@ -330,8 +335,9 @@ export function parseFormulaBlock(id: string, body: string): FormulaBlock {
 
   if (VARPHI.test(body)) {
     block.issues.push({
-      message: 'Zapis „\\varphi" jest w silniku matematycznym złotym podziałem (1,618), '
-        + 'a nie symbolem — wzór policzyłby się z podstawioną liczbą. Użyj „\\phi".',
+      message:
+        'Zapis „\\varphi" jest w silniku matematycznym złotym podziałem (1,618), ' +
+        'a nie symbolem — wzór policzyłby się z podstawioną liczbą. Użyj „\\phi".',
     });
   }
 
@@ -403,7 +409,10 @@ export function parseFormulaBlock(id: string, body: string): FormulaBlock {
         case 'd2': {
           const assignment = ASSIGNMENT.exec(rest);
           if (!assignment) {
-            block.issues.push({ message: 'Druga pochodna musi mieć postać „@d2 pole = wyrażenie".', line: index });
+            block.issues.push({
+              message: 'Druga pochodna musi mieć postać „@d2 pole = wyrażenie".',
+              line: index,
+            });
             return;
           }
           block.pde = { ...block.pde, second: assignment[2] };
@@ -419,7 +428,8 @@ export function parseFormulaBlock(id: string, body: string): FormulaBlock {
           const warunek = parseBoundary(rest);
           if (!warunek) {
             block.issues.push({
-              message: 'Warunek brzegowy to „@boundary dirichlet <wartość>" albo „@boundary neumann".',
+              message:
+                'Warunek brzegowy to „@boundary dirichlet <wartość>" albo „@boundary neumann".',
               line: index,
             });
             return;
@@ -428,22 +438,33 @@ export function parseFormulaBlock(id: string, body: string): FormulaBlock {
           return;
         }
         case 'state':
-          block.state = rest.split(',').map((s) => symbolName(s.trim())).filter(Boolean);
+          block.state = rest
+            .split(',')
+            .map((s) => symbolName(s.trim()))
+            .filter(Boolean);
           return;
         case 'd': {
           const assignment = ASSIGNMENT.exec(rest);
           if (!assignment) {
-            block.issues.push({ message: `Pochodna musi mieć postać „@d zmienna = wyrażenie".`, line: index });
+            block.issues.push({
+              message: `Pochodna musi mieć postać „@d zmienna = wyrażenie".`,
+              line: index,
+            });
             return;
           }
           // W bloku pola ta sama dyrektywa opisuje ewolucję pola, a nie
           // zmiennej stanu — jedna składnia dla obu rodzajów równań.
           if (block.kind === 'pde') block.pde = { ...block.pde, first: assignment[2] };
-          else block.derivatives = { ...block.derivatives, [symbolName(assignment[1])]: assignment[2] };
+          else
+            block.derivatives = {
+              ...block.derivatives,
+              [symbolName(assignment[1])]: assignment[2],
+            };
           return;
         }
         case 'init':
-          if (block.kind === 'pde') block.pde = { ...block.pde, init: rest.trim().replace(/^[^=]*=\s*/, '') };
+          if (block.kind === 'pde')
+            block.pde = { ...block.pde, init: rest.trim().replace(/^[^=]*=\s*/, '') };
           else block.init = { ...block.init, ...parseAssignments(rest) };
           return;
         case 'when':
@@ -471,7 +492,8 @@ export function parseFormulaBlock(id: string, body: string): FormulaBlock {
           const assignment = ASSIGNMENT.exec(rest);
           if (!assignment) {
             block.issues.push({
-              message: 'Niezmiennik zapisuje się „@invariant nazwa = wyrażenie", np. „@invariant E = \\frac{1}{2} m v^2".',
+              message:
+                'Niezmiennik zapisuje się „@invariant nazwa = wyrażenie", np. „@invariant E = \\frac{1}{2} m v^2".',
               line: index,
             });
             return;
@@ -496,9 +518,12 @@ export function parseFormulaBlock(id: string, body: string): FormulaBlock {
            */
           block.kind = 'relation';
           if (!block.latex) {
-            const zPrzypisania = block.target !== undefined
-              ? [`${block.targetLatex ?? block.target} = ${(block.chain ?? [block.expression ?? '']).join(' = ')}`]
-              : [];
+            const zPrzypisania =
+              block.target !== undefined
+                ? [
+                    `${block.targetLatex ?? block.target} = ${(block.chain ?? [block.expression ?? '']).join(' = ')}`,
+                  ]
+                : [];
             const zNieznanych = block.unknown.filter((line) => !line.startsWith('@'));
             const odzyskane = [...zPrzypisania, ...zNieznanych].filter(Boolean);
             if (odzyskane.length) {
@@ -511,13 +536,16 @@ export function parseFormulaBlock(id: string, body: string): FormulaBlock {
             }
           }
           return;
-      case 'solver':
+        case 'solver':
           block.solver = rest.trim();
           return;
         case 'tol': {
           const value = Number(rest.trim());
           if (!Number.isFinite(value) || value <= 0) {
-            block.issues.push({ message: 'Tolerancja to dodatnia liczba, np. „@tol 1e-8".', line: index });
+            block.issues.push({
+              message: 'Tolerancja to dodatnia liczba, np. „@tol 1e-8".',
+              line: index,
+            });
             return;
           }
           block.tolerance = value;
@@ -530,7 +558,12 @@ export function parseFormulaBlock(id: string, body: string): FormulaBlock {
         case 'approximates':
         case 'specialCaseOf':
         case 'assume':
-          (block[name] as string[]).push(...rest.split(',').map((s) => s.trim()).filter(Boolean));
+          (block[name] as string[]).push(
+            ...rest
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
+          );
           return;
         default:
           // Zasada z reszty projektu: albo rozumiemy linię w całości, albo
@@ -550,10 +583,13 @@ export function parseFormulaBlock(id: string, body: string): FormulaBlock {
       const spec = block.linalg ?? { matrices: [], vectors: [], definitions: [] };
       block.linalg = {
         ...spec,
-        definitions: [...spec.definitions, {
-          name: symbolName(assignment[1]),
-          expression: assignment[2].trim(),
-        }],
+        definitions: [
+          ...spec.definitions,
+          {
+            name: symbolName(assignment[1]),
+            expression: assignment[2].trim(),
+          },
+        ],
       };
       return;
     }
@@ -586,13 +622,16 @@ function validate(block: FormulaBlock): void {
   if (block.kind === 'linalg') {
     const spec = block.linalg;
     if (!spec?.matrices.length && !spec?.vectors.length) {
-      block.issues.push({ message: 'Blok algebry potrzebuje choć jednej deklaracji „@mat" albo „@vec".' });
+      block.issues.push({
+        message: 'Blok algebry potrzebuje choć jednej deklaracji „@mat" albo „@vec".',
+      });
     }
     return;
   }
 
   if (block.kind === 'pde') {
-    if (!block.pde?.field) block.issues.push({ message: 'Blok pola musi wskazać pole przez „@field".' });
+    if (!block.pde?.field)
+      block.issues.push({ message: 'Blok pola musi wskazać pole przez „@field".' });
     return;
   }
 
@@ -614,10 +653,10 @@ function validate(block: FormulaBlock): void {
       const zPrimem = block.unknown.some((linia) => PRIM_PO_LEWEJ.test(linia));
       block.issues.push({
         message: zPrimem
-          ? 'Nazwa z primem („\\omega\'") znaczy dla silnika matematycznego pochodną, '
-            + 'a nie osobną wielkość, więc wzór nie może być przypisaniem. '
-            + 'Zapisz go jako „@relation" — zostanie pokazany dokładnie jak w druku, '
-            + 'ale nie wejdzie do grafu obliczeń.'
+          ? 'Nazwa z primem („\\omega\'") znaczy dla silnika matematycznego pochodną, ' +
+            'a nie osobną wielkość, więc wzór nie może być przypisaniem. ' +
+            'Zapisz go jako „@relation" — zostanie pokazany dokładnie jak w druku, ' +
+            'ale nie wejdzie do grafu obliczeń.'
           : 'Wzór musi być przypisaniem postaci „nazwa = wyrażenie".',
       });
     }
@@ -632,11 +671,15 @@ function validate(block: FormulaBlock): void {
 
   for (const event of block.events ?? []) {
     if (!event.assign && !event.stop) {
-      block.issues.push({ message: `Zdarzenie „${event.when}" nic nie robi — dodaj „@then" albo „@stop".` });
+      block.issues.push({
+        message: `Zdarzenie „${event.when}" nic nie robi — dodaj „@then" albo „@stop".`,
+      });
     }
     for (const name of Object.keys(event.assign ?? {})) {
       if (!(block.state ?? []).includes(name)) {
-        block.issues.push({ message: `Zdarzenie zmienia „${name}", które nie jest zmienną stanu.` });
+        block.issues.push({
+          message: `Zdarzenie zmienia „${name}", które nie jest zmienną stanu.`,
+        });
       }
     }
   }
@@ -649,7 +692,9 @@ function validate(block: FormulaBlock): void {
   }
   for (const name of state) {
     if (!(name in derivatives)) {
-      block.issues.push({ message: `Zmienna stanu „${name}" nie ma pochodnej — dodaj „@d ${name} = …".` });
+      block.issues.push({
+        message: `Zmienna stanu „${name}" nie ma pochodnej — dodaj „@d ${name} = …".`,
+      });
     }
   }
 }
@@ -668,7 +713,8 @@ export function serializeFormulaBlock(block: FormulaBlock): string {
     }
     const init = block.init ?? {};
     const initEntries = Object.entries(init);
-    if (initEntries.length) out.push(`@init ${initEntries.map(([k, v]) => `${k} = ${v}`).join(', ')}`);
+    if (initEntries.length)
+      out.push(`@init ${initEntries.map(([k, v]) => `${k} = ${v}`).join(', ')}`);
     if (block.solver) out.push(`@solver ${block.solver}`);
     if (block.tolerance !== undefined) out.push(`@tol ${block.tolerance}`);
     for (const event of block.events ?? []) {
@@ -680,7 +726,9 @@ export function serializeFormulaBlock(block: FormulaBlock): string {
   } else if (block.target) {
     // Łańcuch równości zapisujemy w całości: to on niesie wyprowadzenie,
     // a samo `block.expression` to tylko jego ostatni człon.
-    out.push(`${block.targetLatex ?? block.target} = ${block.chain?.join(' = ') ?? block.expression ?? ''}`);
+    out.push(
+      `${block.targetLatex ?? block.target} = ${block.chain?.join(' = ') ?? block.expression ?? ''}`
+    );
   }
 
   // Niezmienniki tuż po równaniach, bo mówią o tym samym układzie — a przed

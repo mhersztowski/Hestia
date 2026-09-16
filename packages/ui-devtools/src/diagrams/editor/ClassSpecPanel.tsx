@@ -36,12 +36,28 @@ const STEREOTYPES = ['', 'interface', 'abstract', 'enumeration', 'service'];
 // szerokość domyślną (~170 px), która rozpychała siatkę wiersza tak, że
 // przyciski kolejności i usuwania spadały do drugiej linii.
 const input: CSSProperties = {
-  fontSize: 11, padding: '2px 4px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', minWidth: 0, width: '100%',
+  fontSize: 11,
+  padding: '2px 4px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  minWidth: 0,
+  width: '100%',
   boxSizing: 'border-box',
 };
-const iconBtn: CSSProperties = { ...input, cursor: 'pointer', padding: '2px 5px', lineHeight: 1.1, width: 'auto' };
-const head: CSSProperties = { fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.3 };
+const iconBtn: CSSProperties = {
+  ...input,
+  cursor: 'pointer',
+  padding: '2px 5px',
+  lineHeight: 1.1,
+  width: 'auto',
+};
+const head: CSSProperties = {
+  fontSize: 10,
+  color: '#94a3b8',
+  textTransform: 'uppercase',
+  letterSpacing: 0.3,
+};
 
 /**
  * Wiersz jednej składowej.
@@ -49,7 +65,14 @@ const head: CSSProperties = { fontSize: 10, color: '#94a3b8', textTransform: 'up
  * Metoda dostaje pole parametrów, pole go nie ma — kolumna zostaje pusta, żeby
  * wiersze nie przeskakiwały przy zmianie rodzaju.
  */
-function MemberRow({ member, index, count, onUpdate, onRemove, onMove }: {
+function MemberRow({
+  member,
+  index,
+  count,
+  onUpdate,
+  onRemove,
+  onMove,
+}: {
   member: ClassMember;
   index: number;
   count: number;
@@ -65,24 +88,48 @@ function MemberRow({ member, index, count, onUpdate, onRemove, onMove }: {
     // zmianie nadpisali zapis, którego nie umiemy odtworzyć.
     return (
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        <code style={{ flex: 1, fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <code
+          style={{
+            flex: 1,
+            fontSize: 11,
+            color: '#475569',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
           {member.raw}
         </code>
-        <span style={{ fontSize: 10, color: '#94a3b8' }}>składnia spoza modelu — edytuj w kodzie</span>
-        <button type="button" style={iconBtn} title="Usuń składową" onClick={() => onRemove(index)}>×</button>
+        <span style={{ fontSize: 10, color: '#94a3b8' }}>
+          składnia spoza modelu — edytuj w kodzie
+        </span>
+        <button type="button" style={iconBtn} title="Usuń składową" onClick={() => onRemove(index)}>
+          ×
+        </button>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '44px minmax(60px, 1fr) 74px minmax(60px, 1fr) minmax(50px, 0.7fr) 28px 28px 24px 24px 24px', gap: 3, alignItems: 'center' }}>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns:
+          '44px minmax(60px, 1fr) 74px minmax(60px, 1fr) minmax(50px, 0.7fr) 28px 28px 24px 24px 24px',
+        gap: 3,
+        alignItems: 'center',
+      }}
+    >
       <select
         style={input}
         value={member.visibility ?? 'public'}
         title="Widoczność"
         onChange={(e) => onUpdate(index, { visibility: e.target.value as MemberVisibility })}
       >
-        {VISIBILITIES.map((v) => <option key={v.value} value={v.value} title={v.title}>{v.label}</option>)}
+        {VISIBILITIES.map((v) => (
+          <option key={v.value} value={v.value} title={v.title}>
+            {v.label}
+          </option>
+        ))}
       </select>
 
       <input
@@ -110,7 +157,9 @@ function MemberRow({ member, index, count, onUpdate, onRemove, onMove }: {
           title="Lista parametrów, np. int a, String b"
           onChange={(e) => onUpdate(index, { params: e.target.value })}
         />
-      ) : <span />}
+      ) : (
+        <span />
+      )}
 
       <input
         style={input}
@@ -120,29 +169,63 @@ function MemberRow({ member, index, count, onUpdate, onRemove, onMove }: {
         onChange={(e) => onUpdate(index, { type: e.target.value })}
       />
 
-      <label style={{ fontSize: 10, color: '#64748b', display: 'flex', alignItems: 'center', gap: 2 }} title="Statyczna ($)">
+      <label
+        style={{ fontSize: 10, color: '#64748b', display: 'flex', alignItems: 'center', gap: 2 }}
+        title="Statyczna ($)"
+      >
         <input
           type="checkbox"
           checked={!!member.isStatic}
           onChange={(e) => onUpdate(index, { isStatic: e.target.checked })}
-        />$
+        />
+        $
       </label>
-      <label style={{ fontSize: 10, color: '#64748b', display: 'flex', alignItems: 'center', gap: 2 }} title="Abstrakcyjna (*)">
+      <label
+        style={{ fontSize: 10, color: '#64748b', display: 'flex', alignItems: 'center', gap: 2 }}
+        title="Abstrakcyjna (*)"
+      >
         <input
           type="checkbox"
           checked={!!member.isAbstract}
           onChange={(e) => onUpdate(index, { isAbstract: e.target.checked })}
-        />*
+        />
+        *
       </label>
 
-      <button type="button" style={iconBtn} title="W górę" disabled={index === 0} onClick={() => onMove(index, index - 1)}>↑</button>
-      <button type="button" style={iconBtn} title="W dół" disabled={index === count - 1} onClick={() => onMove(index, index + 1)}>↓</button>
-      <button type="button" style={iconBtn} title="Usuń składową" onClick={() => onRemove(index)}>×</button>
+      <button
+        type="button"
+        style={iconBtn}
+        title="W górę"
+        disabled={index === 0}
+        onClick={() => onMove(index, index - 1)}
+      >
+        ↑
+      </button>
+      <button
+        type="button"
+        style={iconBtn}
+        title="W dół"
+        disabled={index === count - 1}
+        onClick={() => onMove(index, index + 1)}
+      >
+        ↓
+      </button>
+      <button type="button" style={iconBtn} title="Usuń składową" onClick={() => onRemove(index)}>
+        ×
+      </button>
     </div>
   );
 }
 
-export function ClassSpecPanel({ node, onAdd, onUpdate, onRemove, onMove, onStereotype, onClose }: ClassSpecPanelProps) {
+export function ClassSpecPanel({
+  node,
+  onAdd,
+  onUpdate,
+  onRemove,
+  onMove,
+  onStereotype,
+  onClose,
+}: ClassSpecPanelProps) {
   const members = node.members ?? [];
 
   return (
@@ -151,22 +234,46 @@ export function ClassSpecPanel({ node, onAdd, onUpdate, onRemove, onMove, onSter
         <strong style={{ fontSize: 12 }}>{node.label || node.id}</strong>
         <label style={{ ...head, display: 'flex', alignItems: 'center', gap: 4 }}>
           adnotacja
-          <select style={input} value={node.stereotype ?? ''} onChange={(e) => onStereotype(e.target.value)}>
-            {STEREOTYPES.map((s) => <option key={s} value={s}>{s || '— brak —'}</option>)}
+          <select
+            style={input}
+            value={node.stereotype ?? ''}
+            onChange={(e) => onStereotype(e.target.value)}
+          >
+            {STEREOTYPES.map((s) => (
+              <option key={s} value={s}>
+                {s || '— brak —'}
+              </option>
+            ))}
           </select>
         </label>
-        <button type="button" style={iconBtn} onClick={() => onAdd('field')}>+ pole</button>
-        <button type="button" style={iconBtn} onClick={() => onAdd('method')}>+ metoda</button>
+        <button type="button" style={iconBtn} onClick={() => onAdd('field')}>
+          + pole
+        </button>
+        <button type="button" style={iconBtn} onClick={() => onAdd('method')}>
+          + metoda
+        </button>
         <span style={{ flex: 1 }} />
-        <button type="button" style={iconBtn} title="Zamknij panel" onClick={onClose}>×</button>
+        <button type="button" style={iconBtn} title="Zamknij panel" onClick={onClose}>
+          ×
+        </button>
       </div>
 
       {members.length === 0 ? (
-        <div style={{ fontSize: 11, color: '#94a3b8' }}>Klasa bez składowych — dodaj pole albo metodę.</div>
+        <div style={{ fontSize: 11, color: '#94a3b8' }}>
+          Klasa bez składowych — dodaj pole albo metodę.
+        </div>
       ) : (
         // Lista bywa długa; przewijamy ją, zamiast rozpychać nakładkę na całą
         // wysokość płótna.
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxHeight: 210, overflowY: 'auto' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+            maxHeight: 210,
+            overflowY: 'auto',
+          }}
+        >
           {members.map((member, i) => (
             <MemberRow
               key={i}

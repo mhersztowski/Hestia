@@ -104,7 +104,11 @@ export class GitService {
       return { start: this.resolve(userName, clean).dir, driveRoot };
     }
     let start = abs;
-    try { if (!fs.statSync(abs).isDirectory()) start = path.dirname(abs); } catch { /* nie istnieje — traktuj jak katalog */ }
+    try {
+      if (!fs.statSync(abs).isDirectory()) start = path.dirname(abs);
+    } catch {
+      /* nie istnieje — traktuj jak katalog */
+    }
     return { start, driveRoot };
   }
 
@@ -113,7 +117,11 @@ export class GitService {
    *  zamiast rzucać „Unexpected end of JSON input". */
   private read(repoJsonPath: string): RepoJson {
     let text = '';
-    try { text = fs.readFileSync(repoJsonPath, 'utf8'); } catch { /* brak pliku */ }
+    try {
+      text = fs.readFileSync(repoJsonPath, 'utf8');
+    } catch {
+      /* brak pliku */
+    }
     text = text.trim();
     const empty: RepoJson = { type: 'git-repo', version: 1, url: '', remote: 'origin' };
     if (!text) return empty;
@@ -128,8 +136,11 @@ export class GitService {
           type: 'git-repo',
           version: typeof o.version === 'number' ? o.version : 1,
           url: typeof o.url === 'string' ? o.url : '',
-          branch: o.branch, tag: o.tag, remote: o.remote ?? 'origin',
-          token: o.token, lastSync: o.lastSync,
+          branch: o.branch,
+          tag: o.tag,
+          remote: o.remote ?? 'origin',
+          token: o.token,
+          lastSync: o.lastSync,
         };
       } catch {
         return empty;
@@ -176,13 +187,22 @@ export class GitService {
     // Bez repozytorium wciąż odpowiadamy — panel pokazuje wtedy formularz
     // konfiguracji, a nie błąd; „nie ma repo" jest normalnym stanem katalogu.
     const dir = korzen ?? start;
-    const jawny = path.basename(path.resolve(driveRoot, String(relPath || '').replace(/^[/\\]+/, '')));
+    const jawny = path.basename(
+      path.resolve(driveRoot, String(relPath || '').replace(/^[/\\]+/, ''))
+    );
     const repoJsonPath = jawny.endsWith('.repo.json')
       ? this.resolve(userName, relPath).repoJsonPath
-      : (korzen ? sciezkiMarkera(korzen).find((k) => k.startsWith(driveRoot + path.sep) && fs.existsSync(k)) ?? null : null);
-    const repo = repoJsonPath ? this.read(repoJsonPath) : { type: 'git-repo' as const, version: 1, url: '', remote: 'origin' };
+      : korzen
+        ? (sciezkiMarkera(korzen).find(
+            (k) => k.startsWith(driveRoot + path.sep) && fs.existsSync(k)
+          ) ?? null)
+        : null;
+    const repo = repoJsonPath
+      ? this.read(repoJsonPath)
+      : { type: 'git-repo' as const, version: 1, url: '', remote: 'origin' };
     const git = await this.git.info(dir);
-    const root = korzen === null ? null : path.relative(driveRoot, korzen).split(path.sep).join('/');
+    const root =
+      korzen === null ? null : path.relative(driveRoot, korzen).split(path.sep).join('/');
     return { repo: this.redact(repo), git, root };
   }
 
@@ -192,7 +212,13 @@ export class GitService {
   async save(
     userName: string,
     relPath: string,
-    patch: { url?: string; remote?: string; branch?: string; token?: string; tokenSecretKey?: string | null },
+    patch: {
+      url?: string;
+      remote?: string;
+      branch?: string;
+      token?: string;
+      tokenSecretKey?: string | null;
+    }
   ): Promise<RepoJson> {
     const { repoJsonPath, dir } = this.resolve(userName, relPath);
     const cur = this.read(repoJsonPath);
@@ -204,9 +230,13 @@ export class GitService {
       branch: cur.branch,
       tag: cur.tag,
       // '***' to wartość zredagowana z frontu — nie nadpisuj nią realnego tokena.
-      token: patch.token !== undefined && patch.token !== '***' ? (patch.token || undefined) : cur.token,
+      token:
+        patch.token !== undefined && patch.token !== '***' ? patch.token || undefined : cur.token,
       // null = wyczyść; string = ustaw; undefined = zostaw jak było.
-      tokenSecretKey: patch.tokenSecretKey !== undefined ? (patch.tokenSecretKey ?? undefined) : cur.tokenSecretKey,
+      tokenSecretKey:
+        patch.tokenSecretKey !== undefined
+          ? (patch.tokenSecretKey ?? undefined)
+          : cur.tokenSecretKey,
       lastSync: cur.lastSync,
     };
     // Gdy ustawiono tokenSecretKey — wyczyść surowy token (nie trzymaj obu).
@@ -214,7 +244,11 @@ export class GitService {
     this.write(repoJsonPath, next);
     // Jeśli repo już istnieje, a URL się zmienił — zaktualizuj remote.
     if (next.url && (await this.git.isRepo(dir))) {
-      try { await this.git.setRemoteUrl(dir, next.url, next.remote); } catch { /* ignore */ }
+      try {
+        await this.git.setRemoteUrl(dir, next.url, next.remote);
+      } catch {
+        /* ignore */
+      }
     }
     return this.redact(next);
   }
@@ -236,7 +270,11 @@ export class GitService {
    *    sama katastrofa, przed którą broni granica w `repoRoot.ts`: panel
    *    pokazałby tysiące plików gotowych do commita.
    */
-  async init(userName: string, relPath: string, branch?: string): Promise<{ ok: boolean; output: string }> {
+  async init(
+    userName: string,
+    relPath: string,
+    branch?: string
+  ): Promise<{ ok: boolean; output: string }> {
     const { start, driveRoot } = this.resolveAny(userName, relPath);
 
     if (start === driveRoot) {
@@ -263,13 +301,22 @@ export class GitService {
     if (!repo.url) throw new Error('Brak URL repozytorium — najpierw ustaw i zapisz URL');
     if (await this.git.isRepo(dir)) throw new Error('Katalog jest już repozytorium git');
     const token = await this.resolveToken(userName, repo);
-    const r = await this.git.cloneInto(dir, repo.url, { branch: repo.branch, token, remote: repo.remote });
+    const r = await this.git.cloneInto(dir, repo.url, {
+      branch: repo.branch,
+      token,
+      remote: repo.remote,
+    });
     if (r.ok) await this.syncRepoJson(repoJsonPath, dir);
     return { ok: r.ok, output: (r.stdout + (r.stderr ? '\n' + r.stderr : '')).trim() };
   }
 
   /** Checkout brancha lub tagu. */
-  async checkout(userName: string, relPath: string, ref: string, type: 'branch' | 'tag'): Promise<{ ok: boolean; output: string }> {
+  async checkout(
+    userName: string,
+    relPath: string,
+    ref: string,
+    type: 'branch' | 'tag'
+  ): Promise<{ ok: boolean; output: string }> {
     const { repoJsonPath, dir, repo } = this.kontekst(userName, relPath);
     try {
       await this.git.checkout(dir, ref, { type, remote: repo.remote });
@@ -292,7 +339,11 @@ export class GitService {
   /** Lista plików śledzonych przez git na podanym ref (lub working tree gdy ref puste). */
   async listFiles(userName: string, relPath: string, ref?: string): Promise<string[]> {
     let dir: string;
-    try { dir = await this.repoDir(userName, relPath); } catch { return []; }
+    try {
+      dir = await this.repoDir(userName, relPath);
+    } catch {
+      return [];
+    }
     return this.git.listFiles(dir, ref);
   }
 
@@ -302,7 +353,7 @@ export class GitService {
   async diff(
     userName: string,
     relPath: string,
-    opts: { from?: string; to?: string; file?: string },
+    opts: { from?: string; to?: string; file?: string }
   ): Promise<{ ok: boolean; diff: string }> {
     const dir = await this.repoDir(userName, relPath);
     try {
@@ -314,7 +365,11 @@ export class GitService {
   }
 
   /** Stage all + commit. */
-  async commit(userName: string, relPath: string, message: string): Promise<{ ok: boolean; output: string }> {
+  async commit(
+    userName: string,
+    relPath: string,
+    message: string
+  ): Promise<{ ok: boolean; output: string }> {
     const dir = await this.repoDir(userName, relPath);
     const r = await this.git.commit(dir, message, { authorName: userName });
     return { ok: r.ok, output: (r.stdout + (r.stderr ? '\n' + r.stderr : '')).trim() };
@@ -359,13 +414,21 @@ export class GitService {
    * korzeniu; gdy go nie ma (repozytorium założone spoza Drive), zostaje pusta
    * konfiguracja i operacje zdalne idą przez `remote` zapisany w repozytorium.
    */
-  private kontekst(userName: string, relPath: string): {
-    dir: string; repoJsonPath: string | null; repo: RepoJson;
+  private kontekst(
+    userName: string,
+    relPath: string
+  ): {
+    dir: string;
+    repoJsonPath: string | null;
+    repo: RepoJson;
   } {
     const { start, driveRoot } = this.resolveAny(userName, relPath);
     const dir = znajdzKorzenRepo(start, driveRoot);
-    if (!dir) throw new Error('Katalog nie jest repozytorium git ani nie leży w żadnym (najpierw Clone)');
-    const jawny = path.basename(path.resolve(driveRoot, String(relPath || '').replace(/^[/\\]+/, '')));
+    if (!dir)
+      throw new Error('Katalog nie jest repozytorium git ani nie leży w żadnym (najpierw Clone)');
+    const jawny = path.basename(
+      path.resolve(driveRoot, String(relPath || '').replace(/^[/\\]+/, ''))
+    );
     if (jawny.endsWith('.repo.json')) {
       const { repoJsonPath } = this.resolve(userName, relPath);
       return { dir, repoJsonPath, repo: this.read(repoJsonPath) };
@@ -375,7 +438,11 @@ export class GitService {
         return { dir, repoJsonPath: kandydat, repo: this.read(kandydat) };
       }
     }
-    return { dir, repoJsonPath: null, repo: { type: 'git-repo', version: 1, url: '', remote: 'origin' } };
+    return {
+      dir,
+      repoJsonPath: null,
+      repo: { type: 'git-repo', version: 1, url: '', remote: 'origin' },
+    };
   }
 
   /**
@@ -443,7 +510,12 @@ export class GitService {
    * Łatkę składa edytor, bo tylko on wie, który fragment użytkownik wskazał.
    * Serwer sprawdza jedno: że repozytorium jest tym, o którym mowa.
    */
-  async applyPatch(userName: string, relPath: string, patch: string, opts: { cached?: boolean; reverse?: boolean }) {
+  async applyPatch(
+    userName: string,
+    relPath: string,
+    patch: string,
+    opts: { cached?: boolean; reverse?: boolean }
+  ) {
     return this.git.applyPatch(await this.repoDir(userName, relPath), patch, opts);
   }
 

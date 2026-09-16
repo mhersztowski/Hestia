@@ -86,10 +86,7 @@ const PROBKI = [0, 0.37, -0.81, 1.5];
 const bezMinusZera = (x: number) => (Object.is(x, -0) ? 0 : x);
 
 /** Buduje scenariusz z bloku ODE. */
-export function exportScenario(
-  block: FormulaBlock,
-  options: ScenarioOptions,
-): Scenario {
+export function exportScenario(block: FormulaBlock, options: ScenarioOptions): Scenario {
   const issues: string[] = [];
   const state = block.state ?? [];
 
@@ -100,7 +97,10 @@ export function exportScenario(
   const derivatives: Record<string, string> = {};
   for (const name of state) {
     const latex = block.derivatives?.[name];
-    if (!latex) { issues.push(`Brak pochodnej dla „${name}".`); continue; }
+    if (!latex) {
+      issues.push(`Brak pochodnej dla „${name}".`);
+      continue;
+    }
 
     const wynik = latexToPython(latex);
     issues.push(...wynik.issues);
@@ -110,11 +110,16 @@ export function exportScenario(
   // Warunki początkowe z dokumentu, chyba że wywołujący poda własne.
   const initial: Record<string, number> = {};
   for (const name of state) {
-    if (options.initial?.[name] !== undefined) { initial[name] = options.initial[name]; continue; }
+    if (options.initial?.[name] !== undefined) {
+      initial[name] = options.initial[name];
+      continue;
+    }
 
     const wyrazenie = block.init?.[name];
     initial[name] = wyrazenie
-      ? bezMinusZera(compileExpression(wyrazenie, Object.keys(options.parameters)).evaluate(options.parameters))
+      ? bezMinusZera(
+          compileExpression(wyrazenie, Object.keys(options.parameters)).evaluate(options.parameters)
+        )
       : 0;
   }
 
@@ -132,10 +137,11 @@ export function exportScenario(
     for (const name of state) {
       const latex = block.derivatives?.[name];
       if (!latex) continue;
-      pochodne[name] = bezMinusZera(compileExpression(
-        latex,
-        [...Object.keys(options.parameters), ...state, 't'],
-      ).evaluate(scope));
+      pochodne[name] = bezMinusZera(
+        compileExpression(latex, [...Object.keys(options.parameters), ...state, 't']).evaluate(
+          scope
+        )
+      );
     }
 
     return { state: stan, derivatives: pochodne };
@@ -149,23 +155,30 @@ export function exportScenario(
    * (−1 znaczy „przejście malejące"), bo to ona jest tu stroną obcą.
    */
   const events = options.events
-    ? (block.events ?? []).map((event) => {
-      const rozkład = compileComparison(event.when, [...state, ...Object.keys(options.parameters)]);
-      if (!rozkład) {
-        issues.push(`Warunku „${event.when}" nie da się rozłożyć na wielkość przechodzącą przez zero.`);
-        return undefined;
-      }
-      const strony = event.when.split(/<=|>=|<|>|=/);
-      const lewa = latexToPython(strony[0]);
-      const prawa = latexToPython(strony[1] ?? '0');
-      issues.push(...lewa.issues, ...prawa.issues);
+    ? (block.events ?? [])
+        .map((event) => {
+          const rozkład = compileComparison(event.when, [
+            ...state,
+            ...Object.keys(options.parameters),
+          ]);
+          if (!rozkład) {
+            issues.push(
+              `Warunku „${event.when}" nie da się rozłożyć na wielkość przechodzącą przez zero.`
+            );
+            return undefined;
+          }
+          const strony = event.when.split(/<=|>=|<|>|=/);
+          const lewa = latexToPython(strony[0]);
+          const prawa = latexToPython(strony[1] ?? '0');
+          issues.push(...lewa.issues, ...prawa.issues);
 
-      return {
-        expression: `(${lewa.code}) - (${prawa.code})`,
-        direction: rozkład.direction === 'down' ? -1 : (rozkład.direction === 'up' ? 1 : 0),
-        terminal: !!event.stop,
-      };
-    }).filter((e): e is NonNullable<typeof e> => !!e)
+          return {
+            expression: `(${lewa.code}) - (${prawa.code})`,
+            direction: rozkład.direction === 'down' ? -1 : rozkład.direction === 'up' ? 1 : 0,
+            terminal: !!event.stop,
+          };
+        })
+        .filter((e): e is NonNullable<typeof e> => !!e)
     : undefined;
 
   return {

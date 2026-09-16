@@ -40,7 +40,8 @@ export function periodCount(timeline: Timeline): number {
 
 export function eventCount(timeline: Timeline): number {
   return timeline.sections.reduce(
-    (sum, section) => sum + section.periods.reduce((inner, period) => inner + period.events.length, 0),
-    0,
+    (sum, section) =>
+      sum + section.periods.reduce((inner, period) => inner + period.events.length, 0),
+    0
   );
 }

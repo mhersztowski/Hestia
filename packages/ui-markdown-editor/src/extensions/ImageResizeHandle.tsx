@@ -24,32 +24,37 @@ export interface ImageResizeHandleProps {
 }
 
 export const ImageResizeHandle: React.FC<ImageResizeHandleProps> = ({
-  width, updateAttributes, elementRef,
+  width,
+  updateAttributes,
+  elementRef,
 }) => {
   const [dragging, setDragging] = useState(false);
   /** Stan przeciągania w ref, nie w stanie: pointermove przychodzi częściej, niż React renderuje. */
   const startRef = useRef<{ x: number; szerokość: number; kolumna: number } | null>(null);
 
-  const onPointerMove = useCallback((event: PointerEvent) => {
-    const start = startRef.current;
-    if (!start) return;
+  const onPointerMove = useCallback(
+    (event: PointerEvent) => {
+      const start = startRef.current;
+      if (!start) return;
 
-    const nowa = start.szerokość + (event.clientX - start.x);
-    const procent = Math.round((nowa / start.kolumna) * 100);
+      const nowa = start.szerokość + (event.clientX - start.x);
+      const procent = Math.round((nowa / start.kolumna) * 100);
 
-    /**
-     * Pełna szerokość **kasuje** atrybut zamiast zapisywać „100%".
-     *
-     * Brak szerokości znaczy „tyle, ile obrazek ma naturalnie, nie więcej niż
-     * kolumna". To jest inna informacja niż sto procent kolumny, które
-     * rozciągnęłoby mały obrazek na całą szerokość i rozmyło go.
-     */
-    if (procent >= 100) {
-      updateAttributes({ width: null });
-      return;
-    }
-    updateAttributes({ width: `${Math.max(MIN_PROCENT, procent)}%` });
-  }, [updateAttributes]);
+      /**
+       * Pełna szerokość **kasuje** atrybut zamiast zapisywać „100%".
+       *
+       * Brak szerokości znaczy „tyle, ile obrazek ma naturalnie, nie więcej niż
+       * kolumna". To jest inna informacja niż sto procent kolumny, które
+       * rozciągnęłoby mały obrazek na całą szerokość i rozmyło go.
+       */
+      if (procent >= 100) {
+        updateAttributes({ width: null });
+        return;
+      }
+      updateAttributes({ width: `${Math.max(MIN_PROCENT, procent)}%` });
+    },
+    [updateAttributes]
+  );
 
   const onPointerUp = useCallback(() => {
     startRef.current = null;
@@ -76,7 +81,8 @@ export const ImageResizeHandle: React.FC<ImageResizeHandleProps> = ({
 
     // Szerokość kolumny bierzemy z rodzica: to ona jest odniesieniem dla
     // procentów, a nie szerokość okna ani samego obrazka.
-    const kolumna = (element.parentElement as HTMLElement | null)?.offsetWidth || element.offsetWidth;
+    const kolumna =
+      (element.parentElement as HTMLElement | null)?.offsetWidth || element.offsetWidth;
     startRef.current = { x: event.clientX, szerokość: element.offsetWidth, kolumna };
     setDragging(true);
   };
@@ -94,7 +100,8 @@ export const ImageResizeHandle: React.FC<ImageResizeHandleProps> = ({
         // Klawiatura obsługiwana tak samo jak przeciąganie — uchwyt, do którego
         // da się dojść tabem, ale nie da się go użyć, jest gorszy niż jego brak.
         const teraz = width ? Number.parseFloat(width) : 100;
-        if (event.key === 'ArrowLeft') updateAttributes({ width: `${Math.max(MIN_PROCENT, teraz - 5)}%` });
+        if (event.key === 'ArrowLeft')
+          updateAttributes({ width: `${Math.max(MIN_PROCENT, teraz - 5)}%` });
         if (event.key === 'ArrowRight') {
           const nowa = teraz + 5;
           updateAttributes({ width: nowa >= 100 ? null : `${nowa}%` });

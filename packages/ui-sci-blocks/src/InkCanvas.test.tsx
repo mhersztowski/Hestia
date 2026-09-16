@@ -40,14 +40,17 @@ describe('kanwa pisania rysikiem', () => {
     expect(screen.getByRole('button', { name: 'wyczyść' })).toHaveProperty('disabled', true);
 
     napisz(kanwa(container));
-    expect(screen.getByRole('button', { name: /rozpoznaj wzór/ })).toHaveProperty('disabled', false);
+    expect(screen.getByRole('button', { name: /rozpoznaj wzór/ })).toHaveProperty(
+      'disabled',
+      false
+    );
   });
 
   it('oddaje portowi obraz PNG i tryb, a wynik podaje dalej', async () => {
     const recognize = vi.fn(async () => '\\frac{a}{b}');
     const onRecognized = vi.fn();
     const { container } = render(
-      <InkCanvas mode="latex" recognize={recognize} onRecognized={onRecognized} />,
+      <InkCanvas mode="latex" recognize={recognize} onRecognized={onRecognized} />
     );
 
     napisz(kanwa(container));
@@ -86,7 +89,9 @@ describe('kanwa pisania rysikiem', () => {
 
   // Odmowa modelu nie może wyglądać jak zawieszenie przycisku.
   it('błąd rozpoznawania pokazuje się przy kanwie', async () => {
-    const recognize = vi.fn(async () => { throw new Error('Model nie rozpoznał pisma'); });
+    const recognize = vi.fn(async () => {
+      throw new Error('Model nie rozpoznał pisma');
+    });
     const { container } = render(<InkCanvas mode="latex" recognize={recognize} />);
 
     napisz(kanwa(container));

@@ -38,7 +38,7 @@ export function applyDrag(
   doc: LayoutDoc,
   id: string,
   cel: { x: number; y: number },
-  biezace: Record<string, Rect>,
+  biezace: Record<string, Rect>
 ): DragOutcome {
   const shape = doc.shapes.find((s) => s.id === id);
   if (!shape) return { doc };
@@ -48,8 +48,12 @@ export function applyDrag(
   if (doc.mode === 'flow') {
     const rodzic = shape.parent ? doc.shapes.find((s) => s.id === shape.parent) : undefined;
     if (rodzic?.container) {
-      return { doc, odmowa: `Pozycję „${id}" wyznacza przepływ w „${rodzic.id}". `
-        + 'Żeby ją zmienić, zmień kolejność, odstęp albo „grow".' };
+      return {
+        doc,
+        odmowa:
+          `Pozycję „${id}" wyznacza przepływ w „${rodzic.id}". ` +
+          'Żeby ją zmienić, zmień kolejność, odstęp albo „grow".',
+      };
     }
   }
 
@@ -90,8 +94,12 @@ export function applyDrag(
   const wolnoY = wolnoNadpisac(shape.y);
 
   if (!wolnoX && !wolnoY) {
-    return { doc, odmowa: `Położenie „${id}" wynika z wyrażeń. Zmień wyrażenie albo parametr, `
-      + 'do którego się odwołuje.' };
+    return {
+      doc,
+      odmowa:
+        `Położenie „${id}" wynika z wyrażeń. Zmień wyrażenie albo parametr, ` +
+        'do którego się odwołuje.',
+    };
   }
 
   // Jedna współrzędna opisana wyrażeniem nie unieruchamia drugiej. Zablokowanie
@@ -105,8 +113,10 @@ export function applyDrag(
 
   return {
     doc: nowy,
-    uwaga: wolnoX && wolnoY ? undefined
-      : `${wolnoX ? 'Pionowe' : 'Poziome'} położenie „${id}" wynika z wyrażenia i zostało bez zmian.`,
+    uwaga:
+      wolnoX && wolnoY
+        ? undefined
+        : `${wolnoX ? 'Pionowe' : 'Poziome'} położenie „${id}" wynika z wyrażenia i zostało bez zmian.`,
   };
 }
 
@@ -115,7 +125,7 @@ export function previewDrag(
   doc: LayoutDoc,
   id: string,
   cel: { x: number; y: number },
-  biezace: Record<string, Rect>,
+  biezace: Record<string, Rect>
 ): Record<string, Rect> {
   if (doc.mode === 'constraint') return dragShape(doc, id, cel).rects;
   const { doc: próbny, odmowa } = applyDrag(doc, id, cel, biezace);

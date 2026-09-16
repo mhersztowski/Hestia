@@ -59,7 +59,11 @@ async function listSchemaFiles(provider: FileSystemProvider, root: string): Prom
     if (depth > 10 || budget <= 0) return;
     budget--;
     let entries: Awaited<ReturnType<typeof provider.readDirectory>>;
-    try { entries = await provider.readDirectory(dir); } catch { return; }
+    try {
+      entries = await provider.readDirectory(dir);
+    } catch {
+      return;
+    }
     for (const e of entries) {
       const full = dir === '/' ? `/${e.name}` : `${dir}/${e.name}`;
       if (e.type === FileType.Directory) {
@@ -75,28 +79,42 @@ async function listSchemaFiles(provider: FileSystemProvider, root: string): Prom
 }
 
 // ── Directory tree built from the flat list of file paths ───────────────────
-interface TreeNode { name: string; path: string; isFile: boolean; children: Map<string, TreeNode> }
+interface TreeNode {
+  name: string;
+  path: string;
+  isFile: boolean;
+  children: Map<string, TreeNode>;
+}
 
 function buildTree(files: string[], root: string): TreeNode {
   const rootNode: TreeNode = { name: '', path: root, isFile: false, children: new Map() };
   for (const full of files) {
-    const relParts = (full.startsWith(`${root}/`) ? full.slice(root.length + 1) : full).split('/').filter(Boolean);
+    const relParts = (full.startsWith(`${root}/`) ? full.slice(root.length + 1) : full)
+      .split('/')
+      .filter(Boolean);
     let node = rootNode;
     let acc = root;
     relParts.forEach((seg, i) => {
       acc = `${acc}/${seg}`;
       let child = node.children.get(seg);
-      if (!child) { child = { name: seg, path: acc, isFile: i === relParts.length - 1, children: new Map() }; node.children.set(seg, child); }
+      if (!child) {
+        child = { name: seg, path: acc, isFile: i === relParts.length - 1, children: new Map() };
+        node.children.set(seg, child);
+      }
       node = child;
     });
   }
   return rootNode;
 }
 
-interface Row { node: TreeNode; depth: number }
+interface Row {
+  node: TreeNode;
+  depth: number;
+}
 function flattenTree(node: TreeNode, depth: number, collapsed: Set<string>, out: Row[]): void {
   const children = [...node.children.values()].sort((a, b) =>
-    (a.isFile !== b.isFile ? (a.isFile ? 1 : -1) : a.name.localeCompare(b.name)));
+    a.isFile !== b.isFile ? (a.isFile ? 1 : -1) : a.name.localeCompare(b.name)
+  );
   for (const c of children) {
     out.push({ node: c, depth });
     if (!c.isFile && !collapsed.has(c.path)) flattenTree(c, depth + 1, collapsed, out);
@@ -107,7 +125,13 @@ function flattenTree(node: TreeNode, depth: number, collapsed: Set<string>, out:
  * Pick a `*.schema.json` from a directory tree of the VFS and insert a `$schema`
  * reference to it, relative to the JSON file being edited.
  */
-export function InsertSchemaDialog({ open, provider, currentFilePath, onClose, onInsert }: InsertSchemaDialogProps) {
+export function InsertSchemaDialog({
+  open,
+  provider,
+  currentFilePath,
+  onClose,
+  onInsert,
+}: InsertSchemaDialogProps) {
   const [files, setFiles] = useState<string[] | null>(null);
   const [filter, setFilter] = useState('');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -120,13 +144,21 @@ export function InsertSchemaDialog({ open, provider, currentFilePath, onClose, o
     setFilter('');
     setCollapsed(new Set());
     listSchemaFiles(provider, root)
-      .then((f) => { if (!cancelled) setFiles(f); })
-      .catch(() => { if (!cancelled) setFiles([]); });
-    return () => { cancelled = true; };
+      .then((f) => {
+        if (!cancelled) setFiles(f);
+      })
+      .catch(() => {
+        if (!cancelled) setFiles([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open, provider, root]);
 
   const rel = (full: string) => (full.startsWith(`${root}/`) ? full.slice(root.length + 1) : full);
-  const filtered = (files ?? []).filter((f) => !filter || rel(f).toLowerCase().includes(filter.toLowerCase()));
+  const filtered = (files ?? []).filter(
+    (f) => !filter || rel(f).toLowerCase().includes(filter.toLowerCase())
+  );
   const tree = useMemo(() => buildTree(filtered, root), [filtered, root]);
   // While filtering, expand everything so matches are visible regardless of state.
   const rows = useMemo(() => {
@@ -135,21 +167,39 @@ export function InsertSchemaDialog({ open, provider, currentFilePath, onClose, o
     return out;
   }, [tree, collapsed, filter]);
 
-  const toggle = (p: string) => setCollapsed((s) => { const n = new Set(s); if (n.has(p)) n.delete(p); else n.add(p); return n; });
-  const pick = (full: string) => { onInsert(relativeFromFile(currentFilePath, full)); onClose(); };
+  const toggle = (p: string) =>
+    setCollapsed((s) => {
+      const n = new Set(s);
+      if (n.has(p)) n.delete(p);
+      else n.add(p);
+      return n;
+    });
+  const pick = (full: string) => {
+    onInsert(relativeFromFile(currentFilePath, full));
+    onClose();
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Insert $schema reference</DialogTitle>
       <DialogContent dividers>
         <TextField
-          size="small" fullWidth autoFocus placeholder="Filter *.schema.json…"
-          value={filter} onChange={(e) => setFilter(e.target.value)} sx={{ mb: 1 }}
+          size="small"
+          fullWidth
+          autoFocus
+          placeholder="Filter *.schema.json…"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          sx={{ mb: 1 }}
         />
         {files === null ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}><CircularProgress size={22} /></Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+            <CircularProgress size={22} />
+          </Box>
         ) : rows.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>No matching *.schema.json files.</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+            No matching *.schema.json files.
+          </Typography>
         ) : (
           <List dense disablePadding sx={{ maxHeight: 400, overflow: 'auto' }}>
             {rows.map((r) => (
@@ -159,15 +209,21 @@ export function InsertSchemaDialog({ open, provider, currentFilePath, onClose, o
                 onClick={() => (r.node.isFile ? pick(r.node.path) : toggle(r.node.path))}
               >
                 <ListItemIcon sx={{ minWidth: 28 }}>
-                  {r.node.isFile
-                    ? <InsertDriveFileIcon sx={{ fontSize: 17 }} color="action" />
-                    : (!filter && collapsed.has(r.node.path)
-                      ? <FolderIcon sx={{ fontSize: 17 }} color="primary" />
-                      : <FolderOpenIcon sx={{ fontSize: 17 }} color="primary" />)}
+                  {r.node.isFile ? (
+                    <InsertDriveFileIcon sx={{ fontSize: 17 }} color="action" />
+                  ) : !filter && collapsed.has(r.node.path) ? (
+                    <FolderIcon sx={{ fontSize: 17 }} color="primary" />
+                  ) : (
+                    <FolderOpenIcon sx={{ fontSize: 17 }} color="primary" />
+                  )}
                 </ListItemIcon>
                 <ListItemText
                   primary={r.node.name}
-                  primaryTypographyProps={{ fontSize: 13, noWrap: true, fontFamily: r.node.isFile ? 'monospace' : undefined }}
+                  primaryTypographyProps={{
+                    fontSize: 13,
+                    noWrap: true,
+                    fontFamily: r.node.isFile ? 'monospace' : undefined,
+                  }}
                 />
               </ListItemButton>
             ))}

@@ -25,7 +25,15 @@ export interface XYCanvasProps {
 
 const PADDING = { left: 42, right: 12, top: 12, bottom: 24 };
 
-export function XYCanvas({ points, xLabel, yLabel, width = 300, height = 220, cursor, equalAxes }: XYCanvasProps) {
+export function XYCanvas({
+  points,
+  xLabel,
+  yLabel,
+  width = 300,
+  height = 220,
+  cursor,
+  equalAxes,
+}: XYCanvasProps) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -49,8 +57,14 @@ export function XYCanvas({ points, xLabel, yLabel, width = 300, height = 220, cu
     let xMax = maxOf(xs);
     let yMin = minOf(ys);
     let yMax = maxOf(ys);
-    if (xMin === xMax) { xMin -= 1; xMax += 1; }
-    if (yMin === yMax) { yMin -= 1; yMax += 1; }
+    if (xMin === xMax) {
+      xMin -= 1;
+      xMax += 1;
+    }
+    if (yMin === yMax) {
+      yMin -= 1;
+      yMax += 1;
+    }
 
     const plotW = width - PADDING.left - PADDING.right;
     const plotH = height - PADDING.top - PADDING.bottom;

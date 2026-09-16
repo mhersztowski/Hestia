@@ -6,7 +6,7 @@ export default defineConfig({
     globals: true,
     // The pen hook and the notes page touch the DOM — without jsdom there is nothing to test.
     environment: 'jsdom',
-    setupFiles: ['src/test-setup.ts'],
+    setupFiles: ['src/testSetup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
   },
 });

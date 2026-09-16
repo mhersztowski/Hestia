@@ -10,8 +10,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import {
-  formatIn, spectrum, type ModelSource, type ParamSchema,
-  type PhenomenonModel, type PhenomenonResult, type ViewSpec,
+  formatIn,
+  spectrum,
+  type ModelSource,
+  type ParamSchema,
+  type PhenomenonModel,
+  type PhenomenonResult,
+  type ViewSpec,
 } from '@hestia/core-sci';
 import { useModelRunner, type WorkerFactory } from './useModelRunner';
 import { QualityPanel } from './QualityPanel';
@@ -24,8 +29,13 @@ import { Path3DCanvas } from './Path3DCanvas';
 const SERIES_COLORS = ['#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed'];
 const label: CSSProperties = { fontSize: 11, color: '#64748b' };
 const btn: CSSProperties = {
-  fontSize: 12, padding: '3px 10px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#334155',
+  fontSize: 12,
+  padding: '3px 10px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#334155',
 };
 
 /**
@@ -53,7 +63,11 @@ function zakres(parameter: ParamSchema, start: number | undefined) {
  * i nigdzie nie pokazywane) oraz „jak to zabrać ze sobą".
  */
 function WynikBar({
-  result, blockId, elapsedMs, offThread, plotnaRef,
+  result,
+  blockId,
+  elapsedMs,
+  offThread,
+  plotnaRef,
 }: {
   result: PhenomenonResult;
   blockId?: string;
@@ -67,20 +81,24 @@ function WynikBar({
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
       {elapsedMs !== undefined && (
-        <span style={{ ...label, fontVariantNumeric: 'tabular-nums' }} title={offThread
-          ? 'Liczone w osobnym wątku — suwak nadąża za palcem'
-          : 'Liczone w wątku interfejsu; przy dużym modelu suwak będzie się zacinał'}
+        <span
+          style={{ ...label, fontVariantNumeric: 'tabular-nums' }}
+          title={
+            offThread
+              ? 'Liczone w osobnym wątku — suwak nadąża za palcem'
+              : 'Liczone w wątku interfejsu; przy dużym modelu suwak będzie się zacinał'
+          }
         >
           {Math.round(elapsedMs)} ms{offThread ? '' : ' (w wątku interfejsu)'}
         </span>
       )}
       <span style={{ flex: 1 }} />
       {/*
-        * Obraz bierzemy z **pierwszego płótna w kontenerze widoków**, a nie
-        * z propa przekazanego przez każdy z czterech rendererów. Widoki
-        * powstają dynamicznie z `suggestViews`, więc przeciąganie uchwytu przez
-        * wszystkie znaczyłoby cztery zmiany przy każdym nowym rodzaju widoku.
-        */}
+       * Obraz bierzemy z **pierwszego płótna w kontenerze widoków**, a nie
+       * z propa przekazanego przez każdy z czterech rendererów. Widoki
+       * powstają dynamicznie z `suggestViews`, więc przeciąganie uchwytu przez
+       * wszystkie znaczyłoby cztery zmiany przy każdym nowym rodzaju widoku.
+       */}
       <button
         type="button"
         style={btn}
@@ -143,14 +161,22 @@ export interface ModelViewsProps {
  * a nie treści dokumentu. Zapis nastaw do bloku jest osobną decyzją hosta.
  */
 export function ModelViews({
-  model, views, exposed, duration = 10, onValues, source, workerFactory, initialValues, blockId,
+  model,
+  views,
+  exposed,
+  duration = 10,
+  onValues,
+  source,
+  workerFactory,
+  initialValues,
+  blockId,
 }: ModelViewsProps) {
   const startowe = useMemo(
     () => ({
       ...Object.fromEntries(model.parameters.map((p) => [p.name, p.value])),
       ...initialValues,
     }),
-    [model, initialValues],
+    [model, initialValues]
   );
   const [values, setValues] = useState<Record<string, number>>(startowe);
   const [playing, setPlaying] = useState(false);
@@ -158,7 +184,9 @@ export function ModelViews({
 
   // Zmiana modelu (inny dokument, poprawiony skrypt) przestawia suwaki na nowe
   // wartości startowe — inaczej panel pokazywałby stan sprzed edycji.
-  useEffect(() => { setValues(startowe); }, [startowe]);
+  useEffect(() => {
+    setValues(startowe);
+  }, [startowe]);
 
   const dt = Math.max(duration / 40000, 1e-9);
   const tSpan = useMemo((): [number, number] => [0, duration], [duration]);
@@ -171,27 +199,30 @@ export function ModelViews({
     values,
     tSpan,
     dt,
-    source && workerFactory ? workerFactory : undefined,
+    source && workerFactory ? workerFactory : undefined
   );
   const local = useMemo(
     () => (source && workerFactory ? undefined : model.run(values, tSpan, dt)),
-    [model, values, tSpan, dt, source, workerFactory],
+    [model, values, tSpan, dt, source, workerFactory]
   );
-  const result: PhenomenonResult = local ?? runner.result ?? { scalars: {}, series: {}, invariants: [] };
+  const result: PhenomenonResult = local ??
+    runner.result ?? { scalars: {}, series: {}, invariants: [] };
 
   const trajectory = result.trajectory;
-  const animated = views.some((v) => v.kind === 'angular2d' || v.kind === 'path2d' || v.kind === 'path3d');
-  const hasTime = trajectory ?? Object.values(result.series)[0]?.length ? true : false;
+  const animated = views.some(
+    (v) => v.kind === 'angular2d' || v.kind === 'path2d' || v.kind === 'path3d'
+  );
+  const hasTime = (trajectory ?? Object.values(result.series)[0]?.length) ? true : false;
 
   useEffect(() => {
     if (!playing) return;
     let start = 0;
     let raf = 0;
-    const span = trajectory ? (trajectory.t1 - trajectory.t0 || 1) : duration;
+    const span = trajectory ? trajectory.t1 - trajectory.t0 || 1 : duration;
     const t0 = trajectory?.t0 ?? 0;
     const tick = (now: number) => {
       if (!start) start = now;
-      setTime(t0 + ((now - start) / 1000) % span);
+      setTime(t0 + (((now - start) / 1000) % span));
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -214,34 +245,39 @@ export function ModelViews({
     return series[lo][1];
   };
 
-  const trailOf = (names: string[], span = 0.8, steps = 26) => Array.from({ length: steps }, (_, i) => {
-    const t = Math.max(0, time - span + (span * i) / steps);
-    const saved = time;
-    // Ślad czytamy tą samą drogą co punkt bieżący, żeby model ze skryptu i
-    // z grafu zachowywały się tak samo.
-    const values = names.map((name) => {
-      if (trajectory && trajectory.stateNames.includes(name)) return trajectory.value(name, t);
-      const series = result.series[name];
-      if (!series?.length) return Number.NaN;
-      const index = series.findIndex(([sampleT]) => sampleT >= t);
-      return series[index < 0 ? series.length - 1 : index][1];
+  const trailOf = (names: string[], span = 0.8, steps = 26) =>
+    Array.from({ length: steps }, (_, i) => {
+      const t = Math.max(0, time - span + (span * i) / steps);
+      const saved = time;
+      // Ślad czytamy tą samą drogą co punkt bieżący, żeby model ze skryptu i
+      // z grafu zachowywały się tak samo.
+      const values = names.map((name) => {
+        if (trajectory && trajectory.stateNames.includes(name)) return trajectory.value(name, t);
+        const series = result.series[name];
+        if (!series?.length) return Number.NaN;
+        const index = series.findIndex(([sampleT]) => sampleT >= t);
+        return series[index < 0 ? series.length - 1 : index][1];
+      });
+      void saved;
+      return values;
     });
-    void saved;
-    return values;
-  });
 
-  const setParam = (name: string, value: number) => setValues((previous) => {
-    const next = { ...previous, [name]: value };
-    onValues?.(next);
-    return next;
-  });
+  const setParam = (name: string, value: number) =>
+    setValues((previous) => {
+      const next = { ...previous, [name]: value };
+      onValues?.(next);
+      return next;
+    });
 
   const shown = model.parameters.filter((p) => !exposed?.length || exposed.includes(p.name));
   const plotnaRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <>
-      <div ref={plotnaRef} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <div
+        ref={plotnaRef}
+        style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}
+      >
         {views.map((view, index) => (
           <View
             key={index}
@@ -268,20 +304,34 @@ export function ModelViews({
         plotnaRef={plotnaRef}
       />
 
-      {runner.pending && !local && (
-        <div style={{ ...label, fontStyle: 'italic' }}>liczę…</div>
-      )}
+      {runner.pending && !local && <div style={{ ...label, fontStyle: 'italic' }}>liczę…</div>}
       {/* Nieudane całkowanie: model policzył wszystko, co się dało, ale
           trajektorii nie ma. Komunikat idzie na wierzch, bo bez niego blok
           wyglądałby jak pusty wykres bez powodu. */}
       {result.error && (
-        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', borderRadius: 4, padding: '6px 8px' }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: '#b91c1c',
+            background: '#fef2f2',
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
           {result.error}
         </div>
       )}
 
       {runner.error && !local && (
-        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', borderRadius: 4, padding: '6px 8px' }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: '#b91c1c',
+            background: '#fef2f2',
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
           {runner.error}
         </div>
       )}
@@ -291,17 +341,31 @@ export function ModelViews({
           <button type="button" style={btn} onClick={() => setPlaying((p) => !p)}>
             {playing ? '⏸ pauza' : '▶ start'}
           </button>
-          <button type="button" style={btn} onClick={() => { setPlaying(false); setTime(0); }}>⟲ reset</button>
+          <button
+            type="button"
+            style={btn}
+            onClick={() => {
+              setPlaying(false);
+              setTime(0);
+            }}
+          >
+            ⟲ reset
+          </button>
           <span style={{ ...label, fontVariantNumeric: 'tabular-nums' }}>
             t = {time.toFixed(2)} s
-            {trajectory && trajectory.t1 < duration - 0.01 && ` (koniec: ${trajectory.t1.toFixed(2)} s)`}
+            {trajectory &&
+              trajectory.t1 < duration - 0.01 &&
+              ` (koniec: ${trajectory.t1.toFixed(2)} s)`}
           </span>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
         {shown.map((parameter) => (
-          <label key={parameter.name} style={{ ...label, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 150 }}>
+          <label
+            key={parameter.name}
+            style={{ ...label, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 150 }}
+          >
             <span>
               {parameter.name} ={' '}
               <strong style={{ color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
@@ -348,11 +412,14 @@ function View({ view, result, values, time, at, trailOf, unitOf }: ViewProps) {
       );
 
     case 'path3d': {
-      const points = (result.series[view.x] ?? []).map(([, x]: [number, number], index: number) => ([
-        x,
-        result.series[view.y]?.[index]?.[1] ?? 0,
-        result.series[view.z]?.[index]?.[1] ?? 0,
-      ] as [number, number, number]));
+      const points = (result.series[view.x] ?? []).map(
+        ([, x]: [number, number], index: number) =>
+          [
+            x,
+            result.series[view.y]?.[index]?.[1] ?? 0,
+            result.series[view.z]?.[index]?.[1] ?? 0,
+          ] as [number, number, number]
+      );
       return (
         <Framed title="tor w przestrzeni">
           <Path3DCanvas
@@ -365,9 +432,10 @@ function View({ view, result, values, time, at, trailOf, unitOf }: ViewProps) {
     }
 
     case 'path2d': {
-      const points = (result.series[view.x] ?? []).map(([, x]: [number, number], index: number) => (
-        [x, result.series[view.y]?.[index]?.[1] ?? 0] as [number, number]
-      ));
+      const points = (result.series[view.x] ?? []).map(
+        ([, x]: [number, number], index: number) =>
+          [x, result.series[view.y]?.[index]?.[1] ?? 0] as [number, number]
+      );
       return (
         <Framed title="tor">
           <XYCanvas
@@ -418,8 +486,14 @@ function View({ view, result, values, time, at, trailOf, unitOf }: ViewProps) {
 
       // Pokazujemy dolną część zakresu: przy drganiach cała treść siedzi przy
       // niskich częstościach, a reszta osi tylko ją ściska.
-      const maks = Math.max(...series.flatMap((s) => s.points.filter(([, a]) => a > 0.01).map(([f]) => f)), 1);
-      const przycięte = series.map((s) => ({ ...s, points: s.points.filter(([f]) => f <= maks * 3) }));
+      const maks = Math.max(
+        ...series.flatMap((s) => s.points.filter(([, a]) => a > 0.01).map(([f]) => f)),
+        1
+      );
+      const przycięte = series.map((s) => ({
+        ...s,
+        points: s.points.filter(([f]) => f <= maks * 3),
+      }));
 
       return przycięte.length ? (
         <Framed title="widmo">
@@ -429,12 +503,18 @@ function View({ view, result, values, time, at, trailOf, unitOf }: ViewProps) {
     }
 
     case 'phase': {
-      const points = (result.series[view.x] ?? []).map(([, x]: [number, number], index: number) => (
-        [x, result.series[view.y]?.[index]?.[1] ?? 0] as [number, number]
-      ));
+      const points = (result.series[view.x] ?? []).map(
+        ([, x]: [number, number], index: number) =>
+          [x, result.series[view.y]?.[index]?.[1] ?? 0] as [number, number]
+      );
       return (
         <Framed title="przestrzeń fazowa">
-          <XYCanvas points={points} xLabel={view.x} yLabel={view.y} cursor={[at(view.x), at(view.y)]} />
+          <XYCanvas
+            points={points}
+            xLabel={view.x}
+            yLabel={view.y}
+            cursor={[at(view.x), at(view.y)]}
+          />
         </Framed>
       );
     }
@@ -446,7 +526,14 @@ function View({ view, result, values, time, at, trailOf, unitOf }: ViewProps) {
             {view.names.map((name) => (
               <div key={name}>
                 <div style={label}>{name}</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+                <div
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
                   {formatValue(result.scalars[name], unitOf(name))}
                 </div>
               </div>
@@ -480,4 +567,3 @@ function Framed({ title, children }: { title: string; children: ReactNode }) {
     </div>
   );
 }
-

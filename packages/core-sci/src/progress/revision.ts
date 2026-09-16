@@ -40,8 +40,12 @@ export const DAY = 86_400_000;
  */
 export type ActivityKind = 'subsection' | 'questions' | 'exercises' | 'test';
 
-export const ACTIVITY_KINDS: readonly ActivityKind[] =
-  ['subsection', 'questions', 'exercises', 'test'];
+export const ACTIVITY_KINDS: readonly ActivityKind[] = [
+  'subsection',
+  'questions',
+  'exercises',
+  'test',
+];
 
 export interface RevisionSettings {
   /** Po ilu dniach rodzaj wraca jako wymagalny. */
@@ -113,15 +117,17 @@ function wybierz(
   kiedy: (c: RevisionCandidate) => number,
   kind: ActivityKind,
   settings: RevisionSettings,
-  now: number,
+  now: number
 ): RevisionItem[] {
   const prog = settings.intervalDays[kind] * DAY;
-  return kandydaci
-    .map((c) => ({ ...c, kind, lastAt: kiedy(c) }))
-    // Nietknięte (lastAt = 0) wychodzą na początek same z siebie.
-    .sort((a, b) => a.lastAt - b.lastAt)
-    .slice(0, Math.max(0, settings.batchSize[kind]))
-    .map((x) => ({ ...x, due: x.lastAt === 0 || now - x.lastAt >= prog }));
+  return (
+    kandydaci
+      .map((c) => ({ ...c, kind, lastAt: kiedy(c) }))
+      // Nietknięte (lastAt = 0) wychodzą na początek same z siebie.
+      .sort((a, b) => a.lastAt - b.lastAt)
+      .slice(0, Math.max(0, settings.batchSize[kind]))
+      .map((x) => ({ ...x, due: x.lastAt === 0 || now - x.lastAt >= prog }))
+  );
 }
 
 /**
@@ -135,7 +141,7 @@ export function planRevision(
   source: RevisionSource,
   progress: ProgressWithRevision,
   settings: RevisionSettings,
-  now: number,
+  now: number
 ): RevisionPlan {
   const zadaniaZJednegoDokumentu = () => {
     if (!source.exercises.length) return [];
@@ -152,25 +158,37 @@ export function planRevision(
     let najstarszy = Number.POSITIVE_INFINITY;
     for (const [path, lista] of wgDokumentu) {
       const ostatni = Math.max(...lista.map((z) => ostatniaProba(progress, z.path, z.id)));
-      if (ostatni < najstarszy) { najstarszy = ostatni; wybrany = path; }
+      if (ostatni < najstarszy) {
+        najstarszy = ostatni;
+        wybrany = path;
+      }
     }
     return wgDokumentu.get(wybrany) ?? [];
   };
 
   return {
     subsection: wybierz(
-      source.subsections, (c) => ostatnieCzytanie(progress, c.path), 'subsection', settings, now,
+      source.subsections,
+      (c) => ostatnieCzytanie(progress, c.path),
+      'subsection',
+      settings,
+      now
     ),
     questions: wybierz(
-      source.questions, (c) => ostatnieCzytanie(progress, c.path), 'questions', settings, now,
+      source.questions,
+      (c) => ostatnieCzytanie(progress, c.path),
+      'questions',
+      settings,
+      now
     ),
     exercises: wybierz(
       zadaniaZJednegoDokumentu(),
-      (c) => ostatniaProba(progress, c.path, c.id), 'exercises', settings, now,
+      (c) => ostatniaProba(progress, c.path, c.id),
+      'exercises',
+      settings,
+      now
     ),
-    test: wybierz(
-      source.test, (c) => ostatniaProba(progress, c.path, c.id), 'test', settings, now,
-    ),
+    test: wybierz(source.test, (c) => ostatniaProba(progress, c.path, c.id), 'test', settings, now),
   };
 }
 

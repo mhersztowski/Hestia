@@ -14,8 +14,9 @@ export class State extends CoreObject {
   onEnter?: (from: State | null) => void;
   onExit?: (to: State) => void;
 
-  constructor(public readonly id: string, parent?: CoreObject) {
+  constructor(id: string, parent?: CoreObject) {
     super(parent, id);
+    this.id = id; // semantic state id instead of a generated UUID
   }
 }
 
@@ -55,10 +56,7 @@ export class StateMachine extends CoreObject {
   }
 
   addState(idOrState: string | State): State {
-    const state =
-      typeof idOrState === 'string'
-        ? new State(idOrState, this)
-        : idOrState;
+    const state = typeof idOrState === 'string' ? new State(idOrState, this) : idOrState;
     this.#states.set(state.id, state);
     return state;
   }
@@ -89,7 +87,7 @@ export class StateMachine extends CoreObject {
       (t) =>
         t.event === event &&
         t.from === this.#current!.id &&
-        (!t.guard || t.guard(payload as unknown)),
+        (!t.guard || t.guard(payload as unknown))
     );
 
     if (!match) {

@@ -61,7 +61,7 @@ export interface KnowledgeIssue {
 
 /** Co może być celem odsyłacza `((id))`. */
 export type AnchorKind =
-  | 'formula' | 'term' | 'figure' | 'table' | 'section' | 'callout' | 'law' | 'exercise';
+  'formula' | 'term' | 'figure' | 'table' | 'section' | 'callout' | 'law' | 'exercise';
 
 export interface Anchor {
   path: string;
@@ -125,7 +125,10 @@ export function parseFrontMatter(markdown: string): { meta: DocumentMeta; body: 
     if (key === 'title') meta.title = value.replace(/^["']|["']$/g, '');
     else if (key === 'id') meta.id = value.replace(/^["']|["']$/g, '');
     else if (key === 'tags' || key === 'requires') {
-      const list = value.replace(/^\[|\]$/g, '').split(',').map((s) => s.trim().replace(/^["']|["']$/g, ''));
+      const list = value
+        .replace(/^\[|\]$/g, '')
+        .split(',')
+        .map((s) => s.trim().replace(/^["']|["']$/g, ''));
       meta[key] = list.filter(Boolean);
     }
   }
@@ -216,7 +219,8 @@ export function buildIndex(files: Array<{ path: string; markdown: string }>): Kn
   const dodaj = (id: string, kind: AnchorKind, path: string) => {
     const zajete = anchors.get(id);
     if (zajete) {
-      const rodzaje = zajete.kind === kind ? `(oba jako ${kind})` : `(jako ${zajete.kind} i ${kind})`;
+      const rodzaje =
+        zajete.kind === kind ? `(oba jako ${kind})` : `(jako ${zajete.kind} i ${kind})`;
       issues.push({
         message: `Identyfikator „${id}" jest użyty w dwóch dokumentach: ${zajete.path} i ${path} ${rodzaje}.`,
         path,
@@ -272,10 +276,10 @@ export function buildIndex(files: Array<{ path: string; markdown: string }>): Kn
   }
 
   const formulaHome = new Map(
-    [...anchors].filter(([, a]) => a.kind === 'formula').map(([id, a]) => [id, a.path]),
+    [...anchors].filter(([, a]) => a.kind === 'formula').map(([id, a]) => [id, a.path])
   );
   const termHome = new Map(
-    [...anchors].filter(([, a]) => a.kind === 'term').map(([id, a]) => [id, a.path]),
+    [...anchors].filter(([, a]) => a.kind === 'term').map(([id, a]) => [id, a.path])
   );
 
   const documentPaths = new Set(documents.map((d) => d.path));
@@ -321,8 +325,12 @@ export function buildIndex(files: Array<{ path: string; markdown: string }>): Kn
 }
 
 /** Wszystkie zadania w bazie — katalog powstaje ze skanu, nie z ręcznej listy. */
-export function allExercises(index: KnowledgeIndex): Array<{ path: string; exercise: ExerciseBlock }> {
-  return index.documents.flatMap((document) => document.exercises.map((exercise) => ({ path: document.path, exercise })));
+export function allExercises(
+  index: KnowledgeIndex
+): Array<{ path: string; exercise: ExerciseBlock }> {
+  return index.documents.flatMap((document) =>
+    document.exercises.map((exercise) => ({ path: document.path, exercise }))
+  );
 }
 
 /** Zadania dotyczące danego wzoru — po `@uses`. */
@@ -362,7 +370,10 @@ export function learningGraph(index: KnowledgeIndex): LearningEdge[] {
       for (const reference of formula.derivedFrom) {
         const home = index.formulaHome.get(reference);
         if (!home || home === document.path) continue;
-        if (edges.some((e) => e.from === home && e.to === document.path && e.kind === 'derivedFrom')) continue;
+        if (
+          edges.some((e) => e.from === home && e.to === document.path && e.kind === 'derivedFrom')
+        )
+          continue;
         edges.push({ from: home, to: document.path, kind: 'derivedFrom' });
       }
     }

@@ -111,7 +111,9 @@ describe('nierówności', () => {
   });
 
   it('obszar nie wchodzi tam, gdzie funkcja jest nieokreślona', () => {
-    const wynik = marchImplicit((x, y) => (x < 0 ? Number.NaN : x * x + y * y - 4), OKNO, { fill: 'negative' });
+    const wynik = marchImplicit((x, y) => (x < 0 ? Number.NaN : x * x + y * y - 4), OKNO, {
+      fill: 'negative',
+    });
     expect(wynik.fills.every((k) => k.x >= -0.5)).toBe(true);
   });
 });
@@ -124,14 +126,20 @@ describe('koszt', () => {
      * kilkaset tysięcy wywołań i zablokować kartę na sekundy.
      */
     let wywolania = 0;
-    marchImplicit((x, y) => { wywolania += 1; return x * x + y * y - 4; }, OKNO);
+    marchImplicit((x, y) => {
+      wywolania += 1;
+      return x * x + y * y - 4;
+    }, OKNO);
     expect(wywolania).toBeLessThan(60000);
   });
 
   it('gładka krzywa nie wymaga najgłębszego podziału wszędzie', () => {
     // Zagęszczamy tylko przy krawędzi; wnętrze i dalekie tło zostają rzadkie.
     let wywolania = 0;
-    marchImplicit((x, y) => { wywolania += 1; return y - x; }, OKNO);
+    marchImplicit((x, y) => {
+      wywolania += 1;
+      return y - x;
+    }, OKNO);
     expect(wywolania).toBeLessThan(20000);
   });
 });

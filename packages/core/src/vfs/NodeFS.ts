@@ -54,7 +54,11 @@ export class NodeFS implements FileSystemProvider {
     try {
       const s = await fs.stat(real);
       return {
-        type: s.isDirectory() ? FileType.Directory : s.isSymbolicLink() ? FileType.SymbolicLink : FileType.File,
+        type: s.isDirectory()
+          ? FileType.Directory
+          : s.isSymbolicLink()
+            ? FileType.SymbolicLink
+            : FileType.File,
         size: s.size,
         ctime: s.ctimeMs,
         mtime: s.mtimeMs,
@@ -74,7 +78,11 @@ export class NodeFS implements FileSystemProvider {
       const entries = await fs.readdir(real, { withFileTypes: true });
       return entries.map((e: any) => ({
         name: e.name,
-        type: e.isDirectory() ? FileType.Directory : e.isSymbolicLink() ? FileType.SymbolicLink : FileType.File,
+        type: e.isDirectory()
+          ? FileType.Directory
+          : e.isSymbolicLink()
+            ? FileType.SymbolicLink
+            : FileType.File,
       }));
     } catch (err: any) {
       if (err.code === 'ENOENT') throw VfsError.fileNotFound(normalize(path));
@@ -249,18 +257,23 @@ export class NodeFS implements FileSystemProvider {
     };
   }
 
-  private async startWatch(realPath: string, vfsPath: string, recursive: boolean, signal: AbortSignal): Promise<void> {
+  private async startWatch(
+    realPath: string,
+    vfsPath: string,
+    recursive: boolean,
+    signal: AbortSignal
+  ): Promise<void> {
     try {
       const fs = await this.getFs();
       const watcher = fs.watch(realPath, { recursive, signal });
       for await (const event of watcher) {
-        const changedPath = event.filename
-          ? join(vfsPath, event.filename)
-          : vfsPath;
-        this.emitter.fire([{
-          type: event.eventType === 'rename' ? FileChangeType.Created : FileChangeType.Changed,
-          path: changedPath,
-        }]);
+        const changedPath = event.filename ? join(vfsPath, event.filename) : vfsPath;
+        this.emitter.fire([
+          {
+            type: event.eventType === 'rename' ? FileChangeType.Created : FileChangeType.Changed,
+            path: changedPath,
+          },
+        ]);
       }
     } catch (err: any) {
       if (err.name === 'AbortError') return;

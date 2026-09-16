@@ -88,11 +88,25 @@ export function parseDateWithFormat(text: string, format = DEFAULT_FORMAT): Date
   const year = Number(g.year ?? 1970);
   const month = Number(g.month ?? 1);
   const day = Number(g.day ?? 1);
-  const date = new Date(Date.UTC(year, month - 1, day, Number(g.hour ?? 0), Number(g.minute ?? 0), Number(g.second ?? 0)));
+  const date = new Date(
+    Date.UTC(
+      year,
+      month - 1,
+      day,
+      Number(g.hour ?? 0),
+      Number(g.minute ?? 0),
+      Number(g.second ?? 0)
+    )
+  );
 
   // `Date.UTC` przyjmuje 31 lutego i przesuwa na marzec — sprawdzamy, czy
   // wyszło to, co wpisano, żeby błędna data nie udawała poprawnej.
-  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return undefined;
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  )
+    return undefined;
   return date;
 }
 
@@ -180,7 +194,8 @@ export function scheduleGantt(chart: GanttChart, options: ScheduleOptions = {}):
           else continue;
         } else if (task.start.kind === 'date') {
           const date = parseDateWithFormat(task.start.value, format);
-          if (!date) entry.issue = `Nie umiemy odczytać daty „${task.start.value}" w formacie ${format}.`;
+          if (!date)
+            entry.issue = `Nie umiemy odczytać daty „${task.start.value}" w formacie ${format}.`;
           else entry.start = date;
         } else {
           const refs = resolveRefs(task.start.ids, (e) => e.end);
@@ -188,7 +203,10 @@ export function scheduleGantt(chart: GanttChart, options: ScheduleOptions = {}):
           else if (refs.pending) continue;
           else entry.start = new Date(Math.max(...refs.dates!.map((d) => d.getTime())));
         }
-        if (entry.issue) { progress = true; continue; }
+        if (entry.issue) {
+          progress = true;
+          continue;
+        }
         if (!entry.start) continue;
         progress = true;
       }
@@ -201,11 +219,13 @@ export function scheduleGantt(chart: GanttChart, options: ScheduleOptions = {}):
       }
       if (task.end.kind === 'duration') {
         const ms = parseDuration(task.end.value);
-        if (ms === undefined) entry.issue = `Nie umiemy odczytać czasu trwania „${task.end.value}".`;
+        if (ms === undefined)
+          entry.issue = `Nie umiemy odczytać czasu trwania „${task.end.value}".`;
         else entry.end = new Date(entry.start!.getTime() + ms);
       } else if (task.end.kind === 'date') {
         const date = parseDateWithFormat(task.end.value, format);
-        if (!date) entry.issue = `Nie umiemy odczytać daty „${task.end.value}" w formacie ${format}.`;
+        if (!date)
+          entry.issue = `Nie umiemy odczytać daty „${task.end.value}" w formacie ${format}.`;
         else entry.end = date;
       } else {
         const refs = resolveRefs(task.end.ids, (e) => e.start);
@@ -223,7 +243,9 @@ export function scheduleGantt(chart: GanttChart, options: ScheduleOptions = {}):
   }
 
   const placed = scheduled.filter((entry) => entry.start && entry.end);
-  const from = placed.length ? new Date(Math.min(...placed.map((e) => e.start!.getTime()))) : undefined;
+  const from = placed.length
+    ? new Date(Math.min(...placed.map((e) => e.start!.getTime())))
+    : undefined;
   const to = placed.length ? new Date(Math.max(...placed.map((e) => e.end!.getTime()))) : undefined;
 
   const sections: ScheduledSection[] = chart.sections.map((section, index) => ({
@@ -241,5 +263,7 @@ export function placedCount(schedule: GanttSchedule): number {
 
 /** Wszystkie identyfikatory, do których da się odwołać w `after`/`until`. */
 export function referenceableIds(chart: GanttChart): string[] {
-  return ganttTasks(chart).map((task) => task.id).filter((id): id is string => !!id);
+  return ganttTasks(chart)
+    .map((task) => task.id)
+    .filter((id): id is string => !!id);
 }

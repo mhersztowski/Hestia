@@ -8,18 +8,22 @@
 import { describe, it, expect } from 'vitest';
 import { parsePacketDiagram, serializePacketDiagram } from '../formats/mermaid/packetDiagram';
 import {
-  addPacketField, updatePacketField, removePacketField, resizePacketField,
-  movePacketField, setPacketTitle,
+  addPacketField,
+  updatePacketField,
+  removePacketField,
+  resizePacketField,
+  movePacketField,
+  setPacketTitle,
 } from './packetOps';
 import { validatePacket } from './packet';
 import type { DiagramDocument } from './diagram';
 
-const doc = () => parsePacketDiagram([
-  'packet-beta',
-  '0-15: "Source Port"',
-  '16-31: "Destination Port"',
-  '32-47: "Length"',
-].join('\n')).document;
+const doc = () =>
+  parsePacketDiagram(
+    ['packet-beta', '0-15: "Source Port"', '16-31: "Destination Port"', '32-47: "Length"'].join(
+      '\n'
+    )
+  ).document;
 const pola = (d: DiagramDocument) => d.packet!.fields;
 const zapis = (d: DiagramDocument) => serializePacketDiagram(d);
 
@@ -88,7 +92,9 @@ describe('kolejność', () => {
 
 describe('pozostałe', () => {
   it('zmiana etykiety wychodzi do Mermaida', () => {
-    expect(zapis(updatePacketField(doc(), 0, { label: 'Port zrodlowy' }))).toContain('"Port zrodlowy"');
+    expect(zapis(updatePacketField(doc(), 0, { label: 'Port zrodlowy' }))).toContain(
+      '"Port zrodlowy"'
+    );
   });
 
   it('tytuł da się ustawić i usunąć', () => {
@@ -107,7 +113,12 @@ describe('pozostałe', () => {
 describe('dodawanie po wskazanym polu', () => {
   it('wstawia tuż za nim', () => {
     const after = addPacketField(doc(), 8, 'nowe', 0);
-    expect(pola(after).map((f) => f.label)).toEqual(['Source Port', 'nowe', 'Destination Port', 'Length']);
+    expect(pola(after).map((f) => f.label)).toEqual([
+      'Source Port',
+      'nowe',
+      'Destination Port',
+      'Length',
+    ]);
   });
 
   it('przesuwa następne pola', () => {

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   CoreObject,
   Signal,
-  Connection,
   Property,
   Timer,
   EventBus,
@@ -10,7 +9,6 @@ import {
   CommandStack,
   FnCommand,
   ListModel,
-  Logger,
   debounce,
   connectOnce,
 } from './index';
@@ -63,7 +61,9 @@ describe('Signal', () => {
 
   it('circuit breaker disconnects slot after threshold consecutive errors', () => {
     const sig = new Signal();
-    const spy = vi.fn(() => { throw new Error('boom'); });
+    const spy = vi.fn(() => {
+      throw new Error('boom');
+    });
     sig.connect(spy);
     // First 2 calls: error logged but slot stays connected
     sig.emit();
@@ -80,7 +80,9 @@ describe('Signal', () => {
   it('circuit breaker resets error count on success', () => {
     const sig = new Signal();
     let shouldThrow = true;
-    const spy = vi.fn(() => { if (shouldThrow) throw new Error('boom'); });
+    const spy = vi.fn(() => {
+      if (shouldThrow) throw new Error('boom');
+    });
     sig.connect(spy);
     sig.emit(); // errorCount = 1
     sig.emit(); // errorCount = 2
@@ -136,6 +138,70 @@ describe('CoreObject', () => {
     expect(root.findChild('b')).toBe(b);
   });
 
+  it('emits tree signals when reparenting', () => {
+    const root = new CoreObject(undefined, 'root');
+    const added: string[] = [];
+    const removed: string[] = [];
+    const parents: (string | null)[] = [];
+    root.childAdded.connect((c) => added.push(c.objectName));
+    root.childRemoved.connect((c) => removed.push(c.objectName));
+
+    // A parent passed to the constructor must not NPE: every field of
+    // CoreObject exists before its own constructor body calls setParent().
+    const child = new CoreObject(root, 'child');
+    child.parentChanged.connect((p) => parents.push(p ? p.objectName : null));
+
+    root.removeChild(child);
+    root.addChild(child);
+
+    expect(added).toEqual(['child', 'child']);
+    expect(removed).toEqual(['child']);
+    expect(parents).toEqual([null, 'root']);
+  });
+
+  it('refuses to build a cycle', () => {
+    const root = new CoreObject(undefined, 'root');
+    const child = new CoreObject(root, 'child');
+    expect(() => root.setParent(child)).toThrow(TypeError);
+    expect(() => root.setParent(root)).toThrow(TypeError);
+  });
+
+  it('generates id lazily and keeps it stable', () => {
+    const obj = new CoreObject();
+    const first = obj.id;
+    expect(obj.id).toBe(first);
+
+    const root = new CoreObject(undefined, 'root');
+    const child = new CoreObject(root, 'child');
+    const other = new CoreObject(root, 'other');
+    expect(root.findById(child.id)).toBe(child);
+    // `other.id` was never read, so it has no id to match against
+    expect(root.findById('00000000-0000-0000-0000-000000000000')).toBeNull();
+    expect(other.objectName).toBe('other');
+  });
+
+  it('traverses depth-first, pre- and post-order', () => {
+    const root = new CoreObject(undefined, 'root');
+    const a = new CoreObject(root, 'a');
+    const b = new CoreObject(a, 'b');
+    const c = new CoreObject(root, 'c');
+
+    const pre: string[] = [];
+    root.traverse((n) => pre.push(n.objectName));
+    const post: string[] = [];
+    root.traversePost((n) => post.push(n.objectName));
+
+    expect(pre).toEqual(['root', 'a', 'b', 'c']);
+    expect(post).toEqual(['b', 'a', 'c', 'root']);
+    expect(b.depth).toBe(2);
+    expect(b.ancestors()).toEqual([a, root]);
+    expect(b.root).toBe(root);
+    expect(b.isDescendantOf(root)).toBe(true);
+    expect(c.isDescendantOf(a)).toBe(false);
+    expect(root.findDescendant((n) => n.objectName === 'b')).toBe(b);
+    expect(root.findChildren((n) => n !== a)).toEqual([b, c]);
+  });
+
   it('connect() helper tracks connection', () => {
     const sig = new Signal<[n: number]>();
     const ctx = new CoreObject();
@@ -157,7 +223,10 @@ describe('Property', () => {
     p.changed.connect((n, o) => log.push([n, o]));
     p.value = 1;
     p.value = 2;
-    expect(log).toEqual([[1, 0], [2, 1]]);
+    expect(log).toEqual([
+      [1, 0],
+      [2, 1],
+    ]);
   });
 
   it('does not emit when value is the same', () => {
@@ -187,7 +256,9 @@ describe('Property', () => {
 // ── Timer ────────────────────────────────────────────────────────────────────
 
 describe('Timer', () => {
-  beforeEach(() => { vi.useFakeTimers(); });
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
 
   it('fires timeout repeatedly', () => {
     const t = new Timer();
@@ -269,7 +340,9 @@ describe('StateMachine', () => {
     fsm.addState('off');
     fsm.addState('on');
     fsm.addTransition<boolean>({
-      from: 'off', to: 'on', event: 'toggle',
+      from: 'off',
+      to: 'on',
+      event: 'toggle',
       guard: (authorized) => authorized,
     });
     fsm.start('off');
@@ -287,8 +360,28 @@ describe('CommandStack', () => {
   it('execute / undo / redo', () => {
     let value = 0;
     const stack = new CommandStack();
-    stack.push(FnCommand.create('set 1', () => { value = 1; }, () => { value = 0; }));
-    stack.push(FnCommand.create('set 2', () => { value = 2; }, () => { value = 1; }));
+    stack.push(
+      FnCommand.create(
+        'set 1',
+        () => {
+          value = 1;
+        },
+        () => {
+          value = 0;
+        }
+      )
+    );
+    stack.push(
+      FnCommand.create(
+        'set 2',
+        () => {
+          value = 2;
+        },
+        () => {
+          value = 1;
+        }
+      )
+    );
     expect(value).toBe(2);
     stack.undo();
     expect(value).toBe(1);
@@ -302,7 +395,13 @@ describe('CommandStack', () => {
   it('canUndo / canRedo reflect stack state', () => {
     const stack = new CommandStack();
     expect(stack.canUndo).toBe(false);
-    stack.push(FnCommand.create('noop', () => {}, () => {}));
+    stack.push(
+      FnCommand.create(
+        'noop',
+        () => {},
+        () => {}
+      )
+    );
     expect(stack.canUndo).toBe(true);
     expect(stack.canRedo).toBe(false);
     stack.undo();
@@ -356,7 +455,9 @@ describe('connectOnce', () => {
 });
 
 describe('debounce', () => {
-  beforeEach(() => { vi.useFakeTimers(); });
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
 
   it('batches rapid calls', () => {
     const fn = vi.fn();

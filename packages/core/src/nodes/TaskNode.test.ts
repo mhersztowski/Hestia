@@ -85,20 +85,25 @@ describe('TaskNode', () => {
 
   describe('components & interval', () => {
     it('finds a component by type', () => {
-      const t = new TaskNode(make({ components: [{ type: 'task_interval', daysInterval: 7 } as any] }));
+      const t = new TaskNode(
+        make({ components: [{ type: 'task_interval', daysInterval: 7 } as any] })
+      );
       expect(t.hasComponents()).toBe(true);
       expect(t.getComponentByType('task_interval')).toBeDefined();
     });
 
     it('reads days interval and formats it', () => {
-      const t = new TaskNode(make({ components: [{ type: 'task_interval', daysInterval: 14 } as any] }));
+      const t = new TaskNode(
+        make({ components: [{ type: 'task_interval', daysInterval: 14 } as any] })
+      );
       expect(t.hasInterval()).toBe(true);
       expect(t.getDaysInterval()).toBe(14);
       expect(t.getDaysIntervalFormatted()).toBe('2 weeks');
     });
 
     it('formats singular/plural day and week intervals', () => {
-      const mk = (d: number) => new TaskNode(make({ components: [{ type: 'task_interval', daysInterval: d } as any] }));
+      const mk = (d: number) =>
+        new TaskNode(make({ components: [{ type: 'task_interval', daysInterval: d } as any] }));
       expect(mk(1).getDaysIntervalFormatted()).toBe('1 day');
       expect(mk(3).getDaysIntervalFormatted()).toBe('3 days');
       expect(mk(7).getDaysIntervalFormatted()).toBe('1 week');
@@ -160,7 +165,9 @@ describe('TaskNode', () => {
       tags: ['backend', 'urgent'],
       // The estimate is `duration` — hours, fractional.
       duration: 2.5,
-      timeEntries: [{ id: 'e1', start: '2026-08-01T08:00:00.000Z', end: '2026-08-01T09:30:00.000Z' }],
+      timeEntries: [
+        { id: 'e1', start: '2026-08-01T08:00:00.000Z', end: '2026-08-01T09:30:00.000Z' },
+      ],
       parentTaskId: 'parent-1',
       order: 3,
       dependsOn: ['t0'],
@@ -189,20 +196,24 @@ describe('TaskNode', () => {
 
   describe('time tracking', () => {
     it('sums closed entries in minutes', () => {
-      const t = new TaskNode(make({
-        timeEntries: [
-          { id: 'e1', start: '2026-08-01T08:00:00.000Z', end: '2026-08-01T09:30:00.000Z' },
-          { id: 'e2', start: '2026-08-02T10:00:00.000Z', end: '2026-08-02T10:15:00.000Z' },
-        ],
-      }));
+      const t = new TaskNode(
+        make({
+          timeEntries: [
+            { id: 'e1', start: '2026-08-01T08:00:00.000Z', end: '2026-08-01T09:30:00.000Z' },
+            { id: 'e2', start: '2026-08-02T10:00:00.000Z', end: '2026-08-02T10:15:00.000Z' },
+          ],
+        })
+      );
       expect(t.trackedMinutes()).toBe(105);
     });
 
     it('counts a running entry against the moment given', () => {
       // "Now" comes in as a parameter, or the test would depend on the clock.
-      const t = new TaskNode(make({
-        timeEntries: [{ id: 'e1', start: '2026-08-01T08:00:00.000Z' }],
-      }));
+      const t = new TaskNode(
+        make({
+          timeEntries: [{ id: 'e1', start: '2026-08-01T08:00:00.000Z' }],
+        })
+      );
       expect(t.isTracking()).toBe(true);
       expect(t.trackedMinutes(new Date('2026-08-01T08:45:00.000Z'))).toBe(45);
     });

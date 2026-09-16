@@ -20,20 +20,42 @@ function zapisujacyKontekst() {
   let biezaca: Array<[number, number]> = [];
 
   const ctx = {
-    setTransform: vi.fn(), clearRect: vi.fn(), fill: vi.fn(),
+    setTransform: vi.fn(),
+    clearRect: vi.fn(),
+    fill: vi.fn(),
     fillRect: vi.fn((x: number, y: number, w: number, h: number) => {
       // Tło płótna to jeden prostokąt na cały obszar — nie liczy się jako
       // wypełnienie obszaru nierówności.
       if (w < 390) prostokaty.push([x, y, w, h]);
     }),
-    fillText: vi.fn(), save: vi.fn(), restore: vi.fn(), setLineDash: vi.fn(),
-    beginPath: vi.fn(() => { biezaca = []; }),
-    moveTo: vi.fn((x: number, y: number) => { biezaca.push([x, y]); }),
-    lineTo: vi.fn((x: number, y: number) => { biezaca.push([x, y]); }),
-    stroke: vi.fn(() => { if (biezaca.length > 1) sciezki.push([...biezaca]); }),
-    arc: vi.fn((x: number, y: number) => { kola.push([x, y]); }),
-    fillStyle: '', strokeStyle: '', lineWidth: 1, font: '',
-    textAlign: '', textBaseline: '', lineJoin: '', lineCap: '', globalAlpha: 1,
+    fillText: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    setLineDash: vi.fn(),
+    beginPath: vi.fn(() => {
+      biezaca = [];
+    }),
+    moveTo: vi.fn((x: number, y: number) => {
+      biezaca.push([x, y]);
+    }),
+    lineTo: vi.fn((x: number, y: number) => {
+      biezaca.push([x, y]);
+    }),
+    stroke: vi.fn(() => {
+      if (biezaca.length > 1) sciezki.push([...biezaca]);
+    }),
+    arc: vi.fn((x: number, y: number) => {
+      kola.push([x, y]);
+    }),
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+    font: '',
+    textAlign: '',
+    textBaseline: '',
+    lineJoin: '',
+    lineCap: '',
+    globalAlpha: 1,
   };
   return { ctx, sciezki, kola, prostokaty };
 }
@@ -42,7 +64,9 @@ let biezacy: ReturnType<typeof zapisujacyKontekst>;
 
 beforeAll(() => {
   globalThis.ResizeObserver = class {
-    observe() {} unobserve() {} disconnect() {}
+    observe() {}
+    unobserve() {}
+    disconnect() {}
   } as never;
   Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 400 });
   Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, value: 400 });
@@ -151,7 +175,12 @@ describe('krzywe uwikłane', () => {
     // uwikłana nie ma naturalnej kolejności punktów.
     const { ctx, sciezki } = (() => {
       biezacy = zapisujacyKontekst();
-      render(<PlotView document={addRow(createPlotDocument(), 'x^2 + y^2 = 4')} onViewportChange={vi.fn()} />);
+      render(
+        <PlotView
+          document={addRow(createPlotDocument(), 'x^2 + y^2 = 4')}
+          onViewportChange={vi.fn()}
+        />
+      );
       return biezacy;
     })();
     void ctx;
@@ -173,7 +202,9 @@ describe('krzywe uwikłane', () => {
     // Środek widoku to (0,0); wnętrze koła musi otaczać środek płótna, a nie
     // trzymać się krawędzi.
     const { prostokaty } = narysuj(addRow(createPlotDocument(), 'x^2 + y^2 < 4'));
-    const srodkowe = prostokaty.filter(([x, y]) => Math.abs(x - 200) < 60 && Math.abs(y - 200) < 60);
+    const srodkowe = prostokaty.filter(
+      ([x, y]) => Math.abs(x - 200) < 60 && Math.abs(y - 200) < 60
+    );
     expect(srodkowe.length).toBeGreaterThan(0);
   });
 });

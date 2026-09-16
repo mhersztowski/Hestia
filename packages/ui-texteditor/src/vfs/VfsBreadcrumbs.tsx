@@ -12,7 +12,14 @@ function BreadcrumbSeparator() {
   return (
     <span className="vfs-breadcrumbs__separator">
       <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M6 4l4 4-4 4"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </span>
   );

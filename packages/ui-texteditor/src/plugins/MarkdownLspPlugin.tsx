@@ -37,11 +37,15 @@ const CACHE_TTL_MS = 30_000;
 async function collectMdFiles(dir: string): Promise<string[]> {
   if (!_provider) return [];
   const result: string[] = [];
-  let entries: DirectoryEntry[] = [];
-  try { entries = await _provider.readDirectory(dir); } catch { return result; }
+  let entries: DirectoryEntry[];
+  try {
+    entries = await _provider.readDirectory(dir);
+  } catch {
+    return result;
+  }
   for (const { name, type } of entries) {
     const full = `${dir}/${name}`;
-    if (type === FileType.Directory) result.push(...await collectMdFiles(full));
+    if (type === FileType.Directory) result.push(...(await collectMdFiles(full)));
     else if (/\.(md|mdx|markdown)$/i.test(name)) result.push(full);
   }
   return result;
@@ -55,7 +59,10 @@ async function getOrRefreshCache(): Promise<string[]> {
   return _mdFiles;
 }
 
-function invalidateCache() { _mdFiles = null; _cacheTs = 0; }
+function invalidateCache() {
+  _mdFiles = null;
+  _cacheTs = 0;
+}
 
 // ── Path helpers ───────────────────────────────────────────────────────────────
 
@@ -74,7 +81,12 @@ function resolveCandidates(link: string, currentUri: string): string[] {
 async function resolveWikiLink(link: string, currentUri: string): Promise<string | null> {
   if (!_provider) return null;
   for (const c of resolveCandidates(link, currentUri)) {
-    try { await _provider.stat(c); return c; } catch { /* not found */ }
+    try {
+      await _provider.stat(c);
+      return c;
+    } catch {
+      /* not found */
+    }
   }
   return null;
 }
@@ -90,7 +102,10 @@ function isMarkdownUri(uri: string): boolean {
 const WIKI_LINK_RE = /\[\[([^\]|#\n]+?)(?:[|#][^\]]*?)?\]\]/g;
 
 interface WikiLinkOccurrence {
-  link: string; line: number; startCol: number; endCol: number;
+  link: string;
+  line: number;
+  startCol: number;
+  endCol: number;
 }
 
 function extractWikiLinks(text: string): WikiLinkOccurrence[] {
@@ -100,7 +115,12 @@ function extractWikiLinks(text: string): WikiLinkOccurrence[] {
     WIKI_LINK_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
     while ((m = WIKI_LINK_RE.exec(lines[i])) !== null) {
-      result.push({ link: m[1].trim(), line: i + 1, startCol: m.index + 1, endCol: m.index + m[0].length + 1 });
+      result.push({
+        link: m[1].trim(),
+        line: i + 1,
+        startCol: m.index + 1,
+        endCol: m.index + m[0].length + 1,
+      });
     }
   }
   return result;
@@ -108,20 +128,24 @@ function extractWikiLinks(text: string): WikiLinkOccurrence[] {
 
 // ── Heading outline state ──────────────────────────────────────────────────────
 
-export interface Heading { level: number; text: string; line: number; }
+export interface Heading {
+  level: number;
+  text: string;
+  line: number;
+}
 
 let _headings: Heading[] = [];
-let _activeHeadingLine = 0;   // line of last heading above cursor
+let _activeHeadingLine = 0; // line of last heading above cursor
 const _headingListeners = new Set<() => void>();
 
 function setHeadings(h: Heading[]) {
   _headings = h;
-  _headingListeners.forEach(fn => fn());
+  _headingListeners.forEach((fn) => fn());
 }
 function setActiveHeadingLine(line: number) {
   if (_activeHeadingLine === line) return;
   _activeHeadingLine = line;
-  _headingListeners.forEach(fn => fn());
+  _headingListeners.forEach((fn) => fn());
 }
 
 function parseHeadings(text: string): Heading[] {
@@ -137,9 +161,11 @@ function parseHeadings(text: string): Heading[] {
 function useOutlineState() {
   const [, tick] = useState(0);
   useEffect(() => {
-    const fn = () => tick(n => n + 1);
+    const fn = () => tick((n) => n + 1);
     _headingListeners.add(fn);
-    return () => { _headingListeners.delete(fn); };
+    return () => {
+      _headingListeners.delete(fn);
+    };
   }, []);
   return { headings: _headings, activeLine: _activeHeadingLine };
 }
@@ -157,15 +183,35 @@ let _diagTimer: ReturnType<typeof setTimeout> | null = null;
 function updateStatusBar(brokenCount: number, total: number, isMarkdown: boolean) {
   if (!_statusBarHandle) return;
   if (!isMarkdown) {
-    _statusBarHandle.update({ text: 'MD', tooltip: 'Markdown LSP', color: undefined, backgroundColor: undefined });
+    _statusBarHandle.update({
+      text: 'MD',
+      tooltip: 'Markdown LSP',
+      color: undefined,
+      backgroundColor: undefined,
+    });
     return;
   }
   if (total === 0) {
-    _statusBarHandle.update({ text: 'MD', tooltip: 'No wiki links', color: undefined, backgroundColor: undefined });
+    _statusBarHandle.update({
+      text: 'MD',
+      tooltip: 'No wiki links',
+      color: undefined,
+      backgroundColor: undefined,
+    });
   } else if (brokenCount === 0) {
-    _statusBarHandle.update({ text: `$(check) ${total} link${total !== 1 ? 's' : ''}`, tooltip: `${total} wiki link(s) — all valid`, color: '#89dceb', backgroundColor: undefined });
+    _statusBarHandle.update({
+      text: `$(check) ${total} link${total !== 1 ? 's' : ''}`,
+      tooltip: `${total} wiki link(s) — all valid`,
+      color: '#89dceb',
+      backgroundColor: undefined,
+    });
   } else {
-    _statusBarHandle.update({ text: `$(warning) ${brokenCount} broken`, tooltip: `${brokenCount} of ${total} wiki link(s) not found`, color: '#f48771', backgroundColor: undefined });
+    _statusBarHandle.update({
+      text: `$(warning) ${brokenCount} broken`,
+      tooltip: `${brokenCount} of ${total} wiki link(s) not found`,
+      color: '#f48771',
+      backgroundColor: undefined,
+    });
   }
 }
 
@@ -174,8 +220,8 @@ function updateStatusBar(brokenCount: number, total: number, isMarkdown: boolean
 function findModel(uri: string): monaco.editor.ITextModel | null {
   const withScheme = uri.startsWith('file://') ? uri : `file://${uri}`;
   return (
-    monaco.editor.getModels().find(m => m.uri.toString() === uri) ??
-    monaco.editor.getModels().find(m => m.uri.toString() === withScheme) ??
+    monaco.editor.getModels().find((m) => m.uri.toString() === uri) ??
+    monaco.editor.getModels().find((m) => m.uri.toString() === withScheme) ??
     null
   );
 }
@@ -184,24 +230,31 @@ async function runDiagnostics(model: monaco.editor.ITextModel, uri: string): Pro
   const text = model.getValue();
   const occurrences = extractWikiLinks(text);
   const markers: monaco.editor.IMarkerData[] = [];
-  await Promise.all(occurrences.map(async ({ link, line, startCol, endCol }) => {
-    const resolved = await resolveWikiLink(link, uri);
-    if (!resolved) {
-      markers.push({
-        severity: monaco.MarkerSeverity.Warning,
-        message: `Wiki link not found: [[${link}]]`,
-        startLineNumber: line, startColumn: startCol,
-        endLineNumber: line, endColumn: endCol,
-        source: 'Markdown LSP',
-      });
-    }
-  }));
+  await Promise.all(
+    occurrences.map(async ({ link, line, startCol, endCol }) => {
+      const resolved = await resolveWikiLink(link, uri);
+      if (!resolved) {
+        markers.push({
+          severity: monaco.MarkerSeverity.Warning,
+          message: `Wiki link not found: [[${link}]]`,
+          startLineNumber: line,
+          startColumn: startCol,
+          endLineNumber: line,
+          endColumn: endCol,
+          source: 'Markdown LSP',
+        });
+      }
+    })
+  );
   monaco.editor.setModelMarkers(model, 'markdown-lsp', markers);
   updateStatusBar(markers.length, occurrences.length, true);
 }
 
 function scheduleUpdate(uri: string): void {
-  if (_diagTimer) { clearTimeout(_diagTimer); _diagTimer = null; }
+  if (_diagTimer) {
+    clearTimeout(_diagTimer);
+    _diagTimer = null;
+  }
   _diagTimer = setTimeout(async () => {
     _diagTimer = null;
     if (!uri || !isMarkdownUri(uri)) return;
@@ -216,8 +269,12 @@ function scheduleUpdate(uri: string): void {
 // ── Outline sidebar panel ──────────────────────────────────────────────────────
 
 const HEADING_COLOR: Record<number, string> = {
-  1: '#e8e8e8', 2: '#4fc3f7', 3: '#a6adc8',
-  4: '#6c7086', 5: '#585b70', 6: '#45475a',
+  1: '#e8e8e8',
+  2: '#4fc3f7',
+  3: '#a6adc8',
+  4: '#6c7086',
+  5: '#585b70',
+  6: '#45475a',
 };
 const OUTLINE_PANEL_ID = 'builtin.markdown-lsp.outline';
 
@@ -227,12 +284,13 @@ function OutlinePanel() {
 
   function scrollTo(heading: Heading) {
     const editors = monaco.editor.getEditors();
-    const editor = editors.find(e => {
-      const model = e.getModel();
-      if (!model) return false;
-      const uri = model.uri.path || model.uri.toString();
-      return uri === _currentUri || uri === `file://${_currentUri}`;
-    }) ?? editors[0];
+    const editor =
+      editors.find((e) => {
+        const model = e.getModel();
+        if (!model) return false;
+        const uri = model.uri.path || model.uri.toString();
+        return uri === _currentUri || uri === `file://${_currentUri}`;
+      }) ?? editors[0];
     if (!editor) return;
     editor.revealLineInCenter(heading.line);
     editor.setPosition({ lineNumber: heading.line, column: 1 });
@@ -253,7 +311,8 @@ function OutlinePanel() {
   if (headings.length === 0) {
     return (
       <Box sx={{ p: 2, color: '#45475a', fontSize: 11, textAlign: 'center', pt: 4 }}>
-        No headings found.<br />
+        No headings found.
+        <br />
         <Typography sx={{ fontSize: 10, color: '#313244', mt: 0.5 }}>
           Add <code style={{ color: '#cba6f7' }}># Heading</code> to your file.
         </Typography>
@@ -262,13 +321,18 @@ function OutlinePanel() {
   }
 
   // Find minimum level to use as base indent
-  const minLevel = Math.min(...headings.map(h => h.level));
+  const minLevel = Math.min(...headings.map((h) => h.level));
 
   return (
-    <Box sx={{ height: '100%', overflowY: 'auto', py: 0.5,
-      '&::-webkit-scrollbar': { width: 4 },
-      '&::-webkit-scrollbar-thumb': { background: '#313244', borderRadius: 2 },
-    }}>
+    <Box
+      sx={{
+        height: '100%',
+        overflowY: 'auto',
+        py: 0.5,
+        '&::-webkit-scrollbar': { width: 4 },
+        '&::-webkit-scrollbar-thumb': { background: '#313244', borderRadius: 2 },
+      }}
+    >
       {headings.map((h, i) => {
         const indent = (h.level - minLevel) * 12;
         const isActive = h.line === activeLine;
@@ -278,8 +342,12 @@ function OutlinePanel() {
             key={i}
             onClick={() => scrollTo(h)}
             sx={{
-              display: 'flex', alignItems: 'center', gap: 0.75,
-              pl: `${8 + indent}px`, pr: 1, py: '3px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              pl: `${8 + indent}px`,
+              pr: 1,
+              py: '3px',
               cursor: 'pointer',
               background: isActive ? '#1e1e2e' : 'transparent',
               borderLeft: isActive ? '2px solid #4fc3f7' : '2px solid transparent',
@@ -287,17 +355,29 @@ function OutlinePanel() {
               transition: 'background 0.1s',
             }}
           >
-            <Typography sx={{
-              fontSize: 9, color: '#45475a', fontWeight: 600,
-              minWidth: 16, fontFamily: 'monospace', flexShrink: 0,
-            }}>
+            <Typography
+              sx={{
+                fontSize: 9,
+                color: '#45475a',
+                fontWeight: 600,
+                minWidth: 16,
+                fontFamily: 'monospace',
+                flexShrink: 0,
+              }}
+            >
               {'#'.repeat(h.level)}
             </Typography>
-            <Typography sx={{
-              fontSize: 11, color, lineHeight: 1.4,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              fontWeight: h.level === 1 ? 600 : 400,
-            }}>
+            <Typography
+              sx={{
+                fontSize: 11,
+                color,
+                lineHeight: 1.4,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontWeight: h.level === 1 ? 600 : 400,
+              }}
+            >
               {h.text}
             </Typography>
           </Box>
@@ -311,13 +391,32 @@ function OutlinePanelWithHeader() {
   const { headings } = useOutlineState();
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#181825' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', px: 1, py: 0.5, borderBottom: '1px solid #313244', background: '#13131e', flexShrink: 0 }}>
-        <Typography sx={{ flex: 1, fontSize: 11, fontWeight: 600, color: '#cba6f7' }}>Outline</Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          px: 1,
+          py: 0.5,
+          borderBottom: '1px solid #313244',
+          background: '#13131e',
+          flexShrink: 0,
+        }}
+      >
+        <Typography sx={{ flex: 1, fontSize: 11, fontWeight: 600, color: '#cba6f7' }}>
+          Outline
+        </Typography>
         {headings.length > 0 && (
           <Typography sx={{ fontSize: 9, color: '#45475a' }}>{headings.length} headings</Typography>
         )}
         <Tooltip title="Refresh diagnostics">
-          <IconButton size="small" onClick={() => { invalidateCache(); if (_currentUri) scheduleUpdate(_currentUri); }} sx={{ p: 0.25, color: '#6c7086', ml: 0.5 }}>
+          <IconButton
+            size="small"
+            onClick={() => {
+              invalidateCache();
+              if (_currentUri) scheduleUpdate(_currentUri);
+            }}
+            sx={{ p: 0.25, color: '#6c7086', ml: 0.5 }}
+          >
             <RefreshIcon sx={{ fontSize: 13 }} />
           </IconButton>
         </Tooltip>
@@ -341,26 +440,33 @@ function registerProviders(): void {
           const m = /^(#{1,6})\s+(.+)$/.exec(line);
           if (!m) return [];
           const level = m[1].length;
-          const range: monaco.IRange = { startLineNumber: i + 1, startColumn: 1, endLineNumber: i + 1, endColumn: line.length + 1 };
-          return [{
-            name: m[2].trim(),
-            detail: '#'.repeat(level),
-            kind: [
-              monaco.languages.SymbolKind.File,
-              monaco.languages.SymbolKind.Module,
-              monaco.languages.SymbolKind.Namespace,
-              monaco.languages.SymbolKind.Class,
-              monaco.languages.SymbolKind.Field,
-              monaco.languages.SymbolKind.Variable,
-            ][level - 1],
-            tags: [],
-            range,
-            selectionRange: range,
-            children: [],
-          } as monaco.languages.DocumentSymbol];
+          const range: monaco.IRange = {
+            startLineNumber: i + 1,
+            startColumn: 1,
+            endLineNumber: i + 1,
+            endColumn: line.length + 1,
+          };
+          return [
+            {
+              name: m[2].trim(),
+              detail: '#'.repeat(level),
+              kind: [
+                monaco.languages.SymbolKind.File,
+                monaco.languages.SymbolKind.Module,
+                monaco.languages.SymbolKind.Namespace,
+                monaco.languages.SymbolKind.Class,
+                monaco.languages.SymbolKind.Field,
+                monaco.languages.SymbolKind.Variable,
+              ][level - 1],
+              tags: [],
+              range,
+              selectionRange: range,
+              children: [],
+            } as monaco.languages.DocumentSymbol,
+          ];
         });
       },
-    }),
+    })
   );
 
   // Wiki-link completion — trigger on [
@@ -379,13 +485,15 @@ function registerProviders(): void {
         // Replace only the typed text (between [[ and cursor).
         // When ]] already exists (Monaco auto-close), leave it — don't extend the range.
         const replaceRange: monaco.IRange = {
-          startLineNumber: position.lineNumber, startColumn: lastOpen + 3,
-          endLineNumber: position.lineNumber, endColumn: position.column,
+          startLineNumber: position.lineNumber,
+          startColumn: lastOpen + 3,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
         };
         const files = await getOrRefreshCache();
         const currentDir = dirOf(_currentUri);
         return {
-          suggestions: files.map(absPath => {
+          suggestions: files.map((absPath) => {
             const label = pathToLabel(absPath);
             let insertBase = label;
             if (absPath.startsWith(currentDir + '/')) {
@@ -404,7 +512,7 @@ function registerProviders(): void {
           }),
         };
       },
-    }),
+    })
   );
 
   // Hover provider — [[link]] shows target file preview
@@ -420,31 +528,41 @@ function registerProviders(): void {
           if (col0 < m.index || col0 >= m.index + m[0].length) continue;
           const wikiLink = m[1].trim();
           const hoverRange: monaco.IRange = {
-            startLineNumber: position.lineNumber, startColumn: m.index + 1,
-            endLineNumber: position.lineNumber, endColumn: m.index + m[0].length + 1,
+            startLineNumber: position.lineNumber,
+            startColumn: m.index + 1,
+            endLineNumber: position.lineNumber,
+            endColumn: m.index + m[0].length + 1,
           };
           const resolved = await resolveWikiLink(wikiLink, _currentUri);
           if (!resolved) {
-            return { range: hoverRange, contents: [
-              { value: `**⚠ Not found:** \`[[${wikiLink}]]\`` },
-              { value: '_No file matching this path was found in the workspace._' },
-            ]};
+            return {
+              range: hoverRange,
+              contents: [
+                { value: `**⚠ Not found:** \`[[${wikiLink}]]\`` },
+                { value: '_No file matching this path was found in the workspace._' },
+              ],
+            };
           }
           let preview = '_Could not read file._';
           try {
             const bytes = await _provider.readFile(resolved);
             preview = new TextDecoder().decode(bytes).split('\n').slice(0, 10).join('\n');
-          } catch { /* leave default */ }
-          return { range: hoverRange, contents: [
-            { value: `**→ ${pathToLabel(resolved)}**` },
-            { value: `\`${resolved.replace('/home/', '')}\`` },
-            { value: '---' },
-            { value: preview },
-          ]};
+          } catch {
+            /* leave default */
+          }
+          return {
+            range: hoverRange,
+            contents: [
+              { value: `**→ ${pathToLabel(resolved)}**` },
+              { value: `\`${resolved.replace('/home/', '')}\`` },
+              { value: '---' },
+              { value: preview },
+            ],
+          };
         }
         return null;
       },
-    }),
+    })
   );
 }
 
@@ -509,8 +627,8 @@ export function createMarkdownLspPlugin(vfsProvider: FileSystemProvider) {
       api.editor.onDidChangeModel((uri) => handleMdUri(uri));
       api.editor.onDidChangeContent((text) => {
         if (!_currentUri || !isMarkdownUri(_currentUri)) return;
-        setHeadings(parseHeadings(text));   // outline updates immediately
-        scheduleUpdate(_currentUri);        // diagnostics debounced
+        setHeadings(parseHeadings(text)); // outline updates immediately
+        scheduleUpdate(_currentUri); // diagnostics debounced
       });
 
       // Track cursor → highlight active heading
@@ -533,8 +651,16 @@ export function createMarkdownLspPlugin(vfsProvider: FileSystemProvider) {
         invalidateCache();
         if (_currentUri && isMarkdownUri(_currentUri)) scheduleUpdate(_currentUri);
       });
-      api.ui.commandpalette.register({ command: `${PLUGIN_ID}:refresh`, title: 'Refresh Wiki Link Cache', category: 'Markdown' });
-      api.ui.commandpalette.register({ command: `${PLUGIN_ID}:open-outline`, title: 'Open Outline Panel', category: 'Markdown' });
+      api.ui.commandpalette.register({
+        command: `${PLUGIN_ID}:refresh`,
+        title: 'Refresh Wiki Link Cache',
+        category: 'Markdown',
+      });
+      api.ui.commandpalette.register({
+        command: `${PLUGIN_ID}:open-outline`,
+        title: 'Open Outline Panel',
+        category: 'Markdown',
+      });
       api.commands.register('open-outline', () => api.ui.openSidebarPanel(OUTLINE_PANEL_ID));
 
       api.logger.info('Markdown LSP v1.1 activated');
@@ -545,11 +671,14 @@ export function createMarkdownLspPlugin(vfsProvider: FileSystemProvider) {
       _statusBarHandle = null;
       _vfsUnsub?.();
       _vfsUnsub = null;
-      if (_diagTimer) { clearTimeout(_diagTimer); _diagTimer = null; }
+      if (_diagTimer) {
+        clearTimeout(_diagTimer);
+        _diagTimer = null;
+      }
       _currentUri = '';
       _provider = null;
       _mdFiles = null;
       setHeadings([]);
-    },
+    }
   );
 }

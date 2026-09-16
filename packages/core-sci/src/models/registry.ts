@@ -54,7 +54,9 @@ const registry = new Map<string, ModelSpec>();
  */
 export function registerModel(spec: ModelSpec): () => void {
   registry.set(spec.name, spec);
-  return () => { registry.delete(spec.name); };
+  return () => {
+    registry.delete(spec.name);
+  };
 }
 
 /** Nazwy opcji zjawiska — potrzebne, by odsiać je od nadpisań parametrów. */
@@ -83,9 +85,13 @@ export interface BuiltModel {
 export function buildModel(name: string, options: Record<string, unknown> = {}): BuiltModel {
   const spec = registry.get(name);
   if (!spec) {
-    const znane = knownModels().map((m) => m.name).join(', ');
+    const znane = knownModels()
+      .map((m) => m.name)
+      .join(', ');
     return {
-      issues: [`Nie znam zjawiska „${name}". Biblioteka zna: ${znane || '(nic — nie zarejestrowano żadnego)'}.`],
+      issues: [
+        `Nie znam zjawiska „${name}". Biblioteka zna: ${znane || '(nic — nie zarejestrowano żadnego)'}.`,
+      ],
     };
   }
 

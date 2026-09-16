@@ -31,7 +31,7 @@ export async function executeWebTool(
   toolName: string,
   args: Record<string, unknown>,
   webFetchUrl: string,
-  authToken?: string,
+  authToken?: string
 ): Promise<string> {
   if (toolName !== 'web_fetch') {
     return JSON.stringify({ error: `Unknown web tool: ${toolName}` });
@@ -48,7 +48,7 @@ export async function executeWebTool(
       headers,
       body: JSON.stringify({ url }),
     });
-    const data = await res.json() as Record<string, unknown>;
+    const data = (await res.json()) as Record<string, unknown>;
     if (!res.ok) return JSON.stringify({ error: data.error ?? `HTTP ${res.status}` });
     // Surface non-2xx status codes from the proxied target as errors so the AI knows to adjust
     if (typeof data.statusCode === 'number' && data.statusCode >= 400) {

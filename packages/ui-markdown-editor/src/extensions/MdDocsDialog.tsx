@@ -13,7 +13,13 @@
 
 import React from 'react';
 import {
-  Box, Dialog, DialogContent, DialogTitle, IconButton, Stack, Typography,
+  Box,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
@@ -33,7 +39,11 @@ export interface MdDocsDialogProps {
 }
 
 const MdDocsDialog: React.FC<MdDocsDialogProps> = ({
-  open, onClose, title, markdown, accent = '#7c4dff',
+  open,
+  onClose,
+  title,
+  markdown,
+  accent = '#7c4dff',
 }) => {
   return (
     <Dialog
@@ -61,7 +71,8 @@ const MdDocsDialog: React.FC<MdDocsDialogProps> = ({
             in-dialog reading experience, not full-page docs. */}
         <Box
           sx={{
-            px: 3, py: 2,
+            px: 3,
+            py: 2,
             overflow: 'auto',
             '& h1': { fontSize: '1.5rem', mt: 0, mb: 1.5, fontWeight: 700 },
             '& h2': { fontSize: '1.2rem', mt: 3, mb: 1, fontWeight: 700, color: accent },
@@ -121,10 +132,7 @@ const MdDocsDialog: React.FC<MdDocsDialogProps> = ({
             '& hr': { my: 2, border: 'none', borderTop: '1px solid', borderColor: 'divider' },
           }}
         >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeHighlight]}
-          >
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
             {markdown}
           </ReactMarkdown>
         </Box>

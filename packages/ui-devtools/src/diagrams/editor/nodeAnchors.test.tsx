@@ -28,9 +28,19 @@ const KOMPLET = SIDES.flatMap(anchorIds);
 
 function props(data: Partial<FlowNodeData> & { shape: NodeShape }): NodeProps<Node<FlowNodeData>> {
   return {
-    id: 'n1', type: 'diagramNode', selected: false, dragging: false, zIndex: 0,
-    isConnectable: true, positionAbsoluteX: 0, positionAbsoluteY: 0, draggable: true,
-    selectable: true, deletable: true, width: 150, height: 52,
+    id: 'n1',
+    type: 'diagramNode',
+    selected: false,
+    dragging: false,
+    zIndex: 0,
+    isConnectable: true,
+    positionAbsoluteX: 0,
+    positionAbsoluteY: 0,
+    draggable: true,
+    selectable: true,
+    deletable: true,
+    width: 150,
+    height: 52,
     data: { label: 'Węzeł', fallback: 'n1', editable: false, ...data },
   } as unknown as NodeProps<Node<FlowNodeData>>;
 }
@@ -43,23 +53,35 @@ function uchwyty(element: React.ReactElement): string[] {
 
 describe('kotwice krawędzi w widokach węzłów', () => {
   it('zwykły węzeł (schemat blokowy, stan) ma komplet kotwic', () => {
-    expect(uchwyty(<DiagramNodeView {...props({ shape: 'rectangle' })} />)).toEqual(expect.arrayContaining(KOMPLET));
+    expect(uchwyty(<DiagramNodeView {...props({ shape: 'rectangle' })} />)).toEqual(
+      expect.arrayContaining(KOMPLET)
+    );
   });
 
   // Rozwidlenie rysuje się jako belka, ale przejścia dochodzą do niego tak samo.
   it('belka fork/join ma komplet kotwic', () => {
-    expect(uchwyty(<DiagramNodeView {...props({ shape: 'fork' })} />)).toEqual(expect.arrayContaining(KOMPLET));
+    expect(uchwyty(<DiagramNodeView {...props({ shape: 'fork' })} />)).toEqual(
+      expect.arrayContaining(KOMPLET)
+    );
   });
 
   it('pseudostan [*] ma komplet kotwic', () => {
-    expect(uchwyty(<DiagramPseudoNodeView {...props({ shape: 'start' })} />)).toEqual(expect.arrayContaining(KOMPLET));
+    expect(uchwyty(<DiagramPseudoNodeView {...props({ shape: 'start' })} />)).toEqual(
+      expect.arrayContaining(KOMPLET)
+    );
   });
 
   // Te trzy działały od początku — są w teście jako straż, żeby zmiana w
   // `NodeAnchors` nie zabrała kotwic tam, gdzie dziś są.
   it('klasa, encja i C4 nadal mają komplet kotwic', () => {
-    expect(uchwyty(<ClassNodeView {...props({ shape: 'rectangle', members: [] })} />)).toEqual(expect.arrayContaining(KOMPLET));
-    expect(uchwyty(<EntityNodeView {...props({ shape: 'rectangle', attributes: [] })} />)).toEqual(expect.arrayContaining(KOMPLET));
-    expect(uchwyty(<C4NodeView {...props({ shape: 'rectangle', c4: { kind: 'system' } })} />)).toEqual(expect.arrayContaining(KOMPLET));
+    expect(uchwyty(<ClassNodeView {...props({ shape: 'rectangle', members: [] })} />)).toEqual(
+      expect.arrayContaining(KOMPLET)
+    );
+    expect(uchwyty(<EntityNodeView {...props({ shape: 'rectangle', attributes: [] })} />)).toEqual(
+      expect.arrayContaining(KOMPLET)
+    );
+    expect(
+      uchwyty(<C4NodeView {...props({ shape: 'rectangle', c4: { kind: 'system' } })} />)
+    ).toEqual(expect.arrayContaining(KOMPLET));
   });
 });

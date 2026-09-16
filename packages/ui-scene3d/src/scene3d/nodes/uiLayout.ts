@@ -14,8 +14,17 @@
  * wybierać jeden z dwóch widżetów o tej samej nazwie.
  */
 import {
-  applyDrag, expr, lit, previewDrag, snapToGrid, solveLayout,
-  type Constraint, type LayoutDoc, type LayoutResult, type ParamValue, type Shape,
+  applyDrag,
+  expr,
+  lit,
+  previewDrag,
+  snapToGrid,
+  solveLayout,
+  type Constraint,
+  type LayoutDoc,
+  type LayoutResult,
+  type ParamValue,
+  type Shape,
 } from '../../layout';
 import type { SceneNode } from '../scene/SceneNode';
 import { UiRootNode, UiWidgetNode } from './UiNodes';
@@ -56,7 +65,10 @@ function wszystkie(root: UiRootNode): UiWidgetNode[] {
   return out;
 }
 
-export function buildUiDoc(root: UiRootNode, viewport: { width: number; height: number }): UiDocResult {
+export function buildUiDoc(
+  root: UiRootNode,
+  viewport: { width: number; height: number }
+): UiDocResult {
   const issues: string[] = [];
   const lista = wszystkie(root);
 
@@ -69,10 +81,16 @@ export function buildUiDoc(root: UiRootNode, viewport: { width: number; height: 
   const zgloszone = new Set<string>();
 
   for (const w of lista) {
-    const nadajeSie = IDENTYFIKATOR.test(w.name) && ile.get(w.name) === 1 && w.name !== 'parent' && w.name !== 'viewport';
+    const nadajeSie =
+      IDENTYFIKATOR.test(w.name) &&
+      ile.get(w.name) === 1 &&
+      w.name !== 'parent' &&
+      w.name !== 'viewport';
     if (!nadajeSie && (ile.get(w.name) ?? 0) > 1 && !zgloszone.has(w.name)) {
       zgloszone.add(w.name);
-      issues.push(`Nazwa „${w.name}" powtarza się, więc nie da się jej użyć w wyrażeniu. Zmień jedną z nich.`);
+      issues.push(
+        `Nazwa „${w.name}" powtarza się, więc nie da się jej użyć w wyrażeniu. Zmień jedną z nich.`
+      );
     }
     const id = nadajeSie ? w.name : w.id;
     shapeByNodeId[w.id] = id;
@@ -80,7 +98,8 @@ export function buildUiDoc(root: UiRootNode, viewport: { width: number; height: 
   }
 
   const shapes: Shape[] = lista.map((w) => {
-    const rodzic = w.parent && w.parent instanceof UiWidgetNode ? shapeByNodeId[w.parent.id] : undefined;
+    const rodzic =
+      w.parent && w.parent instanceof UiWidgetNode ? shapeByNodeId[w.parent.id] : undefined;
     return {
       id: shapeByNodeId[w.id],
       ...(rodzic ? { parent: rodzic } : {}),
@@ -132,7 +151,10 @@ export interface UiLayoutResult extends LayoutResult {
   rectsByNodeId: Record<string, LayoutResult['rects'][string]>;
 }
 
-export function solveUiLayout(root: UiRootNode, viewport: { width: number; height: number }): UiLayoutResult {
+export function solveUiLayout(
+  root: UiRootNode,
+  viewport: { width: number; height: number }
+): UiLayoutResult {
   const { doc, nodeIdByShape, shapeByNodeId, issues } = buildUiDoc(root, viewport);
   const wynik = solveLayout(doc);
 
@@ -142,7 +164,13 @@ export function solveUiLayout(root: UiRootNode, viewport: { width: number; heigh
     if (nodeId) rectsByNodeId[nodeId] = rect;
   }
 
-  return { ...wynik, issues: [...issues, ...wynik.issues], nodeIdByShape, shapeByNodeId, rectsByNodeId };
+  return {
+    ...wynik,
+    issues: [...issues, ...wynik.issues],
+    nodeIdByShape,
+    shapeByNodeId,
+    rectsByNodeId,
+  };
 }
 
 /** Pierwsza warstwa interfejsu w scenie — edytor prawie zawsze pyta o tę jedną. */
@@ -194,7 +222,7 @@ export function applyUiDrag(
   nodeId: string,
   cel: { x: number; y: number },
   viewport: { width: number; height: number },
-  opcje: { preview?: boolean; grid?: number } = {},
+  opcje: { preview?: boolean; grid?: number } = {}
 ): UiDragResult {
   const { doc, nodeIdByShape, shapeByNodeId } = buildUiDoc(root, viewport);
   const shapeId = shapeByNodeId[nodeId];

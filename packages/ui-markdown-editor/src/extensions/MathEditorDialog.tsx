@@ -1,7 +1,16 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
-  Dialog, DialogContent, DialogActions, DialogTitle, Button, Box, Tabs, Tab,
-  Tooltip, Typography, IconButton,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  DialogTitle,
+  Button,
+  Box,
+  Tabs,
+  Tab,
+  Tooltip,
+  Typography,
+  IconButton,
 } from '@mui/material';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import CloseIcon from '@mui/icons-material/Close';
@@ -22,7 +31,10 @@ interface Sym {
   t?: string;
 }
 
-interface Category { name: string; syms: Sym[]; }
+interface Category {
+  name: string;
+  syms: Sym[];
+}
 
 // ── Palety symboli ────────────────────────────────────────────────────────────
 const CATEGORIES: Category[] = [
@@ -64,65 +76,146 @@ const CATEGORIES: Category[] = [
   {
     name: 'Greckie α',
     syms: [
-      { r: '\\alpha' }, { r: '\\beta' }, { r: '\\gamma' }, { r: '\\delta' },
-      { r: '\\epsilon' }, { r: '\\varepsilon' }, { r: '\\zeta' }, { r: '\\eta' },
-      { r: '\\theta' }, { r: '\\vartheta' }, { r: '\\iota' }, { r: '\\kappa' },
-      { r: '\\lambda' }, { r: '\\mu' }, { r: '\\nu' }, { r: '\\xi' },
-      { r: '\\pi' }, { r: '\\rho' }, { r: '\\sigma' }, { r: '\\tau' },
-      { r: '\\upsilon' }, { r: '\\phi' }, { r: '\\varphi' }, { r: '\\chi' },
-      { r: '\\psi' }, { r: '\\omega' },
+      { r: '\\alpha' },
+      { r: '\\beta' },
+      { r: '\\gamma' },
+      { r: '\\delta' },
+      { r: '\\epsilon' },
+      { r: '\\varepsilon' },
+      { r: '\\zeta' },
+      { r: '\\eta' },
+      { r: '\\theta' },
+      { r: '\\vartheta' },
+      { r: '\\iota' },
+      { r: '\\kappa' },
+      { r: '\\lambda' },
+      { r: '\\mu' },
+      { r: '\\nu' },
+      { r: '\\xi' },
+      { r: '\\pi' },
+      { r: '\\rho' },
+      { r: '\\sigma' },
+      { r: '\\tau' },
+      { r: '\\upsilon' },
+      { r: '\\phi' },
+      { r: '\\varphi' },
+      { r: '\\chi' },
+      { r: '\\psi' },
+      { r: '\\omega' },
     ],
   },
   {
     name: 'Greckie Δ',
     syms: [
-      { r: '\\Gamma' }, { r: '\\Delta', t: 'Delta (trójkąt)' }, { r: '\\Theta' },
-      { r: '\\Lambda' }, { r: '\\Xi' }, { r: '\\Pi' }, { r: '\\Sigma' },
-      { r: '\\Upsilon' }, { r: '\\Phi' }, { r: '\\Psi' }, { r: '\\Omega' },
-      { r: '\\aleph' }, { r: '\\hbar', t: 'Stała Plancka' }, { r: '\\ell' },
+      { r: '\\Gamma' },
+      { r: '\\Delta', t: 'Delta (trójkąt)' },
+      { r: '\\Theta' },
+      { r: '\\Lambda' },
+      { r: '\\Xi' },
+      { r: '\\Pi' },
+      { r: '\\Sigma' },
+      { r: '\\Upsilon' },
+      { r: '\\Phi' },
+      { r: '\\Psi' },
+      { r: '\\Omega' },
+      { r: '\\aleph' },
+      { r: '\\hbar', t: 'Stała Plancka' },
+      { r: '\\ell' },
     ],
   },
   {
     name: 'Operatory',
     syms: [
-      { r: '\\pm' }, { r: '\\mp' }, { r: '\\times' }, { r: '\\div' },
-      { r: '\\cdot' }, { r: '\\ast' }, { r: '\\star' }, { r: '\\circ' },
-      { r: '\\bullet' }, { r: '\\oplus' }, { r: '\\ominus' }, { r: '\\otimes' },
-      { r: '\\odot' }, { r: '\\wedge' }, { r: '\\vee' }, { r: '\\setminus' },
-      { r: '\\sqrt{\\,}', i: `\\sqrt{${CUR}}`, t: 'Pierwiastek' }, { r: '\\%', i: '\\%' },
-      { r: '\\prime', i: `'` }, { r: '\\degree', i: '^{\\circ}', t: 'Stopień' },
+      { r: '\\pm' },
+      { r: '\\mp' },
+      { r: '\\times' },
+      { r: '\\div' },
+      { r: '\\cdot' },
+      { r: '\\ast' },
+      { r: '\\star' },
+      { r: '\\circ' },
+      { r: '\\bullet' },
+      { r: '\\oplus' },
+      { r: '\\ominus' },
+      { r: '\\otimes' },
+      { r: '\\odot' },
+      { r: '\\wedge' },
+      { r: '\\vee' },
+      { r: '\\setminus' },
+      { r: '\\sqrt{\\,}', i: `\\sqrt{${CUR}}`, t: 'Pierwiastek' },
+      { r: '\\%', i: '\\%' },
+      { r: '\\prime', i: `'` },
+      { r: '\\degree', i: '^{\\circ}', t: 'Stopień' },
     ],
   },
   {
     name: 'Relacje',
     syms: [
-      { r: '=' }, { r: '\\neq' }, { r: '\\approx' }, { r: '\\equiv' },
-      { r: '\\cong' }, { r: '\\sim' }, { r: '\\simeq' }, { r: '\\propto' },
-      { r: '\\leq' }, { r: '\\geq' }, { r: '\\ll' }, { r: '\\gg' },
-      { r: '\\prec' }, { r: '\\succ' }, { r: '\\doteq' }, { r: '\\triangleq' },
+      { r: '=' },
+      { r: '\\neq' },
+      { r: '\\approx' },
+      { r: '\\equiv' },
+      { r: '\\cong' },
+      { r: '\\sim' },
+      { r: '\\simeq' },
+      { r: '\\propto' },
+      { r: '\\leq' },
+      { r: '\\geq' },
+      { r: '\\ll' },
+      { r: '\\gg' },
+      { r: '\\prec' },
+      { r: '\\succ' },
+      { r: '\\doteq' },
+      { r: '\\triangleq' },
     ],
   },
   {
     name: 'Strzałki',
     syms: [
-      { r: '\\to' }, { r: '\\gets' }, { r: '\\leftrightarrow' },
-      { r: '\\Rightarrow' }, { r: '\\Leftarrow' }, { r: '\\Leftrightarrow' },
-      { r: '\\mapsto' }, { r: '\\longrightarrow' }, { r: '\\longleftarrow' },
-      { r: '\\uparrow' }, { r: '\\downarrow' }, { r: '\\updownarrow' },
-      { r: '\\nearrow' }, { r: '\\searrow' }, { r: '\\rightleftharpoons' },
+      { r: '\\to' },
+      { r: '\\gets' },
+      { r: '\\leftrightarrow' },
+      { r: '\\Rightarrow' },
+      { r: '\\Leftarrow' },
+      { r: '\\Leftrightarrow' },
+      { r: '\\mapsto' },
+      { r: '\\longrightarrow' },
+      { r: '\\longleftarrow' },
+      { r: '\\uparrow' },
+      { r: '\\downarrow' },
+      { r: '\\updownarrow' },
+      { r: '\\nearrow' },
+      { r: '\\searrow' },
+      { r: '\\rightleftharpoons' },
     ],
   },
   {
     name: 'Zbiory i logika',
     syms: [
-      { r: '\\in' }, { r: '\\notin' }, { r: '\\ni' }, { r: '\\subset' },
-      { r: '\\subseteq' }, { r: '\\supset' }, { r: '\\supseteq' }, { r: '\\cup' },
-      { r: '\\cap' }, { r: '\\emptyset' }, { r: '\\varnothing' },
-      { r: '\\forall' }, { r: '\\exists' }, { r: '\\nexists' }, { r: '\\neg' },
-      { r: '\\land' }, { r: '\\lor' }, { r: '\\implies' }, { r: '\\iff' },
+      { r: '\\in' },
+      { r: '\\notin' },
+      { r: '\\ni' },
+      { r: '\\subset' },
+      { r: '\\subseteq' },
+      { r: '\\supset' },
+      { r: '\\supseteq' },
+      { r: '\\cup' },
+      { r: '\\cap' },
+      { r: '\\emptyset' },
+      { r: '\\varnothing' },
+      { r: '\\forall' },
+      { r: '\\exists' },
+      { r: '\\nexists' },
+      { r: '\\neg' },
+      { r: '\\land' },
+      { r: '\\lor' },
+      { r: '\\implies' },
+      { r: '\\iff' },
       { r: '\\mathbb{R}', i: '\\mathbb{R}', t: 'Liczby rzeczywiste' },
-      { r: '\\mathbb{Z}', i: '\\mathbb{Z}' }, { r: '\\mathbb{N}', i: '\\mathbb{N}' },
-      { r: '\\mathbb{Q}', i: '\\mathbb{Q}' }, { r: '\\mathbb{C}', i: '\\mathbb{C}' },
+      { r: '\\mathbb{Z}', i: '\\mathbb{Z}' },
+      { r: '\\mathbb{N}', i: '\\mathbb{N}' },
+      { r: '\\mathbb{Q}', i: '\\mathbb{Q}' },
+      { r: '\\mathbb{C}', i: '\\mathbb{C}' },
     ],
   },
   {
@@ -137,7 +230,9 @@ const CATEGORIES: Category[] = [
       { r: '\\nabla\\times', i: '\\nabla\\times ', t: 'Rotacja' },
       { r: '\\partial', t: 'Pochodna cząstkowa' },
       { r: '\\Delta', t: 'Delta / laplasjan' },
-      { r: '\\hbar' }, { r: '\\propto' }, { r: '^{\\circ}\\!C', i: '^{\\circ}C', t: 'Stopnie Celsjusza' },
+      { r: '\\hbar' },
+      { r: '\\propto' },
+      { r: '^{\\circ}\\!C', i: '^{\\circ}C', t: 'Stopnie Celsjusza' },
       { r: '\\langle\\psi|', i: `\\langle ${CUR} |`, t: 'Bra' },
       { r: '|\\psi\\rangle', i: `| ${CUR} \\rangle`, t: 'Ket' },
       { r: '\\times10^{n}', i: `\\times 10^{${CUR}}`, t: 'Notacja naukowa' },
@@ -146,19 +241,36 @@ const CATEGORIES: Category[] = [
   {
     name: 'Funkcje',
     syms: [
-      { r: '\\sin' }, { r: '\\cos' }, { r: '\\tan' }, { r: '\\cot' },
-      { r: '\\arcsin' }, { r: '\\arccos' }, { r: '\\arctan' },
-      { r: '\\sinh' }, { r: '\\cosh' }, { r: '\\tanh' },
-      { r: '\\log' }, { r: '\\ln' }, { r: '\\lg' }, { r: '\\exp' },
-      { r: '\\min' }, { r: '\\max' }, { r: '\\gcd' }, { r: '\\det' },
-      { r: '\\dim' }, { r: '\\deg' }, { r: '\\bmod', i: ' \\bmod ' },
+      { r: '\\sin' },
+      { r: '\\cos' },
+      { r: '\\tan' },
+      { r: '\\cot' },
+      { r: '\\arcsin' },
+      { r: '\\arccos' },
+      { r: '\\arctan' },
+      { r: '\\sinh' },
+      { r: '\\cosh' },
+      { r: '\\tanh' },
+      { r: '\\log' },
+      { r: '\\ln' },
+      { r: '\\lg' },
+      { r: '\\exp' },
+      { r: '\\min' },
+      { r: '\\max' },
+      { r: '\\gcd' },
+      { r: '\\det' },
+      { r: '\\dim' },
+      { r: '\\deg' },
+      { r: '\\bmod', i: ' \\bmod ' },
     ],
   },
   {
     name: 'Akcenty',
     syms: [
-      { r: '\\bar{x}', i: `\\bar{${CUR}}` }, { r: '\\tilde{x}', i: `\\tilde{${CUR}}` },
-      { r: '\\hat{x}', i: `\\hat{${CUR}}` }, { r: '\\widehat{xy}', i: `\\widehat{${CUR}}` },
+      { r: '\\bar{x}', i: `\\bar{${CUR}}` },
+      { r: '\\tilde{x}', i: `\\tilde{${CUR}}` },
+      { r: '\\hat{x}', i: `\\hat{${CUR}}` },
+      { r: '\\widehat{xy}', i: `\\widehat{${CUR}}` },
       { r: '\\widetilde{xy}', i: `\\widetilde{${CUR}}` },
       { r: '\\vec{x}', i: `\\vec{${CUR}}` },
       { r: '\\overrightarrow{AB}', i: `\\overrightarrow{${CUR}}` },
@@ -172,11 +284,31 @@ const CATEGORIES: Category[] = [
   {
     name: 'Macierze',
     syms: [
-      { r: '\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}', i: `\\begin{pmatrix}\n  ${CUR} & \\\\\n   & \n\\end{pmatrix}`, t: 'Macierz ( )' },
-      { r: '\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}', i: `\\begin{bmatrix}\n  ${CUR} & \\\\\n   & \n\\end{bmatrix}`, t: 'Macierz [ ]' },
-      { r: '\\begin{vmatrix}a&b\\\\c&d\\end{vmatrix}', i: `\\begin{vmatrix}\n  ${CUR} & \\\\\n   & \n\\end{vmatrix}`, t: 'Wyznacznik' },
-      { r: '\\begin{cases}a\\\\b\\end{cases}', i: `\\begin{cases}\n  ${CUR} & \\text{gdy } \\\\\n  0 & \\text{w p.p.}\n\\end{cases}`, t: 'Układ / przypadki' },
-      { r: '\\begin{aligned}x&=1\\\\y&=2\\end{aligned}', i: `\\begin{aligned}\n  ${CUR} &= \\\\\n   &= \n\\end{aligned}`, t: 'Wyrównane równania' },
+      {
+        r: '\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}',
+        i: `\\begin{pmatrix}\n  ${CUR} & \\\\\n   & \n\\end{pmatrix}`,
+        t: 'Macierz ( )',
+      },
+      {
+        r: '\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}',
+        i: `\\begin{bmatrix}\n  ${CUR} & \\\\\n   & \n\\end{bmatrix}`,
+        t: 'Macierz [ ]',
+      },
+      {
+        r: '\\begin{vmatrix}a&b\\\\c&d\\end{vmatrix}',
+        i: `\\begin{vmatrix}\n  ${CUR} & \\\\\n   & \n\\end{vmatrix}`,
+        t: 'Wyznacznik',
+      },
+      {
+        r: '\\begin{cases}a\\\\b\\end{cases}',
+        i: `\\begin{cases}\n  ${CUR} & \\text{gdy } \\\\\n  0 & \\text{w p.p.}\n\\end{cases}`,
+        t: 'Układ / przypadki',
+      },
+      {
+        r: '\\begin{aligned}x&=1\\\\y&=2\\end{aligned}',
+        i: `\\begin{aligned}\n  ${CUR} &= \\\\\n   &= \n\\end{aligned}`,
+        t: 'Wyrównane równania',
+      },
       { r: 'a\\\\b', i: ' \\\\\n', t: 'Nowy wiersz' },
       { r: 'a&b', i: ' & ', t: 'Separator kolumn' },
     ],
@@ -184,14 +316,21 @@ const CATEGORIES: Category[] = [
 ];
 
 // Renderuje LaTeX do HTML (na przyciskach palety oraz w podglądzie).
-const renderKatex = (latex: string, displayMode: boolean): { html: string; error: string | null } => {
+const renderKatex = (
+  latex: string,
+  displayMode: boolean
+): { html: string; error: string | null } => {
   try {
     const html = katex.renderToString(latex, { displayMode, throwOnError: true, output: 'html' });
     return { html, error: null };
   } catch (e) {
     // Renderujemy też wersję tolerancyjną (czerwony fragment), ale zwracamy komunikat.
     let html = '';
-    try { html = katex.renderToString(latex, { displayMode, throwOnError: false, output: 'html' }); } catch { /* ignore */ }
+    try {
+      html = katex.renderToString(latex, { displayMode, throwOnError: false, output: 'html' });
+    } catch {
+      /* ignore */
+    }
     return { html, error: (e as Error).message.replace(/^KaTeX parse error:\s*/, '') };
   }
 };
@@ -204,10 +343,26 @@ const SymButton: React.FC<{ sym: Sym; onInsert: (i: string) => void }> = ({ sym,
         component="button"
         onClick={() => onInsert(sym.i ?? sym.r)}
         sx={{
-          minWidth: 40, height: 38, px: 0.75, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          border: '1px solid', borderColor: 'divider', borderRadius: 1, bgcolor: 'background.paper', cursor: 'pointer',
-          fontSize: 15, lineHeight: 1, transition: 'all .12s',
-          '&:hover': { bgcolor: 'action.hover', borderColor: '#1976d2', transform: 'translateY(-1px)', boxShadow: 1 },
+          minWidth: 40,
+          height: 38,
+          px: 0.75,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          bgcolor: 'background.paper',
+          cursor: 'pointer',
+          fontSize: 15,
+          lineHeight: 1,
+          transition: 'all .12s',
+          '&:hover': {
+            bgcolor: 'action.hover',
+            borderColor: '#1976d2',
+            transform: 'translateY(-1px)',
+            boxShadow: 1,
+          },
           '&:active': { transform: 'none' },
         }}
         dangerouslySetInnerHTML={{ __html: html }}
@@ -224,64 +379,111 @@ export interface MathEditorDialogProps {
   onClose: () => void;
 }
 
-export const MathEditorDialog: React.FC<MathEditorDialogProps> = ({ open, initialLatex, displayMode, onSave, onClose }) => {
+export const MathEditorDialog: React.FC<MathEditorDialogProps> = ({
+  open,
+  initialLatex,
+  displayMode,
+  onSave,
+  onClose,
+}) => {
   const [value, setValue] = useState(initialLatex);
   const [tab, setTab] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { if (open) { setValue(initialLatex); setTab(0); } }, [open, initialLatex]);
+  useEffect(() => {
+    if (open) {
+      setValue(initialLatex);
+      setTab(0);
+    }
+  }, [open, initialLatex]);
 
   // Wstawia snippet w miejscu kursora; jeśli jest zaznaczenie i snippet ma znacznik
   // CUR — owija zaznaczenie (np. zaznacz „x" → \sqrt{x}). Kursor ląduje na CUR.
-  const insert = useCallback((snippet: string) => {
-    const ta = textareaRef.current;
-    const start = ta ? ta.selectionStart : value.length;
-    const end = ta ? ta.selectionEnd : value.length;
-    const selected = value.slice(start, end);
-    const markerIdx = snippet.indexOf(CUR);
-    let body: string;
-    let caret: number;
-    if (markerIdx >= 0) {
-      const filled = snippet.slice(0, markerIdx) + selected + snippet.slice(markerIdx + 1);
-      body = filled;
-      caret = start + markerIdx + selected.length;
-    } else {
-      body = snippet;
-      caret = start + snippet.length;
-    }
-    const next = value.slice(0, start) + body + value.slice(end);
-    setValue(next);
-    requestAnimationFrame(() => {
-      const t = textareaRef.current;
-      if (t) { t.focus(); t.setSelectionRange(caret, caret); }
-    });
-  }, [value]);
+  const insert = useCallback(
+    (snippet: string) => {
+      const ta = textareaRef.current;
+      const start = ta ? ta.selectionStart : value.length;
+      const end = ta ? ta.selectionEnd : value.length;
+      const selected = value.slice(start, end);
+      const markerIdx = snippet.indexOf(CUR);
+      let body: string;
+      let caret: number;
+      if (markerIdx >= 0) {
+        const filled = snippet.slice(0, markerIdx) + selected + snippet.slice(markerIdx + 1);
+        body = filled;
+        caret = start + markerIdx + selected.length;
+      } else {
+        body = snippet;
+        caret = start + snippet.length;
+      }
+      const next = value.slice(0, start) + body + value.slice(end);
+      setValue(next);
+      requestAnimationFrame(() => {
+        const t = textareaRef.current;
+        if (t) {
+          t.focus();
+          t.setSelectionRange(caret, caret);
+        }
+      });
+    },
+    [value]
+  );
 
-  const preview = useMemo(() => renderKatex(value.trim() || '\\;', displayMode), [value, displayMode]);
+  const preview = useMemo(
+    () => renderKatex(value.trim() || '\\;', displayMode),
+    [value, displayMode]
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); onSave(value); }
-    if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      onSave(value);
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
       // Zapobiega przejęciu klawiszy przez ProseMirror pod spodem.
-      onKeyDown={(e) => e.stopPropagation()}>
+      onKeyDown={(e) => e.stopPropagation()}
+    >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1.5 }}>
         <FunctionsIcon sx={{ color: '#1976d2' }} />
         <Typography sx={{ fontWeight: 700, flex: 1 }}>Edytor równań (LaTeX)</Typography>
-        <IconButton size="small" onClick={onClose}><CloseIcon fontSize="small" /></IconButton>
+        <IconButton size="small" onClick={onClose}>
+          <CloseIcon fontSize="small" />
+        </IconButton>
       </DialogTitle>
       <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* Podgląd na żywo */}
-        <Box sx={{
-          minHeight: 72, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          p: 2, borderRadius: 2, bgcolor: '#fafafa', border: '1px solid', borderColor: 'divider', overflowX: 'auto',
-        }}>
-          {value.trim()
-            ? <span dangerouslySetInnerHTML={{ __html: preview.html }} />
-            : <Typography sx={{ color: 'text.disabled', fontStyle: 'italic' }}>Podgląd równania…</Typography>}
+        <Box
+          sx={{
+            minHeight: 72,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 2,
+            borderRadius: 2,
+            bgcolor: '#fafafa',
+            border: '1px solid',
+            borderColor: 'divider',
+            overflowX: 'auto',
+          }}
+        >
+          {value.trim() ? (
+            <span dangerouslySetInnerHTML={{ __html: preview.html }} />
+          ) : (
+            <Typography sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
+              Podgląd równania…
+            </Typography>
+          )}
         </Box>
         {preview.error && (
           <Typography sx={{ fontSize: 12, color: 'error.main', fontFamily: 'monospace', px: 0.5 }}>
@@ -299,31 +501,66 @@ export const MathEditorDialog: React.FC<MathEditorDialogProps> = ({ open, initia
           spellCheck={false}
           placeholder={'Wpisz LaTeX lub użyj palety poniżej, np. \\frac{a}{b}, \\sum_{i=1}^{n} x_i'}
           sx={{
-            width: '100%', minHeight: 90, resize: 'vertical', p: 1.5, borderRadius: 1.5,
-            border: '2px solid #1976d2', outline: 'none', bgcolor: 'background.paper',
-            fontFamily: "'Fira Code','Monaco','Consolas',monospace", fontSize: 14, lineHeight: 1.6,
+            width: '100%',
+            minHeight: 90,
+            resize: 'vertical',
+            p: 1.5,
+            borderRadius: 1.5,
+            border: '2px solid #1976d2',
+            outline: 'none',
+            bgcolor: 'background.paper',
+            fontFamily: "'Fira Code','Monaco','Consolas',monospace",
+            fontSize: 14,
+            lineHeight: 1.6,
           }}
         />
 
         {/* Palety symboli */}
         <Box>
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto"
-            sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, textTransform: 'none', fontSize: 12.5, py: 0.5 } }}>
-            {CATEGORIES.map((c) => <Tab key={c.name} label={c.name} />)}
+          <Tabs
+            value={tab}
+            onChange={(_, v) => setTab(v)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              minHeight: 36,
+              '& .MuiTab-root': { minHeight: 36, textTransform: 'none', fontSize: 12.5, py: 0.5 },
+            }}
+          >
+            {CATEGORIES.map((c) => (
+              <Tab key={c.name} label={c.name} />
+            ))}
           </Tabs>
-          <Box sx={{
-            display: 'flex', flexWrap: 'wrap', gap: 0.75, p: 1, mt: 1, maxHeight: 190, overflowY: 'auto',
-            border: '1px solid', borderColor: 'divider', borderRadius: 1.5, bgcolor: '#fcfcfd',
-          }}>
-            {CATEGORIES[tab].syms.map((s, i) => <SymButton key={i} sym={s} onInsert={insert} />)}
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 0.75,
+              p: 1,
+              mt: 1,
+              maxHeight: 190,
+              overflowY: 'auto',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1.5,
+              bgcolor: '#fcfcfd',
+            }}
+          >
+            {CATEGORIES[tab].syms.map((s, i) => (
+              <SymButton key={i} sym={s} onInsert={insert} />
+            ))}
           </Box>
         </Box>
       </DialogContent>
       <DialogActions sx={{ px: 2, py: 1.5, justifyContent: 'space-between' }}>
-        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Ctrl/⌘ + Enter — zapisz · Esc — anuluj</Typography>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+          Ctrl/⌘ + Enter — zapisz · Esc — anuluj
+        </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button onClick={onClose}>Anuluj</Button>
-          <Button variant="contained" onClick={() => onSave(value)}>Zapisz</Button>
+          <Button variant="contained" onClick={() => onSave(value)}>
+            Zapisz
+          </Button>
         </Box>
       </DialogActions>
     </Dialog>

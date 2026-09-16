@@ -3,7 +3,14 @@
  */
 
 import type { FileSystemProvider } from '@hestia/core';
-import type { AiProvider, AiProviderConfig, AiChatMessage, AiContentBlock, AgentMessage, ChatAttachment } from '../types';
+import type {
+  AiProvider,
+  AiProviderConfig,
+  AiChatMessage,
+  AiContentBlock,
+  AgentMessage,
+  ChatAttachment,
+} from '../types';
 import { buildVfsToolDefinitions } from '../tools/vfsTools';
 import { executeVfsTool } from '../tools/toolExecutor';
 import { buildWebToolDefinitions, executeWebTool } from '../tools/webTools';
@@ -46,7 +53,7 @@ export class AgentEngine {
     maxTokens = 16384,
     webFetchUrl?: string,
     authToken?: string,
-    injectedClaudeMd?: string,
+    injectedClaudeMd?: string
   ) {
     this.aiProvider = aiProvider;
     this.config = config;
@@ -66,7 +73,7 @@ export class AgentEngine {
     maxTokens?: number,
     webFetchUrl?: string,
     authToken?: string,
-    injectedClaudeMd?: string,
+    injectedClaudeMd?: string
   ): void {
     this.aiProvider = aiProvider;
     this.config = config;
@@ -87,9 +94,11 @@ export class AgentEngine {
     let dirs: string[] = ['/'];
     try {
       const rootEntries = await this.provider.readDirectory('/');
-      dirs = ['/', ...rootEntries.filter(e => e.type === 2).map(e => `/${e.name}`)];
+      dirs = ['/', ...rootEntries.filter((e) => e.type === 2).map((e) => `/${e.name}`)];
       console.log('[AgentEngine] VFS root dirs:', dirs);
-    } catch (e) { console.warn('[AgentEngine] readDirectory("/") failed:', e); }
+    } catch (e) {
+      console.warn('[AgentEngine] readDirectory("/") failed:', e);
+    }
 
     for (const dir of dirs) {
       const base = dir === '/' ? '' : dir;
@@ -98,7 +107,9 @@ export class AgentEngine {
       try {
         const text = new TextDecoder().decode(await this.provider.readFile(`${base}/CLAUDE.md`));
         sections.push(`### ${base}/CLAUDE.md\n${text.trim()}`);
-      } catch { /* not found */ }
+      } catch {
+        /* not found */
+      }
 
       // Local skills: .claude/commands/*.md
       try {
@@ -108,16 +119,22 @@ export class AgentEngine {
           const skillName = entry.name.replace(/\.md$/, '');
           try {
             const content = new TextDecoder().decode(
-              await this.provider.readFile(`${base}/.claude/commands/${entry.name}`),
+              await this.provider.readFile(`${base}/.claude/commands/${entry.name}`)
             );
             this.skills.set(skillName, content);
-          } catch { /* skip */ }
+          } catch {
+            /* skip */
+          }
         }
-      } catch { /* no commands dir */ }
+      } catch {
+        /* no commands dir */
+      }
 
       // skills-lock.json — fetch from GitHub
       try {
-        const lockText = new TextDecoder().decode(await this.provider.readFile(`${base}/skills-lock.json`));
+        const lockText = new TextDecoder().decode(
+          await this.provider.readFile(`${base}/skills-lock.json`)
+        );
         console.log(`[AgentEngine] Found skills-lock.json at ${base}/skills-lock.json`);
         const lock = JSON.parse(lockText) as {
           version: number;
@@ -147,41 +164,51 @@ export class AgentEngine {
                 loaded = true;
                 break;
               }
-            } catch { /* try next */ }
+            } catch {
+              /* try next */
+            }
           }
           // Fallback: use GitHub Trees API to find the .md file anywhere in the repo
           if (!loaded) {
             try {
               for (const branch of ['main', 'master']) {
                 const treeRes = await fetch(
-                  `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`,
+                  `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`
                 );
                 if (!treeRes.ok) continue;
-                const tree = await treeRes.json() as { tree: Array<{ path: string; type: string }> };
+                const tree = (await treeRes.json()) as {
+                  tree: Array<{ path: string; type: string }>;
+                };
                 const match = tree.tree.find(
-                  f => f.type === 'blob' && (
-                    f.path === `skills/${skillName}/SKILL.md` ||
-                    f.path === `${skillName}.md` ||
-                    f.path.endsWith(`/${skillName}/SKILL.md`) ||
-                    f.path.endsWith(`/${skillName}.md`)
-                  ),
+                  (f) =>
+                    f.type === 'blob' &&
+                    (f.path === `skills/${skillName}/SKILL.md` ||
+                      f.path === `${skillName}.md` ||
+                      f.path.endsWith(`/${skillName}/SKILL.md`) ||
+                      f.path.endsWith(`/${skillName}.md`))
                 );
                 if (match) {
                   const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${match.path}`;
                   const rawRes = await fetch(rawUrl);
                   if (rawRes.ok) {
                     this.skills.set(skillName, await rawRes.text());
-                    console.log(`[AgentEngine] Skill ${skillName} loaded via tree API from ${rawUrl}`);
+                    console.log(
+                      `[AgentEngine] Skill ${skillName} loaded via tree API from ${rawUrl}`
+                    );
                     loaded = true;
                     break;
                   }
                 }
               }
-            } catch (e) { console.warn(`[AgentEngine] Tree API fallback failed:`, e); }
+            } catch (e) {
+              console.warn(`[AgentEngine] Tree API fallback failed:`, e);
+            }
           }
           if (!loaded) console.warn(`[AgentEngine] Could not load skill: ${skillName}`);
         }
-      } catch { /* no skills-lock.json */ }
+      } catch {
+        /* no skills-lock.json */
+      }
     }
 
     this.claudeMdContent = sections.join('\n\n');
@@ -229,14 +256,17 @@ export class AgentEngine {
         iteration++;
         const messages = this.buildAiMessages(systemPrompt);
 
-        const response = await this.aiProvider.chat({
-          messages,
-          tools: tools.length > 0 ? tools : undefined,
-          tool_choice: tools.length > 0 ? 'auto' : undefined,
-          temperature: this.temperature,
-          maxTokens: this.maxTokens,
-          signal,
-        }, this.config);
+        const response = await this.aiProvider.chat(
+          {
+            messages,
+            tools: tools.length > 0 ? tools : undefined,
+            tool_choice: tools.length > 0 ? 'auto' : undefined,
+            temperature: this.temperature,
+            maxTokens: this.maxTokens,
+            signal,
+          },
+          this.config
+        );
 
         if (response.toolCalls?.length) {
           // Assistant wants to use tools
@@ -245,26 +275,48 @@ export class AgentEngine {
           this.history.push(assistantMsg);
           this.callbacks.onMessage(assistantMsg);
 
-          const WRITE_TOOLS = new Set(['vfs_write_file', 'vfs_delete', 'vfs_rename', 'vfs_copy', 'vfs_mkdir']);
+          const WRITE_TOOLS = new Set([
+            'vfs_write_file',
+            'vfs_delete',
+            'vfs_rename',
+            'vfs_copy',
+            'vfs_mkdir',
+          ]);
           // Every tool call of this turn runs AT ONCE. Each VFS operation is its
           // own HTTP round trip, and awaiting them one by one made file access
           // "terribly slow" over many files — N times the latency. The paths are
           // independent, so running them together is safe. The results are put
           // back in their ORIGINAL order: Anthropic wants a tool_result for
           // every id, in the order it asked.
-          const execResults = await Promise.all(response.toolCalls.map(async (toolCall) => {
-            if (signal.aborted) return { result: JSON.stringify({ error: 'aborted' }), affectedFiles: [] as string[] };
-            try {
-              if (toolCall.function.name === 'web_fetch' && this.webFetchUrl) {
-                const args = JSON.parse(toolCall.function.arguments) as Record<string, unknown>;
-                const result = await executeWebTool(toolCall.function.name, args, this.webFetchUrl, this.authToken ?? undefined);
-                return { result, affectedFiles: [] as string[] };
+          const execResults = await Promise.all(
+            response.toolCalls.map(async (toolCall) => {
+              if (signal.aborted)
+                return {
+                  result: JSON.stringify({ error: 'aborted' }),
+                  affectedFiles: [] as string[],
+                };
+              try {
+                if (toolCall.function.name === 'web_fetch' && this.webFetchUrl) {
+                  const args = JSON.parse(toolCall.function.arguments) as Record<string, unknown>;
+                  const result = await executeWebTool(
+                    toolCall.function.name,
+                    args,
+                    this.webFetchUrl,
+                    this.authToken ?? undefined
+                  );
+                  return { result, affectedFiles: [] as string[] };
+                }
+                return await executeVfsTool(toolCall, this.provider);
+              } catch (err) {
+                return {
+                  result: JSON.stringify({
+                    error: err instanceof Error ? err.message : String(err),
+                  }),
+                  affectedFiles: [] as string[],
+                };
               }
-              return await executeVfsTool(toolCall, this.provider);
-            } catch (err) {
-              return { result: JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), affectedFiles: [] as string[] };
-            }
-          }));
+            })
+          );
 
           for (let i = 0; i < response.toolCalls.length; i++) {
             const toolCall = response.toolCalls[i];
@@ -354,9 +406,11 @@ export class AgentEngine {
     }
     if (this.skills.size > 0) {
       lines.push('\n## Installed skills (slash commands loaded from skills-lock.json)\n');
-      lines.push('The following skills are installed and their full prompt content is available when invoked:');
-      lines.push([...this.skills.keys()].map(k => `- /${k}`).join('\n'));
-      lines.push('\nWhen the user types /skill-name, respond using that skill\'s instructions.');
+      lines.push(
+        'The following skills are installed and their full prompt content is available when invoked:'
+      );
+      lines.push([...this.skills.keys()].map((k) => `- /${k}`).join('\n'));
+      lines.push("\nWhen the user types /skill-name, respond using that skill's instructions.");
     }
     return lines.join('\n');
   }
@@ -382,7 +436,9 @@ export class AgentEngine {
             try {
               const text = atob(base64);
               blocks.push({ type: 'text', text: `\n[File: ${att.name}]\n${text}` });
-            } catch { /* skip undecodable */ }
+            } catch {
+              /* skip undecodable */
+            }
           }
         }
         aiMsg.content = blocks;

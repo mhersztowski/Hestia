@@ -41,8 +41,12 @@ export class EventNode extends NodeBase<EventModel> {
     this.parseDates();
   }
 
-  static fromModel(model: EventModel): EventNode { return new EventNode(model); }
-  static fromModels(models: EventModel[]): EventNode[] { return models.map(m => new EventNode(m)); }
+  static fromModel(model: EventModel): EventNode {
+    return new EventNode(model);
+  }
+  static fromModels(models: EventModel[]): EventNode[] {
+    return models.map((m) => new EventNode(m));
+  }
 
   // Parse date strings to Dayjs objects
   private parseDates(): void {
@@ -134,7 +138,8 @@ export class EventNode extends NodeBase<EventModel> {
     // Consider all-day if times are at midnight or not set properly
     if (!this._startDate) return false;
     const isStartMidnight = this._startDate.hour() === 0 && this._startDate.minute() === 0;
-    const isEndMidnight = !this._endDate || (this._endDate.hour() === 0 && this._endDate.minute() === 0);
+    const isEndMidnight =
+      !this._endDate || (this._endDate.hour() === 0 && this._endDate.minute() === 0);
     return isStartMidnight && isEndMidnight;
   }
 
@@ -175,14 +180,18 @@ export class EventNode extends NodeBase<EventModel> {
     const now = dayjs();
 
     if (this._endDate) {
-      return now.isAfter(this._startDate) && now.isBefore(this._endDate) ||
-             now.isSame(this._startDate) || now.isSame(this._endDate);
+      return (
+        (now.isAfter(this._startDate) && now.isBefore(this._endDate)) ||
+        now.isSame(this._startDate) ||
+        now.isSame(this._endDate)
+      );
     }
 
     // If no end time, consider "now" if within an hour of start
     const hourAfterStart = this._startDate.add(1, 'hour');
-    return (now.isAfter(this._startDate) || now.isSame(this._startDate)) &&
-           now.isBefore(hourAfterStart);
+    return (
+      (now.isAfter(this._startDate) || now.isSame(this._startDate)) && now.isBefore(hourAfterStart)
+    );
   }
 
   // Check if event is in the past
@@ -205,7 +214,7 @@ export class EventNode extends NodeBase<EventModel> {
 
   // Get component by type
   getComponentByType<T extends EventComponentModel>(type: string): T | undefined {
-    return this.components?.find(c => c.type === type) as T | undefined;
+    return this.components?.find((c) => c.type === type) as T | undefined;
   }
 
   // Search helper
@@ -277,9 +286,11 @@ export class EventNode extends NodeBase<EventModel> {
         if (target.date() !== start.date()) return false;
         return target.diff(start, 'month') % interval === 0;
       case 'yearly':
-        return target.date() === start.date()
-          && target.month() === start.month()
-          && (target.year() - start.year()) % interval === 0;
+        return (
+          target.date() === start.date() &&
+          target.month() === start.month() &&
+          (target.year() - start.year()) % interval === 0
+        );
       case 'weekdays': {
         const wd = rec.weekdays && rec.weekdays.length ? rec.weekdays : [start.day()];
         return wd.includes(target.day());
@@ -290,7 +301,9 @@ export class EventNode extends NodeBase<EventModel> {
   }
 
   /** The day key (YYYY-MM-DD) on the list of cancelled occurrences. */
-  private dayKey(date: Dayjs | Date): string { return dayjs(date).format('YYYY-MM-DD'); }
+  private dayKey(date: Dayjs | Date): string {
+    return dayjs(date).format('YYYY-MM-DD');
+  }
 
   /** Whether the occurrence on a given day was cancelled (it is not removed from the calendar — it is greyed out). */
   isCancelledOn(date: Dayjs | Date): boolean {
@@ -301,14 +314,20 @@ export class EventNode extends NodeBase<EventModel> {
   cancelOccurrence(date: Dayjs | Date): this {
     const key = this.dayKey(date);
     if (!this.exceptions) this.exceptions = [];
-    if (!this.exceptions.includes(key)) { this.exceptions.push(key); this.markDirty(); }
+    if (!this.exceptions.includes(key)) {
+      this.exceptions.push(key);
+      this.markDirty();
+    }
     return this;
   }
 
   /** Restore a previously cancelled occurrence. */
   restoreOccurrence(date: Dayjs | Date): this {
     const key = this.dayKey(date);
-    if (this.exceptions?.includes(key)) { this.exceptions = this.exceptions.filter(d => d !== key); this.markDirty(); }
+    if (this.exceptions?.includes(key)) {
+      this.exceptions = this.exceptions.filter((d) => d !== key);
+      this.markDirty();
+    }
     return this;
   }
 
@@ -316,7 +335,11 @@ export class EventNode extends NodeBase<EventModel> {
   getStartOn(date: Dayjs | Date): Dayjs | null {
     if (!this._startDate) return null;
     const d = dayjs(date);
-    return d.hour(this._startDate.hour()).minute(this._startDate.minute()).second(this._startDate.second()).millisecond(0);
+    return d
+      .hour(this._startDate.hour())
+      .minute(this._startDate.minute())
+      .second(this._startDate.second())
+      .millisecond(0);
   }
 
   /** Event end moved to the day `date` (keeping the duration). */
@@ -349,18 +372,24 @@ export class EventNode extends NodeBase<EventModel> {
     const rec = this.recurrence;
     if (!rec) return null;
     const n = Math.max(1, Math.floor(rec.interval ?? 1));
-    const every = (unit1: string, unitN: string) => (n === 1 ? `Every ${unit1}` : `Every ${n} ${unitN}`);
+    const every = (unit1: string, unitN: string) =>
+      n === 1 ? `Every ${unit1}` : `Every ${n} ${unitN}`;
     switch (rec.freq) {
-      case 'daily': return every('day', 'days');
-      case 'weekly': return every('week', 'weeks');
-      case 'monthly': return every('month', 'months');
-      case 'yearly': return every('year', 'years');
+      case 'daily':
+        return every('day', 'days');
+      case 'weekly':
+        return every('week', 'weeks');
+      case 'monthly':
+        return every('month', 'months');
+      case 'yearly':
+        return every('year', 'years');
       case 'weekdays': {
         const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const wd = rec.weekdays && rec.weekdays.length ? rec.weekdays : [];
         return wd.length ? wd.map((d) => names[d]).join(', ') : 'Selected days';
       }
-      default: return 'Recurring';
+      default:
+        return 'Recurring';
     }
   }
 

@@ -15,24 +15,42 @@ import { exerciseVariant, checkNumeric, checkSymbolic } from './solveExercise';
 import { buildHints } from './hints';
 
 const WAHADLO = [
-  ['ode', ['@ode', '@state theta, omega', '@d theta = \\omega',
-    '@d omega = -\\frac{g}{L}\\sin(\\theta)', '@init theta = \\theta_0, omega = 0',
-    '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s'].join('\n')],
-  ['okres', ['T = 2\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s, L: m, g: m/s^2',
-    '@derivedFrom ode', '@assume male-katy'].join('\n')],
+  [
+    'ode',
+    [
+      '@ode',
+      '@state theta, omega',
+      '@d theta = \\omega',
+      '@d omega = -\\frac{g}{L}\\sin(\\theta)',
+      '@init theta = \\theta_0, omega = 0',
+      '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s',
+    ].join('\n'),
+  ],
+  [
+    'okres',
+    [
+      'T = 2\\pi\\sqrt{\\frac{L}{g}}',
+      '@vars T: s, L: m, g: m/s^2',
+      '@derivedFrom ode',
+      '@assume male-katy',
+    ].join('\n'),
+  ],
 ] as Array<[string, string]>;
 
 const graphOf = (defs: Array<[string, string]>) =>
   buildGraph(defs.map(([id, body]) => parseFormulaBlock(id, body)));
 
-const ZADANIE = parseExerciseBlock('okres-zadanie', [
-  'Oblicz okres wahadła o długości $L$ przy przyspieszeniu ziemskim.',
-  '@given L: 0.5..2 m step 0.1',
-  '@answer T',
-  '@tolerance 2%',
-  '@level 1',
-  '@uses okres',
-].join('\n'));
+const ZADANIE = parseExerciseBlock(
+  'okres-zadanie',
+  [
+    'Oblicz okres wahadła o długości $L$ przy przyspieszeniu ziemskim.',
+    '@given L: 0.5..2 m step 0.1',
+    '@answer T',
+    '@tolerance 2%',
+    '@level 1',
+    '@uses okres',
+  ].join('\n')
+);
 
 describe('blok zadania', () => {
   it('czyta treść, dane i odpowiedź', () => {
@@ -53,18 +71,23 @@ describe('blok zadania', () => {
   });
 
   it('odwrócony zakres jest błędem', () => {
-    expect(parseExerciseBlock('x', ['Treść', '@given L: 5..1 m', '@answer T'].join('\n')).issues.join(' '))
-      .toMatch(/odwrócony/);
+    expect(
+      parseExerciseBlock('x', ['Treść', '@given L: 5..1 m', '@answer T'].join('\n')).issues.join(
+        ' '
+      )
+    ).toMatch(/odwrócony/);
   });
 
   it('round-trip zachowuje zapis', () => {
-    expect(serializeExerciseBlock(ZADANIE)).toBe([
-      'Oblicz okres wahadła o długości $L$ przy przyspieszeniu ziemskim.',
-      '@given L: 0.5..2 m step 0.1',
-      '@answer T',
-      '@level 1',
-      '@uses okres',
-    ].join('\n'));
+    expect(serializeExerciseBlock(ZADANIE)).toBe(
+      [
+        'Oblicz okres wahadła o długości $L$ przy przyspieszeniu ziemskim.',
+        '@given L: 0.5..2 m step 0.1',
+        '@answer T',
+        '@level 1',
+        '@uses okres',
+      ].join('\n')
+    );
   });
 });
 
@@ -79,7 +102,9 @@ describe('wariant z ziarna', () => {
   });
 
   it('różne ziarna dają różne dane', () => {
-    const wartosci = [1, 2, 3, 4, 5].map((seed) => exerciseVariant(ZADANIE, model(), seed).values.L);
+    const wartosci = [1, 2, 3, 4, 5].map(
+      (seed) => exerciseVariant(ZADANIE, model(), seed).values.L
+    );
     expect(new Set(wartosci).size).toBeGreaterThan(3);
   });
 
@@ -101,17 +126,22 @@ describe('wariant z ziarna', () => {
 
   it('klucz odpowiedzi liczy graf, nie autor', () => {
     const variant = exerciseVariant(ZADANIE, model(), 42);
-    expect(variant.expected).toBeCloseTo(2 * Math.PI * Math.sqrt(variant.values.L / variant.values.g), 9);
+    expect(variant.expected).toBeCloseTo(
+      2 * Math.PI * Math.sqrt(variant.values.L / variant.values.g),
+      9
+    );
     expect(variant.expectedUnit).toBe('s');
   });
 
   it('zmiana wzoru w dokumencie zmienia klucz odpowiedzi', () => {
     // To jest sedno: zadanie nie może się zestarzeć, bo nie ma własnej kopii
     // fizyki. Gdyby ktoś poprawił wzór okresu, klucz idzie za nim.
-    const inny = compileGraph(graphOf([
-      WAHADLO[0],
-      ['okres', ['T = 4\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s, L: m, g: m/s^2'].join('\n')],
-    ]));
+    const inny = compileGraph(
+      graphOf([
+        WAHADLO[0],
+        ['okres', ['T = 4\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s, L: m, g: m/s^2'].join('\n')],
+      ])
+    );
     const domyslny = exerciseVariant(ZADANIE, model(), 42);
     const zmieniony = exerciseVariant(ZADANIE, inny, 42);
 
@@ -119,7 +149,10 @@ describe('wariant z ziarna', () => {
   });
 
   it('dana spoza parametrów dokumentu jest zgłaszana', () => {
-    const złe = parseExerciseBlock('x', ['Treść', '@given nieistnieje: 1..2', '@answer T'].join('\n'));
+    const złe = parseExerciseBlock(
+      'x',
+      ['Treść', '@given nieistnieje: 1..2', '@answer T'].join('\n')
+    );
     expect(exerciseVariant(złe, model(), 1).issues.join(' ')).toMatch(/nie jest parametrem/);
   });
 
@@ -183,17 +216,21 @@ describe('sprawdzanie odpowiedzi symbolicznej', () => {
     const result = checkSymbolic(
       '2\\pi \\cdot L^{0.5} \\cdot g^{-0.5}',
       '2\\pi\\sqrt{\\frac{L}{g}}',
-      ['L', 'g'],
+      ['L', 'g']
     );
     expect(result.verdict).toBe('correct');
   });
 
   it('inne wyrażenie nie przechodzi', () => {
-    expect(checkSymbolic('2\\pi\\sqrt{\\frac{g}{L}}', '2\\pi\\sqrt{\\frac{L}{g}}', ['L', 'g']).verdict).toBe('wrong');
+    expect(
+      checkSymbolic('2\\pi\\sqrt{\\frac{g}{L}}', '2\\pi\\sqrt{\\frac{L}{g}}', ['L', 'g']).verdict
+    ).toBe('wrong');
   });
 
   it('drobna różnica stałej jest wychwycona', () => {
-    expect(checkSymbolic('\\pi\\sqrt{\\frac{L}{g}}', '2\\pi\\sqrt{\\frac{L}{g}}', ['L', 'g']).verdict).toBe('wrong');
+    expect(
+      checkSymbolic('\\pi\\sqrt{\\frac{L}{g}}', '2\\pi\\sqrt{\\frac{L}{g}}', ['L', 'g']).verdict
+    ).toBe('wrong');
   });
 
   it('bełkot jest odróżniony', () => {
@@ -243,14 +280,17 @@ describe('podpowiedzi z grafu', () => {
 
 describe('zadanie z podręcznika — bez obliczeń', () => {
   it('odpowiedź wpisana wprost zwalnia z modelu', () => {
-    const block = parseExerciseBlock('rh1-zad-2-5', `
+    const block = parseExerciseBlock(
+      'rh1-zad-2-5',
+      `
 Grający w golfa uderzył trzykrotnie: 12 m na północ, 6 m na południowy wschód,
 3 m na południowy zachód. Jakie przemieszczenie wbiłoby piłkę za pierwszym razem?
 
 @expected 6 m, o kąt 20,5° od kierunku północnego ku wschodowi
 @level 2
 @uses rh1-2-eq10a
-`);
+`
+    );
     expect(block.issues).toEqual([]);
     expect(block.expected).toBe('6 m, o kąt 20,5° od kierunku północnego ku wschodowi');
     expect(block.answer).toBeUndefined();
@@ -290,7 +330,8 @@ Grający w golfa uderzył trzykrotnie: 12 m na północ, 6 m na południowy wsch
   });
 
   it('zapis i odczyt wracają tym samym', () => {
-    const kod = 'Treść zadania.\n@expected 6 m pod kątem 20,5°\n@check 6 m\n@level 2\n@uses rh1-2-eq10a\n@hint Rozłóż na składowe.';
+    const kod =
+      'Treść zadania.\n@expected 6 m pod kątem 20,5°\n@check 6 m\n@level 2\n@uses rh1-2-eq10a\n@hint Rozłóż na składowe.';
     const raz = parseExerciseBlock('z', kod);
     const dwa = parseExerciseBlock('z', serializeExerciseBlock(raz));
     expect(dwa).toEqual(raz);

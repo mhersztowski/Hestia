@@ -59,7 +59,11 @@ function parsed(): DiagramDocument {
 
 describe('parsowanie realnego diagramu', () => {
   it('rozpoznaje oba stany złożone', () => {
-    expect(parsed().groups.map((g) => g.id).sort()).toEqual(['Connecting', 'Running']);
+    expect(
+      parsed()
+        .groups.map((g) => g.id)
+        .sort()
+    ).toEqual(['Connecting', 'Running']);
   });
 
   it('węzły wewnętrzne należą do właściwych grup', () => {
@@ -74,7 +78,9 @@ describe('parsowanie realnego diagramu', () => {
 
   it('pętla własna (`WifiConnect --> WifiConnect`) nie gubi się', () => {
     const doc = parsed();
-    expect(doc.edges.some((e) => e.source === 'WifiConnect' && e.target === 'WifiConnect')).toBe(true);
+    expect(doc.edges.some((e) => e.source === 'WifiConnect' && e.target === 'WifiConnect')).toBe(
+      true
+    );
   });
 
   it('wieloliniowa notatka wraca przy zapisie w całości', () => {
@@ -87,7 +93,8 @@ describe('parsowanie realnego diagramu', () => {
 
   it('opisy przejść przetrwały', () => {
     const doc = parsed();
-    const labelOf = (s: string, t: string) => doc.edges.find((e) => e.source === s && e.target === t)?.label;
+    const labelOf = (s: string, t: string) =>
+      doc.edges.find((e) => e.source === s && e.target === t)?.label;
     expect(labelOf('Boot', 'Config')).toBe('brak konfiguracji');
     expect(labelOf('Running', 'DeepSleep')).toBe('bateria < 20%');
   });
@@ -164,9 +171,13 @@ describe('kierunek wnętrza grupy', () => {
   it('grupa deklarująca własny kierunek ma pierwszeństwo', () => {
     const doc = autoLayout({
       ...parsed(),
-      groups: parsed().groups.map((g) => (g.id === 'Running' ? { ...g, direction: 'LR' as const } : g)),
+      groups: parsed().groups.map((g) =>
+        g.id === 'Running' ? { ...g, direction: 'LR' as const } : g
+      ),
     });
-    const inside = doc.nodes.filter((n) => n.parentId === 'Running' && n.shape === 'rectangle').map((n) => n.position!);
+    const inside = doc.nodes
+      .filter((n) => n.parentId === 'Running' && n.shape === 'rectangle')
+      .map((n) => n.position!);
     expect(new Set(inside.map((p) => p.x)).size).toBeGreaterThan(1);
   });
 });
@@ -182,7 +193,10 @@ describe('kierunek wnętrza grupy', () => {
 describe('krawędzie do stanu złożonego porządkują układ', () => {
   function automat(): DiagramDocument {
     const doc = emptyDiagram('state');
-    doc.groups = [{ id: 'Connecting', label: 'Connecting' }, { id: 'Wifi', label: 'Wifi', parentId: 'Connecting' }];
+    doc.groups = [
+      { id: 'Connecting', label: 'Connecting' },
+      { id: 'Wifi', label: 'Wifi', parentId: 'Connecting' },
+    ];
     doc.nodes = [
       { id: 'Mqtt', label: 'Mqtt', shape: 'rectangle', parentId: 'Connecting' },
       { id: 'Koniec', label: '', shape: 'end', parentId: 'Connecting' },

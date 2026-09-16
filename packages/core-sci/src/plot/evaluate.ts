@@ -62,9 +62,10 @@ export interface EvaluationResult {
  * Zwraca też uczestników cyklu — nie samą informację, że cykl istnieje.
  * „Wykryto cykl" nie mówi, gdzie szukać; „a zależy od b, b od a" mówi.
  */
-function orderDefinitions(
-  definitions: Map<string, { deps: string[] }>,
-): { order: string[]; cycles: string[][] } {
+function orderDefinitions(definitions: Map<string, { deps: string[] }>): {
+  order: string[];
+  cycles: string[][];
+} {
   const order: string[] = [];
   const cycles: string[][] = [];
   const state = new Map<string, 'visiting' | 'done'>();
@@ -93,7 +94,7 @@ function orderDefinitions(
 
 export function evaluateDocument(
   doc: PlotDocument,
-  overrides: Record<string, number> = {},
+  overrides: Record<string, number> = {}
 ): EvaluationResult {
   const issues: string[] = [];
   const scope: Record<string, number> = {};
@@ -106,7 +107,9 @@ export function evaluateDocument(
     // Pierwsza definicja wygrywa; druga jest błędem autora, nie powodem do
     // liczenia raz tak, raz inaczej.
     if (definitions.has(row.parsed.name)) {
-      issues.push(`Parametr „${row.parsed.name}" jest zdefiniowany więcej niż raz — liczę z pierwszej definicji.`);
+      issues.push(
+        `Parametr „${row.parsed.name}" jest zdefiniowany więcej niż raz — liczę z pierwszej definicji.`
+      );
       continue;
     }
     definitions.set(row.parsed.name, { row, deps: row.parsed.freeSymbols });
@@ -114,7 +117,9 @@ export function evaluateDocument(
 
   const { order, cycles } = orderDefinitions(definitions);
   for (const cycle of cycles) {
-    issues.push(`Cykl zależności: ${cycle.join(' → ')} → ${cycle[0]}. Te parametry nie mają wartości.`);
+    issues.push(
+      `Cykl zależności: ${cycle.join(' → ')} → ${cycle[0]}. Te parametry nie mają wartości.`
+    );
   }
 
   const wCyklu = new Set(cycles.flat());
@@ -129,7 +134,9 @@ export function evaluateDocument(
     }
     const entry = definitions.get(name);
     if (!entry) continue;
-    scope[name] = compileExpression(entry.row.parsed.body, [], doc.settings.angleUnit).evaluate(scope);
+    scope[name] = compileExpression(entry.row.parsed.body, [], doc.settings.angleUnit).evaluate(
+      scope
+    );
   }
 
   // Parametry z suwaków, dla których nie ma wiersza definicji.
@@ -151,12 +158,19 @@ export function evaluateDocument(
 
   const rows: EvaluatedRow[] = doc.rows.map((row) => {
     const { parsed } = row;
-    const base: EvaluatedRow = { id: row.id, kind: parsed.kind, latex: row.latex, issues: [...parsed.issues] };
+    const base: EvaluatedRow = {
+      id: row.id,
+      kind: parsed.kind,
+      latex: row.latex,
+      issues: [...parsed.issues],
+    };
 
     /** Symbole, których nie umiemy podać — wykres i tak powstanie, z zerem. */
     const brakujace = parsed.freeSymbols.filter((s) => !(s in scope));
     if (brakujace.length > 0 && parsed.kind !== 'blank') {
-      base.issues.push(`Nie znam wartości: ${brakujace.join(', ')}. Dodaj wiersz z definicją, np. „${brakujace[0]} = 1".`);
+      base.issues.push(
+        `Nie znam wartości: ${brakujace.join(', ')}. Dodaj wiersz z definicją, np. „${brakujace[0]} = 1".`
+      );
     }
 
     switch (parsed.kind) {
@@ -219,8 +233,8 @@ export function evaluateDocument(
 
       case 'function': {
         base.issues.push(
-          'Definicje funkcji są na razie tylko rozpoznawane — użycie „'
-          + `${parsed.name}(x)" w innym wierszu jeszcze nie zadziała.`,
+          'Definicje funkcji są na razie tylko rozpoznawane — użycie „' +
+            `${parsed.name}(x)" w innym wierszu jeszcze nie zadziała.`
         );
         break;
       }

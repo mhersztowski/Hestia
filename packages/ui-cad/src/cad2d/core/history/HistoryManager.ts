@@ -26,14 +26,19 @@ export class HistoryManager {
     const ops = this._batchOps;
     this._batchOps = null;
     if (!ops || ops.length === 0) return;
-    const compound: Operation = ops.length === 1
-      ? { ...ops[0], description }
-      : {
-          type: 'compound',
-          description,
-          undo: () => { for (let i = ops.length - 1; i >= 0; i--) ops[i].undo(); },
-          redo: () => { for (const op of ops) op.redo(); },
-        };
+    const compound: Operation =
+      ops.length === 1
+        ? { ...ops[0], description }
+        : {
+            type: 'compound',
+            description,
+            undo: () => {
+              for (let i = ops.length - 1; i >= 0; i--) ops[i].undo();
+            },
+            redo: () => {
+              for (const op of ops) op.redo();
+            },
+          };
     this._pushToStack(compound);
   }
 

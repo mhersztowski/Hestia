@@ -16,7 +16,6 @@ import { registerBlockRenderer } from './blockRenderers';
 
 registerSciBlocks(registerBlockRenderer);
 
-
 /**
  * Handwriting recognition and the `simscript` code editor are **not wired here**.
  *

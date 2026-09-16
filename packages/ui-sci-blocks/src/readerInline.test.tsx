@@ -53,14 +53,15 @@ describe('matematyka w linii', () => {
 });
 
 describe('odsyłacz do hasła słownika', () => {
-  const resolveRef = (id: string) => (id === 'rh1-poj-ruch-okresowy'
-    ? {
-      kind: 'term' as const,
-      code: 'Ruch okresowy\n@definition Ruch, który powtarza się w regularnych odstępach czasu.',
-      documentTitle: 'Słownik zagadnień',
-      sameDocument: false,
-    }
-    : undefined);
+  const resolveRef = (id: string) =>
+    id === 'rh1-poj-ruch-okresowy'
+      ? {
+          kind: 'term' as const,
+          code: 'Ruch okresowy\n@definition Ruch, który powtarza się w regularnych odstępach czasu.',
+          documentTitle: 'Słownik zagadnień',
+          sameDocument: false,
+        }
+      : undefined;
 
   it('pokazuje podpis, a nie identyfikator', () => {
     render(render_(dokument('nazywamy ((rh1-poj-ruch-okresowy|ruchem okresowym)).'), resolveRef));
@@ -101,8 +102,14 @@ describe('escape i cytat blokowy', () => {
   });
 
   it('escape nie połyka odsyłacza stojącego za nim', () => {
-    const resolveRef = () => ({ kind: 'term' as const, code: 'Coś\n@definition Definicja.', sameDocument: true });
-    render(render_(dokument('(Hz)\\*. Położeniem ((rh1-poj-x|równowagi)) nazywamy *to*.'), resolveRef));
+    const resolveRef = () => ({
+      kind: 'term' as const,
+      code: 'Coś\n@definition Definicja.',
+      sameDocument: true,
+    });
+    render(
+      render_(dokument('(Hz)\\*. Położeniem ((rh1-poj-x|równowagi)) nazywamy *to*.'), resolveRef)
+    );
     expect(screen.getByText('równowagi')).toBeTruthy();
   });
 

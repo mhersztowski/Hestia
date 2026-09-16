@@ -22,7 +22,9 @@ describe('notka kontekstowa w czytniku', () => {
   });
 
   it('pokazuje tytuł, treść i rodzaj', () => {
-    const { container } = render(<CalloutBlock id="rh1-nota-glaser" code={NOTKA.split('\n').slice(1, -1).join('\n')} />);
+    const { container } = render(
+      <CalloutBlock id="rh1-nota-glaser" code={NOTKA.split('\n').slice(1, -1).join('\n')} />
+    );
     const t = container.textContent ?? '';
     expect(t).toContain('Komora pęcherzykowa');
     expect(t).toContain('Donald Glaser');
@@ -40,7 +42,9 @@ describe('notka kontekstowa w czytniku', () => {
   });
 
   it('treść łamana na wiersze skleja się z powrotem', () => {
-    const { container } = render(<CalloutBlock id="x" code={NOTKA.split('\n').slice(1, -1).join('\n')} />);
+    const { container } = render(
+      <CalloutBlock id="x" code={NOTKA.split('\n').slice(1, -1).join('\n')} />
+    );
     expect(container.textContent).toContain('dostał Nagrodę Nobla w 1960');
   });
 

@@ -1,5 +1,5 @@
 import { Signal } from '../Signal';
-import { TreeNode } from '../TreeNode';
+import { CoreObject } from '../CoreObject';
 import { MqttConn } from './MqttConn';
 
 /**
@@ -17,7 +17,7 @@ import { MqttConn } from './MqttConn';
  *     console.log(topic, JSON.parse(payload));
  *   });
  */
-export class MqttSub extends TreeNode {
+export class MqttSub extends CoreObject {
   /** Emitted for each matching incoming message. */
   readonly messageReceived = new Signal<[topic: string, payload: string]>();
 
@@ -25,7 +25,7 @@ export class MqttSub extends TreeNode {
   #qos: 0 | 1 | 2;
   #subscribed = false;
 
-  constructor(topic: string, parent?: TreeNode, qos: 0 | 1 | 2 = 0) {
+  constructor(topic: string, parent?: CoreObject, qos: 0 | 1 | 2 = 0) {
     super(parent, 'MqttSub');
     this.#topic = topic;
     this.#qos = qos;

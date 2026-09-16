@@ -23,13 +23,15 @@ describe('deklaracje dla edytora', () => {
     // `class` obok `function` i `const`, bo `Trajectory` jest klasą — skrypt
     // dostaje ją razem z konstruktorem, nie tylko jako typ.
     const brakujące = nazwy.filter(
-      (name) => !new RegExp(`declare (function|const|class) ${name}\\b`).test(SCRIPT_API_TYPES),
+      (name) => !new RegExp(`declare (function|const|class) ${name}\\b`).test(SCRIPT_API_TYPES)
     );
     expect(brakujące, `bez deklaracji: ${brakujące.join(', ')}`).toEqual([]);
   });
 
   it('żadna deklaracja nie opisuje symbolu, którego nie ma', () => {
-    const zadeklarowane = [...SCRIPT_API_TYPES.matchAll(/declare (?:function|const|class) (\w+)/g)].map((m) => m[1]);
+    const zadeklarowane = [
+      ...SCRIPT_API_TYPES.matchAll(/declare (?:function|const|class) (\w+)/g),
+    ].map((m) => m[1]);
     const nadmiarowe = zadeklarowane.filter((name) => !nazwy.includes(name));
     expect(nadmiarowe, `deklaracje bez pokrycia: ${nadmiarowe.join(', ')}`).toEqual([]);
   });
@@ -52,8 +54,10 @@ describe('solvery w skrypcie', () => {
     `);
 
     expect(issues).toEqual([]);
-    expect(model!.run({ omega: 2 }, [0, 5], 0.01).trajectory!.value('x', 5))
-      .toBeCloseTo(Math.cos(10), 6);
+    expect(model!.run({ omega: 2 }, [0, 5], 0.01).trajectory!.value('x', 5)).toBeCloseTo(
+      Math.cos(10),
+      6
+    );
   });
 
   it('skrypt może sięgnąć po metodę dla układów sztywnych', () => {

@@ -5,19 +5,25 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const rozdzial = ['1-1-wielkosci.md', '1-2-si.md', '1-3-dlugosc.md', '1-4-masa.md', '1-5-czas.md'];
-const pliki = [...rozdzial, 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [...rozdzial, 'Slownik.md'].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, '1-5-czas.md');
+  const cel = resolveReference(
+    id,
+    { anchors: index.anchors, formulaHome: index.formulaHome },
+    '1-5-czas.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['1-5-czas.md']} path="1-5-czas.md" resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(
+    <ReaderView markdown={bodies['1-5-czas.md']} path="1-5-czas.md" resolveRef={resolveRef} />
+  );
 
 describe('1-5 w czytniku', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
@@ -49,17 +55,24 @@ describe('1-5 w czytniku', () => {
     const zrodlo = bodies['1-5-czas.md'];
     expect(zrodlo).toContain('((rh1-poj-czas-uniwersalny|czasem uniwersalnym))');
     // Pozostałe cztery hasła są w słowniku, ale bez odsyłacza z tekstu.
-    expect((zrodlo.match(/\(\(rh1-poj-/g) ?? [])).toHaveLength(1);
-    for (const id of ['rh1-poj-wzorzec-czasu', 'rh1-poj-zegary-atomowe',
-      'rh1-poj-zegar-cezowy', 'rh1-poj-sekunda']) {
+    expect(zrodlo.match(/\(\(rh1-poj-/g) ?? []).toHaveLength(1);
+    for (const id of [
+      'rh1-poj-wzorzec-czasu',
+      'rh1-poj-zegary-atomowe',
+      'rh1-poj-zegar-cezowy',
+      'rh1-poj-sekunda',
+    ]) {
       expect(index.anchors.get(id)?.kind, id).toBe('term');
     }
   });
 
   it('rozdział 1 jest kompletny: sześć tablic, cztery rysunki, pięć podrozdziałów', () => {
-    for (let n = 1; n <= 6; n += 1) expect(index.anchors.has(`rh1-1-tab${n}`), `tab${n}`).toBe(true);
-    for (let n = 1; n <= 4; n += 1) expect(index.anchors.has(`rh1-1-rys${n}`), `rys${n}`).toBe(true);
-    for (let n = 1; n <= 5; n += 1) expect(index.anchors.has(`rh1-sec-1-${n}`), `sec${n}`).toBe(true);
+    for (let n = 1; n <= 6; n += 1)
+      expect(index.anchors.has(`rh1-1-tab${n}`), `tab${n}`).toBe(true);
+    for (let n = 1; n <= 4; n += 1)
+      expect(index.anchors.has(`rh1-1-rys${n}`), `rys${n}`).toBe(true);
+    for (let n = 1; n <= 5; n += 1)
+      expect(index.anchors.has(`rh1-sec-1-${n}`), `sec${n}`).toBe(true);
   });
 
   it('nic nie zostaje surowym zapisem', () => {

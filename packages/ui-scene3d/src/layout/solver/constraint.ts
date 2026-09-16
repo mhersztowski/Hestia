@@ -34,11 +34,11 @@ function budujReszty(
   indeks: Map<string, number>,
   start: number[],
   liczba: (v: ParamValue | undefined, dom: number) => number,
-  issues: string[],
+  issues: string[]
 ): Reszta[] {
   const reszty: Reszta[] = [];
 
-  const poz = (id: string, pole: typeof POLA[number]) => {
+  const poz = (id: string, pole: (typeof POLA)[number]) => {
     const baza = indeks.get(id);
     if (baza === undefined) return undefined;
     return baza + POLA.indexOf(pole);
@@ -52,7 +52,7 @@ function budujReszty(
     }
     const [a, b] = wiez.refs;
 
-    const para = (pole: typeof POLA[number], odjemnik = 0) => {
+    const para = (pole: (typeof POLA)[number], odjemnik = 0) => {
       const ia = poz(a, pole)!;
       const ib = poz(b, pole)!;
       reszty.push({ wiez, wartosc: (v) => v[ib] - v[ia] - odjemnik });
@@ -70,21 +70,35 @@ function budujReszty(
         }
         break;
 
-      case 'coincidentX': case 'alignLeft': para('x'); break;
-      case 'coincidentY': case 'alignTop': para('y'); break;
-      case 'sameWidth': para('w'); break;
-      case 'sameHeight': para('h'); break;
-      case 'distanceX': para('x', liczba(wiez.value, 0)); break;
-      case 'distanceY': para('y', liczba(wiez.value, 0)); break;
+      case 'coincidentX':
+      case 'alignLeft':
+        para('x');
+        break;
+      case 'coincidentY':
+      case 'alignTop':
+        para('y');
+        break;
+      case 'sameWidth':
+        para('w');
+        break;
+      case 'sameHeight':
+        para('h');
+        break;
+      case 'distanceX':
+        para('x', liczba(wiez.value, 0));
+        break;
+      case 'distanceY':
+        para('y', liczba(wiez.value, 0));
+        break;
 
       case 'alignCenterX': {
         const [xa, wa, xb, wb] = [poz(a, 'x')!, poz(a, 'w')!, poz(b, 'x')!, poz(b, 'w')!];
-        reszty.push({ wiez, wartosc: (v) => (v[xb] + v[wb] / 2) - (v[xa] + v[wa] / 2) });
+        reszty.push({ wiez, wartosc: (v) => v[xb] + v[wb] / 2 - (v[xa] + v[wa] / 2) });
         break;
       }
       case 'alignCenterY': {
         const [ya, ha, yb, hb] = [poz(a, 'y')!, poz(a, 'h')!, poz(b, 'y')!, poz(b, 'h')!];
-        reszty.push({ wiez, wartosc: (v) => (v[yb] + v[hb] / 2) - (v[ya] + v[ha] / 2) });
+        reszty.push({ wiez, wartosc: (v) => v[yb] + v[hb] / 2 - (v[ya] + v[ha] / 2) });
         break;
       }
     }
@@ -150,7 +164,9 @@ export function solveConstraint(doc: LayoutDoc, opcje: ConstraintOptions = {}): 
       if (typeof wynik !== 'number' || Number.isNaN(wynik)) throw new Error('nie jest liczbą');
       return wynik;
     } catch (błąd) {
-      issues.push(`Wartość więzu „${v.src === 'ref' ? v.name : v.code}": ${(błąd as Error).message}`);
+      issues.push(
+        `Wartość więzu „${v.src === 'ref' ? v.name : v.code}": ${(błąd as Error).message}`
+      );
       return dom;
     }
   };
@@ -206,7 +222,10 @@ export function solveConstraint(doc: LayoutDoc, opcje: ConstraintOptions = {}): 
     for (let a = 0; a < n; a++) for (let b = 0; b < a; b++) JtJ[a][b] = JtJ[b][a];
     for (let a = 0; a < n; a++) JtJ[a][a] += lambda;
 
-    const krok = solveLinear(JtJ, Jtr.map((x) => -x));
+    const krok = solveLinear(
+      JtJ,
+      Jtr.map((x) => -x)
+    );
     if (!krok) break;
 
     const kandydat = v.map((x, i) => x + krok[i]);
@@ -225,11 +244,13 @@ export function solveConstraint(doc: LayoutDoc, opcje: ConstraintOptions = {}): 
   if (ostatniaNorma > 1e-4) {
     // Nazwy winnych, a nie samo „nie da się". Przy sprzeczności zawsze winna
     // jest **para** więzów, więc wskazanie jednego byłoby zgadywaniem.
-    const winne = [...new Set(reszty
-      .filter((x) => Math.abs(x.wartosc(v)) > 1e-4)
-      .map((x) => x.wiez.id))];
-    issues.push(`Nie udało się spełnić wszystkich więzów — sprzeczne są: ${winne.join(', ')}. `
-      + `Rozbieżność wynosi ${ostatniaNorma.toFixed(2)}.`);
+    const winne = [
+      ...new Set(reszty.filter((x) => Math.abs(x.wartosc(v)) > 1e-4).map((x) => x.wiez.id)),
+    ];
+    issues.push(
+      `Nie udało się spełnić wszystkich więzów — sprzeczne są: ${winne.join(', ')}. ` +
+        `Rozbieżność wynosi ${ostatniaNorma.toFixed(2)}.`
+    );
   }
 
   const dof = v.length - matrixRank(jakobian(reszty, v));

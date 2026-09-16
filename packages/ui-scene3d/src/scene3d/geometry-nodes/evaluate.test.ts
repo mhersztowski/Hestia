@@ -17,7 +17,10 @@ describe('evaluateGeoNodeGraph', () => {
   });
 
   it('returns a box when there is no output node', () => {
-    const graph: GeoNodeGraph = { nodes: [{ id: 'n1', type: 'box', x: 0, y: 0, params: {} }], edges: [] };
+    const graph: GeoNodeGraph = {
+      nodes: [{ id: 'n1', type: 'box', x: 0, y: 0, params: {} }],
+      edges: [],
+    };
     const geo = evaluateGeoNodeGraph(graph);
     expect(geo).toBeInstanceOf(THREE.BufferGeometry);
     expect(positionCount(geo)).toBe(24);
@@ -29,7 +32,9 @@ describe('evaluateGeoNodeGraph', () => {
         { id: 'b', type: 'box', x: 0, y: 0, params: { width: 4, height: 2, depth: 6 } },
         { id: 'out', type: 'output', x: 200, y: 0, params: {} },
       ],
-      edges: [{ id: 'e', source: 'b', sourceHandle: 'geo-out', target: 'out', targetHandle: 'geo-in' }],
+      edges: [
+        { id: 'e', source: 'b', sourceHandle: 'geo-out', target: 'out', targetHandle: 'geo-in' },
+      ],
     };
     const geo = evaluateGeoNodeGraph(graph);
     geo.computeBoundingBox();
@@ -46,7 +51,9 @@ describe('evaluateGeoNodeGraph', () => {
         { id: 's', type: 'sphere', x: 0, y: 0, params: { radius: 3, wSeg: 8, hSeg: 6 } },
         { id: 'out', type: 'output', x: 200, y: 0, params: {} },
       ],
-      edges: [{ id: 'e', source: 's', sourceHandle: 'geo-out', target: 'out', targetHandle: 'geo-in' }],
+      edges: [
+        { id: 'e', source: 's', sourceHandle: 'geo-out', target: 'out', targetHandle: 'geo-in' },
+      ],
     };
     const geo = evaluateGeoNodeGraph(graph);
     geo.computeBoundingSphere();
@@ -92,7 +99,10 @@ describe('evaluateGeoNodeGraph', () => {
   });
 
   it('falls back to a box when output has no input', () => {
-    const graph: GeoNodeGraph = { nodes: [{ id: 'out', type: 'output', x: 0, y: 0, params: {} }], edges: [] };
+    const graph: GeoNodeGraph = {
+      nodes: [{ id: 'out', type: 'output', x: 0, y: 0, params: {} }],
+      edges: [],
+    };
     const geo = evaluateGeoNodeGraph(graph);
     expect(positionCount(geo)).toBe(24);
   });

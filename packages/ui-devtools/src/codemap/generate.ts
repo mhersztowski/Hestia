@@ -5,7 +5,11 @@
  */
 import type { UmlDiagram } from '@hestia/node-devtools/format';
 
-interface GenField { name: string; type: string; optional: boolean }
+interface GenField {
+  name: string;
+  type: string;
+  optional: boolean;
+}
 
 function stripSigil(text: string): string {
   let t = text.trim();
@@ -34,40 +38,67 @@ export function collectTypes(diagrams: UmlDiagram[]): {
   classes: { name: string; fields: GenField[]; methods: string[] }[];
   enums: { name: string; values: string[] }[];
 } {
-  interface ClassAcc { name: string; fields: GenField[]; fieldNames: Set<string>; methods: string[]; methodSet: Set<string> }
-  interface EnumAcc { name: string; values: string[]; valueSet: Set<string> }
+  interface ClassAcc {
+    name: string;
+    fields: GenField[];
+    fieldNames: Set<string>;
+    methods: string[];
+    methodSet: Set<string>;
+  }
+  interface EnumAcc {
+    name: string;
+    values: string[];
+    valueSet: Set<string>;
+  }
   const classes = new Map<string, ClassAcc>();
   const enums = new Map<string, EnumAcc>();
-  for (const d of diagrams) for (const n of d.nodes) {
-    const data = n.data;
-    const name = (data.name || '').trim();
-    if (!name) continue;
-    if (data.kind === 'enum') {
-      let e = enums.get(name);
-      if (!e) { e = { name, values: [], valueSet: new Set() }; enums.set(name, e); }
-      for (const m of data.members) {
-        if (m.kind !== 'field') continue;
-        const v = stripSigil(m.text);
-        if (v && !e.valueSet.has(v)) { e.valueSet.add(v); e.values.push(v); }
-      }
-    } else {
-      let c = classes.get(name);
-      if (!c) { c = { name, fields: [], fieldNames: new Set(), methods: [], methodSet: new Set() }; classes.set(name, c); }
-      for (const m of data.members) {
-        if (m.kind === 'field') {
-          const p = parseField(m.text);
-          if (!p.name || c.fieldNames.has(p.name)) continue;
-          c.fieldNames.add(p.name);
-          c.fields.push({ ...p, optional: p.optional || m.category === 'optional' });
-        } else {
-          const t = stripSigil(m.text);
-          if (t && !c.methodSet.has(t)) { c.methodSet.add(t); c.methods.push(t); }
+  for (const d of diagrams)
+    for (const n of d.nodes) {
+      const data = n.data;
+      const name = (data.name || '').trim();
+      if (!name) continue;
+      if (data.kind === 'enum') {
+        let e = enums.get(name);
+        if (!e) {
+          e = { name, values: [], valueSet: new Set() };
+          enums.set(name, e);
+        }
+        for (const m of data.members) {
+          if (m.kind !== 'field') continue;
+          const v = stripSigil(m.text);
+          if (v && !e.valueSet.has(v)) {
+            e.valueSet.add(v);
+            e.values.push(v);
+          }
+        }
+      } else {
+        let c = classes.get(name);
+        if (!c) {
+          c = { name, fields: [], fieldNames: new Set(), methods: [], methodSet: new Set() };
+          classes.set(name, c);
+        }
+        for (const m of data.members) {
+          if (m.kind === 'field') {
+            const p = parseField(m.text);
+            if (!p.name || c.fieldNames.has(p.name)) continue;
+            c.fieldNames.add(p.name);
+            c.fields.push({ ...p, optional: p.optional || m.category === 'optional' });
+          } else {
+            const t = stripSigil(m.text);
+            if (t && !c.methodSet.has(t)) {
+              c.methodSet.add(t);
+              c.methods.push(t);
+            }
+          }
         }
       }
     }
-  }
   return {
-    classes: [...classes.values()].map((c) => ({ name: c.name, fields: c.fields, methods: c.methods })),
+    classes: [...classes.values()].map((c) => ({
+      name: c.name,
+      fields: c.fields,
+      methods: c.methods,
+    })),
     enums: [...enums.values()].map((e) => ({ name: e.name, values: e.values })),
   };
 }
@@ -92,11 +123,25 @@ export function jsonTypeFromTs(ts: string, ref: (name: string) => string): Recor
   if (/^-?\d+(\.\d+)?$/.test(t)) return { type: 'number', const: Number(t) };
   if (t === 'true' || t === 'false') return { type: 'boolean', const: t === 'true' };
   switch (t.toLowerCase()) {
-    case 'string': return { type: 'string' };
-    case 'number': case 'int': case 'integer': case 'long': case 'float': case 'double': return { type: 'number' };
-    case 'boolean': case 'bool': return { type: 'boolean' };
-    case '': case 'any': case 'unknown': case 'object': return {};
-    default: return { $ref: ref(t) };
+    case 'string':
+      return { type: 'string' };
+    case 'number':
+    case 'int':
+    case 'integer':
+    case 'long':
+    case 'float':
+    case 'double':
+      return { type: 'number' };
+    case 'boolean':
+    case 'bool':
+      return { type: 'boolean' };
+    case '':
+    case 'any':
+    case 'unknown':
+    case 'object':
+      return {};
+    default:
+      return { $ref: ref(t) };
   }
 }
 
@@ -104,23 +149,58 @@ export function jsonTypeFromTs(ts: string, ref: (name: string) => string): Recor
  * JSON Schema split into one file per type (cross-referenced by sibling-file
  * `$ref`), plus a `{baseName}.schema.json` index that refers to every type.
  */
-export function generateJsonSchemaFiles(diagrams: UmlDiagram[], baseName: string): { name: string; content: string }[] {
+export function generateJsonSchemaFiles(
+  diagrams: UmlDiagram[],
+  baseName: string
+): { name: string; content: string }[] {
   const { classes, enums } = collectTypes(diagrams);
   const ref = (n: string) => `${n}.schema.json`;
   const files: { name: string; content: string }[] = [];
   for (const e of enums) {
-    files.push({ name: `${e.name}.schema.json`, content: JSON.stringify({ $schema: JSON_SCHEMA_DIALECT, $id: `${e.name}.schema.json`, title: e.name, enum: e.values }, null, 2) + '\n' });
+    files.push({
+      name: `${e.name}.schema.json`,
+      content:
+        JSON.stringify(
+          {
+            $schema: JSON_SCHEMA_DIALECT,
+            $id: `${e.name}.schema.json`,
+            title: e.name,
+            enum: e.values,
+          },
+          null,
+          2
+        ) + '\n',
+    });
   }
   for (const c of classes) {
     const properties: Record<string, unknown> = {};
     for (const f of c.fields) properties[f.name] = jsonTypeFromTs(f.type, ref);
     const required = c.fields.filter((f) => !f.optional).map((f) => f.name);
-    files.push({ name: `${c.name}.schema.json`, content: JSON.stringify({ $schema: JSON_SCHEMA_DIALECT, $id: `${c.name}.schema.json`, title: c.name, type: 'object', properties, ...(required.length ? { required } : {}) }, null, 2) + '\n' });
+    files.push({
+      name: `${c.name}.schema.json`,
+      content:
+        JSON.stringify(
+          {
+            $schema: JSON_SCHEMA_DIALECT,
+            $id: `${c.name}.schema.json`,
+            title: c.name,
+            type: 'object',
+            properties,
+            ...(required.length ? { required } : {}),
+          },
+          null,
+          2
+        ) + '\n',
+    });
   }
   const $defs: Record<string, unknown> = {};
   for (const e of enums) $defs[e.name] = { $ref: ref(e.name) };
   for (const c of classes) $defs[c.name] = { $ref: ref(c.name) };
-  files.push({ name: `${baseName}.schema.json`, content: JSON.stringify({ $schema: JSON_SCHEMA_DIALECT, title: baseName, $defs }, null, 2) + '\n' });
+  files.push({
+    name: `${baseName}.schema.json`,
+    content:
+      JSON.stringify({ $schema: JSON_SCHEMA_DIALECT, title: baseName, $defs }, null, 2) + '\n',
+  });
   return files;
 }
 
@@ -136,7 +216,10 @@ export function generateDts(diagrams: UmlDiagram[]): string {
   }
   for (const c of classes) {
     const lines: string[] = [];
-    for (const f of c.fields) lines.push(`  ${TS_IDENT.test(f.name) ? f.name : JSON.stringify(f.name)}${f.optional ? '?' : ''}: ${f.type || 'unknown'};`);
+    for (const f of c.fields)
+      lines.push(
+        `  ${TS_IDENT.test(f.name) ? f.name : JSON.stringify(f.name)}${f.optional ? '?' : ''}: ${f.type || 'unknown'};`
+      );
     for (const m of c.methods) lines.push(`  ${m.replace(/;$/, '')};`);
     blocks.push(`export interface ${c.name} {\n${lines.join('\n')}\n}`);
   }
@@ -159,12 +242,18 @@ export function outputKind(file: string): OutputKind | null {
  * with a file per type and `Model.schema.json` as the index — one schema per
  * type is what other tools can `$ref` individually.
  */
-export function planOutput(file: string, diagrams: UmlDiagram[]): { path: string; content: string }[] {
+export function planOutput(
+  file: string,
+  diagrams: UmlDiagram[]
+): { path: string; content: string }[] {
   const kind = outputKind(file);
   if (!kind) throw new Error(`unsupported output "${file}" — use *.schema.json or *.d.ts`);
   if (kind === 'dts') return [{ path: file, content: generateDts(diagrams) }];
   const base = (file.split('/').pop() || file).replace(/\.schema\.json$/i, '');
   const dir = file.includes('/') ? file.slice(0, file.lastIndexOf('/')) : '';
   const subdir = (dir ? `${dir}/` : '') + base;
-  return generateJsonSchemaFiles(diagrams, base).map((f) => ({ path: `${subdir}/${f.name}`, content: f.content }));
+  return generateJsonSchemaFiles(diagrams, base).map((f) => ({
+    path: `${subdir}/${f.name}`,
+    content: f.content,
+  }));
 }

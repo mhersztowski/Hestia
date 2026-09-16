@@ -16,18 +16,18 @@
 
 /** Jeden konflikt w pliku, z numerami wierszy liczonymi od 1. */
 export interface Conflict {
-    /** Wiersz ze znacznikiem `<<<<<<<`. */
-    startLine: number;
-    /** Wiersz ze znacznikiem `>>>>>>>`. */
-    endLine: number;
-    /** Etykieta z linii otwierającej — zwykle `HEAD`. */
-    oursLabel: string;
-    /** Etykieta z linii zamykającej — zwykle nazwa gałęzi albo commit. */
-    theirsLabel: string;
-    ours: string[];
-    theirs: string[];
-    /** Wersja wyjściowa; obecna tylko przy stylu `diff3`. */
-    base?: string[];
+  /** Wiersz ze znacznikiem `<<<<<<<`. */
+  startLine: number;
+  /** Wiersz ze znacznikiem `>>>>>>>`. */
+  endLine: number;
+  /** Etykieta z linii otwierającej — zwykle `HEAD`. */
+  oursLabel: string;
+  /** Etykieta z linii zamykającej — zwykle nazwa gałęzi albo commit. */
+  theirsLabel: string;
+  ours: string[];
+  theirs: string[];
+  /** Wersja wyjściowa; obecna tylko przy stylu `diff3`. */
+  base?: string[];
 }
 
 const RE_START = /^<{7} ?(.*)$/;
@@ -44,46 +44,57 @@ const RE_END = /^>{7} ?(.*)$/;
  * przy pierwszym kliknięciu „weź moje".
  */
 export function parseConflicts(content: string): Conflict[] {
-    const wiersze = content.split('\n');
-    const wynik: Conflict[] = [];
+  const wiersze = content.split('\n');
+  const wynik: Conflict[] = [];
 
-    for (let i = 0; i < wiersze.length; i++) {
-        const start = RE_START.exec(wiersze[i]);
-        if (!start) continue;
+  for (let i = 0; i < wiersze.length; i++) {
+    const start = RE_START.exec(wiersze[i]);
+    if (!start) continue;
 
-        const ours: string[] = [];
-        const base: string[] = [];
-        const theirs: string[] = [];
-        let sekcja: 'ours' | 'base' | 'theirs' = 'ours';
-        let maBase = false;
-        let koniec = -1;
-        let theirsLabel = '';
+    const ours: string[] = [];
+    const base: string[] = [];
+    const theirs: string[] = [];
+    let sekcja: 'ours' | 'base' | 'theirs' = 'ours';
+    let maBase = false;
+    let koniec = -1;
+    let theirsLabel = '';
 
-        for (let j = i + 1; j < wiersze.length; j++) {
-            const wiersz = wiersze[j];
-            if (RE_BASE.test(wiersz)) { sekcja = 'base'; maBase = true; continue; }
-            if (RE_SEP.test(wiersz)) { sekcja = 'theirs'; continue; }
-            const end = RE_END.exec(wiersz);
-            if (end) { koniec = j; theirsLabel = end[1].trim(); break; }
-            // Zagnieżdżony konflikt to znak, że plik był już edytowany —
-            // przerywamy, zamiast zgadywać, gdzie kończy się który.
-            if (RE_START.test(wiersz)) break;
-            (sekcja === 'ours' ? ours : sekcja === 'base' ? base : theirs).push(wiersz);
-        }
-
-        if (koniec < 0) continue;
-        wynik.push({
-            startLine: i + 1,
-            endLine: koniec + 1,
-            oursLabel: start[1].trim() || 'HEAD',
-            theirsLabel: theirsLabel || 'przychodzące',
-            ours,
-            theirs,
-            ...(maBase ? { base } : {}),
-        });
-        i = koniec;
+    for (let j = i + 1; j < wiersze.length; j++) {
+      const wiersz = wiersze[j];
+      if (RE_BASE.test(wiersz)) {
+        sekcja = 'base';
+        maBase = true;
+        continue;
+      }
+      if (RE_SEP.test(wiersz)) {
+        sekcja = 'theirs';
+        continue;
+      }
+      const end = RE_END.exec(wiersz);
+      if (end) {
+        koniec = j;
+        theirsLabel = end[1].trim();
+        break;
+      }
+      // Zagnieżdżony konflikt to znak, że plik był już edytowany —
+      // przerywamy, zamiast zgadywać, gdzie kończy się który.
+      if (RE_START.test(wiersz)) break;
+      (sekcja === 'ours' ? ours : sekcja === 'base' ? base : theirs).push(wiersz);
     }
-    return wynik;
+
+    if (koniec < 0) continue;
+    wynik.push({
+      startLine: i + 1,
+      endLine: koniec + 1,
+      oursLabel: start[1].trim() || 'HEAD',
+      theirsLabel: theirsLabel || 'przychodzące',
+      ours,
+      theirs,
+      ...(maBase ? { base } : {}),
+    });
+    i = koniec;
+  }
+  return wynik;
 }
 
 /** Którą wersję wstawić w miejsce konfliktu. */
@@ -97,28 +108,31 @@ export type Resolution = 'ours' | 'theirs' | 'both' | 'base';
  * gdzie obie strony mają rację.
  */
 export function resolveConflict(content: string, conflict: Conflict, wybor: Resolution): string {
-    const wiersze = content.split('\n');
-    const zamiennik =
-        wybor === 'ours' ? conflict.ours
-            : wybor === 'theirs' ? conflict.theirs
-                : wybor === 'base' ? (conflict.base ?? [])
-                    : [...conflict.ours, ...conflict.theirs];
-    return [
-        ...wiersze.slice(0, conflict.startLine - 1),
-        ...zamiennik,
-        ...wiersze.slice(conflict.endLine),
-    ].join('\n');
+  const wiersze = content.split('\n');
+  const zamiennik =
+    wybor === 'ours'
+      ? conflict.ours
+      : wybor === 'theirs'
+        ? conflict.theirs
+        : wybor === 'base'
+          ? (conflict.base ?? [])
+          : [...conflict.ours, ...conflict.theirs];
+  return [
+    ...wiersze.slice(0, conflict.startLine - 1),
+    ...zamiennik,
+    ...wiersze.slice(conflict.endLine),
+  ].join('\n');
 }
 
 /** Rozwiązuje wszystkie konflikty w pliku tą samą decyzją. */
 export function resolveAll(content: string, wybor: Resolution): string {
-    let tresc = content;
-    // Od końca, żeby numery wierszy wcześniejszych konfliktów nie przesunęły się
-    // po podmianie późniejszych.
-    for (const konflikt of parseConflicts(content).reverse()) {
-        tresc = resolveConflict(tresc, konflikt, wybor);
-    }
-    return tresc;
+  let tresc = content;
+  // Od końca, żeby numery wierszy wcześniejszych konfliktów nie przesunęły się
+  // po podmianie późniejszych.
+  for (const konflikt of parseConflicts(content).reverse()) {
+    tresc = resolveConflict(tresc, konflikt, wybor);
+  }
+  return tresc;
 }
 
 /**
@@ -128,5 +142,7 @@ export function resolveAll(content: string, wybor: Resolution): string {
  * kompiluje i trafia do repozytorium, a wychodzi na jaw dużo później.
  */
 export function hasConflictMarkers(content: string): boolean {
-    return content.split('\n').some((w) => RE_START.test(w) || RE_SEP.test(w) || RE_END.test(w) || RE_BASE.test(w));
+  return content
+    .split('\n')
+    .some((w) => RE_START.test(w) || RE_SEP.test(w) || RE_END.test(w) || RE_BASE.test(w));
 }

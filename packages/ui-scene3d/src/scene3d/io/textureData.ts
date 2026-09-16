@@ -70,7 +70,7 @@ export interface WynikTekstury {
  */
 export function dataUrlZObrazu(
   obraz: ZrodloObrazu | null | undefined,
-  opcje: OpcjeTekstury = {},
+  opcje: OpcjeTekstury = {}
 ): WynikTekstury {
   if (!obraz) return { dataUrl: null, kb: 0, powod: 'Tekstura nie ma obrazu.' };
 

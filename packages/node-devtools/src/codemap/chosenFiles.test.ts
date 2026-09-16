@@ -21,7 +21,9 @@ beforeAll(async () => {
   await writeFile(path.join(dir, 'src/notes.md'), '# not code\n');
 });
 
-afterAll(async () => { await rm(dir, { recursive: true, force: true }); });
+afterAll(async () => {
+  await rm(dir, { recursive: true, force: true });
+});
 
 describe('CodemapService — chosen files', () => {
   it('takes only the given files and skips the rest of the directory', async () => {
@@ -35,7 +37,9 @@ describe('CodemapService — chosen files', () => {
   });
 
   it('skips unreadable files and files in an unsupported language', async () => {
-    const model = await svc.parseFiles(['src/alpha.ts', 'src/notes.md', 'src/missing.ts'], dir, { relativeTo: dir });
+    const model = await svc.parseFiles(['src/alpha.ts', 'src/notes.md', 'src/missing.ts'], dir, {
+      relativeTo: dir,
+    });
     expect(model.symbols.map((s) => s.name)).toEqual(['Alpha']);
   });
 

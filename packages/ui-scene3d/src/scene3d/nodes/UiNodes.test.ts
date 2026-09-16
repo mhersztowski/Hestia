@@ -54,8 +54,14 @@ describe('UiWidgetNode', () => {
     const w = new UiWidgetNode({ kind: 'panel' });
     w.setProperty('ui.anchor.maxY', 1);
     expect(w.anchor).toEqual({
-      minX: 0, maxX: 0, minY: 0, maxY: 1,
-      offsetLeft: 0, offsetTop: 0, offsetRight: 0, offsetBottom: 0,
+      minX: 0,
+      maxX: 0,
+      minY: 0,
+      maxY: 1,
+      offsetLeft: 0,
+      offsetTop: 0,
+      offsetRight: 0,
+      offsetBottom: 0,
     });
   });
 });
@@ -69,7 +75,16 @@ describe('zapis razem ze sceną', () => {
 
     const panel = new UiWidgetNode({ id: 'a', kind: 'panel', x: '10', y: '10', w: '200', h: '80' });
     const guzik = new UiWidgetNode({ id: 'b', kind: 'button', text: 'OK', color: '#2f6fb0' });
-    guzik.anchor = { minX: 1, maxX: 1, minY: 1, maxY: 1, offsetLeft: -120, offsetTop: -48, offsetRight: -16, offsetBottom: -16 };
+    guzik.anchor = {
+      minX: 1,
+      maxX: 1,
+      minY: 1,
+      maxY: 1,
+      offsetLeft: -120,
+      offsetTop: -48,
+      offsetRight: -16,
+      offsetBottom: -16,
+    };
     graph.addNode(panel, 'ui');
     graph.addNode(guzik, 'ui');
 

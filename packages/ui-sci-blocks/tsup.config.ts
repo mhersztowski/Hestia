@@ -12,10 +12,15 @@ export default defineConfig({
   // and both `import('three')` at run time, so a page with no 3D block does not
   // have to install a renderer.
   external: [
-    'react', 'react-dom', 'react/jsx-runtime',
-    '@mui/material', /^@mui\/icons-material(\/.*)?$/,
-    '@emotion/react', '@emotion/styled',
-    'three', /^three\/(.*)$/,
+    'react',
+    'react-dom',
+    'react/jsx-runtime',
+    '@mui/material',
+    /^@mui\/icons-material(\/.*)?$/,
+    '@emotion/react',
+    '@emotion/styled',
+    'three',
+    /^three\/(.*)$/,
     '@hestia/core-sci',
   ],
   treeshake: true,

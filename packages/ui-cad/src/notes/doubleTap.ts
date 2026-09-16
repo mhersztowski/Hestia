@@ -25,9 +25,9 @@ export const DOUBLE_TAP_MS = 450;
 
 /** A tap: when and where. */
 export interface Tap {
-    t: number;
-    x: number;
-    y: number;
+  t: number;
+  x: number;
+  y: number;
 }
 
 /**
@@ -35,7 +35,7 @@ export interface Tap {
  * tap may land from the first, in the same units as the coordinates.
  */
 export function isDoubleTap(last: Tap | null, now: Tap, tol: number): boolean {
-    if (!last) return false;
-    if (now.t - last.t >= DOUBLE_TAP_MS) return false;
-    return Math.hypot(now.x - last.x, now.y - last.y) < tol;
+  if (!last) return false;
+  if (now.t - last.t >= DOUBLE_TAP_MS) return false;
+  return Math.hypot(now.x - last.x, now.y - last.y) < tol;
 }

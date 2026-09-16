@@ -11,8 +11,14 @@
 
 /** Identyfikator akcji — używany też do wyboru ikony. */
 export type CursorBarAction =
-  | 'cursorTop' | 'cursorHome' | 'cursorLeft' | 'cursorUp'
-  | 'cursorDown' | 'cursorRight' | 'cursorEnd' | 'cursorBottom';
+  | 'cursorTop'
+  | 'cursorHome'
+  | 'cursorLeft'
+  | 'cursorUp'
+  | 'cursorDown'
+  | 'cursorRight'
+  | 'cursorEnd'
+  | 'cursorBottom';
 
 export interface CursorBarButton {
   /** Komenda Monaco odpalana przez `editor.trigger`. */

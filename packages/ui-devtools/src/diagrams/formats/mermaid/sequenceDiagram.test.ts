@@ -137,14 +137,16 @@ describe('bloki', () => {
   });
 
   it('`alt` z `else` daje dwie sekcje', () => {
-    const s = script([
-      'sequenceDiagram',
-      '    alt Sukces',
-      '        B->>A: ok',
-      '    else Błąd',
-      '        B->>A: nie',
-      '    end',
-    ].join('\n'));
+    const s = script(
+      [
+        'sequenceDiagram',
+        '    alt Sukces',
+        '        B->>A: ok',
+        '    else Błąd',
+        '        B->>A: nie',
+        '    end',
+      ].join('\n')
+    );
     const block = s.steps[0] as SequenceBlock;
     expect(block.sections).toHaveLength(2);
     expect(block.sections[0].title).toBe('Sukces');
@@ -152,28 +154,32 @@ describe('bloki', () => {
   });
 
   it('`par` z `and`', () => {
-    const s = script([
-      'sequenceDiagram',
-      '    par Równolegle',
-      '        A->>B: 1',
-      '    and',
-      '        A->>C: 2',
-      '    end',
-    ].join('\n'));
+    const s = script(
+      [
+        'sequenceDiagram',
+        '    par Równolegle',
+        '        A->>B: 1',
+        '    and',
+        '        A->>C: 2',
+        '    end',
+      ].join('\n')
+    );
     expect((s.steps[0] as SequenceBlock).sections).toHaveLength(2);
   });
 
   it('bloki zagnieżdżają się', () => {
-    const s = script([
-      'sequenceDiagram',
-      '    loop Powtarzaj',
-      '        alt Jest',
-      '            A->>B: tak',
-      '        else Nie ma',
-      '            A->>B: nie',
-      '        end',
-      '    end',
-    ].join('\n'));
+    const s = script(
+      [
+        'sequenceDiagram',
+        '    loop Powtarzaj',
+        '        alt Jest',
+        '            A->>B: tak',
+        '        else Nie ma',
+        '            A->>B: nie',
+        '        end',
+        '    end',
+      ].join('\n')
+    );
     const outer = s.steps[0] as SequenceBlock;
     const inner = outer.sections[0].steps[0];
     expect(isBlock(inner)).toBe(true);
@@ -213,7 +219,9 @@ describe('notatki', () => {
   });
 
   it('wraca przy zapisie', () => {
-    expect(roundTrip('sequenceDiagram\n    Note over A,B: uwaga')).toContain('Note over A,B: uwaga');
+    expect(roundTrip('sequenceDiagram\n    Note over A,B: uwaga')).toContain(
+      'Note over A,B: uwaga'
+    );
   });
 });
 
@@ -255,14 +263,18 @@ describe('zachowanie treści', () => {
   });
 
   it('komentarz zostaje w swoim miejscu', () => {
-    const lines = roundTrip(SOURCE).split('\n').map((l) => l.trim());
+    const lines = roundTrip(SOURCE)
+      .split('\n')
+      .map((l) => l.trim());
     const komentarz = lines.indexOf('%% komentarz');
     expect(komentarz).toBeGreaterThan(0);
     expect(komentarz).toBeLessThan(lines.indexOf('A->>+B: pytanie'));
   });
 
   it('nierozpoznana linia wewnątrz bloku zostaje w bloku', () => {
-    const out = roundTrip('sequenceDiagram\n    loop X\n        link A: Panel @ https://x\n    end');
+    const out = roundTrip(
+      'sequenceDiagram\n    loop X\n        link A: Panel @ https://x\n    end'
+    );
     const lines = out.split('\n').map((l) => l.trim());
     expect(lines.indexOf('link A: Panel @ https://x')).toBeLessThan(lines.indexOf('end'));
   });
@@ -300,22 +312,37 @@ describe('create i destroy', () => {
   });
 
   it('`create actor` zostaje aktorem', () => {
-    expect(s.participants.find((p) => p.id === 'Tmp')).toMatchObject({ isActor: true, label: 'Task tymczasowy' });
+    expect(s.participants.find((p) => p.id === 'Tmp')).toMatchObject({
+      isActor: true,
+      label: 'Task tymczasowy',
+    });
   });
 
   it('powstanie i zniszczenie są krokami przebiegu', () => {
-    expect(s.steps.map((st) => st.kind)).toEqual(['create', 'message', 'create', 'message', 'destroy', 'message']);
+    expect(s.steps.map((st) => st.kind)).toEqual([
+      'create',
+      'message',
+      'create',
+      'message',
+      'destroy',
+      'message',
+    ]);
   });
 
   it('deklaracja wraca w swoim miejscu, nie w nagłówku', () => {
-    const lines = roundTrip(SOURCE).split('\n').map((l) => l.trim());
-    expect(lines.indexOf('create participant S2 as Nowy lua_State'))
-      .toBeGreaterThan(lines.indexOf('participant VM as Lua VM'));
+    const lines = roundTrip(SOURCE)
+      .split('\n')
+      .map((l) => l.trim());
+    expect(lines.indexOf('create participant S2 as Nowy lua_State')).toBeGreaterThan(
+      lines.indexOf('participant VM as Lua VM')
+    );
   });
 
   it('uczestnik z `create` nie jest deklarowany dwa razy', () => {
     const out = roundTrip(SOURCE);
-    expect(out.split('\n').filter((l) => l.includes('S2') && l.includes('participant'))).toHaveLength(1);
+    expect(
+      out.split('\n').filter((l) => l.includes('S2') && l.includes('participant'))
+    ).toHaveLength(1);
   });
 
   it('round-trip jest stabilny', () => {
@@ -335,6 +362,8 @@ describe('autonumber z parametrami', () => {
   });
 
   it('parametry wracają przy zapisie', () => {
-    expect(roundTrip('sequenceDiagram\n    autonumber 10 10\n    A->>B: x')).toContain('autonumber 10 10');
+    expect(roundTrip('sequenceDiagram\n    autonumber 10 10\n    A->>B: x')).toContain(
+      'autonumber 10 10'
+    );
   });
 });

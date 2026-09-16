@@ -42,6 +42,8 @@ describe.runIf(hasKnowledge('admin'))('baza rozłożona po katalogach', () => {
     const edges = layoutKnowledgeGraph(index).edges;
     // Obwód RLC (elektronika) wywodzi się z rezonansu (mechanika) — to jest
     // dokładnie ta krawędź, dla której warto mieć graf ponad katalogami.
-    expect(edges.some((e) => e.from.includes('mechanika') && e.to.includes('elektronika'))).toBe(true);
+    expect(edges.some((e) => e.from.includes('mechanika') && e.to.includes('elektronika'))).toBe(
+      true
+    );
   });
 });

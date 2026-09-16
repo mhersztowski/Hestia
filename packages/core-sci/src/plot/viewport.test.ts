@@ -9,7 +9,13 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  worldToScreen, screenToWorld, panByPixels, zoomAt, fitAspect, niceTicks, minorStep,
+  worldToScreen,
+  screenToWorld,
+  panByPixels,
+  zoomAt,
+  fitAspect,
+  niceTicks,
+  minorStep,
   type Viewport,
 } from './viewport';
 
@@ -30,7 +36,11 @@ describe('przeliczanie współrzędnych', () => {
   });
 
   it('przeliczenie tam i z powrotem wraca do punktu wyjścia', () => {
-    for (const point of [{ x: 0, y: 0 }, { x: 3.7, y: -2.1 }, { x: -9.99, y: 9.99 }]) {
+    for (const point of [
+      { x: 0, y: 0 },
+      { x: 3.7, y: -2.1 },
+      { x: -9.99, y: 9.99 },
+    ]) {
       const wrocil = screenToWorld(V, SIZE, worldToScreen(V, SIZE, point));
       expect(wrocil.x).toBeCloseTo(point.x, 9);
       expect(wrocil.y).toBeCloseTo(point.y, 9);
@@ -145,7 +155,11 @@ describe('proporcje', () => {
   });
 
   it('zachowuje środek widoku', () => {
-    const dopasowany = fitAspect({ xMin: 0, xMax: 20, yMin: 0, yMax: 20 }, { width: 800, height: 400 }, 'x');
+    const dopasowany = fitAspect(
+      { xMin: 0, xMax: 20, yMin: 0, yMax: 20 },
+      { width: 800, height: 400 },
+      'x'
+    );
     expect((dopasowany.xMin + dopasowany.xMax) / 2).toBeCloseTo(10);
     expect((dopasowany.yMin + dopasowany.yMax) / 2).toBeCloseTo(10);
   });
@@ -166,7 +180,12 @@ describe('podziałki', () => {
   });
 
   it('krok jest zawsze jedynką, dwójką albo piątką razy potęga dziesięciu', () => {
-    for (const [min, max, count] of [[-10, 10, 10], [0, 7, 5], [-33, 128, 8], [0, 0.03, 6]] as const) {
+    for (const [min, max, count] of [
+      [-10, 10, 10],
+      [0, 7, 5],
+      [-33, 128, 8],
+      [0, 0.03, 6],
+    ] as const) {
       const ticks = niceTicks(min, max, count);
       const step = ticks[1] - ticks[0];
       const normalized = step / 10 ** Math.floor(Math.log10(step));
@@ -187,7 +206,12 @@ describe('podziałki', () => {
   });
 
   it('liczba podziałek trzyma się zamówionej z grubsza', () => {
-    for (const [min, max] of [[-1, 1], [0, 7], [-33, 128], [1.5, 1.7]] as const) {
+    for (const [min, max] of [
+      [-1, 1],
+      [0, 7],
+      [-33, 128],
+      [1.5, 1.7],
+    ] as const) {
       const ticks = niceTicks(min, max, 10);
       expect(ticks.length).toBeGreaterThanOrEqual(4);
       expect(ticks.length).toBeLessThanOrEqual(21);

@@ -9,29 +9,37 @@
 
 import { Box } from '@mui/material';
 import { Cad2dEditor, Project, loadProjectFromText } from '@hestia/ui-cad/cad2d';
+import type { WorkspaceObject } from '@hestia/ui-core';
 import { CadFileBar } from './CadFileBar';
 
 /** An empty drawing, as text — what "new" loads. */
 function emptyDrawing(): string {
-    return JSON.stringify(new Project().toJSON());
+  return JSON.stringify(new Project().toJSON());
 }
 
-export function Cad2dPage({ project }: { project: Project }) {
-    return (
-        <Box sx={{ height: '100%', minHeight: 0 }}>
-            <Cad2dEditor
-                project={project}
-                toolbarStart={(
-                    <CadFileBar
-                        kind="drawing"
-                        read={() => JSON.stringify(project.toJSON(), null, 2)}
-                        // The project object stays the same one throughout — the
-                        // editor, the canvas and the 3D sketches all hold it, so
-                        // opening a file fills it rather than replacing it.
-                        apply={(content) => loadProjectFromText(content ?? emptyDrawing(), project)}
-                    />
-                )}
-            />
-        </Box>
-    );
+export function Cad2dPage({
+  project,
+  workspace,
+}: {
+  project: Project;
+  workspace?: WorkspaceObject;
+}) {
+  return (
+    <Box sx={{ height: '100%', minHeight: 0 }}>
+      <Cad2dEditor
+        project={project}
+        toolbarStart={
+          <CadFileBar
+            kind="drawing"
+            read={() => JSON.stringify(project.toJSON(), null, 2)}
+            // The project object stays the same one throughout — the
+            // editor, the canvas and the 3D sketches all hold it, so
+            // opening a file fills it rather than replacing it.
+            apply={(content) => loadProjectFromText(content ?? emptyDrawing(), project)}
+            workspace={workspace}
+          />
+        }
+      />
+    </Box>
+  );
 }

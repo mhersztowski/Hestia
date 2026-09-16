@@ -17,8 +17,14 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import {
-  apply, eigen, det, interpolate, pickVector, snapToEigen,
-  type Matrix2, type Vector2,
+  apply,
+  eigen,
+  det,
+  interpolate,
+  pickVector,
+  snapToEigen,
+  type Matrix2,
+  type Vector2,
 } from '@hestia/core-sci';
 
 export interface StageVector {
@@ -58,8 +64,16 @@ const SIATKA_PRZEKSZTALCONA = '#bae6fd';
 const OS = '#94a3b8';
 
 export function LinAlgStage({
-  matrix, t, vectors, extent = 4, size = 340, showEigen, showUnitSquare = true,
-  onDrag, draggable, snapEigen,
+  matrix,
+  t,
+  vectors,
+  extent = 4,
+  size = 340,
+  showEigen,
+  showUnitSquare = true,
+  onDrag,
+  draggable,
+  snapEigen,
 }: LinAlgStageProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   /**
@@ -98,11 +112,17 @@ export function LinAlgStage({
     linia(ctx, px([0, -extent]), px([0, extent]));
 
     if (showUnitSquare && M) {
-      const rogi: Vector2[] = [[0, 0], [1, 0], [1, 1], [0, 1]].map((v) => przeksztalc(v as Vector2));
+      const rogi: Vector2[] = [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 1],
+      ].map((v) => przeksztalc(v as Vector2));
       ctx.beginPath();
       rogi.forEach((r, i) => {
         const [x, y] = px(r);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       });
       ctx.closePath();
       // Kolor niesie znak wyznacznika: po odwróceniu orientacji kwadrat zmienia
@@ -125,9 +145,11 @@ export function LinAlgStage({
         ctx.strokeStyle = '#a855f7';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([5, 4]);
-        linia(ctx,
+        linia(
+          ctx,
           px([-vector[0] * extent, -vector[1] * extent]),
-          px([vector[0] * extent, vector[1] * extent]));
+          px([vector[0] * extent, vector[1] * extent])
+        );
         ctx.setLineDash([]);
       }
     }
@@ -150,16 +172,19 @@ export function LinAlgStage({
   }, [matrix, t, vectors, extent, size, showEigen, showUnitSquare, onDrag, draggable]);
 
   /** Położenie wskaźnika w jednostkach sceny. */
-  const naScene = useCallback((event: ReactPointerEvent): Vector2 | null => {
-    const prostokat = ref.current?.getBoundingClientRect();
-    if (!prostokat) return null;
-    const skala = prostokat.width / (2 * extent);
-    return [
-      (event.clientX - prostokat.left - prostokat.width / 2) / skala,
-      // Oś Y ekranu rośnie w dół, matematyczna w górę.
-      -(event.clientY - prostokat.top - prostokat.height / 2) / skala,
-    ];
-  }, [extent]);
+  const naScene = useCallback(
+    (event: ReactPointerEvent): Vector2 | null => {
+      const prostokat = ref.current?.getBoundingClientRect();
+      if (!prostokat) return null;
+      const skala = prostokat.width / (2 * extent);
+      return [
+        (event.clientX - prostokat.left - prostokat.width / 2) / skala,
+        // Oś Y ekranu rośnie w dół, matematyczna w górę.
+        -(event.clientY - prostokat.top - prostokat.height / 2) / skala,
+      ];
+    },
+    [extent]
+  );
 
   const chwytalne = vectors.filter((v) => !draggable || draggable.includes(v.name));
 
@@ -168,29 +193,44 @@ export function LinAlgStage({
       ref={ref}
       width={size}
       height={size}
-      onPointerDown={onDrag ? (e) => {
-        const punkt = naScene(e);
-        if (!punkt) return;
-        // Promień trafienia w jednostkach sceny — około pół kratki, żeby
-        // dało się złapać także wektor bardzo krótki.
-        const nazwa = pickVector(punkt, chwytalne, extent * 0.12);
-        if (!nazwa) return;
-        e.currentTarget.setPointerCapture(e.pointerId);
-        chwyconyRef.current = nazwa;
-      } : undefined}
-      onPointerMove={onDrag ? (e) => {
-        const nazwa = chwyconyRef.current;
-        if (!nazwa) return;
-        const punkt = naScene(e);
-        if (!punkt) return;
-        const przyciagniety = snapEigen && matrix ? snapToEigen(matrix, punkt, extent * 0.04) : null;
-        onDrag(nazwa, przyciagniety ?? punkt);
-      } : undefined}
-      onPointerUp={onDrag ? (e) => {
-        e.currentTarget.releasePointerCapture(e.pointerId);
+      onPointerDown={
+        onDrag
+          ? (e) => {
+              const punkt = naScene(e);
+              if (!punkt) return;
+              // Promień trafienia w jednostkach sceny — około pół kratki, żeby
+              // dało się złapać także wektor bardzo krótki.
+              const nazwa = pickVector(punkt, chwytalne, extent * 0.12);
+              if (!nazwa) return;
+              e.currentTarget.setPointerCapture(e.pointerId);
+              chwyconyRef.current = nazwa;
+            }
+          : undefined
+      }
+      onPointerMove={
+        onDrag
+          ? (e) => {
+              const nazwa = chwyconyRef.current;
+              if (!nazwa) return;
+              const punkt = naScene(e);
+              if (!punkt) return;
+              const przyciagniety =
+                snapEigen && matrix ? snapToEigen(matrix, punkt, extent * 0.04) : null;
+              onDrag(nazwa, przyciagniety ?? punkt);
+            }
+          : undefined
+      }
+      onPointerUp={
+        onDrag
+          ? (e) => {
+              e.currentTarget.releasePointerCapture(e.pointerId);
+              chwyconyRef.current = undefined;
+            }
+          : undefined
+      }
+      onPointerCancel={() => {
         chwyconyRef.current = undefined;
-      } : undefined}
-      onPointerCancel={() => { chwyconyRef.current = undefined; }}
+      }}
       style={{
         width: size,
         height: size,
@@ -222,7 +262,7 @@ function rysujSiatke(
   extent: number,
   px: (v: Vector2) => [number, number],
   f: (v: Vector2) => Vector2,
-  kolor: string,
+  kolor: string
 ) {
   ctx.strokeStyle = kolor;
   ctx.lineWidth = 1;
@@ -239,7 +279,7 @@ function strzalka(
   od: [number, number],
   do_: [number, number],
   kolor: string,
-  etykieta?: string,
+  etykieta?: string
 ) {
   const dx = do_[0] - od[0];
   const dy = do_[1] - od[1];

@@ -37,21 +37,27 @@ export class RectTool implements Tool {
     return [
       {
         id: 'width',
-        worldX: x0 + w / 2, worldY: y0,
+        worldX: x0 + w / 2,
+        worldY: y0,
         text: `W: ${w.toFixed(2)}`,
         offsetY: 16,
         variant: 'primary',
         editable: true,
-        onEdit: (newW: number) => { this.lockW = newW; }, // hold the width, do not commit yet
+        onEdit: (newW: number) => {
+          this.lockW = newW;
+        }, // hold the width, do not commit yet
       },
       {
         id: 'height',
-        worldX: x0 + w, worldY: y0 + h / 2,
+        worldX: x0 + w,
+        worldY: y0 + h / 2,
         text: `H: ${h.toFixed(2)}`,
         offsetX: 8,
         variant: 'secondary',
         editable: true,
-        onEdit: (newH: number) => { this.lockH = newH; }, // hold the height, do not commit yet
+        onEdit: (newH: number) => {
+          this.lockH = newH;
+        }, // hold the height, do not commit yet
       },
     ];
   }
@@ -93,9 +99,16 @@ export class RectTool implements Tool {
       ctx.project.addEntity({
         type: 'rect',
         layerId: ctx.project.layerSystem.getActiveId(),
-        x, y, width: w, height: h,
-        color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-        visible: true, locked: false, extrudeHeight: 0,
+        x,
+        y,
+        width: w,
+        height: h,
+        color: 'bylayer',
+        lineType: 'bylayer',
+        lineWidth: 'bylayer',
+        visible: true,
+        locked: false,
+        extrudeHeight: 0,
       });
     }
     this.reset();

@@ -14,8 +14,12 @@ import { describe, it, expect } from 'vitest';
 import { estimateNodeSize } from './nodeSize';
 import type { DiagramNode } from './diagram';
 
-const node = (partial: Partial<DiagramNode>): DiagramNode =>
-  ({ id: 'X', label: '', shape: 'rectangle', ...partial });
+const node = (partial: Partial<DiagramNode>): DiagramNode => ({
+  id: 'X',
+  label: '',
+  shape: 'rectangle',
+  ...partial,
+});
 
 describe('estimateNodeSize', () => {
   it('krótka etykieta mieści się w rozmiarze minimalnym', () => {
@@ -31,20 +35,32 @@ describe('estimateNodeSize', () => {
   });
 
   it('bardzo długi opis zawija się zamiast rosnąć w nieskończoność', () => {
-    const size = estimateNodeSize(node({ label: 'Bardzo długi opis stanu, który nie zmieściłby się w jednej linii nawet na szerokim ekranie' }));
+    const size = estimateNodeSize(
+      node({
+        label:
+          'Bardzo długi opis stanu, który nie zmieściłby się w jednej linii nawet na szerokim ekranie',
+      })
+    );
     expect(size.width).toBeLessThanOrEqual(320);
     // Zawinięcie oznacza większą wysokość — inaczej tekst wyszedłby poza pudełko.
     expect(size.height).toBeGreaterThan(estimateNodeSize(node({ label: 'Idle' })).height);
   });
 
   it('bez etykiety liczy się identyfikator — to on jest rysowany', () => {
-    expect(estimateNodeSize(node({ id: 'BardzoDlugiIdentyfikatorStanu' })).width)
-      .toBeGreaterThan(estimateNodeSize(node({ id: 'A' })).width);
+    expect(estimateNodeSize(node({ id: 'BardzoDlugiIdentyfikatorStanu' })).width).toBeGreaterThan(
+      estimateNodeSize(node({ id: 'A' })).width
+    );
   });
 
   it('pseudostany są małe niezależnie od nazwy', () => {
-    expect(estimateNodeSize(node({ id: '__start0', shape: 'start' }))).toEqual({ width: 30, height: 30 });
-    expect(estimateNodeSize(node({ id: '__end1', shape: 'end' }))).toEqual({ width: 30, height: 30 });
+    expect(estimateNodeSize(node({ id: '__start0', shape: 'start' }))).toEqual({
+      width: 30,
+      height: 30,
+    });
+    expect(estimateNodeSize(node({ id: '__end1', shape: 'end' }))).toEqual({
+      width: 30,
+      height: 30,
+    });
   });
 
   it('rozgałęzienie i złączenie to wąskie belki', () => {
@@ -73,10 +89,16 @@ describe('estimateNodeSize', () => {
  * zanim cokolwiek pojawiło się na ekranie.
  */
 describe('rozmiar klasy', () => {
-  const klasa = (members: number, nazwa = 'Zwierze') => estimateNodeSize({
-    id: nazwa, label: nazwa, shape: 'rectangle',
-    members: Array.from({ length: members }, (_, i) => ({ raw: `+pole${i} String`, kind: 'field' as const })),
-  });
+  const klasa = (members: number, nazwa = 'Zwierze') =>
+    estimateNodeSize({
+      id: nazwa,
+      label: nazwa,
+      shape: 'rectangle',
+      members: Array.from({ length: members }, (_, i) => ({
+        raw: `+pole${i} String`,
+        kind: 'field' as const,
+      })),
+    });
 
   it('rośnie z liczbą składowych', () => {
     expect(klasa(6).height).toBeGreaterThan(klasa(1).height);
@@ -93,9 +115,16 @@ describe('rozmiar klasy', () => {
   });
 
   it('szerokość uwzględnia najdłuższą składową, nie tylko nazwę', () => {
-    const krotka = estimateNodeSize({ id: 'A', label: 'A', shape: 'rectangle', members: [{ raw: '+x', kind: 'field' }] });
+    const krotka = estimateNodeSize({
+      id: 'A',
+      label: 'A',
+      shape: 'rectangle',
+      members: [{ raw: '+x', kind: 'field' }],
+    });
     const dluga = estimateNodeSize({
-      id: 'A', label: 'A', shape: 'rectangle',
+      id: 'A',
+      label: 'A',
+      shape: 'rectangle',
       members: [{ raw: '+bardzoDlugaNazwaMetodyZParametrami(a, b, c) String', kind: 'method' }],
     });
     expect(dluga.width).toBeGreaterThan(krotka.width);

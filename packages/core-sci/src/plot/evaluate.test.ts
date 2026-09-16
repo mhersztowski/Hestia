@@ -101,7 +101,10 @@ describe('rodzaje wierszy', () => {
     // Ukrycie dotyczy rysowania, nie liczenia: schowanie definicji nie może
     // popsuć krzywej, która z niej korzysta.
     let d = doc('a = 3', 'y = a x');
-    d = { ...d, rows: d.rows.map((r) => (r.parsed.kind === 'constant' ? { ...r, hidden: true } : r)) };
+    d = {
+      ...d,
+      rows: d.rows.map((r) => (r.parsed.kind === 'constant' ? { ...r, hidden: true } : r)),
+    };
     expect(evaluateDocument(d).scope.a).toBe(3);
   });
 });
@@ -155,7 +158,9 @@ describe('krzywe uwikłane i nierówności', () => {
   });
 
   it('nierówność „większe" wypełnia stronę dodatnią', () => {
-    expect(evaluateDocument(doc('y > x^2')).rows.find((r) => r.kind === 'inequality')?.fill).toBe('positive');
+    expect(evaluateDocument(doc('y > x^2')).rows.find((r) => r.kind === 'inequality')?.fill).toBe(
+      'positive'
+    );
   });
 
   it('nierówność nieostra dostaje ten sam obszar co ostra', () => {
@@ -167,6 +172,8 @@ describe('krzywe uwikłane i nierówności', () => {
   });
 
   it('równanie nie dostaje wypełnienia', () => {
-    expect(evaluateDocument(doc('x^2 + y^2 = 4')).rows.find((r) => r.kind === 'implicit')?.fill).toBeUndefined();
+    expect(
+      evaluateDocument(doc('x^2 + y^2 = 4')).rows.find((r) => r.kind === 'implicit')?.fill
+    ).toBeUndefined();
   });
 });

@@ -15,8 +15,12 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  computeRequest, restoreResult,
-  type ComputeRequest, type ComputeResponse, type ModelSource, type PhenomenonResult,
+  computeRequest,
+  restoreResult,
+  type ComputeRequest,
+  type ComputeResponse,
+  type ModelSource,
+  type PhenomenonResult,
 } from '@hestia/core-sci';
 
 /** Fabryka workera dostarczana przez hosta. */
@@ -41,9 +45,12 @@ export function useModelRunner(
   values: Record<string, number>,
   tSpan: [number, number],
   dt: number,
-  workerFactory?: WorkerFactory,
+  workerFactory?: WorkerFactory
 ): ModelRunnerState {
-  const [state, setState] = useState<ModelRunnerState>({ pending: true, offThread: !!workerFactory });
+  const [state, setState] = useState<ModelRunnerState>({
+    pending: true,
+    offThread: !!workerFactory,
+  });
   const workerRef = useRef<Worker | undefined>();
   /** Numer ostatniego wysłanego żądania — starsze odpowiedzi odrzucamy. */
   const latestRef = useRef(0);
@@ -84,7 +91,7 @@ export function useModelRunner(
   // uruchamiałoby liczenie w kółko.
   const requestKey = useMemo(
     () => JSON.stringify([source, values, tSpan, dt]),
-    [source, values, tSpan, dt],
+    [source, values, tSpan, dt]
   );
 
   useEffect(() => {

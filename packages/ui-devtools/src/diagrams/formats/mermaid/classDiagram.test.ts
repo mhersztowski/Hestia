@@ -106,7 +106,9 @@ describe('adnotacje', () => {
   });
 
   it('adnotacja wraca przy zapisie', () => {
-    expect(roundTrip('classDiagram\n  class Lot {\n    <<interface>>\n  }')).toContain('<<interface>>');
+    expect(roundTrip('classDiagram\n  class Lot {\n    <<interface>>\n  }')).toContain(
+      '<<interface>>'
+    );
   });
 });
 
@@ -157,7 +159,11 @@ describe('relacje', () => {
   });
 
   it('relacja tworzy brakujące klasy', () => {
-    expect(parse('classDiagram\n  A --> B').nodes.map((n) => n.id).sort()).toEqual(['A', 'B']);
+    expect(
+      parse('classDiagram\n  A --> B')
+        .nodes.map((n) => n.id)
+        .sort()
+    ).toEqual(['A', 'B']);
   });
 });
 

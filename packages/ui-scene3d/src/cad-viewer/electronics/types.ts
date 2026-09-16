@@ -6,13 +6,7 @@ export const GRID = 20;
 export const SNAP_RADIUS = 0.75;
 
 export type PartCategory =
-  | 'board'
-  | 'microcontroller'
-  | 'passive'
-  | 'active'
-  | 'sensor'
-  | 'power'
-  | 'display';
+  'board' | 'microcontroller' | 'passive' | 'active' | 'sensor' | 'power' | 'display';
 
 export interface Pin {
   id: string;
@@ -34,7 +28,7 @@ export type BodyShape =
   | 'dip'
   | 'buzzer'
   | 'joystick'
-  | 'symbol';   // osadzony symbol schematyczny (z PcbView) — geometria w `symbolShapes`
+  | 'symbol'; // osadzony symbol schematyczny (z PcbView) — geometria w `symbolShapes`
 
 /**
  * Prymityw rysunkowy osadzonego symbolu. Współrzędne w jednostkach siatki
@@ -42,9 +36,35 @@ export type BodyShape =
  */
 export type SymShape =
   | { k: 'poly'; pts: WirePoint[]; closed?: boolean; color?: string; width?: number; fill?: string }
-  | { k: 'rect'; x: number; y: number; w: number; h: number; color?: string; width?: number; fill?: string }
-  | { k: 'ellipse'; cx: number; cy: number; rx: number; ry: number; color?: string; width?: number; fill?: string }
-  | { k: 'text'; x: number; y: number; text: string; size: number; color?: string; anchor?: 'start' | 'middle' | 'end' }
+  | {
+      k: 'rect';
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+      color?: string;
+      width?: number;
+      fill?: string;
+    }
+  | {
+      k: 'ellipse';
+      cx: number;
+      cy: number;
+      rx: number;
+      ry: number;
+      color?: string;
+      width?: number;
+      fill?: string;
+    }
+  | {
+      k: 'text';
+      x: number;
+      y: number;
+      text: string;
+      size: number;
+      color?: string;
+      anchor?: 'start' | 'middle' | 'end';
+    }
   | { k: 'lead'; pts: WirePoint[]; color?: string };
 
 export interface PartDef {
@@ -105,8 +125,8 @@ export const WIRE_COLORS = [
   '#42a5f5', // blue
   '#66bb6a', // green
   '#ffa726', // orange
-  '#ffffff',  // white
-  '#000000',  // black
+  '#ffffff', // white
+  '#000000', // black
   '#ab47bc', // purple
   '#26c6da', // cyan
   '#ffee58', // yellow
@@ -122,7 +142,8 @@ export type InteractionMode = 'select' | 'place' | 'wire';
 /** Rotate a local point (grid units) by a placement angle in degrees — SVG y-down frame. */
 export function rotateLocal(lx: number, ly: number, rotation: number): { x: number; y: number } {
   const rad = (rotation * Math.PI) / 180;
-  const cos = Math.cos(rad), sin = Math.sin(rad);
+  const cos = Math.cos(rad),
+    sin = Math.sin(rad);
   return { x: lx * cos - ly * sin, y: lx * sin + ly * cos };
 }
 
@@ -132,8 +153,14 @@ export function rotateLocal(lx: number, ly: number, rotation: number): { x: numb
  * lands at the origin.
  */
 export function rotationOffset(w: number, h: number, rotation: number): { x: number; y: number } {
-  let minX = Infinity, minY = Infinity;
-  for (const [cx, cy] of [[0, 0], [w, 0], [0, h], [w, h]]) {
+  let minX = Infinity,
+    minY = Infinity;
+  for (const [cx, cy] of [
+    [0, 0],
+    [w, 0],
+    [0, h],
+    [w, h],
+  ]) {
     const r = rotateLocal(cx, cy, rotation);
     if (r.x < minX) minX = r.x;
     if (r.y < minY) minY = r.y;
@@ -142,7 +169,11 @@ export function rotationOffset(w: number, h: number, rotation: number): { x: num
 }
 
 /** World-space centre of a component pin (grid units), accounting for rotation. */
-export function pinWorldCenter(comp: ComponentPlacement, part: PartDef, pin: Pin): { x: number; y: number } {
+export function pinWorldCenter(
+  comp: ComponentPlacement,
+  part: PartDef,
+  pin: Pin
+): { x: number; y: number } {
   const off = rotationOffset(part.width, part.height, comp.rotation);
   const r = rotateLocal(pin.x + 0.5, pin.y + 0.5, comp.rotation);
   return { x: comp.x + off.x + r.x, y: comp.y + off.y + r.y };

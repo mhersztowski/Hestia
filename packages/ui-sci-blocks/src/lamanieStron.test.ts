@@ -66,7 +66,11 @@ describe('gdzie kończy się strona', () => {
 
   it('odstępy między elementami należą do strony, która je poprzedza', () => {
     // Odstęp 14 px między akapitami — element trzeci zaczyna się na 228.
-    const elementy = [{ top: 0, height: 100 }, { top: 114, height: 100 }, { top: 228, height: 100 }];
+    const elementy = [
+      { top: 0, height: 100 },
+      { top: 114, height: 100 },
+      { top: 228, height: 100 },
+    ];
     expect(punktyLamania(elementy, 300, 328)).toEqual([0, 228]);
   });
 });

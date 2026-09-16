@@ -37,26 +37,45 @@ export function TableBlock({ id, code, compact }: TableBlockProps) {
               tego w nagłówku zostawały dolary. */}
           {naglowek && (
             <thead>
-              <tr>{naglowek.map((k, i) => <th key={i} style={komorka}>{inline(k)}</th>)}</tr>
+              <tr>
+                {naglowek.map((k, i) => (
+                  <th key={i} style={komorka}>
+                    {inline(k)}
+                  </th>
+                ))}
+              </tr>
             </thead>
           )}
           <tbody>
             {wiersze.map((w, i) => (
-              <tr key={i}>{w.map((k, j) => <td key={j} style={komorka}>{inline(k)}</td>)}</tr>
+              <tr key={i}>
+                {w.map((k, j) => (
+                  <td key={j} style={komorka}>
+                    {inline(k)}
+                  </td>
+                ))}
+              </tr>
             ))}
           </tbody>
         </table>
       </div>
       {tablica.issues.map((i) => (
-        <div key={i.message} style={{ fontSize: 11, color: '#b91c1c' }}>{i.message}</div>
+        <div key={i.message} style={{ fontSize: 11, color: '#b91c1c' }}>
+          {i.message}
+        </div>
       ))}
     </figure>
   );
 }
 
 const podpis: CSSProperties = {
-  fontSize: 13, color: '#475569', paddingLeft: 12, borderLeft: '3px solid #cbd5e1',
+  fontSize: 13,
+  color: '#475569',
+  paddingLeft: 12,
+  borderLeft: '3px solid #cbd5e1',
 };
 const komorka: CSSProperties = {
-  border: '1px solid #cbd5e1', padding: '4px 8px', textAlign: 'left',
+  border: '1px solid #cbd5e1',
+  padding: '4px 8px',
+  textAlign: 'left',
 };

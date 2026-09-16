@@ -103,7 +103,7 @@ export function richardson(coarse: number, fine: number, order: number): number 
  */
 export function studyConvergence(
   run: (dt: number) => Trajectory,
-  options: ConvergenceOptions,
+  options: ConvergenceOptions
 ): ConvergenceReport {
   const count = Math.max(1, Math.round(options.levels ?? 3));
   const issues: string[] = [];
@@ -135,15 +135,17 @@ export function studyConvergence(
   const diverged = levels.filter((level) => level.state.some((value) => !Number.isFinite(value)));
   if (diverged.length) {
     issues.push(
-      `Rozwiązanie rozbiegło się do nieskończoności przy kroku ${diverged.map((l) => l.dt).join(', ')}`
-      + ' — przy tej metodzie i tym kroku wynik nie istnieje, więc nie ma czego mierzyć.',
+      `Rozwiązanie rozbiegło się do nieskończoności przy kroku ${diverged.map((l) => l.dt).join(', ')}` +
+        ' — przy tej metodzie i tym kroku wynik nie istnieje, więc nie ma czego mierzyć.'
     );
     return report;
   }
 
   const width = levels[0]?.state.length ?? 0;
   if (levels.some((level) => level.state.length !== width)) {
-    issues.push('Przebiegi mają różną liczbę zmiennych stanu — to nie są warianty tego samego modelu.');
+    issues.push(
+      'Przebiegi mają różną liczbę zmiennych stanu — to nie są warianty tego samego modelu.'
+    );
     return report;
   }
 
@@ -165,8 +167,8 @@ export function studyConvergence(
 
   if (fineNorm <= MACHINE_NOISE * scale || coarseNorm <= MACHINE_NOISE * scale) {
     issues.push(
-      'Różnice między siatkami są na poziomie precyzji maszynowej — metoda odtwarza to rozwiązanie'
-      + ' dokładnie, więc rzędu nie da się zmierzyć (i nie trzeba: błędu metody tu nie ma).',
+      'Różnice między siatkami są na poziomie precyzji maszynowej — metoda odtwarza to rozwiązanie' +
+        ' dokładnie, więc rzędu nie da się zmierzyć (i nie trzeba: błędu metody tu nie ma).'
     );
     return report;
   }

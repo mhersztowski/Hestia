@@ -66,27 +66,33 @@ describe('przejścia i opisy', () => {
 
 describe('stany specjalne i złożone', () => {
   it('rozpoznaje choice / fork / join', () => {
-    const doc = parse([
-      'stateDiagram-v2',
-      '  state wybor <<choice>>',
-      '  state rozgalezienie <<fork>>',
-      '  state zlaczenie <<join>>',
-    ].join('\n')).document;
+    const doc = parse(
+      [
+        'stateDiagram-v2',
+        '  state wybor <<choice>>',
+        '  state rozgalezienie <<fork>>',
+        '  state zlaczenie <<join>>',
+      ].join('\n')
+    ).document;
 
     expect(doc.nodes.map((n) => [n.id, n.shape])).toEqual([
-      ['wybor', 'choice'], ['rozgalezienie', 'fork'], ['zlaczenie', 'join'],
+      ['wybor', 'choice'],
+      ['rozgalezienie', 'fork'],
+      ['zlaczenie', 'join'],
     ]);
   });
 
   it('stan złożony staje się grupą, a jego zawartość dostaje parentId', () => {
-    const doc = parse([
-      'stateDiagram-v2',
-      '  [*] --> Aktywny',
-      '  state Aktywny {',
-      '    [*] --> Numer',
-      '    Numer --> Pauza',
-      '  }',
-    ].join('\n')).document;
+    const doc = parse(
+      [
+        'stateDiagram-v2',
+        '  [*] --> Aktywny',
+        '  state Aktywny {',
+        '    [*] --> Numer',
+        '    Numer --> Pauza',
+        '  }',
+      ].join('\n')
+    ).document;
 
     expect(doc.groups.map((g) => g.id)).toEqual(['Aktywny']);
     expect(doc.nodes.find((n) => n.id === 'Numer')?.parentId).toBe('Aktywny');
@@ -139,8 +145,9 @@ describe('kierunek układu', () => {
     expect(out).toContain('direction TB');
     // Kierunek wnętrza musi stać W ŚRODKU bloku, nie przed nim.
     const lines = out.split('\n');
-    expect(lines.findIndex((l) => l.includes('direction TB')))
-      .toBeGreaterThan(lines.findIndex((l) => l.includes('state Praca {')));
+    expect(lines.findIndex((l) => l.includes('direction TB'))).toBeGreaterThan(
+      lines.findIndex((l) => l.includes('state Praca {'))
+    );
   });
 });
 
@@ -173,7 +180,9 @@ describe('round-trip', () => {
     const first = parse(source).document;
     const second = parse(serialize(first)).document;
     expect(second.groups).toEqual(first.groups);
-    expect(second.nodes.map((n) => [n.id, n.parentId])).toEqual(first.nodes.map((n) => [n.id, n.parentId]));
+    expect(second.nodes.map((n) => [n.id, n.parentId])).toEqual(
+      first.nodes.map((n) => [n.id, n.parentId])
+    );
   });
 });
 

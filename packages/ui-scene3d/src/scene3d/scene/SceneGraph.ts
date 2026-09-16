@@ -11,8 +11,18 @@ import { UiRootNode, UiWidgetNode } from '../nodes/UiNodes';
 import type { UiRootNodeData, UiWidgetNodeData } from '../nodes/UiNodes';
 import { AudioNode } from '../nodes/AudioNode';
 import type { AudioNodeData } from '../nodes/AudioNode';
-import { GeometryPointNode, GeometrySegmentNode, GeometryLineNode, GeometryAngleNode } from '../nodes/GeometryNodes';
-import type { GeometryPointNodeData, GeometrySegmentNodeData, GeometryLineNodeData, GeometryAngleNodeData } from '../nodes/GeometryNodes';
+import {
+  GeometryPointNode,
+  GeometrySegmentNode,
+  GeometryLineNode,
+  GeometryAngleNode,
+} from '../nodes/GeometryNodes';
+import type {
+  GeometryPointNodeData,
+  GeometrySegmentNodeData,
+  GeometryLineNodeData,
+  GeometryAngleNodeData,
+} from '../nodes/GeometryNodes';
 import type { AnimationClip } from '../animation/types';
 import type { PrefabEntry } from '../prefabs/types';
 
@@ -208,37 +218,84 @@ export class SceneGraph {
         }
         case 'ui-root': {
           const d = nodeData as UiRootNodeData;
-          node = new UiRootNode({ ...baseFields(d), mode: d.mode, vars: d.vars, constraints: d.constraints });
+          node = new UiRootNode({
+            ...baseFields(d),
+            mode: d.mode,
+            vars: d.vars,
+            constraints: d.constraints,
+          });
           break;
         }
         case 'ui-widget': {
           const d = nodeData as UiWidgetNodeData;
           node = new UiWidgetNode({
             ...baseFields(d),
-            kind: d.kind, x: d.x, y: d.y, w: d.w, h: d.h,
-            anchor: d.anchor, flow: d.flow, container: d.container,
-            text: d.text, color: d.color, value: d.value,
+            kind: d.kind,
+            x: d.x,
+            y: d.y,
+            w: d.w,
+            h: d.h,
+            anchor: d.anchor,
+            flow: d.flow,
+            container: d.container,
+            text: d.text,
+            color: d.color,
+            value: d.value,
           });
           break;
         }
         case 'geometry-point': {
           const d = nodeData as GeometryPointNodeData;
-          node = new GeometryPointNode({ ...baseFields(d), color: d.color, pixelSize: d.pixelSize, showLabel: d.showLabel, label: d.label });
+          node = new GeometryPointNode({
+            ...baseFields(d),
+            color: d.color,
+            pixelSize: d.pixelSize,
+            showLabel: d.showLabel,
+            label: d.label,
+          });
           break;
         }
         case 'geometry-segment': {
           const d = nodeData as GeometrySegmentNodeData;
-          node = new GeometrySegmentNode({ ...baseFields(d), start: d.start, end: d.end, color: d.color, pixelSize: d.pixelSize, showLength: d.showLength, startBinding: d.startBinding, endBinding: d.endBinding });
+          node = new GeometrySegmentNode({
+            ...baseFields(d),
+            start: d.start,
+            end: d.end,
+            color: d.color,
+            pixelSize: d.pixelSize,
+            showLength: d.showLength,
+            startBinding: d.startBinding,
+            endBinding: d.endBinding,
+          });
           break;
         }
         case 'geometry-line': {
           const d = nodeData as GeometryLineNodeData;
-          node = new GeometryLineNode({ ...baseFields(d), origin: d.origin, direction: d.direction, color: d.color, showLabel: d.showLabel, label: d.label, originBinding: d.originBinding });
+          node = new GeometryLineNode({
+            ...baseFields(d),
+            origin: d.origin,
+            direction: d.direction,
+            color: d.color,
+            showLabel: d.showLabel,
+            label: d.label,
+            originBinding: d.originBinding,
+          });
           break;
         }
         case 'geometry-angle': {
           const d = nodeData as GeometryAngleNodeData;
-          node = new GeometryAngleNode({ ...baseFields(d), vertex: d.vertex, p1: d.p1, p2: d.p2, color: d.color, arcPixelRadius: d.arcPixelRadius, showLabel: d.showLabel, vertexBinding: d.vertexBinding, p1Binding: d.p1Binding, p2Binding: d.p2Binding });
+          node = new GeometryAngleNode({
+            ...baseFields(d),
+            vertex: d.vertex,
+            p1: d.p1,
+            p2: d.p2,
+            color: d.color,
+            arcPixelRadius: d.arcPixelRadius,
+            showLabel: d.showLabel,
+            vertexBinding: d.vertexBinding,
+            p1Binding: d.p1Binding,
+            p2Binding: d.p2Binding,
+          });
           break;
         }
         default:
@@ -255,7 +312,9 @@ export class SceneGraph {
     }
 
     graph.root = buildNode(data.root);
-    graph.root.traverse((n) => { n._onChange = graph._handleChange; });
+    graph.root.traverse((n) => {
+      n._onChange = graph._handleChange;
+    });
     if (data.animation) graph.animation = data.animation;
     if (data.prefabs) graph.prefabs = data.prefabs;
     if (data.script) graph.script = data.script;

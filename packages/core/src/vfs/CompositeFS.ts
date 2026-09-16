@@ -178,7 +178,11 @@ export class CompositeFS implements FileSystemProvider {
         throw VfsError.noPermissions(dp);
       }
       if (resolvedSrc.provider.copy) {
-        return resolvedSrc.provider.copy(resolvedSrc.relativePath, resolvedDst.relativePath, options);
+        return resolvedSrc.provider.copy(
+          resolvedSrc.relativePath,
+          resolvedDst.relativePath,
+          options
+        );
       }
     }
 
@@ -214,7 +218,11 @@ export class CompositeFS implements FileSystemProvider {
     return resolved.provider.watch(resolved.relativePath, options);
   }
 
-  private resolve(path: string): { mount: InternalMount; provider: FileSystemProvider; relativePath: string } {
+  private resolve(path: string): {
+    mount: InternalMount;
+    provider: FileSystemProvider;
+    relativePath: string;
+  } {
     for (const mount of this.mounts) {
       if (path === mount.mountPoint || path.startsWith(mount.mountPoint + '/')) {
         const relativePath = path.slice(mount.mountPoint.length) || '/';

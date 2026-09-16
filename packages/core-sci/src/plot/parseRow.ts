@@ -103,11 +103,13 @@ function freeSymbolsOf(latex: string, bound: Iterable<string>, issues: string[])
   issues.push(...compiled.issues);
 
   const boundSet = new Set(bound);
-  return compiled.freeSymbols
-    .filter((symbol) => !boundSet.has(symbol))
-    // Stała matematyczna ma wartość; suwak pozwalający zmienić π nie znaczy nic.
-    .filter((symbol) => !reservedSymbol(symbol))
-    .sort();
+  return (
+    compiled.freeSymbols
+      .filter((symbol) => !boundSet.has(symbol))
+      // Stała matematyczna ma wartość; suwak pozwalający zmienić π nie znaczy nic.
+      .filter((symbol) => !reservedSymbol(symbol))
+      .sort()
+  );
 }
 
 /** Rozkłada `(a, b)` na współrzędne; `undefined`, gdy to nie jest para. */
@@ -151,12 +153,12 @@ export function parsePlotRow(latex: string): ParsedPlotRow {
 
   const point = asPoint(text);
   if (point) {
-    const free = [
-      ...freeSymbolsOf(point.x, AXIS, issues),
-      ...freeSymbolsOf(point.y, AXIS, issues),
-    ];
+    const free = [...freeSymbolsOf(point.x, AXIS, issues), ...freeSymbolsOf(point.y, AXIS, issues)];
     return {
-      latex, kind: 'point', body: text, point,
+      latex,
+      kind: 'point',
+      body: text,
+      point,
       freeSymbols: [...new Set(free)].sort(),
       issues,
     };
@@ -171,7 +173,9 @@ export function parsePlotRow(latex: string): ParsedPlotRow {
      * kalkulator ma oszczędzić.
      */
     if (text.includes('\\ne')) {
-      issues.push('Relacja „różne od" nie ma obrazu na płaszczyźnie — narysowaniem byłby prawie cały ekran.');
+      issues.push(
+        'Relacja „różne od" nie ma obrazu na płaszczyźnie — narysowaniem byłby prawie cały ekran.'
+      );
       return { latex, kind: 'unknown', body: text, freeSymbols: [], issues };
     }
 
@@ -192,12 +196,14 @@ export function parsePlotRow(latex: string): ParsedPlotRow {
   const { lhs, op, rhs } = relation;
 
   if (op !== '=') {
-    const free = [
-      ...freeSymbolsOf(lhs, AXIS, issues),
-      ...freeSymbolsOf(rhs, AXIS, issues),
-    ];
+    const free = [...freeSymbolsOf(lhs, AXIS, issues), ...freeSymbolsOf(rhs, AXIS, issues)];
     return {
-      latex, kind: 'inequality', body: rhs, relation: op, lhs, rhs,
+      latex,
+      kind: 'inequality',
+      body: rhs,
+      relation: op,
+      lhs,
+      rhs,
       freeSymbols: [...new Set(free)].sort(),
       issues,
     };
@@ -213,7 +219,11 @@ export function parsePlotRow(latex: string): ParsedPlotRow {
    */
   if (lhs === 'z' && (usesAxis(rhs, 'x') || usesAxis(rhs, 'y'))) {
     return {
-      latex, kind: 'surface', body: rhs, lhs, rhs,
+      latex,
+      kind: 'surface',
+      body: rhs,
+      lhs,
+      rhs,
       freeSymbols: freeSymbolsOf(rhs, AXIS, issues),
       issues,
     };
@@ -223,17 +233,33 @@ export function parsePlotRow(latex: string): ParsedPlotRow {
   // prostą pionową: po lewej stoi zmienna osi, więc to nie definicja stałej.
   if (lhs === 'y' || lhs === 'x') {
     const kind = lhs === 'y' ? 'explicit-y' : 'explicit-x';
-    return { latex, kind, body: rhs, lhs, rhs, freeSymbols: freeSymbolsOf(rhs, AXIS, issues), issues };
+    return {
+      latex,
+      kind,
+      body: rhs,
+      lhs,
+      rhs,
+      freeSymbols: freeSymbolsOf(rhs, AXIS, issues),
+      issues,
+    };
   }
 
   // `f(x) = …` — definicja funkcji. Polecenie LaTeX-a odpada, bo zaczyna się
   // od „\": `\sin(x) = 0` to równanie do rozwiązania, nie definicja.
   const head = FUNCTION_HEAD.exec(lhs);
   if (head && !lhs.startsWith('\\')) {
-    const params = head[2].split(',').map((p) => p.trim()).filter(Boolean);
+    const params = head[2]
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean);
     return {
-      latex, kind: 'function', body: rhs, name: head[1], params,
-      lhs, rhs,
+      latex,
+      kind: 'function',
+      body: rhs,
+      name: head[1],
+      params,
+      lhs,
+      rhs,
       freeSymbols: freeSymbolsOf(rhs, params, issues),
       issues,
     };
@@ -242,18 +268,21 @@ export function parsePlotRow(latex: string): ParsedPlotRow {
   // Sama nazwa po lewej — parametr.
   if (NAME.test(lhs)) {
     return {
-      latex, kind: 'constant', body: rhs, name: lhs, lhs, rhs,
+      latex,
+      kind: 'constant',
+      body: rhs,
+      name: lhs,
+      lhs,
+      rhs,
       freeSymbols: freeSymbolsOf(rhs, AXIS, issues),
       issues,
     };
   }
 
   // Zostaje krzywa uwikłana: obie strony to wyrażenia, a nie nazwa.
-  const free = [
-    ...freeSymbolsOf(lhs, AXIS, issues),
-    ...freeSymbolsOf(rhs, AXIS, issues),
-  ];
-  const dependsOnBoth = usesAxis(lhs, 'x') || usesAxis(lhs, 'y') || usesAxis(rhs, 'x') || usesAxis(rhs, 'y');
+  const free = [...freeSymbolsOf(lhs, AXIS, issues), ...freeSymbolsOf(rhs, AXIS, issues)];
+  const dependsOnBoth =
+    usesAxis(lhs, 'x') || usesAxis(lhs, 'y') || usesAxis(rhs, 'x') || usesAxis(rhs, 'y');
 
   if (!dependsOnBoth && issues.length === 0) {
     // Równanie bez zmiennych osi to warunek na parametry, nie krzywa.
@@ -262,7 +291,11 @@ export function parsePlotRow(latex: string): ParsedPlotRow {
   }
 
   return {
-    latex, kind: 'implicit', body: rhs, lhs, rhs,
+    latex,
+    kind: 'implicit',
+    body: rhs,
+    lhs,
+    rhs,
     freeSymbols: [...new Set(free)].sort(),
     issues,
   };

@@ -21,64 +21,64 @@ import { parseCppSource } from './CppIntelliSensePlugin';
 const BUDGET_MS = 500;
 
 describe('parseCppSource — odporność na wcięcia', () => {
-    it('nie zapętla się na głęboko wciętym wierszu bez dopasowania', () => {
-        // Kształt wprost z rzeczywistego pliku: zawinięty operator warunkowy,
-        // którego kolejne człony stoją pod pierwszym.
-        const source = [
-            'void loop() {',
-            '    const char* state = a.inTrial()   ? "trial"',
-            '                      : b.stopped()   ? "faulted"',
-            '                                      : "running";',
-            '}',
-        ].join('\n');
+  it('nie zapętla się na głęboko wciętym wierszu bez dopasowania', () => {
+    // Kształt wprost z rzeczywistego pliku: zawinięty operator warunkowy,
+    // którego kolejne człony stoją pod pierwszym.
+    const source = [
+      'void loop() {',
+      '    const char* state = a.inTrial()   ? "trial"',
+      '                      : b.stopped()   ? "faulted"',
+      '                                      : "running";',
+      '}',
+    ].join('\n');
 
-        const started = Date.now();
-        parseCppSource(source, 'probe.cpp');
-        expect(Date.now() - started).toBeLessThan(BUDGET_MS);
-    });
+    const started = Date.now();
+    parseCppSource(source, 'probe.cpp');
+    expect(Date.now() - started).toBeLessThan(BUDGET_MS);
+  });
 
-    it('nie zapętla się przy wcięciu absurdalnie głębokim', () => {
-        // Dwieście spacji to nie jest kod, jaki ktoś napisze — ale wykładniczy
-        // nawrót nie potrzebuje realistycznego wejścia, tylko długiego.
-        const source = `${' '.repeat(200)}: "x";`;
+  it('nie zapętla się przy wcięciu absurdalnie głębokim', () => {
+    // Dwieście spacji to nie jest kod, jaki ktoś napisze — ale wykładniczy
+    // nawrót nie potrzebuje realistycznego wejścia, tylko długiego.
+    const source = `${' '.repeat(200)}: "x";`;
 
-        const started = Date.now();
-        parseCppSource(source, 'probe.cpp');
-        expect(Date.now() - started).toBeLessThan(BUDGET_MS);
-    });
+    const started = Date.now();
+    parseCppSource(source, 'probe.cpp');
+    expect(Date.now() - started).toBeLessThan(BUDGET_MS);
+  });
 });
 
 describe('parseCppSource — rozpoznawanie symboli', () => {
-    it('znajduje funkcje razem z kwalifikatorami', () => {
-        const source = [
-            'void setup() {}',
-            'static Status configureScript() {}',
-            '[[nodiscard]] int policz(int a) {}',
-            'inline const char* nazwa() {}',
-        ].join('\n');
+  it('znajduje funkcje razem z kwalifikatorami', () => {
+    const source = [
+      'void setup() {}',
+      'static Status configureScript() {}',
+      '[[nodiscard]] int policz(int a) {}',
+      'inline const char* nazwa() {}',
+    ].join('\n');
 
-        const names = parseCppSource(source).map((s) => s.name);
-        expect(names).toContain('setup');
-        expect(names).toContain('configureScript');
-        expect(names).toContain('policz');
-        expect(names).toContain('nazwa');
-    });
+    const names = parseCppSource(source).map((s) => s.name);
+    expect(names).toContain('setup');
+    expect(names).toContain('configureScript');
+    expect(names).toContain('policz');
+    expect(names).toContain('nazwa');
+  });
 
-    it('znajduje klasy, wyliczenia i makra', () => {
-        const source = [
-            '#define KROK_MS 50',
-            'enum class Stan { Bezczynny, Praca };',
-            'class Silnik {',
-            'public:',
-            '    void rusz() {}',
-            '};',
-        ].join('\n');
+  it('znajduje klasy, wyliczenia i makra', () => {
+    const source = [
+      '#define KROK_MS 50',
+      'enum class Stan { Bezczynny, Praca };',
+      'class Silnik {',
+      'public:',
+      '    void rusz() {}',
+      '};',
+    ].join('\n');
 
-        const symbols = parseCppSource(source);
-        const byName = new Map(symbols.map((s) => [s.name, s]));
+    const symbols = parseCppSource(source);
+    const byName = new Map(symbols.map((s) => [s.name, s]));
 
-        expect(byName.has('KROK_MS')).toBe(true);
-        expect(byName.has('Stan')).toBe(true);
-        expect(byName.get('Silnik')?.members?.map((m) => m.name)).toContain('rusz');
-    });
+    expect(byName.has('KROK_MS')).toBe(true);
+    expect(byName.has('Stan')).toBe(true);
+    expect(byName.get('Silnik')?.members?.map((m) => m.name)).toContain('rusz');
+  });
 });

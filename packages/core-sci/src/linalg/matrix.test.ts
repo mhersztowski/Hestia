@@ -13,18 +13,34 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  apply, compose, det, eigen, identity, interpolate, inverse, rank,
-  type Matrix2, type Vector2,
+  apply,
+  compose,
+  det,
+  eigen,
+  identity,
+  interpolate,
+  inverse,
+  rank,
+  type Matrix2,
 } from './matrix';
 
 const OBROT = (kat: number): Matrix2 => [
   [Math.cos(kat), -Math.sin(kat)],
   [Math.sin(kat), Math.cos(kat)],
 ];
-const SCINANIE: Matrix2 = [[1, 1], [0, 1]];
-const SKALOWANIE: Matrix2 = [[3, 0], [0, 2]];
+const SCINANIE: Matrix2 = [
+  [1, 1],
+  [0, 1],
+];
+const SKALOWANIE: Matrix2 = [
+  [3, 0],
+  [0, 2],
+];
 /** Rzut na oś x — traci wymiar, więc wyznacznik zero. */
-const RZUT: Matrix2 = [[1, 0], [0, 0]];
+const RZUT: Matrix2 = [
+  [1, 0],
+  [0, 0],
+];
 
 describe('podstawowe operacje', () => {
   it('macierz przekształca wektor', () => {
@@ -56,7 +72,10 @@ describe('wyznacznik', () => {
   });
 
   it('ujemny znaczy odwrócenie orientacji', () => {
-    const odbicie: Matrix2 = [[1, 0], [0, -1]];
+    const odbicie: Matrix2 = [
+      [1, 0],
+      [0, -1],
+    ];
     expect(det(odbicie)).toBeCloseTo(-1, 10);
   });
 
@@ -64,7 +83,12 @@ describe('wyznacznik', () => {
     expect(det(RZUT)).toBeCloseTo(0, 10);
     expect(rank(RZUT)).toBe(1);
     expect(rank(SKALOWANIE)).toBe(2);
-    expect(rank([[0, 0], [0, 0]])).toBe(0);
+    expect(
+      rank([
+        [0, 0],
+        [0, 0],
+      ])
+    ).toBe(0);
   });
 });
 
@@ -83,7 +107,9 @@ describe('wektory własne', () => {
   });
 
   it('znajduje obie wartości własne skalowania', () => {
-    const wartosci = eigen(SKALOWANIE).pairs.map((p) => p.value).sort((a, b) => a - b);
+    const wartosci = eigen(SKALOWANIE)
+      .pairs.map((p) => p.value)
+      .sort((a, b) => a - b);
     expect(wartosci[0]).toBeCloseTo(2, 8);
     expect(wartosci[1]).toBeCloseTo(3, 8);
   });
@@ -147,7 +173,10 @@ describe('animacja przekształcenia', () => {
     // w połowie animacji cała płaszczyzna zapada się w prostą. To jest
     // prawda o odbiciu — nie da się go zrobić bez przejścia przez zero —
     // więc scena ma to pokazać, a nie ominąć.
-    const odbicie: Matrix2 = [[1, 0], [0, -1]];
+    const odbicie: Matrix2 = [
+      [1, 0],
+      [0, -1],
+    ];
     expect(det(interpolate(odbicie, 0.5))).toBeCloseTo(0, 10);
   });
 });

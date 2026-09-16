@@ -80,8 +80,12 @@ export class TaskNode extends NodeBase<TaskModel> {
     this.docPath = model.docPath;
   }
 
-  static fromModel(model: TaskModel): TaskNode { return new TaskNode(model); }
-  static fromModels(models: TaskModel[]): TaskNode[] { return models.map(m => new TaskNode(m)); }
+  static fromModel(model: TaskModel): TaskNode {
+    return new TaskNode(model);
+  }
+  static fromModels(models: TaskModel[]): TaskNode[] {
+    return models.map((m) => new TaskNode(m));
+  }
 
   // Completion state
   get isCompleted(): boolean {
@@ -181,7 +185,7 @@ export class TaskNode extends NodeBase<TaskModel> {
 
   // Get component by type
   getComponentByType<T extends TaskComponentModel>(type: string): T | undefined {
-    return this.components?.find(c => c.type === type) as T | undefined;
+    return this.components?.find((c) => c.type === type) as T | undefined;
   }
 
   // Interval component helpers
@@ -266,7 +270,7 @@ export class TaskNode extends NodeBase<TaskModel> {
 
   /** An entry with no `end` — that is, a clock running right now. */
   private openEntry(): TaskTimeEntry | undefined {
-    return this.timeEntries?.find(e => !e.end);
+    return this.timeEntries?.find((e) => !e.end);
   }
 
   isTracking(): boolean {
@@ -319,8 +323,8 @@ export class TaskNode extends NodeBase<TaskModel> {
   stopTracking(at: Date = new Date()): this {
     const open = this.openEntry();
     if (!open) return this;
-    this.timeEntries = this.timeEntries!.map(
-      entry => (entry === open ? { ...entry, end: at.toISOString() } : entry)
+    this.timeEntries = this.timeEntries!.map((entry) =>
+      entry === open ? { ...entry, end: at.toISOString() } : entry
     );
     this.markDirty();
     return this;
@@ -345,7 +349,7 @@ export class TaskNode extends NodeBase<TaskModel> {
 
   removeDependency(taskId: string): this {
     if (!this.dependsOn) return this;
-    this.dependsOn = keepList(this.dependsOn.filter(id => id !== taskId));
+    this.dependsOn = keepList(this.dependsOn.filter((id) => id !== taskId));
     this.markDirty();
     return this;
   }

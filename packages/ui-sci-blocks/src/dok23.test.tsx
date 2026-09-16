@@ -4,19 +4,32 @@ import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
-const pliki = ['2-3-skladowe.md', '2-1-wektory.md', '2-2-dodawanie.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = ['2-3-skladowe.md', '2-1-wektory.md', '2-2-dodawanie.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, '2-3-skladowe.md');
+  const cel = resolveReference(
+    id,
+    { anchors: index.anchors, formulaHome: index.formulaHome },
+    '2-3-skladowe.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['2-3-skladowe.md']} path="2-3-skladowe.md" resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(
+    <ReaderView
+      markdown={bodies['2-3-skladowe.md']}
+      path="2-3-skladowe.md"
+      resolveRef={resolveRef}
+    />
+  );
 const dokument = () => index.documents.find((d) => d.path === '2-3-skladowe.md');
 
 describe('2-3 w czytniku', () => {
@@ -31,7 +44,14 @@ describe('2-3 w czytniku', () => {
     for (const id of ['rh1-2-eq6a', 'rh1-2-eq10a', 'rh1-2-eq10b']) {
       expect(rodzaje[id], id).toBe('definition');
     }
-    for (const id of ['rh1-2-eq5', 'rh1-2-eq6b', 'rh1-2-eq7', 'rh1-2-eq8a', 'rh1-2-eq8b', 'rh1-2-eq9']) {
+    for (const id of [
+      'rh1-2-eq5',
+      'rh1-2-eq6b',
+      'rh1-2-eq7',
+      'rh1-2-eq8a',
+      'rh1-2-eq8b',
+      'rh1-2-eq9',
+    ]) {
       expect(rodzaje[id], id).toBe('relation');
     }
   });

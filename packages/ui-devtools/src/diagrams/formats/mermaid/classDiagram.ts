@@ -16,9 +16,16 @@
  *    Mermaid rysuje nadklasę nad podklasą właśnie dlatego, że stoi po lewej.
  */
 import {
-  emptyDiagram, edgeId,
-  type ClassMember, type DiagramDocument, type DiagramDirection, type DiagramNode,
-  type ClassRelationKind, type EdgeArrowType, type EdgeLineStyle, type MemberVisibility,
+  emptyDiagram,
+  edgeId,
+  type ClassMember,
+  type DiagramDocument,
+  type DiagramDirection,
+  type DiagramNode,
+  type ClassRelationKind,
+  type EdgeArrowType,
+  type EdgeLineStyle,
+  type MemberVisibility,
   type UnknownLine,
 } from '../../model/diagram';
 import type { ParseIssue, ParseResult } from '../../model/format';
@@ -46,16 +53,19 @@ const MEMBER_LINE = /^\s*([A-Za-z0-9_]+)\s*:\s*(.+?)\s*$/;
  */
 const RELATION = new RegExp(
   '^\\s*(?<left>[A-Za-z0-9_~[\\]]+)\\s*' +
-  '(?:"(?<leftCard>[^"]*)"\\s*)?' +
-  '(?<op>[<|*o]{0,2}\\.{2,}[|>*o]{0,2}|[<|*o]{0,2}-{2,}[|>*o]{0,2})' +
-  '\\s*(?:"(?<rightCard>[^"]*)"\\s*)?' +
-  '(?<right>[A-Za-z0-9_~[\\]]+)\\s*' +
-  '(?::\\s*(?<label>.*))?$',
+    '(?:"(?<leftCard>[^"]*)"\\s*)?' +
+    '(?<op>[<|*o]{0,2}\\.{2,}[|>*o]{0,2}|[<|*o]{0,2}-{2,}[|>*o]{0,2})' +
+    '\\s*(?:"(?<rightCard>[^"]*)"\\s*)?' +
+    '(?<right>[A-Za-z0-9_~[\\]]+)\\s*' +
+    '(?::\\s*(?<label>.*))?$'
 );
 
 /** Znak widoczności UML na nazwę w modelu. */
 const VISIBILITY: Record<string, MemberVisibility> = {
-  '+': 'public', '-': 'private', '#': 'protected', '~': 'package',
+  '+': 'public',
+  '-': 'private',
+  '#': 'protected',
+  '~': 'package',
 };
 
 /**
@@ -71,7 +81,10 @@ export function parseMember(raw: string): ClassMember {
 
   let rest = text;
   const visibility = VISIBILITY[rest[0]];
-  if (visibility) { member.visibility = visibility; rest = rest.slice(1).trim(); }
+  if (visibility) {
+    member.visibility = visibility;
+    rest = rest.slice(1).trim();
+  }
 
   if (member.kind === 'method') {
     // `nazwa(parametry)$ typ` — modyfikator stoi tuż za nawiasem.
@@ -94,16 +107,17 @@ export function parseMember(raw: string): ClassMember {
     else member.isAbstract = true;
   }
   const parts = rest.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) { member.type = parts.slice(0, -1).join(' '); member.name = parts[parts.length - 1]; }
-  else if (parts.length === 1) member.name = parts[0];
+  if (parts.length >= 2) {
+    member.type = parts.slice(0, -1).join(' ');
+    member.name = parts[parts.length - 1];
+  } else if (parts.length === 1) member.name = parts[0];
   return member;
 }
 
 /** Zakończenie relacji ze strony operatora. `side` mówi, którego końca szukamy. */
 function endOf(op: string, side: 'left' | 'right'): EdgeArrowType {
-  const token = side === 'left'
-    ? op.slice(0, op.search(/[-.]/))
-    : op.slice(op.search(/[-.](?!.*[-.])/) + 1);
+  const token =
+    side === 'left' ? op.slice(0, op.search(/[-.]/)) : op.slice(op.search(/[-.](?!.*[-.])/) + 1);
   if (token.includes('|')) return 'triangle';
   if (token.includes('*')) return 'diamondFilled';
   if (token.includes('o')) return 'diamond';
@@ -124,11 +138,16 @@ function relationFromLook(end: EdgeArrowType, lineStyle: EdgeLineStyle): ClassRe
 /** Zapis zakończenia po danej stronie operatora. */
 function tipOf(arrow: EdgeArrowType | undefined, side: 'left' | 'right'): string {
   switch (arrow) {
-    case 'triangle': return side === 'left' ? '<|' : '|>';
-    case 'diamondFilled': return '*';
-    case 'diamond': return 'o';
-    case 'arrow': return side === 'left' ? '<' : '>';
-    default: return '';
+    case 'triangle':
+      return side === 'left' ? '<|' : '|>';
+    case 'diamondFilled':
+      return '*';
+    case 'diamond':
+      return 'o';
+    case 'arrow':
+      return side === 'left' ? '<' : '>';
+    default:
+      return '';
   }
 }
 
@@ -162,7 +181,10 @@ export function parseClassDiagram(text: string): ParseResult {
     const trimmed = line.trim();
     if (!trimmed) return;
 
-    if (!seenHeader && HEADER.test(line)) { seenHeader = true; return; }
+    if (!seenHeader && HEADER.test(line)) {
+      seenHeader = true;
+      return;
+    }
 
     const dir = DIRECTION.exec(trimmed);
     if (dir) {
@@ -172,9 +194,15 @@ export function parseClassDiagram(text: string): ParseResult {
     }
 
     if (openClass) {
-      if (BLOCK_CLOSE.test(trimmed)) { openClass = undefined; return; }
+      if (BLOCK_CLOSE.test(trimmed)) {
+        openClass = undefined;
+        return;
+      }
       const annotation = ANNOTATION_INLINE.exec(trimmed);
-      if (annotation) { ensureClass(openClass).stereotype = annotation[1].trim(); return; }
+      if (annotation) {
+        ensureClass(openClass).stereotype = annotation[1].trim();
+        return;
+      }
       ensureClass(openClass).members!.push(parseMember(trimmed));
       return;
     }
@@ -216,8 +244,12 @@ export function parseClassDiagram(text: string): ParseResult {
       // Rodzaj relacji zapisujemy wprost: to on niesie znaczenie, a wygląd z
       // niego wynika. Bez tego każdy odbiorca modelu (np. generator kodu)
       // musiałby odgadywać relację z kombinacji grotu i stylu linii.
-      const relationEnd: 'source' | 'target' = arrow === 'none' && startArrow !== 'none' ? 'source' : 'target';
-      const relationKind = relationFromLook(relationEnd === 'source' ? startArrow : arrow, lineStyle);
+      const relationEnd: 'source' | 'target' =
+        arrow === 'none' && startArrow !== 'none' ? 'source' : 'target';
+      const relationKind = relationFromLook(
+        relationEnd === 'source' ? startArrow : arrow,
+        lineStyle
+      );
       doc.edges.push({
         id,
         source,
@@ -257,7 +289,10 @@ export function serializeClassDiagram(doc: DiagramDocument): string {
   const byAnchor = new Map<string, UnknownLine[]>();
   const tail: UnknownLine[] = [];
   for (const line of [...doc.unknown].sort((a, b) => a.index - b.index)) {
-    if (!line.anchor) { tail.push(line); continue; }
+    if (!line.anchor) {
+      tail.push(line);
+      continue;
+    }
     const bucket = byAnchor.get(line.anchor);
     if (bucket) bucket.push(line);
     else byAnchor.set(line.anchor, [line]);
@@ -295,7 +330,8 @@ export function serializeClassDiagram(doc: DiagramDocument): string {
     out.push(`  ${edge.source} ${sourceCard}${op} ${targetCard}${edge.target}${label}`);
   }
 
-  for (const bucket of byAnchor.values()) for (const line of bucket) out.push(`  ${line.text.trim()}`);
+  for (const bucket of byAnchor.values())
+    for (const line of bucket) out.push(`  ${line.text.trim()}`);
   for (const line of tail) out.push(`  ${line.text.trim()}`);
 
   return withFrontMatter(doc.meta?.frontMatter, out.join('\n'));

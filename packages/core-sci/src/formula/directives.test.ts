@@ -12,9 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  EXERCISE_DIRECTIVES, FORMULA_DIRECTIVES, suggestDirectives,
-} from './directives';
+import { EXERCISE_DIRECTIVES, FORMULA_DIRECTIVES, suggestDirectives } from './directives';
 
 /** Nazwy z gałęzi `case '…':` w parserze. */
 function directivesInParser(file: string): string[] {
@@ -91,12 +89,15 @@ describe('suggestDirectives', () => {
   });
 
   it('znak `@` jest opcjonalny', () => {
-    expect(suggestDirectives('@st', FORMULA_DIRECTIVES).map((d) => d.name))
-      .toEqual(suggestDirectives('st', FORMULA_DIRECTIVES).map((d) => d.name));
+    expect(suggestDirectives('@st', FORMULA_DIRECTIVES).map((d) => d.name)).toEqual(
+      suggestDirectives('st', FORMULA_DIRECTIVES).map((d) => d.name)
+    );
   });
 
   it('nie rozróżnia wielkości liter', () => {
-    expect(suggestDirectives('DERIV', FORMULA_DIRECTIVES).map((d) => d.name)).toEqual(['derivedFrom']);
+    expect(suggestDirectives('DERIV', FORMULA_DIRECTIVES).map((d) => d.name)).toEqual([
+      'derivedFrom',
+    ]);
   });
 
   it('brak dopasowania daje pustą listę, a nie cały katalog', () => {

@@ -37,7 +37,12 @@ describe('devtools TS pipeline', () => {
     expect(animal.members.find((m) => m.name === 'makeSound')?.kind).toBe('method');
 
     // generalization Dog→Animal, realization Dog→Pet, association Owner→Animal
-    const rel = (from: string, to: string) => model.relations.find((r) => model.symbols.find((s) => s.id === r.fromId)?.name === from && model.symbols.find((s) => s.id === r.toId)?.name === to);
+    const rel = (from: string, to: string) =>
+      model.relations.find(
+        (r) =>
+          model.symbols.find((s) => s.id === r.fromId)?.name === from &&
+          model.symbols.find((s) => s.id === r.toId)?.name === to
+      );
     expect(rel('Dog', 'Animal')?.type).toBe('generalization');
     expect(rel('Dog', 'Pet')?.type).toBe('realization');
     expect(rel('Owner', 'Animal')?.type).toBe('association');
@@ -52,7 +57,9 @@ describe('devtools TS pipeline', () => {
     expect(Object.keys(codemap.history.branches)).toContain('main');
     const dog = codemap.diagrams[0].nodes.find((n) => n.data.name === 'Dog')!;
     expect(dog.data.linkedFile).toBe('src/zoo.ts');
-    expect(dog.data.members.some((m) => m.kind === 'method' && m.text.includes('fetch'))).toBe(true);
+    expect(dog.data.members.some((m) => m.kind === 'method' && m.text.includes('fetch'))).toBe(
+      true
+    );
   });
 
   it('records add/remove/modify changes as a commit on re-sync', async () => {
@@ -61,7 +68,9 @@ describe('devtools TS pipeline', () => {
     const codemap = createCodemap(m1, 'Zoo', 'src');
     const commitsBefore = Object.keys(codemap.history.commits).length;
 
-    const SRC2 = SRC.replace('fetch(): void {}', 'fetch(): boolean {}') + '\nexport class Cat extends Animal { makeSound(): void {} }\n';
+    const SRC2 =
+      SRC.replace('fetch(): void {}', 'fetch(): boolean {}') +
+      '\nexport class Cat extends Animal { makeSound(): void {} }\n';
     const m2 = await buildModel([{ file: 'src/zoo.ts', content: SRC2 }]);
     const res = svc.applyModel(codemap, m2);
 

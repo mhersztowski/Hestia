@@ -9,7 +9,13 @@ export { PcbViewerPage } from './pages/PcbViewerPage';
 
 export { setViewerUserId, setViewerApiBase } from './vfs';
 
-export { Pcb3DView, buildBoardGroup, boardLayerRows, parseFp3dModel, type Model3dInfo } from './pcb/board3d';
+export {
+  Pcb3DView,
+  buildBoardGroup,
+  boardLayerRows,
+  parseFp3dModel,
+  type Model3dInfo,
+} from './pcb/board3d';
 
 // Wspólne API sceny — wspólny sposób mówienia o wszystkich rodzajach scen.
 export * from './scene-api';

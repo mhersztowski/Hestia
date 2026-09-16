@@ -1,7 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { stringifyCodemap } from '@hestia/node-devtools/format';
 import {
-  codemapDisplayName, codemapFileName, listCodemaps, pathIn, readCodemap, renameCodemapFile, sortEntries, writeCodemap,
+  codemapDisplayName,
+  codemapFileName,
+  listCodemaps,
+  pathIn,
+  readCodemap,
+  renameCodemapFile,
+  sortEntries,
+  writeCodemap,
 } from './store';
 import { newCodemap } from './model';
 import { memoryStore } from './testStore';
@@ -24,8 +31,13 @@ describe('codemap file names', () => {
   it('joins paths without double slashes and sorts directories first', () => {
     expect(pathIn('a/b/', 'c')).toBe('a/b/c');
     expect(pathIn('', 'c')).toBe('c');
-    expect(sortEntries([{ name: 'b', directory: false }, { name: 'z', directory: true }, { name: 'a', directory: false }]).map((e) => e.name))
-      .toEqual(['z', 'a', 'b']);
+    expect(
+      sortEntries([
+        { name: 'b', directory: false },
+        { name: 'z', directory: true },
+        { name: 'a', directory: false },
+      ]).map((e) => e.name)
+    ).toEqual(['z', 'a', 'b']);
   });
 });
 
@@ -52,7 +64,12 @@ describe('reading and writing codemaps through a store', () => {
 
   it('reads a MyCastle uml-project v2 saved under the new name', async () => {
     const c = newCodemap('Old', true);
-    const legacy = { ...JSON.parse(stringifyCodemap(c)), type: 'uml-project', version: 2, outputs: ['drive/Model.d.ts'] };
+    const legacy = {
+      ...JSON.parse(stringifyCodemap(c)),
+      type: 'uml-project',
+      version: 2,
+      outputs: ['drive/Model.d.ts'],
+    };
     const store = memoryStore({ 'devtools/codemaps/old.codemap.json': JSON.stringify(legacy) });
     const back = await readCodemap(store, 'old.codemap.json');
     expect(back.type).toBe('codemap');
@@ -82,14 +99,17 @@ describe('renaming a codemap file', () => {
 
   it('says which file is current when the old one cannot be removed', async () => {
     const store = memoryStore({ 'devtools/codemaps/old.codemap.json': '{}' }, { remove: 'fails' });
-    await expect(renameCodemapFile(store, 'old.codemap.json', 'new.codemap.json', content))
-      .rejects.toThrow('new.codemap.json is the current one');
+    await expect(
+      renameCodemapFile(store, 'old.codemap.json', 'new.codemap.json', content)
+    ).rejects.toThrow('new.codemap.json is the current one');
     expect(store.files.has('devtools/codemaps/new.codemap.json')).toBe(true);
   });
 
   it('refuses when the store can neither rename nor remove', async () => {
     const store = memoryStore({}, {});
-    await expect(renameCodemapFile(store, 'a.codemap.json', 'b.codemap.json', content)).rejects.toThrow('neither rename nor remove');
+    await expect(
+      renameCodemapFile(store, 'a.codemap.json', 'b.codemap.json', content)
+    ).rejects.toThrow('neither rename nor remove');
     expect(store.files.size).toBe(0);
   });
 });

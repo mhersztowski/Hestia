@@ -45,14 +45,14 @@ export interface EigenResult {
 const ZERO = 1e-12;
 
 export function identity(): Matrix2 {
-  return [[1, 0], [0, 1]];
+  return [
+    [1, 0],
+    [0, 1],
+  ];
 }
 
 export function apply(m: Matrix2, v: Vector2): Vector2 {
-  return [
-    m[0][0] * v[0] + m[0][1] * v[1],
-    m[1][0] * v[0] + m[1][1] * v[1],
-  ];
+  return [m[0][0] * v[0] + m[0][1] * v[1], m[1][0] * v[0] + m[1][1] * v[1]];
 }
 
 /**
@@ -84,7 +84,10 @@ export function rank(m: Matrix2): number {
 export function inverse(m: Matrix2): Matrix2 | null {
   const d = det(m);
   if (Math.abs(d) <= ZERO) return null;
-  return [[m[1][1] / d, -m[0][1] / d], [-m[1][0] / d, m[0][0] / d]];
+  return [
+    [m[1][1] / d, -m[0][1] / d],
+    [-m[1][0] / d, m[0][0] / d],
+  ];
 }
 
 function normalize(v: Vector2): Vector2 {
@@ -127,11 +130,12 @@ export function eigen(m: Matrix2): EigenResult {
   if (delta < -ZERO) return { real: false, pairs: [] };
 
   const pierwiastek = Math.sqrt(Math.max(delta, 0));
-  const wartosci = delta <= ZERO
-    // Podwójna wartość własna: zwracamy jedną, bo dwie identyczne strzałki na
-    // scenie wyglądałyby jak usterka rysowania, a nie jak degeneracja.
-    ? [slad / 2]
-    : [(slad + pierwiastek) / 2, (slad - pierwiastek) / 2];
+  const wartosci =
+    delta <= ZERO
+      ? // Podwójna wartość własna: zwracamy jedną, bo dwie identyczne strzałki na
+        // scenie wyglądałyby jak usterka rysowania, a nie jak degeneracja.
+        [slad / 2]
+      : [(slad + pierwiastek) / 2, (slad - pierwiastek) / 2];
 
   const pairs = wartosci
     .map((value) => ({ value, vector: eigenvectorFor(m, value) }))

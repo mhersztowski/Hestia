@@ -10,9 +10,15 @@ function buildGeometry(descriptor: GeometryDescriptor): THREE.BufferGeometry {
     case 'custom': {
       if (!descriptor.bufferData) return new THREE.BoxGeometry();
       const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(descriptor.bufferData.positions, 3));
+      geo.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(descriptor.bufferData.positions, 3)
+      );
       if (descriptor.bufferData.normals) {
-        geo.setAttribute('normal', new THREE.Float32BufferAttribute(descriptor.bufferData.normals, 3));
+        geo.setAttribute(
+          'normal',
+          new THREE.Float32BufferAttribute(descriptor.bufferData.normals, 3)
+        );
       }
       if (descriptor.bufferData.indices) {
         geo.setIndex(descriptor.bufferData.indices);
@@ -29,7 +35,7 @@ function buildGeometry(descriptor: GeometryDescriptor): THREE.BufferGeometry {
         p?.['radiusTop'] ?? 1,
         p?.['radiusBottom'] ?? 1,
         p?.['height'] ?? 2,
-        32,
+        32
       );
     case 'cone':
       return new THREE.ConeGeometry(p?.['radius'] ?? 1, p?.['height'] ?? 2, 32);
@@ -39,11 +45,7 @@ function buildGeometry(descriptor: GeometryDescriptor): THREE.BufferGeometry {
       return new THREE.TorusGeometry(p?.['radius'] ?? 1, p?.['tube'] ?? 0.4, 16, 100);
     case 'box':
     default:
-      return new THREE.BoxGeometry(
-        p?.['width'] ?? 1,
-        p?.['height'] ?? 1,
-        p?.['depth'] ?? 1,
-      );
+      return new THREE.BoxGeometry(p?.['width'] ?? 1, p?.['height'] ?? 1, p?.['depth'] ?? 1);
   }
 }
 

@@ -77,9 +77,7 @@ function readEventBlocks(container: HTMLElement | null): EventInfo[] {
     const startMs = parseLocalDateTime(decodeURIComponent(startStr));
     if (!Number.isFinite(startMs)) continue;
     const endStr = el.getAttribute('data-end');
-    const endMs = endStr
-      ? parseLocalDateTime(decodeURIComponent(endStr))
-      : NaN;
+    const endMs = endStr ? parseLocalDateTime(decodeURIComponent(endStr)) : NaN;
     const nameAttr = el.getAttribute('data-event-name');
     const name = nameAttr ? decodeURIComponent(nameAttr) : '';
     events.push({
@@ -118,7 +116,7 @@ const TodayNowMarker: React.FC<TodayNowMarkerProps> = ({ containerRef, layoutTic
       // before they add any events.
       return { kind: 'top' as const, top: 0, label: 'teraz', highlightEl: null };
     }
-    const inProgress = events.find(e => now >= e.startMs && now < e.endMs);
+    const inProgress = events.find((e) => now >= e.startMs && now < e.endMs);
     if (inProgress) {
       // Mid-event: anchor directly on it; the marker draws a side bar to
       // make it obvious which event is "live".
@@ -127,14 +125,15 @@ const TodayNowMarker: React.FC<TodayNowMarkerProps> = ({ containerRef, layoutTic
         kind: 'inside' as const,
         top: inProgress.el.offsetTop,
         bottom: inProgress.el.offsetTop + inProgress.el.offsetHeight,
-        label: remMs > 0
-          ? `${inProgress.name} — kończy się ${relativeLabel(remMs)}`
-          : `${inProgress.name} — trwa`,
+        label:
+          remMs > 0
+            ? `${inProgress.name} — kończy się ${relativeLabel(remMs)}`
+            : `${inProgress.name} — trwa`,
         highlightEl: inProgress.el,
       };
     }
-    const next = events.find(e => e.startMs > now);
-    const lastPast = [...events].reverse().find(e => e.endMs <= now);
+    const next = events.find((e) => e.startMs > now);
+    const lastPast = [...events].reverse().find((e) => e.endMs <= now);
 
     if (next && lastPast) {
       // Between past and future event — float bar in the gap so visually it
@@ -192,14 +191,17 @@ const TodayNowMarker: React.FC<TodayNowMarkerProps> = ({ containerRef, layoutTic
         transition: 'top 200ms ease',
       }}
     >
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        height: 2,
-        background: 'linear-gradient(to right, transparent, rgba(244, 67, 54, 0.85) 20%, rgba(244, 67, 54, 0.85) 80%, transparent)',
-        position: 'relative',
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          height: 2,
+          background:
+            'linear-gradient(to right, transparent, rgba(244, 67, 54, 0.85) 20%, rgba(244, 67, 54, 0.85) 80%, transparent)',
+          position: 'relative',
+        }}
+      >
         {/* Time chip pinned to the left edge so it doesn't jump as the bar
             redraws. Pointer events on the chip so user can click/hover even
             though the bar itself ignores pointer events. */}

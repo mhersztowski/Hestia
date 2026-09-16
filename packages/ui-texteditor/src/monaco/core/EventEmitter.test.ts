@@ -58,7 +58,9 @@ describe('EventEmitter', () => {
     const ee = new EventEmitter<Events>();
     const good = vi.fn();
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    ee.on('count', () => { throw new Error('boom'); });
+    ee.on('count', () => {
+      throw new Error('boom');
+    });
     ee.on('count', good);
     ee.emit('count', 1);
     expect(good).toHaveBeenCalledTimes(1);

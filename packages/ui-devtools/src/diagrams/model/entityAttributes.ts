@@ -27,13 +27,13 @@ export function emptyAttribute(name: string): EntityAttribute {
 function mapAttributes(
   doc: DiagramDocument,
   entityId: string,
-  change: (attributes: EntityAttribute[]) => EntityAttribute[],
+  change: (attributes: EntityAttribute[]) => EntityAttribute[]
 ): DiagramDocument {
   return {
     ...doc,
-    nodes: doc.nodes.map((node) => (
+    nodes: doc.nodes.map((node) =>
       node.id === entityId ? { ...node, attributes: change(node.attributes ?? []) } : node
-    )),
+    ),
   };
 }
 
@@ -52,11 +52,13 @@ export function updateAttribute(
   doc: DiagramDocument,
   entityId: string,
   index: number,
-  patch: Partial<Omit<EntityAttribute, 'raw'>>,
+  patch: Partial<Omit<EntityAttribute, 'raw'>>
 ): DiagramDocument {
-  return mapAttributes(doc, entityId, (attributes) => attributes.map((attribute, i) => (
-    i === index ? withAttributeRaw({ ...attribute, ...patch }) : attribute
-  )));
+  return mapAttributes(doc, entityId, (attributes) =>
+    attributes.map((attribute, i) =>
+      i === index ? withAttributeRaw({ ...attribute, ...patch }) : attribute
+    )
+  );
 }
 
 /**
@@ -69,19 +71,25 @@ export function toggleAttributeKey(
   doc: DiagramDocument,
   entityId: string,
   index: number,
-  key: EntityKey,
+  key: EntityKey
 ): DiagramDocument {
-  return mapAttributes(doc, entityId, (attributes) => attributes.map((attribute, i) => {
-    if (i !== index) return attribute;
-    const current = attribute.keys ?? [];
-    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
-    // Pusta lista znika, żeby nie przeciekła do zapisu jako pusty ciąg.
-    const { keys: _drop, ...rest } = attribute;
-    return withAttributeRaw(next.length ? { ...rest, keys: next } : rest);
-  }));
+  return mapAttributes(doc, entityId, (attributes) =>
+    attributes.map((attribute, i) => {
+      if (i !== index) return attribute;
+      const current = attribute.keys ?? [];
+      const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
+      // Pusta lista znika, żeby nie przeciekła do zapisu jako pusty ciąg.
+      const { keys: _drop, ...rest } = attribute;
+      return withAttributeRaw(next.length ? { ...rest, keys: next } : rest);
+    })
+  );
 }
 
-export function removeAttribute(doc: DiagramDocument, entityId: string, index: number): DiagramDocument {
+export function removeAttribute(
+  doc: DiagramDocument,
+  entityId: string,
+  index: number
+): DiagramDocument {
   return mapAttributes(doc, entityId, (attributes) => attributes.filter((_, i) => i !== index));
 }
 
@@ -90,10 +98,11 @@ export function moveAttribute(
   doc: DiagramDocument,
   entityId: string,
   from: number,
-  to: number,
+  to: number
 ): DiagramDocument {
   return mapAttributes(doc, entityId, (attributes) => {
-    if (from < 0 || from >= attributes.length || to < 0 || to >= attributes.length || from === to) return attributes;
+    if (from < 0 || from >= attributes.length || to < 0 || to >= attributes.length || from === to)
+      return attributes;
     const next = [...attributes];
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);

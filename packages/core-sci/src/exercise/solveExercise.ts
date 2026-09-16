@@ -83,7 +83,7 @@ function decimalsOf(step: number): number {
 export function exerciseVariant(
   block: ExerciseBlock,
   model: PhenomenonModel,
-  seed: number,
+  seed: number
 ): ExerciseVariant {
   const random = rng(seed);
   const issues: string[] = [...block.issues];
@@ -115,8 +115,8 @@ export function exerciseVariant(
 
   if (expected === undefined || !Number.isFinite(expected)) {
     issues.push(
-      `Odpowiedź „${block.answer}" nie jest wielkością stałą w tym dokumencie `
-      + '— zadanie numeryczne wymaga liczby, a nie przebiegu.',
+      `Odpowiedź „${block.answer}" nie jest wielkością stałą w tym dokumencie ` +
+        '— zadanie numeryczne wymaga liczby, a nie przebiegu.'
     );
     return variant;
   }
@@ -143,7 +143,11 @@ export interface CheckResult {
  * pomyłka: uczeń, który policzył dobrze, ale nie napisał „s", zrobił inny błąd
  * niż ten, który policzył źle — i zasługuje na inną odpowiedź.
  */
-export function checkNumeric(answer: string, variant: ExerciseVariant, tolerance: number): CheckResult {
+export function checkNumeric(
+  answer: string,
+  variant: ExerciseVariant,
+  tolerance: number
+): CheckResult {
   if (variant.expected === undefined) {
     return { verdict: 'unreadable', message: 'Zadanie nie ma policzonej odpowiedzi wzorcowej.' };
   }
@@ -165,14 +169,21 @@ export function checkNumeric(answer: string, variant: ExerciseVariant, tolerance
     }
     // Wymiar sprawdzamy przez ponowne odczytanie z oczekiwaną jednostką:
     // niezgodność rzuca `UnitError`, więc rozróżnienie jest jednoznaczne.
-    value = variant.expectedUnit && variant.expectedUnit !== '1'
-      ? toSI(text, variant.expectedUnit)
-      : parsed.si;
+    value =
+      variant.expectedUnit && variant.expectedUnit !== '1'
+        ? toSI(text, variant.expectedUnit)
+        : parsed.si;
   } catch (error) {
     if (error instanceof UnitError && /wymiar/.test(error.message)) {
-      return { verdict: 'wrong-unit', message: `Jednostka nie pasuje: oczekiwana ${variant.expectedUnit}.` };
+      return {
+        verdict: 'wrong-unit',
+        message: `Jednostka nie pasuje: oczekiwana ${variant.expectedUnit}.`,
+      };
     }
-    return { verdict: 'unreadable', message: `Nie umiem odczytać odpowiedzi: ${(error as Error).message}` };
+    return {
+      verdict: 'unreadable',
+      message: `Nie umiem odczytać odpowiedzi: ${(error as Error).message}`,
+    };
   }
 
   const scale = Math.abs(variant.expected) || 1;
@@ -185,9 +196,10 @@ export function checkNumeric(answer: string, variant: ExerciseVariant, tolerance
     verdict: 'wrong',
     // Świadomie bez podawania poprawnej wartości: zadanie ma podpowiedzi i to
     // one są następnym krokiem, a nie gotowy wynik.
-    message: relativeError < tolerance * 5
-      ? 'Blisko, ale poza tolerancją — sprawdź zaokrąglenia i jednostki pośrednie.'
-      : 'To nie ta wartość. Zajrzyj do podpowiedzi.',
+    message:
+      relativeError < tolerance * 5
+        ? 'Blisko, ale poza tolerancją — sprawdź zaokrąglenia i jednostki pośrednie.'
+        : 'To nie ta wartość. Zajrzyj do podpowiedzi.',
     relativeError,
   };
 }
@@ -200,7 +212,12 @@ export function checkNumeric(answer: string, variant: ExerciseVariant, tolerance
  * wartościach: dwa wyrażenia równoważne dają te same liczby dla każdego
  * podstawienia, a różne rozjadą się natychmiast.
  */
-export function checkSymbolic(answer: string, expected: string, symbols: string[], seed = 1): CheckResult {
+export function checkSymbolic(
+  answer: string,
+  expected: string,
+  symbols: string[],
+  seed = 1
+): CheckResult {
   const mine = compileExpression(answer, symbols);
   if (mine.issues.length) {
     return { verdict: 'unreadable', message: `Nie umiem odczytać wyrażenia: ${mine.issues[0]}` };
@@ -257,7 +274,9 @@ export function statedVariant(check: string): ExerciseVariant {
       seed: 0,
       values: {},
       shown: {},
-      issues: [`Nie umiem odczytać odpowiedzi „${check}" jako wielkości: ${(error as Error).message}`],
+      issues: [
+        `Nie umiem odczytać odpowiedzi „${check}" jako wielkości: ${(error as Error).message}`,
+      ],
     };
   }
 }

@@ -24,16 +24,19 @@ import { useEditorFiles } from '../capabilities';
 import { htmlToMarkdown } from '../utils/markdownConverter';
 
 export const MD_EMBED_EDIT_EVENT = 'md-embed-edit';
-export interface MdEmbedEditEventDetail { pos: number; target: string; }
+export interface MdEmbedEditEventDetail {
+  pos: number;
+  target: string;
+}
 
 // ─── target parsing + content extraction ─────────────────────────────────────
 
 interface ParsedTarget {
-  filePart: string;      // '' → current document
-  anchorRaw: string;     // '' | 'Heading' | '^blockId' (everything after the first #)
+  filePart: string; // '' → current document
+  anchorRaw: string; // '' | 'Heading' | '^blockId' (everything after the first #)
   isBlock: boolean;
-  href: string;          // navigable href (wikilink form) for the "open" action
-  label: string;         // human label for the header
+  href: string; // navigable href (wikilink form) for the "open" action
+  label: string; // human label for the header
 }
 
 function parseTarget(target: string): ParsedTarget {
@@ -54,10 +57,15 @@ function parseTarget(target: string): ParsedTarget {
 function extractSection(md: string, headingText: string): string {
   const lines = md.split('\n');
   const want = headingText.trim().toLowerCase();
-  let start = -1, level = 0;
+  let start = -1,
+    level = 0;
   for (let i = 0; i < lines.length; i++) {
     const m = /^(#{1,6})\s+(.+?)\s*#*$/.exec(lines[i]);
-    if (m && m[2].trim().toLowerCase() === want) { start = i; level = m[1].length; break; }
+    if (m && m[2].trim().toLowerCase() === want) {
+      start = i;
+      level = m[1].length;
+      break;
+    }
   }
   if (start < 0) return `> ⚠️ Nie znaleziono nagłówka „${headingText}".`;
   const out = [lines[start]];
@@ -76,14 +84,19 @@ function extractBlock(md: string, id: string): string {
   const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(`<!--\\s*bid:${esc}\\s*-->`);
   let start = -1;
-  for (let i = 0; i < lines.length; i++) { if (re.test(lines[i])) { start = i + 1; break; } }
+  for (let i = 0; i < lines.length; i++) {
+    if (re.test(lines[i])) {
+      start = i + 1;
+      break;
+    }
+  }
   if (start < 0) return `> ⚠️ Nie znaleziono bloku „^${id}".`;
   let i = start;
-  while (i < lines.length && lines[i].trim() === '') i++;   // skip blanks after marker
+  while (i < lines.length && lines[i].trim() === '') i++; // skip blanks after marker
   const out: string[] = [];
   for (; i < lines.length; i++) {
-    if (/<!--\s*bid:/.test(lines[i])) break;                 // next block marker
-    if (lines[i].trim() === '' && out.length) break;         // blank line ends the block
+    if (/<!--\s*bid:/.test(lines[i])) break; // next block marker
+    if (lines[i].trim() === '' && out.length) break; // blank line ends the block
     out.push(lines[i]);
   }
   return out.join('\n').trim();
@@ -102,11 +115,12 @@ const EmbedNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   const resolve = useCallback(async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       let md: string;
       if (!parsed.filePart) {
-        md = htmlToMarkdown(editor.getHTML());   // current document, live
+        md = htmlToMarkdown(editor.getHTML()); // current document, live
       } else {
         // readFile resolves against the user home, and picker targets live under
         // the drive subtree → prefix `drive/` (matches the navigable href).
@@ -127,12 +141,16 @@ const EmbedNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => {
     }
   }, [parsed.filePart, parsed.anchorRaw, parsed.isBlock, readFile, editor]);
 
-  useEffect(() => { void resolve(); }, [resolve]);
+  useEffect(() => {
+    void resolve();
+  }, [resolve]);
 
   const handleEdit = useCallback(() => {
     const pos = typeof getPos === 'function' ? getPos() : undefined;
     if (typeof pos !== 'number' || pos < 0) return;
-    window.dispatchEvent(new CustomEvent<MdEmbedEditEventDetail>(MD_EMBED_EDIT_EVENT, { detail: { pos, target } }));
+    window.dispatchEvent(
+      new CustomEvent<MdEmbedEditEventDetail>(MD_EMBED_EDIT_EVENT, { detail: { pos, target } })
+    );
   }, [getPos, target]);
 
   return (
@@ -140,20 +158,35 @@ const EmbedNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => {
       className="md-embed"
       data-drag-handle
       // Double-click re-opens the picker to change the target (edit mode only).
-      onDoubleClick={(e: React.MouseEvent) => { if (editor.isEditable) { e.preventDefault(); handleEdit(); } }}
+      onDoubleClick={(e: React.MouseEvent) => {
+        if (editor.isEditable) {
+          e.preventDefault();
+          handleEdit();
+        }
+      }}
     >
       <Box className="md-embed-card">
         <Box className="md-embed-header" contentEditable={false}>
           <Tooltip title={collapsed ? 'Rozwiń osadzenie' : 'Zwiń osadzenie'}>
-            <IconButton size="small" className="md-embed-fold" onClick={() => setCollapsed((c) => !c)}>
-              {collapsed ? <ChevronRightIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
+            <IconButton
+              size="small"
+              className="md-embed-fold"
+              onClick={() => setCollapsed((c) => !c)}
+            >
+              {collapsed ? (
+                <ChevronRightIcon sx={{ fontSize: 16 }} />
+              ) : (
+                <ExpandMoreIcon sx={{ fontSize: 16 }} />
+              )}
             </IconButton>
           </Tooltip>
           <ArticleOutlinedIcon fontSize="small" className="md-embed-icon" />
           {/* Rendered as a wikilink so MdEditor's document click handler opens /
               scrolls to the source (file navigation or same-doc anchor). */}
           {parsed.href ? (
-            <a href={parsed.href} data-wikilink="true" className="md-embed-source">{parsed.label}</a>
+            <a href={parsed.href} data-wikilink="true" className="md-embed-source">
+              {parsed.label}
+            </a>
           ) : (
             <span className="md-embed-source">{parsed.label}</span>
           )}
@@ -161,11 +194,18 @@ const EmbedNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => {
           {editor.isEditable && (
             <>
               <Tooltip title="Zmień źródło osadzenia">
-                <IconButton size="small" onClick={handleEdit}><EditIcon sx={{ fontSize: 15 }} /></IconButton>
+                <IconButton size="small" onClick={handleEdit}>
+                  <EditIcon sx={{ fontSize: 15 }} />
+                </IconButton>
               </Tooltip>
               {parsed.href && (
                 <Tooltip title="Otwórz źródło">
-                  <IconButton size="small" component="a" href={parsed.href} {...{ 'data-wikilink': 'true' }}>
+                  <IconButton
+                    size="small"
+                    component="a"
+                    href={parsed.href}
+                    {...{ 'data-wikilink': 'true' }}
+                  >
                     <LaunchIcon sx={{ fontSize: 15 }} />
                   </IconButton>
                 </Tooltip>
@@ -174,17 +214,23 @@ const EmbedNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => {
           )}
         </Box>
         {!collapsed && (
-        <Box className="md-embed-body" contentEditable={false}>
-          {loading && body === null ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}><CircularProgress size={18} /></Box>
-          ) : error ? (
-            <Typography variant="body2" color="error">{error}</Typography>
-          ) : body ? (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
-          ) : (
-            <Typography variant="body2" color="text.secondary"><em>Pusta zawartość.</em></Typography>
-          )}
-        </Box>
+          <Box className="md-embed-body" contentEditable={false}>
+            {loading && body === null ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <CircularProgress size={18} />
+              </Box>
+            ) : error ? (
+              <Typography variant="body2" color="error">
+                {error}
+              </Typography>
+            ) : body ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                <em>Pusta zawartość.</em>
+              </Typography>
+            )}
+          </Box>
         )}
       </Box>
     </NodeViewWrapper>

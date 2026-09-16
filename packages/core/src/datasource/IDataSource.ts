@@ -53,7 +53,9 @@ export interface IDataSource {
   findShoppingLists(query: string): ShoppingListNode[];
   getActiveShoppingLists(): ShoppingListNode[];
   getCompletedShoppingLists(): ShoppingListNode[];
-  getShoppingItemsByPersonId(personId: string): { list: ShoppingListNode; item: ShoppingItemModel }[];
+  getShoppingItemsByPersonId(
+    personId: string
+  ): { list: ShoppingListNode; item: ShoppingItemModel }[];
 
   // Events
   readonly events: EventNode[];

@@ -11,7 +11,12 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { stepSlider, type SliderAnimation, type SliderPlayback, type SliderSpecLike } from '@hestia/core-sci';
+import {
+  stepSlider,
+  type SliderAnimation,
+  type SliderPlayback,
+  type SliderSpecLike,
+} from '@hestia/core-sci';
 
 export interface AnimatedSlider {
   name: string;
@@ -29,7 +34,7 @@ export interface AnimatedSlider {
  */
 export function useSliderAnimation(
   sliders: AnimatedSlider[],
-  onTick: (values: Record<string, number>, finished: string[]) => void,
+  onTick: (values: Record<string, number>, finished: string[]) => void
 ): void {
   /*
    * Lista i wywołanie zwrotne w ref, nie w zależnościach efektu.
@@ -69,7 +74,10 @@ export function useSliderAnimation(
       const finished: string[] = [];
 
       for (const slider of slidersRef.current) {
-        const previousState = states.get(slider.name) ?? { value: slider.value, direction: 1 as const };
+        const previousState = states.get(slider.name) ?? {
+          value: slider.value,
+          direction: 1 as const,
+        };
         const next = stepSlider(previousState, slider.spec, slider.playback, dt);
         states.set(slider.name, next);
         values[slider.name] = next.value;

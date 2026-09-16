@@ -43,7 +43,7 @@ export class ProjectNode extends NodeBase<ProjectModel> {
 
     // Build child nodes
     if (model.projects) {
-      this._children = model.projects.map(p => {
+      this._children = model.projects.map((p) => {
         const child = new ProjectNode(p);
         child._parent = this;
         return child;
@@ -51,7 +51,7 @@ export class ProjectNode extends NodeBase<ProjectModel> {
     }
 
     if (model.tasks) {
-      this._tasks = model.tasks.map(t => {
+      this._tasks = model.tasks.map((t) => {
         const taskNode = TaskNode.fromModel(t);
         taskNode.setProjectRef({ id: this.id, name: this.name });
         return taskNode;
@@ -59,8 +59,12 @@ export class ProjectNode extends NodeBase<ProjectModel> {
     }
   }
 
-  static fromModel(model: ProjectModel): ProjectNode { return new ProjectNode(model); }
-  static fromModels(models: ProjectModel[]): ProjectNode[] { return models.map(m => new ProjectNode(m)); }
+  static fromModel(model: ProjectModel): ProjectNode {
+    return new ProjectNode(model);
+  }
+  static fromModels(models: ProjectModel[]): ProjectNode[] {
+    return models.map((m) => new ProjectNode(m));
+  }
 
   // Children accessors
   get children(): ProjectNode[] {
@@ -232,7 +236,7 @@ export class ProjectNode extends NodeBase<ProjectModel> {
 
   // Remove child project
   removeChild(id: string): ProjectNode | null {
-    const index = this._children.findIndex(c => c.id === id);
+    const index = this._children.findIndex((c) => c.id === id);
     if (index === -1) return null;
     const removed = this._children.splice(index, 1)[0];
     removed._parent = null;
@@ -250,7 +254,7 @@ export class ProjectNode extends NodeBase<ProjectModel> {
 
   // Remove task
   removeTask(id: string): TaskNode | null {
-    const index = this._tasks.findIndex(t => t.id === id);
+    const index = this._tasks.findIndex((t) => t.id === id);
     if (index === -1) return null;
     const removed = this._tasks.splice(index, 1)[0];
     removed.setProjectRef(null);
@@ -314,8 +318,8 @@ export class ProjectNode extends NodeBase<ProjectModel> {
       name: this.name,
       description: this.description,
       cost: this.cost,
-      projects: this._children.length > 0 ? this._children.map(c => c.toModel()) : undefined,
-      tasks: this._tasks.length > 0 ? this._tasks.map(t => t.toModel()) : undefined,
+      projects: this._children.length > 0 ? this._children.map((c) => c.toModel()) : undefined,
+      tasks: this._tasks.length > 0 ? this._tasks.map((t) => t.toModel()) : undefined,
       components: this.components,
       color: this.color,
       statuses: this.statuses,

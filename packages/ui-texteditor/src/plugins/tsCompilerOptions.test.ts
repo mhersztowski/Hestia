@@ -21,14 +21,15 @@ function analiza(options: EditorCompilerOptions, kod = 'const a = [1, 2]; const 
   const host = ts.createCompilerHost(opcje);
   const origGetSourceFile = host.getSourceFile.bind(host);
   host.getSourceFile = (fileName, langVer, onError, shouldCreate) =>
-    (fileName === plik
+    fileName === plik
       ? ts.createSourceFile(fileName, kod, langVer)
-      : origGetSourceFile(fileName, langVer, onError, shouldCreate));
+      : origGetSourceFile(fileName, langVer, onError, shouldCreate);
   const origFileExists = host.fileExists.bind(host);
   host.fileExists = (f) => f === plik || origFileExists(f);
 
   const program = ts.createProgram([plik], opcje, host);
-  const liby = program.getSourceFiles()
+  const liby = program
+    .getSourceFiles()
     .map((f) => f.fileName.split('/').pop() ?? '')
     .filter((n) => n.startsWith('lib.'));
   const checker = program.getTypeChecker();

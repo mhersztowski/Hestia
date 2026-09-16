@@ -54,8 +54,9 @@ describe('parseTermBlock', () => {
       '  materialnego od położenia równowagi w dowolnej chwili.',
     ].join('\n');
 
-    expect(parseTermBlock('t', blok).definition)
-      .toBe('Odległość (liniowa albo kątowa) drgającego punktu materialnego od położenia równowagi w dowolnej chwili.');
+    expect(parseTermBlock('t', blok).definition).toBe(
+      'Odległość (liniowa albo kątowa) drgającego punktu materialnego od położenia równowagi w dowolnej chwili.'
+    );
   });
 
   it('hasło bez definicji zgłasza problem, a nie udaje gotowego', () => {
@@ -83,7 +84,10 @@ describe('hasła w indeksie bazy', () => {
 
     const indeks = buildIndex([
       { path: 'book/Slownik.md', markdown: `---\ntitle: Słownik\n---\n${slownik}` },
-      { path: 'book/15-01.md', markdown: '---\ntitle: 15-1\n---\nnazywamy ((rh1-poj-ruch-okresowy)).' },
+      {
+        path: 'book/15-01.md',
+        markdown: '---\ntitle: 15-1\n---\nnazywamy ((rh1-poj-ruch-okresowy)).',
+      },
     ]);
 
     expect(indeks.issues).toEqual([]);
@@ -114,7 +118,9 @@ describe('hasła w indeksie bazy', () => {
 
   it('odsyłacz w próżnię nadal jest zgłaszany', () => {
     const indeks = buildIndex([{ path: 'a.md', markdown: 'patrz ((rh1-poj-nieistniejace)).' }]);
-    expect(danglingReferences('patrz ((rh1-poj-nieistniejace)).', indeks)).toEqual(['rh1-poj-nieistniejace']);
+    expect(danglingReferences('patrz ((rh1-poj-nieistniejace)).', indeks)).toEqual([
+      'rh1-poj-nieistniejace',
+    ]);
   });
 });
 
@@ -157,10 +163,12 @@ describe('przykład w dokumentacji nie staje się danymi', () => {
   });
 
   it('zwykłe ogrodzenie od początku wiersza działa dalej', () => {
-    const indeks = buildIndex([{
-      path: 'a.md',
-      markdown: '```term:rh1-poj-x\nX\n@definition Coś.\n```',
-    }]);
+    const indeks = buildIndex([
+      {
+        path: 'a.md',
+        markdown: '```term:rh1-poj-x\nX\n@definition Coś.\n```',
+      },
+    ]);
     expect(indeks.termHome.size).toBe(1);
   });
 });

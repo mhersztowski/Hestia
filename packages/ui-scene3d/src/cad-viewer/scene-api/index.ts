@@ -5,8 +5,15 @@
  * agenta, szablonów, eksportu.
  */
 export type {
-  IEditor, IScene, INode, INode3D, ILayer,
-  NodeData, SceneChange, SceneKind, Transform,
+  IEditor,
+  IScene,
+  INode,
+  INode3D,
+  ILayer,
+  NodeData,
+  SceneChange,
+  SceneKind,
+  Transform,
 } from './types';
 export { isNode3D, isLayer } from './types';
 

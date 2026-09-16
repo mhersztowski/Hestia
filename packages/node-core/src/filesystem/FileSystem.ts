@@ -75,7 +75,9 @@ export class FileSystem extends EventEmitter {
   private async withLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
     const previous = this.locks.get(key) || Promise.resolve();
     let release: () => void;
-    const current = new Promise<void>(resolve => { release = resolve; });
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
     this.locks.set(key, current);
 
     try {
@@ -203,7 +205,10 @@ export class FileSystem extends EventEmitter {
     // The cache mirrors what was read as text; an archive is neither, and a
     // stale entry under this path would be handed out as a file's content.
     this.cache.delete(this.getRelativePath(destination));
-    this.emit('fileChanged', { path: this.getRelativePath(destination), action: 'write' } as FileChangeEvent);
+    this.emit('fileChanged', {
+      path: this.getRelativePath(destination),
+      action: 'write',
+    } as FileChangeEvent);
   }
 
   /**
@@ -224,7 +229,10 @@ export class FileSystem extends EventEmitter {
     const destination = this.getAbsolutePath(destinationPath);
     await fs.mkdir(destination, { recursive: true });
     new AdmZip(archive).extractAllTo(destination, true);
-    this.emit('fileChanged', { path: this.getRelativePath(destination), action: 'write' } as FileChangeEvent);
+    this.emit('fileChanged', {
+      path: this.getRelativePath(destination),
+      action: 'write',
+    } as FileChangeEvent);
   }
 
   /**
@@ -234,9 +242,19 @@ export class FileSystem extends EventEmitter {
    * used to bring down `loadAllData()` for the whole frontend.
    */
   private static readonly EXCLUDED_DIRS = new Set([
-    'node_modules', '.git', '.next', '.cache', '.pnpm-store',
-    'dist', 'build', 'out', '.venv', '__pycache__',
-    '.gradle', '.idea', '.vscode',
+    'node_modules',
+    '.git',
+    '.next',
+    '.cache',
+    '.pnpm-store',
+    'dist',
+    'build',
+    'out',
+    '.venv',
+    '__pycache__',
+    '.gradle',
+    '.idea',
+    '.vscode',
   ]);
 
   async listDirectory(dirPath: string = ''): Promise<DirectoryTree> {
@@ -250,7 +268,10 @@ export class FileSystem extends EventEmitter {
     return tree;
   }
 
-  private async buildDirectoryTree(absolutePath: string, relativePath: string): Promise<DirectoryTree | null> {
+  private async buildDirectoryTree(
+    absolutePath: string,
+    relativePath: string
+  ): Promise<DirectoryTree | null> {
     let stats: Awaited<ReturnType<typeof fs.stat>>;
     try {
       stats = await fs.stat(absolutePath);
@@ -314,7 +335,11 @@ export class FileSystem extends EventEmitter {
     }
   }
 
-  async writeBinaryFile(filePath: string, base64Data: string, mimeType: string): Promise<BinaryFileData> {
+  async writeBinaryFile(
+    filePath: string,
+    base64Data: string,
+    mimeType: string
+  ): Promise<BinaryFileData> {
     const absolutePath = this.getAbsolutePath(filePath);
     const relativePath = this.getRelativePath(absolutePath);
 
@@ -422,10 +447,10 @@ export class FileSystem extends EventEmitter {
 
     if (!dirinfo?.files) return null;
 
-    const fileEntry = dirinfo.files.find(f => f.name === fileName);
+    const fileEntry = dirinfo.files.find((f) => f.name === fileName);
     if (!fileEntry?.components) return null;
 
-    const jsonComponent = fileEntry.components.find(c => c.type === 'file_json');
+    const jsonComponent = fileEntry.components.find((c) => c.type === 'file_json');
     if (!jsonComponent) return null;
 
     return jsonComponent.schemaPath || jsonComponent.ref || null;

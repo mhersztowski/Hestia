@@ -16,8 +16,16 @@ import { mermaidFormat } from './index';
 const PIE = ['pie title Udziały', '    "A" : 40', '    "B" : 60'].join('\n');
 const MINDMAP = ['mindmap', '  root((centrum))', '    gałąź1', '    gałąź2'].join('\n');
 const JOURNEY = ['journey', '    title Dzień', '    section Rano', '      Kawa: 5: Ja'].join('\n');
-const GITGRAPH = ['gitGraph', '   commit', '   branch rozwój', '   checkout rozwój', '   commit'].join('\n');
-const QUADRANT = ['quadrantChart', '    title Priorytety', '    x-axis Niska --> Wysoka'].join('\n');
+const GITGRAPH = [
+  'gitGraph',
+  '   commit',
+  '   branch rozwój',
+  '   checkout rozwój',
+  '   commit',
+].join('\n');
+const QUADRANT = ['quadrantChart', '    title Priorytety', '    x-axis Niska --> Wysoka'].join(
+  '\n'
+);
 
 const NIEOBSLUGIWANE: Array<[string, string]> = [
   ['pie', PIE],

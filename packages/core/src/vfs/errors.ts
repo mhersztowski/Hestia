@@ -12,7 +12,7 @@ export class VfsError extends Error {
   constructor(
     public readonly code: VfsErrorCode,
     message?: string,
-    public readonly path?: string,
+    public readonly path?: string
   ) {
     super(message ?? `${code}${path ? `: ${path}` : ''}`);
     this.name = 'VfsError';
@@ -38,7 +38,7 @@ export class VfsError extends Error {
     return new VfsError(
       VfsErrorCode.NoPermissions,
       path ? `No permissions: ${path}` : 'No permissions',
-      path,
+      path
     );
   }
 

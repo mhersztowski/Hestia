@@ -10,7 +10,10 @@
  * typowe wzorce kodu. Zwraca też offsety deklaracji (do operacji cut/paste).
  */
 
-export interface QObjProp { key: string; value: string }
+export interface QObjProp {
+  key: string;
+  value: string;
+}
 
 export interface QObjInstance {
   /** Unikalny identyfikator w drzewie (nazwa zmiennej). */
@@ -48,7 +51,10 @@ function balancedBraces(code: string, openIdx: number): string {
   for (let i = openIdx; i < code.length; i++) {
     const ch = code[i];
     if (ch === '{') depth++;
-    else if (ch === '}') { depth--; if (depth === 0) return code.slice(openIdx, i + 1); }
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return code.slice(openIdx, i + 1);
+    }
   }
   return '';
 }
@@ -61,10 +67,20 @@ function topLevelKeys(objLiteral: string): string[] {
   let atKeyPos = true; // czy jesteśmy na początku segmentu (po { lub ,)
   for (let i = 0; i < inner.length; i++) {
     const ch = inner[i];
-    if (ch === '{' || ch === '(' || ch === '[') { depth++; atKeyPos = false; continue; }
-    if (ch === '}' || ch === ')' || ch === ']') { depth--; continue; }
+    if (ch === '{' || ch === '(' || ch === '[') {
+      depth++;
+      atKeyPos = false;
+      continue;
+    }
+    if (ch === '}' || ch === ')' || ch === ']') {
+      depth--;
+      continue;
+    }
     if (depth === 0) {
-      if (ch === ',') { atKeyPos = true; continue; }
+      if (ch === ',') {
+        atKeyPos = true;
+        continue;
+      }
       if (atKeyPos && /\s/.test(ch)) continue;
       if (atKeyPos) {
         const rest = inner.slice(i);
@@ -132,14 +148,14 @@ export function parseQObjects(code: string): QObjParse {
   //      (biblioteki QObject/qt są static-first, więc fabryki są częste).
   const instRe = new RegExp(
     `\\b(?:const|let|var)\\s+(${ID})\\s*=\\s*(?:new\\s+(${ID})\\s*\\(([^)]*)\\)|(${ID})\\.(?:create|of)\\s*\\(([^)]*)\\))\\s*;?`,
-    'g',
+    'g'
   );
   const byVar = new Map<string, QObjInstance>();
   const flat: QObjInstance[] = [];
   let m: RegExpExecArray | null;
   while ((m = instRe.exec(code))) {
     const varName = m[1];
-    const className = m[2] ?? m[4];   // new Class(...)  |  Class.create/of(...)
+    const className = m[2] ?? m[4]; // new Class(...)  |  Class.create/of(...)
     const args = m[3] ?? m[5] ?? '';
     if (!className || !isQ(className)) continue;
     const inst: QObjInstance = {
@@ -177,7 +193,10 @@ export function parseQObjects(code: string): QObjParse {
     if (qac && byVar.has(qac[1])) inst.parentVar = qac[1];
 
     // setProperty('k', value)
-    const propRe = new RegExp(`\\b${v}\\.setProperty\\(\\s*['"\`]([^'"\`]+)['"\`]\\s*,\\s*([^)]+)\\)`, 'g');
+    const propRe = new RegExp(
+      `\\b${v}\\.setProperty\\(\\s*['"\`]([^'"\`]+)['"\`]\\s*,\\s*([^)]+)\\)`,
+      'g'
+    );
     let pm: RegExpExecArray | null;
     while ((pm = propRe.exec(code))) inst.properties.push({ key: pm[1], value: pm[2].trim() });
 

@@ -3,14 +3,19 @@ import { loadCallables, describeSource, type UmlProjectSource } from './umlProje
 
 const project = (owner: string, method: string) => ({
   name: `projekt-${owner}`,
-  diagrams: [{
-    nodes: [{
-      data: {
-        kind: 'class', name: owner,
-        members: [{ kind: 'method', text: `+ static ${method}(a: string): void` }],
-      },
-    }],
-  }],
+  diagrams: [
+    {
+      nodes: [
+        {
+          data: {
+            kind: 'class',
+            name: owner,
+            members: [{ kind: 'method', text: `+ static ${method}(a: string): void` }],
+          },
+        },
+      ],
+    },
+  ],
 });
 
 function source(over: Partial<UmlProjectSource> = {}): UmlProjectSource {
@@ -80,7 +85,8 @@ describe('describeSource', () => {
   });
 
   it('źródło z opisem podaje swój', () => {
-    expect(describeSource(source({ describe: () => 'serwer produkcyjny' })))
-      .toBe('serwer produkcyjny');
+    expect(describeSource(source({ describe: () => 'serwer produkcyjny' }))).toBe(
+      'serwer produkcyjny'
+    );
   });
 });

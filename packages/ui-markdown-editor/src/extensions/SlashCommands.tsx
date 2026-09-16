@@ -2,13 +2,7 @@ import { Extension } from '@tiptap/core';
 import { ReactRenderer } from '@tiptap/react';
 import Suggestion, { SuggestionOptions } from '@tiptap/suggestion';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   Paper,
   List,
@@ -159,11 +153,16 @@ const commands: CommandItem[] = [
     description: 'Blok formula: równanie w LaTeX-u z jednostkami',
     icon: <FunctionsIcon />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent({
           type: 'codeBlock',
           attrs: { language: `formula:wzor-${Math.random().toString(36).slice(2, 6)}` },
-          content: [{ type: 'text', text: 'T = 2\\pi\\sqrt{\\frac{L}{g}}\n@vars T: s, L: m, g: m/s^2' }],
+          content: [
+            { type: 'text', text: 'T = 2\\pi\\sqrt{\\frac{L}{g}}\n@vars T: s, L: m, g: m/s^2' },
+          ],
         })
         .run();
     },
@@ -173,21 +172,26 @@ const commands: CommandItem[] = [
     description: 'Blok formula z @ode: zmienne stanu i pochodne',
     icon: <FunctionsIcon />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent({
           type: 'codeBlock',
           attrs: { language: `formula:ruch-${Math.random().toString(36).slice(2, 6)}` },
-          content: [{
-            type: 'text',
-            text: [
-              '@ode',
-              '@state x, v',
-              '@d x = v',
-              '@d v = -\\omega_0^2 \\cdot x',
-              '@init x = x_0, v = 0',
-              '@vars x: m, v: m/s, omega_0: s^-1, x_0: m',
-            ].join('\n'),
-          }],
+          content: [
+            {
+              type: 'text',
+              text: [
+                '@ode',
+                '@state x, v',
+                '@d x = v',
+                '@d v = -\\omega_0^2 \\cdot x',
+                '@init x = x_0, v = 0',
+                '@vars x: m, v: m/s, omega_0: s^-1, x_0: m',
+              ].join('\n'),
+            },
+          ],
         })
         .run();
     },
@@ -197,7 +201,10 @@ const commands: CommandItem[] = [
     description: 'Blok sim: suwaki i wykresy ze wzorów tego dokumentu',
     icon: <ScienceIcon />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent({
           type: 'codeBlock',
           attrs: { language: 'sim' },
@@ -211,29 +218,34 @@ const commands: CommandItem[] = [
     description: 'Blok simscript: model w TypeScripcie dla zjawisk spoza grafu',
     icon: <ScienceIcon />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent({
           type: 'codeBlock',
           attrs: { language: 'simscript' },
-          content: [{
-            type: 'text',
-            text: [
-              'return defineModel({',
-              "  parameters: [{ name: 'a', unit: 'm/s^2', value: 2, min: 0, max: 10 }],",
-              "  observables: [{ name: 'x', kind: 'series', unit: 'm' }],",
-              '  run: (values: Record<string, number>, tSpan: [number, number]) => {',
-              '    const kroki = 500;',
-              '    const h = (tSpan[1] - tSpan[0]) / kroki;',
-              '    const x: Array<[number, number]> = [];',
-              '    for (let i = 0; i <= kroki; i += 1) {',
-              '      const t = tSpan[0] + i * h;',
-              '      x.push([t, 0.5 * values.a * t * t]);',
-              '    }',
-              '    return { series: { x }, scalars: {} };',
-              '  },',
-              '});',
-            ].join('\n'),
-          }],
+          content: [
+            {
+              type: 'text',
+              text: [
+                'return defineModel({',
+                "  parameters: [{ name: 'a', unit: 'm/s^2', value: 2, min: 0, max: 10 }],",
+                "  observables: [{ name: 'x', kind: 'series', unit: 'm' }],",
+                '  run: (values: Record<string, number>, tSpan: [number, number]) => {',
+                '    const kroki = 500;',
+                '    const h = (tSpan[1] - tSpan[0]) / kroki;',
+                '    const x: Array<[number, number]> = [];',
+                '    for (let i = 0; i <= kroki; i += 1) {',
+                '      const t = tSpan[0] + i * h;',
+                '      x.push([t, 0.5 * values.a * t * t]);',
+                '    }',
+                '    return { series: { x }, scalars: {} };',
+                '  },',
+                '});',
+              ].join('\n'),
+            },
+          ],
         })
         .run();
     },
@@ -243,19 +255,24 @@ const commands: CommandItem[] = [
     description: 'Blok exercise: dane losowane, klucz liczony z wzorów',
     icon: <ScienceIcon />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent({
           type: 'codeBlock',
           attrs: { language: `exercise:zadanie-${Math.random().toString(36).slice(2, 6)}` },
-          content: [{
-            type: 'text',
-            text: [
-              'Treść zadania. Dane poniżej są losowane, a odpowiedź liczy graf wzorów.',
-              '@given L: 0.5..2 m step 0.1',
-              '@answer T',
-              '@tolerance 2%',
-            ].join('\n'),
-          }],
+          content: [
+            {
+              type: 'text',
+              text: [
+                'Treść zadania. Dane poniżej są losowane, a odpowiedź liczy graf wzorów.',
+                '@given L: 0.5..2 m step 0.1',
+                '@answer T',
+                '@tolerance 2%',
+              ].join('\n'),
+            },
+          ],
         })
         .run();
     },
@@ -269,24 +286,29 @@ const commands: CommandItem[] = [
       // uruchomienia z nastawami. Wstawienie samego jednego dałoby blok, który
       // od razu zgłasza brak drugiego.
       const id = `pole-${Math.random().toString(36).slice(2, 6)}`;
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent([
           {
             type: 'codeBlock',
             attrs: { language: `formula:${id}` },
-            content: [{
-              type: 'text',
-              text: [
-                '@pde',
-                '@field u',
-                '@grid 96 x 96',
-                '@domain x: 0..1 m, y: 0..1 m',
-                '@d u = \\alpha \\cdot \\Delta u',
-                '@init u = \\exp(-60 \\cdot ((x - 0.5)^2 + (y - 0.5)^2))',
-                '@boundary neumann',
-                '@vars u: K, alpha: m^2/s, x: m, y: m',
-              ].join('\n'),
-            }],
+            content: [
+              {
+                type: 'text',
+                text: [
+                  '@pde',
+                  '@field u',
+                  '@grid 96 x 96',
+                  '@domain x: 0..1 m, y: 0..1 m',
+                  '@d u = \\alpha \\cdot \\Delta u',
+                  '@init u = \\exp(-60 \\cdot ((x - 0.5)^2 + (y - 0.5)^2))',
+                  '@boundary neumann',
+                  '@vars u: K, alpha: m^2/s, x: m, y: m',
+                ].join('\n'),
+              },
+            ],
           },
           {
             type: 'codeBlock',
@@ -304,20 +326,25 @@ const commands: CommandItem[] = [
     command: ({ editor, range }) => {
       // Dwa bloki naraz, jak przy polu: scena bez równania zgłaszałaby brak.
       const id = `scena-${Math.random().toString(36).slice(2, 6)}`;
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent([
           {
             type: 'codeBlock',
             attrs: { language: `formula:${id}` },
-            content: [{
-              type: 'text',
-              text: [
-                '@linalg',
-                '@mat A = [[1, 1], [0, 1]]',
-                '@vec v = [1, 1]',
-                'w = A \\cdot v',
-              ].join('\n'),
-            }],
+            content: [
+              {
+                type: 'text',
+                text: [
+                  '@linalg',
+                  '@mat A = [[1, 1], [0, 1]]',
+                  '@vec v = [1, 1]',
+                  'w = A \\cdot v',
+                ].join('\n'),
+              },
+            ],
           },
           {
             type: 'codeBlock',
@@ -334,20 +361,25 @@ const commands: CommandItem[] = [
     icon: <ViewInArIcon />,
     command: ({ editor, range }) => {
       const id = `scena3d-${Math.random().toString(36).slice(2, 6)}`;
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent([
           {
             type: 'codeBlock',
             attrs: { language: `formula:${id}` },
-            content: [{
-              type: 'text',
-              text: [
-                '@linalg',
-                '@mat3 R = [[0.5, -0.866, 0], [0.866, 0.5, 0], [0, 0, 1]]',
-                '@vec3 v = [1.5, 0, 0]',
-                'w = R \\cdot v',
-              ].join('\n'),
-            }],
+            content: [
+              {
+                type: 'text',
+                text: [
+                  '@linalg',
+                  '@mat3 R = [[0.5, -0.866, 0], [0.866, 0.5, 0], [0, 0, 1]]',
+                  '@vec3 v = [1.5, 0, 0]',
+                  'w = R \\cdot v',
+                ].join('\n'),
+              },
+            ],
           },
           {
             type: 'codeBlock',
@@ -363,14 +395,19 @@ const commands: CommandItem[] = [
     description: 'Eliminacja Gaussa albo Gram-Schmidt, krok po kroku',
     icon: <ScienceIcon />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent({
           type: 'codeBlock',
           attrs: { language: `procedure:gauss-${Math.random().toString(36).slice(2, 6)}` },
-          content: [{
-            type: 'text',
-            text: '{\n  "kind": "gauss",\n  "matrix": [[2, 1], [4, 3]],\n  "rhs": [5, 11]\n}',
-          }],
+          content: [
+            {
+              type: 'text',
+              text: '{\n  "kind": "gauss",\n  "matrix": [[2, 1], [4, 3]],\n  "rhs": [5, 11]\n}',
+            },
+          ],
         })
         .run();
     },
@@ -382,7 +419,10 @@ const commands: CommandItem[] = [
     command: ({ editor, range }) => {
       // Zaczynamy od minimalnego, poprawnego diagramu — pusty blok mermaid
       // renderuje się błędem, co wygląda jak usterka edytora.
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent({
           type: 'codeBlock',
           attrs: { language: 'mermaid' },
@@ -396,11 +436,19 @@ const commands: CommandItem[] = [
     description: 'stateDiagram-v2 z przełącznikiem Code / View / Edit',
     icon: <AccountTreeIcon sx={{ transform: 'rotate(90deg)' }} />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range)
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
         .insertContent({
           type: 'codeBlock',
           attrs: { language: 'mermaid' },
-          content: [{ type: 'text', text: 'stateDiagram-v2\n  [*] --> Idle\n  Idle --> Praca: start\n  Praca --> [*]' }],
+          content: [
+            {
+              type: 'text',
+              text: 'stateDiagram-v2\n  [*] --> Idle\n  Idle --> Praca: start\n  Praca --> [*]',
+            },
+          ],
         })
         .run();
     },
@@ -552,12 +600,7 @@ const commands: CommandItem[] = [
     description: 'Osadź film z YouTube',
     icon: <YouTubeIcon sx={{ color: '#c4302b' }} />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setYouTube({ videoId: '' })
-        .run();
+      editor.chain().focus().deleteRange(range).setYouTube({ videoId: '' }).run();
     },
   },
   {
@@ -565,12 +608,7 @@ const commands: CommandItem[] = [
     description: 'Display math equation (LaTeX)',
     icon: <FunctionsIcon />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertMathBlock('E = mc^2')
-        .run();
+      editor.chain().focus().deleteRange(range).insertMathBlock('E = mc^2').run();
     },
   },
   {
@@ -578,12 +616,7 @@ const commands: CommandItem[] = [
     description: 'Inline math expression',
     icon: <FunctionsIcon sx={{ fontSize: 18 }} />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertInlineMath('x^2')
-        .run();
+      editor.chain().focus().deleteRange(range).insertInlineMath('x^2').run();
     },
   },
   {
@@ -591,12 +624,7 @@ const commands: CommandItem[] = [
     description: 'Embed a person reference',
     icon: <PersonIcon />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertComponentEmbed('person', '')
-        .run();
+      editor.chain().focus().deleteRange(range).insertComponentEmbed('person', '').run();
     },
   },
   {
@@ -604,12 +632,7 @@ const commands: CommandItem[] = [
     description: 'Embed a task reference',
     icon: <TaskIcon />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertComponentEmbed('task', '')
-        .run();
+      editor.chain().focus().deleteRange(range).insertComponentEmbed('task', '').run();
     },
   },
   {
@@ -617,12 +640,7 @@ const commands: CommandItem[] = [
     description: 'Embed a project reference',
     icon: <FolderIcon />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertComponentEmbed('project', '')
-        .run();
+      editor.chain().focus().deleteRange(range).insertComponentEmbed('project', '').run();
     },
   },
   {
@@ -630,12 +648,7 @@ const commands: CommandItem[] = [
     description: 'Embed a UI form',
     icon: <DashboardIcon color="info" />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertUIForm('')
-        .run();
+      editor.chain().focus().deleteRange(range).insertUIForm('').run();
     },
   },
   {
@@ -673,7 +686,7 @@ const commands: CommandItem[] = [
         .deleteRange(range)
         .insertPluginScript(
           '// Available: auth, http, md, table, reactive, display\n// Return a value to show it, or use display.text() for imperative output\n\nreturn `Hello, ${auth.currentUser}!`;',
-          { mode: 'manual', label: 'Script' },
+          { mode: 'manual', label: 'Script' }
         )
         .run();
     },
@@ -716,134 +729,145 @@ interface CommandListRef {
   onKeyDown: (props: { event: KeyboardEvent }) => boolean;
 }
 
-const CommandList = forwardRef<CommandListRef, CommandListProps>(
-  ({ items, command }, ref) => {
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+const CommandList = forwardRef<CommandListRef, CommandListProps>(({ items, command }, ref) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-    const selectItem = (index: number) => {
-      const item = items[index];
-      if (item) {
-        command(item);
+  const selectItem = (index: number) => {
+    const item = items[index];
+    if (item) {
+      command(item);
+    }
+  };
+
+  const upHandler = () => {
+    setSelectedIndex((prev) => (prev - 1 + items.length) % items.length);
+  };
+
+  const downHandler = () => {
+    setSelectedIndex((prev) => (prev + 1) % items.length);
+  };
+
+  const enterHandler = () => {
+    selectItem(selectedIndex);
+  };
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [items]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const item = itemRefs.current[selectedIndex];
+    if (!container || !item) return;
+    const itemTop = item.offsetTop;
+    const itemBottom = itemTop + item.offsetHeight;
+    const containerTop = container.scrollTop;
+    const containerBottom = containerTop + container.clientHeight;
+    if (itemTop < containerTop) {
+      container.scrollTop = itemTop;
+    } else if (itemBottom > containerBottom) {
+      container.scrollTop = itemBottom - container.clientHeight;
+    }
+  }, [selectedIndex]);
+
+  useImperativeHandle(ref, () => ({
+    onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+      if (event.key === 'ArrowUp') {
+        upHandler();
+        return true;
       }
-    };
-
-    const upHandler = () => {
-      setSelectedIndex((prev) => (prev - 1 + items.length) % items.length);
-    };
-
-    const downHandler = () => {
-      setSelectedIndex((prev) => (prev + 1) % items.length);
-    };
-
-    const enterHandler = () => {
-      selectItem(selectedIndex);
-    };
-
-    useEffect(() => {
-      setSelectedIndex(0);
-    }, [items]);
-
-    useEffect(() => {
-      const container = containerRef.current;
-      const item = itemRefs.current[selectedIndex];
-      if (!container || !item) return;
-      const itemTop = item.offsetTop;
-      const itemBottom = itemTop + item.offsetHeight;
-      const containerTop = container.scrollTop;
-      const containerBottom = containerTop + container.clientHeight;
-      if (itemTop < containerTop) {
-        container.scrollTop = itemTop;
-      } else if (itemBottom > containerBottom) {
-        container.scrollTop = itemBottom - container.clientHeight;
+      if (event.key === 'ArrowDown') {
+        downHandler();
+        return true;
       }
-    }, [selectedIndex]);
+      if (event.key === 'Enter') {
+        enterHandler();
+        return true;
+      }
+      return false;
+    },
+  }));
 
-    useImperativeHandle(ref, () => ({
-      onKeyDown: ({ event }: { event: KeyboardEvent }) => {
-        if (event.key === 'ArrowUp') {
-          upHandler();
-          return true;
-        }
-        if (event.key === 'ArrowDown') {
-          downHandler();
-          return true;
-        }
-        if (event.key === 'Enter') {
-          enterHandler();
-          return true;
-        }
-        return false;
-      },
-    }));
-
-    return (
-      <Paper
-        ref={containerRef}
-        elevation={8}
+  return (
+    <Paper
+      ref={containerRef}
+      elevation={8}
+      sx={{
+        width: 300,
+        maxHeight: 380,
+        overflow: 'auto',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+        boxShadow: '0 10px 30px rgba(0,0,0,0.22)',
+        bgcolor: 'background.paper',
+      }}
+    >
+      <Typography
+        variant="overline"
         sx={{
-          width: 300,
-          maxHeight: 380,
-          overflow: 'auto',
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 2,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.22)',
+          px: 1.5,
+          py: 0.75,
+          display: 'block',
+          color: 'text.secondary',
+          fontWeight: 700,
+          letterSpacing: 0.4,
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
           bgcolor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
         }}
       >
-        <Typography
-          variant="overline"
-          sx={{
-            px: 1.5, py: 0.75, display: 'block',
-            color: 'text.secondary', fontWeight: 700, letterSpacing: 0.4,
-            position: 'sticky', top: 0, zIndex: 1,
-            bgcolor: 'background.paper',
-            borderBottom: '1px solid', borderColor: 'divider',
-          }}
-        >
-          Wstaw komponent
-        </Typography>
-        <List dense disablePadding>
-          {items.length > 0 ? (
-            items.map((item, index) => (
-              // Index key: plugin templates from different plugins can share a
-              // title (e.g. two galleries both contribute "Status polaczenia"),
-              // and duplicate keys leave stale ghost rows on filter changes.
-              <ListItem key={index} disablePadding ref={(el) => { itemRefs.current[index] = el as HTMLDivElement | null; }}>
-                <ListItemButton
-                  selected={index === selectedIndex}
-                  onClick={() => selectItem(index)}
-                  sx={{
-                    '&.Mui-selected': {
-                      bgcolor: 'action.selected',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-                  <ListItemText
-                    primary={item.title}
-                    secondary={item.description}
-                    primaryTypographyProps={{ variant: 'body2' }}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))
-          ) : (
-            <ListItem>
-              <ListItemText
-                primary="No results"
-                primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
-              />
+        Wstaw komponent
+      </Typography>
+      <List dense disablePadding>
+        {items.length > 0 ? (
+          items.map((item, index) => (
+            // Index key: plugin templates from different plugins can share a
+            // title (e.g. two galleries both contribute "Status polaczenia"),
+            // and duplicate keys leave stale ghost rows on filter changes.
+            <ListItem
+              key={index}
+              disablePadding
+              ref={(el) => {
+                itemRefs.current[index] = el as HTMLDivElement | null;
+              }}
+            >
+              <ListItemButton
+                selected={index === selectedIndex}
+                onClick={() => selectItem(index)}
+                sx={{
+                  '&.Mui-selected': {
+                    bgcolor: 'action.selected',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+                <ListItemText
+                  primary={item.title}
+                  secondary={item.description}
+                  primaryTypographyProps={{ variant: 'body2' }}
+                  secondaryTypographyProps={{ variant: 'caption' }}
+                />
+              </ListItemButton>
             </ListItem>
-          )}
-        </List>
-      </Paper>
-    );
-  }
-);
+          ))
+        ) : (
+          <ListItem>
+            <ListItemText
+              primary="No results"
+              primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
+            />
+          </ListItem>
+        )}
+      </List>
+    </Paper>
+  );
+});
 
 CommandList.displayName = 'CommandList';
 
@@ -853,7 +877,7 @@ function buildSuggestionConfig(
   insertEventRef?: { current: ((editor: any, range: any) => void) | undefined },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   insertTaskCardRef?: { current: ((editor: any, range: any) => void) | undefined },
-  scriptTemplatesRef?: { current: (() => ScriptTemplate[]) | undefined },
+  scriptTemplatesRef?: { current: (() => ScriptTemplate[]) | undefined }
 ): Omit<SuggestionOptions, 'editor'> {
   const pageCommand: CommandItem = {
     title: 'Page',
@@ -920,211 +944,214 @@ function buildSuggestionConfig(
         },
       };
       const templates = scriptTemplatesRef?.current?.() ?? [];
-      const all = [pageCommand, eventCommand, taskCardCommand, ...commands, ...buildPluginTemplateCommands(templates)];
-      return all.filter((item) =>
-        item.title.toLowerCase().startsWith(query.toLowerCase())
-      );
+      const all = [
+        pageCommand,
+        eventCommand,
+        taskCardCommand,
+        ...commands,
+        ...buildPluginTemplateCommands(templates),
+      ];
+      return all.filter((item) => item.title.toLowerCase().startsWith(query.toLowerCase()));
     },
     render: () => {
-    let component: ReactRenderer | null = null;
-    let popup: TippyInstance[] | null = null;
-    // Aktualna funkcja rectu (zmienia się między onStart a onUpdate) + ostatnia sensowna
-    // pozycja. Zapobiega „skakaniu" palety gdy clientRect chwilowo zwróci pusty rect.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rectFn: (() => DOMRect | null) | null = null;
-    let lastRect: DOMRect | null = null;
-    const cursorRect = (): DOMRect => {
-      const r = rectFn?.() ?? null;
-      if (r && (r.width || r.height || r.top || r.left || r.right || r.bottom)) lastRect = r;
-      return lastRect ?? new DOMRect(0, 0, 0, 0);
-    };
-    // Widoczny obszar (na mobile pomniejszony o wysuniętą klawiaturę).
-    const vp = () => {
-      const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-      return {
-        left: vv ? vv.offsetLeft : 0,
-        top: vv ? vv.offsetTop : 0,
-        width: vv ? vv.width : (typeof window !== 'undefined' ? window.innerWidth : 0),
-        height: vv ? vv.height : (typeof window !== 'undefined' ? window.innerHeight : 0),
+      let component: ReactRenderer | null = null;
+      let popup: TippyInstance[] | null = null;
+      // Aktualna funkcja rectu (zmienia się między onStart a onUpdate) + ostatnia sensowna
+      // pozycja. Zapobiega „skakaniu" palety gdy clientRect chwilowo zwróci pusty rect.
+
+      let rectFn: (() => DOMRect | null) | null = null;
+      let lastRect: DOMRect | null = null;
+      const cursorRect = (): DOMRect => {
+        const r = rectFn?.() ?? null;
+        if (r && (r.width || r.height || r.top || r.left || r.right || r.bottom)) lastRect = r;
+        return lastRect ?? new DOMRect(0, 0, 0, 0);
       };
-    };
-    // Rect referencyjny = PUNKT na środku widoku (poziomo), na wysokości kursora →
-    // paleta jest wyśrodkowana na stronie, a nie doklejona do kursora.
-    const getRect = (): DOMRect => {
-      const c = cursorRect();
-      const v = vp();
-      return new DOMRect(v.left + v.width / 2, c.top, 0, Math.max(0, c.bottom - c.top));
-    };
-    // Kursor w górnej ~35% widocznego obszaru → za mało miejsca nad nim → menu POD
-    // kursorem; w przeciwnym razie NAD kursorem (uwzględnia wysuniętą klawiaturę).
-    const pickPlacement = (): 'top' | 'bottom' => {
-      const c = cursorRect();
-      const v = vp();
-      return (c.top - v.top) < v.height * 0.35 ? 'bottom' : 'top';
-    };
+      // Widoczny obszar (na mobile pomniejszony o wysuniętą klawiaturę).
+      const vp = () => {
+        const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+        return {
+          left: vv ? vv.offsetLeft : 0,
+          top: vv ? vv.offsetTop : 0,
+          width: vv ? vv.width : typeof window !== 'undefined' ? window.innerWidth : 0,
+          height: vv ? vv.height : typeof window !== 'undefined' ? window.innerHeight : 0,
+        };
+      };
+      // Rect referencyjny = PUNKT na środku widoku (poziomo), na wysokości kursora →
+      // paleta jest wyśrodkowana na stronie, a nie doklejona do kursora.
+      const getRect = (): DOMRect => {
+        const c = cursorRect();
+        const v = vp();
+        return new DOMRect(v.left + v.width / 2, c.top, 0, Math.max(0, c.bottom - c.top));
+      };
+      // Kursor w górnej ~35% widocznego obszaru → za mało miejsca nad nim → menu POD
+      // kursorem; w przeciwnym razie NAD kursorem (uwzględnia wysuniętą klawiaturę).
+      const pickPlacement = (): 'top' | 'bottom' => {
+        const c = cursorRect();
+        const v = vp();
+        return c.top - v.top < v.height * 0.35 ? 'bottom' : 'top';
+      };
 
-    return {
-      onStart: (props) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        rectFn = props.clientRect as any;
-        component = new ReactRenderer(CommandList, {
-          props,
-          editor: props.editor,
-        });
+      return {
+        onStart: (props) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          rectFn = props.clientRect as any;
+          component = new ReactRenderer(CommandList, {
+            props,
+            editor: props.editor,
+          });
 
-        if (!props.clientRect) {
-          return;
-        }
+          if (!props.clientRect) {
+            return;
+          }
 
-        popup = tippy('body', {
-          getReferenceClientRect: getRect,
-          appendTo: () => document.body,
-          content: component.element,
-          showOnCreate: true,
-          interactive: true,
-          trigger: 'manual',
-          placement: pickPlacement(),
-          maxWidth: 'none',
-          offset: [0, 6],
-          // iOS Safari fixes
-          touch: true,
-          hideOnClick: false,
-          onShow(instance) {
-            const vv = window.visualViewport;
-            if (!vv) return;
-            const update = () => instance.popperInstance?.update();
-            // Both `resize` (height change when keyboard opens/closes) AND
-            // `scroll` (Android often fires scroll before resize) matter — the
-            // popper position needs to track both for a smooth experience.
-            vv.addEventListener('resize', update);
-            vv.addEventListener('scroll', update);
-            (instance as any)._vvCleanup = () => {
-              vv.removeEventListener('resize', update);
-              vv.removeEventListener('scroll', update);
-            };
-          },
-          onHide(instance) {
-            (instance as any)._vvCleanup?.();
-          },
-          popperOptions: {
-            strategy: 'fixed',
-            modifiers: [
-              {
-                name: 'flip',
-                options: {
-                  // Wyłącznie wyśrodkowane warianty — inaczej flip zepsułby
-                  // wyśrodkowanie palety na stronie (żadnych -start/-end).
-                  fallbackPlacements: ['top', 'bottom'],
+          popup = tippy('body', {
+            getReferenceClientRect: getRect,
+            appendTo: () => document.body,
+            content: component.element,
+            showOnCreate: true,
+            interactive: true,
+            trigger: 'manual',
+            placement: pickPlacement(),
+            maxWidth: 'none',
+            offset: [0, 6],
+            // iOS Safari fixes
+            touch: true,
+            hideOnClick: false,
+            onShow(instance) {
+              const vv = window.visualViewport;
+              if (!vv) return;
+              const update = () => instance.popperInstance?.update();
+              // Both `resize` (height change when keyboard opens/closes) AND
+              // `scroll` (Android often fires scroll before resize) matter — the
+              // popper position needs to track both for a smooth experience.
+              vv.addEventListener('resize', update);
+              vv.addEventListener('scroll', update);
+              (instance as any)._vvCleanup = () => {
+                vv.removeEventListener('resize', update);
+                vv.removeEventListener('scroll', update);
+              };
+            },
+            onHide(instance) {
+              (instance as any)._vvCleanup?.();
+            },
+            popperOptions: {
+              strategy: 'fixed',
+              modifiers: [
+                {
+                  name: 'flip',
+                  options: {
+                    // Wyłącznie wyśrodkowane warianty — inaczej flip zepsułby
+                    // wyśrodkowanie palety na stronie (żadnych -start/-end).
+                    fallbackPlacements: ['top', 'bottom'],
+                  },
                 },
-              },
-              {
-                name: 'preventOverflow',
-                options: {
-                  boundary: 'viewport',
-                  padding: 8,
+                {
+                  name: 'preventOverflow',
+                  options: {
+                    boundary: 'viewport',
+                    padding: 8,
+                  },
                 },
-              },
-              // Cap the popper height to whatever the visual viewport can
-              // actually show above OR below the cursor. Without this, even
-              // a perfect top/bottom flip leaves the bottom half of a tall
-              // palette hidden under the keyboard.
-              {
-                name: 'capHeight',
-                enabled: true,
-                phase: 'beforeWrite' as const,
-                requires: ['computeStyles'],
-                fn({ state }: { state: any }) {
-                  const vv = window.visualViewport;
-                  if (!vv) return;
-                  const refTop = state.rects?.reference?.top ?? 0;
-                  const refBottom = state.rects?.reference?.bottom ?? refTop;
-                  const visibleTop = vv.offsetTop;
-                  const visibleBottom = vv.offsetTop + vv.height;
-                  const spaceAbove = Math.max(0, refTop - visibleTop - 12);
-                  const spaceBelow = Math.max(0, visibleBottom - refBottom - 12);
-                  const maxH = Math.max(spaceAbove, spaceBelow);
-                  const popperEl: HTMLElement | undefined = state.elements?.popper;
-                  if (!popperEl) return;
-                  // Only constrain if it actually helps — avoid setting maxH on
-                  // tall desktops where the palette fits naturally.
-                  if (maxH > 100) {
-                    popperEl.style.maxHeight = `${Math.min(maxH, 480)}px`;
-                    popperEl.style.overflowY = 'auto';
-                  }
-                },
-              },
-              // Keep popup inside the visual viewport. Runs after capHeight
-              // so we already know the popper is shrinkable to fit.
-              {
-                name: 'visualViewportFix',
-                enabled: true,
-                phase: 'beforeWrite' as const,
-                requires: ['computeStyles'],
-                fn({ state }: { state: any }) {
-                  const vv = window.visualViewport;
-                  if (!vv) return;
-                  const visibleTop = vv.offsetTop + 8;
-                  const visibleBottom = vv.offsetTop + vv.height - 8;
-                  const styles = state.styles?.popper;
-                  if (!styles) return;
-                  const top = parseFloat(styles.top ?? '0');
-                  const popperEl: HTMLElement | undefined = state.elements?.popper;
-                  // After capHeight clamps the element, prefer measured height
-                  // over the popper's pre-clamp computed height.
-                  const popperHeight = popperEl?.getBoundingClientRect().height
-                    ?? state.rects?.popper?.height
-                    ?? 0;
-                  const refTop = state.rects?.reference?.top ?? top;
-                  const refBottom = state.rects?.reference?.bottom ?? refTop;
-
-                  if (top + popperHeight > visibleBottom) {
-                    // Try flipping above the caret.
-                    const aboveTop = refTop - popperHeight - 8;
-                    if (aboveTop >= visibleTop) {
-                      styles.top = `${aboveTop}px`;
-                    } else {
-                      // Doesn't fit either way — pin to top of visible area.
-                      styles.top = `${visibleTop}px`;
+                // Cap the popper height to whatever the visual viewport can
+                // actually show above OR below the cursor. Without this, even
+                // a perfect top/bottom flip leaves the bottom half of a tall
+                // palette hidden under the keyboard.
+                {
+                  name: 'capHeight',
+                  enabled: true,
+                  phase: 'beforeWrite' as const,
+                  requires: ['computeStyles'],
+                  fn({ state }: { state: any }) {
+                    const vv = window.visualViewport;
+                    if (!vv) return;
+                    const refTop = state.rects?.reference?.top ?? 0;
+                    const refBottom = state.rects?.reference?.bottom ?? refTop;
+                    const visibleTop = vv.offsetTop;
+                    const visibleBottom = vv.offsetTop + vv.height;
+                    const spaceAbove = Math.max(0, refTop - visibleTop - 12);
+                    const spaceBelow = Math.max(0, visibleBottom - refBottom - 12);
+                    const maxH = Math.max(spaceAbove, spaceBelow);
+                    const popperEl: HTMLElement | undefined = state.elements?.popper;
+                    if (!popperEl) return;
+                    // Only constrain if it actually helps — avoid setting maxH on
+                    // tall desktops where the palette fits naturally.
+                    if (maxH > 100) {
+                      popperEl.style.maxHeight = `${Math.min(maxH, 480)}px`;
+                      popperEl.style.overflowY = 'auto';
                     }
-                  } else if (top < visibleTop) {
-                    // The popper went off the top — pin below the caret instead.
-                    if (refBottom + popperHeight + 8 <= visibleBottom) {
-                      styles.top = `${refBottom + 8}px`;
-                    } else {
-                      styles.top = `${visibleTop}px`;
-                    }
-                  }
+                  },
                 },
-              },
-            ],
-          },
-        });
-      },
+                // Keep popup inside the visual viewport. Runs after capHeight
+                // so we already know the popper is shrinkable to fit.
+                {
+                  name: 'visualViewportFix',
+                  enabled: true,
+                  phase: 'beforeWrite' as const,
+                  requires: ['computeStyles'],
+                  fn({ state }: { state: any }) {
+                    const vv = window.visualViewport;
+                    if (!vv) return;
+                    const visibleTop = vv.offsetTop + 8;
+                    const visibleBottom = vv.offsetTop + vv.height - 8;
+                    const styles = state.styles?.popper;
+                    if (!styles) return;
+                    const top = parseFloat(styles.top ?? '0');
+                    const popperEl: HTMLElement | undefined = state.elements?.popper;
+                    // After capHeight clamps the element, prefer measured height
+                    // over the popper's pre-clamp computed height.
+                    const popperHeight =
+                      popperEl?.getBoundingClientRect().height ?? state.rects?.popper?.height ?? 0;
+                    const refTop = state.rects?.reference?.top ?? top;
+                    const refBottom = state.rects?.reference?.bottom ?? refTop;
 
-      onUpdate: (props) => {
-        component?.updateProps(props);
-        if (!props.clientRect) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        rectFn = props.clientRect as any;
-        // Przelicz pozycję (środek widoku) i stronę (nad/pod kursorem).
-        popup?.[0]?.setProps({ getReferenceClientRect: getRect, placement: pickPlacement() });
-      },
+                    if (top + popperHeight > visibleBottom) {
+                      // Try flipping above the caret.
+                      const aboveTop = refTop - popperHeight - 8;
+                      if (aboveTop >= visibleTop) {
+                        styles.top = `${aboveTop}px`;
+                      } else {
+                        // Doesn't fit either way — pin to top of visible area.
+                        styles.top = `${visibleTop}px`;
+                      }
+                    } else if (top < visibleTop) {
+                      // The popper went off the top — pin below the caret instead.
+                      if (refBottom + popperHeight + 8 <= visibleBottom) {
+                        styles.top = `${refBottom + 8}px`;
+                      } else {
+                        styles.top = `${visibleTop}px`;
+                      }
+                    }
+                  },
+                },
+              ],
+            },
+          });
+        },
 
-      onKeyDown: (props) => {
-        if (props.event.key === 'Escape') {
-          popup?.[0]?.hide();
-          return true;
-        }
+        onUpdate: (props) => {
+          component?.updateProps(props);
+          if (!props.clientRect) return;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          rectFn = props.clientRect as any;
+          // Przelicz pozycję (środek widoku) i stronę (nad/pod kursorem).
+          popup?.[0]?.setProps({ getReferenceClientRect: getRect, placement: pickPlacement() });
+        },
 
-        return (component?.ref as CommandListRef)?.onKeyDown(props) ?? false;
-      },
+        onKeyDown: (props) => {
+          if (props.event.key === 'Escape') {
+            popup?.[0]?.hide();
+            return true;
+          }
 
-      onExit: () => {
-        popup?.[0]?.destroy();
-        component?.destroy();
-      },
-    };
-  },
+          return (component?.ref as CommandListRef)?.onKeyDown(props) ?? false;
+        },
+
+        onExit: () => {
+          popup?.[0]?.destroy();
+          component?.destroy();
+        },
+      };
+    },
   };
 }
 
@@ -1145,9 +1172,12 @@ const SlashCommands = Extension.create<SlashCommandsOptions>({
     return [
       Suggestion({
         editor: this.editor,
-        ...buildSuggestionConfig(this.options.createPageRef, this.options.insertEventRef,
-                                 this.options.insertTaskCardRef,
-                                 this.options.scriptTemplatesRef),
+        ...buildSuggestionConfig(
+          this.options.createPageRef,
+          this.options.insertEventRef,
+          this.options.insertTaskCardRef,
+          this.options.scriptTemplatesRef
+        ),
       }),
     ];
   },

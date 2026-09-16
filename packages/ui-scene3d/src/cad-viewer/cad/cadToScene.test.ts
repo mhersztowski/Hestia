@@ -30,7 +30,9 @@ describe('cadProjectToSceneGraph', () => {
     p.addEntity({ ...base, type: 'circle', cx: 0, cy: 0, radius: 4 } as EntityInput);
     const graph = cadProjectToSceneGraph(p);
     let found = false;
-    graph.traverse((n) => { if (n.name.startsWith('Circle')) found = true; });
+    graph.traverse((n) => {
+      if (n.name.startsWith('Circle')) found = true;
+    });
     expect(found).toBe(true);
   });
 
@@ -47,10 +49,21 @@ describe('cadProjectToSceneGraph', () => {
 
   it('creates one segment per polyline edge', () => {
     const p = new Project();
-    p.addEntity({ ...base, type: 'polyline', points: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }], closed: false } as EntityInput);
+    p.addEntity({
+      ...base,
+      type: 'polyline',
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+      ],
+      closed: false,
+    } as EntityInput);
     const graph = cadProjectToSceneGraph(p);
     let segs = 0;
-    graph.traverse((n) => { if (n.name.startsWith('Polyline seg')) segs++; });
+    graph.traverse((n) => {
+      if (n.name.startsWith('Polyline seg')) segs++;
+    });
     expect(segs).toBe(2);
   });
 

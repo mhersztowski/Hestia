@@ -27,10 +27,7 @@ export class CommandRegistry implements Disposable {
   /**
    * Registers a new command
    */
-  registerCommand(
-    descriptor: CommandDescriptor,
-    handler: CommandHandler
-  ): Disposable {
+  registerCommand(descriptor: CommandDescriptor, handler: CommandHandler): Disposable {
     if (this.commands.has(descriptor.id)) {
       console.warn(`Command "${descriptor.id}" is already registered`);
     }
@@ -118,9 +115,6 @@ export const KeyCode = monaco.KeyCode;
 /**
  * Creates a keybinding from modifiers and key
  */
-export function createKeybinding(
-  modifiers: number,
-  key: number
-): number {
+export function createKeybinding(modifiers: number, key: number): number {
   return modifiers | key;
 }

@@ -13,11 +13,47 @@
 
 /** Moduły wbudowane Node — bez prefiksu `node:`, w wersji, w jakiej się je pisze. */
 const BUILTIN_MODULES = new Set([
-    'assert', 'async_hooks', 'buffer', 'child_process', 'cluster', 'console', 'constants',
-    'crypto', 'dgram', 'diagnostics_channel', 'dns', 'domain', 'events', 'fs', 'http',
-    'http2', 'https', 'inspector', 'module', 'net', 'os', 'path', 'perf_hooks', 'process',
-    'punycode', 'querystring', 'readline', 'repl', 'stream', 'string_decoder', 'timers',
-    'tls', 'trace_events', 'tty', 'url', 'util', 'v8', 'vm', 'wasi', 'worker_threads', 'zlib',
+  'assert',
+  'async_hooks',
+  'buffer',
+  'child_process',
+  'cluster',
+  'console',
+  'constants',
+  'crypto',
+  'dgram',
+  'diagnostics_channel',
+  'dns',
+  'domain',
+  'events',
+  'fs',
+  'http',
+  'http2',
+  'https',
+  'inspector',
+  'module',
+  'net',
+  'os',
+  'path',
+  'perf_hooks',
+  'process',
+  'punycode',
+  'querystring',
+  'readline',
+  'repl',
+  'stream',
+  'string_decoder',
+  'timers',
+  'tls',
+  'trace_events',
+  'tty',
+  'url',
+  'util',
+  'v8',
+  'vm',
+  'wasi',
+  'worker_threads',
+  'zlib',
 ]);
 
 /**
@@ -26,13 +62,21 @@ const BUILTIN_MODULES = new Set([
  * `console`, `setTimeout` czy `fetch` są i w przeglądarce, więc nie mówią nic
  * o środowisku — po nich nie da się poznać, że plik jest node'owy.
  */
-const NODE_GLOBALS = ['process', 'Buffer', '__dirname', '__filename', 'require', 'module', 'globalThis.process'];
+const NODE_GLOBALS = [
+  'process',
+  'Buffer',
+  '__dirname',
+  '__filename',
+  'require',
+  'module',
+  'globalThis.process',
+];
 
 /** Czy specyfikator importu wskazuje moduł wbudowany Node. */
 export function isNodeBuiltin(specifier: string): boolean {
-    if (specifier.startsWith('node:')) return true;
-    const root = specifier.split('/')[0];
-    return BUILTIN_MODULES.has(root);
+  if (specifier.startsWith('node:')) return true;
+  const root = specifier.split('/')[0];
+  return BUILTIN_MODULES.has(root);
 }
 
 /**
@@ -43,13 +87,15 @@ export function isNodeBuiltin(specifier: string): boolean {
  * „przetwarzam process" nie znaczy, że plik działa w Node.
  */
 export function needsNodeTypes(code: string, specifiers: readonly string[]): boolean {
-    if (specifiers.some(isNodeBuiltin)) return true;
-    // Komentarze i napisy odpadają — inaczej wystarczyłaby wzmianka w opisie.
-    const bezKomentarzy = code
-        .replace(/\/\*[\s\S]*?\*\//g, ' ')
-        .replace(/\/\/[^\n]*/g, ' ')
-        .replace(/(['"`])(?:\\.|(?!\1)[^\\])*\1/g, ' ');
-    return NODE_GLOBALS.some((nazwa) => new RegExp(`\\b${nazwa.replace('.', '\\.')}\\b`).test(bezKomentarzy));
+  if (specifiers.some(isNodeBuiltin)) return true;
+  // Komentarze i napisy odpadają — inaczej wystarczyłaby wzmianka w opisie.
+  const bezKomentarzy = code
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/\/\/[^\n]*/g, ' ')
+    .replace(/(['"`])(?:\\.|(?!\1)[^\\])*\1/g, ' ');
+  return NODE_GLOBALS.some((nazwa) =>
+    new RegExp(`\\b${nazwa.replace('.', '\\.')}\\b`).test(bezKomentarzy)
+  );
 }
 
 /**
@@ -59,20 +105,20 @@ export function needsNodeTypes(code: string, specifiers: readonly string[]): boo
  * wskazuje pakiet, a `path="…"` plik obok — i właśnie tak zbudowane są typy Node.
  */
 export function extractReferencePaths(code: string): string[] {
-    const out = new Set<string>();
-    const re = /\/\/\/\s*<reference\s+path="([^"]+)"/g;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(code)) !== null) out.add(m[1]);
-    return [...out];
+  const out = new Set<string>();
+  const re = /\/\/\/\s*<reference\s+path="([^"]+)"/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(code)) !== null) out.add(m[1]);
+  return [...out];
 }
 
 /** Skleja ścieżkę z dyrektywy z katalogiem pliku, w którym stała. */
 export function resolveReference(fromFile: string, relative: string): string {
-    const parts = fromFile.split('/');
-    parts.pop();
-    for (const seg of relative.split('/')) {
-        if (seg === '..') parts.pop();
-        else if (seg !== '.' && seg !== '') parts.push(seg);
-    }
-    return parts.join('/');
+  const parts = fromFile.split('/');
+  parts.pop();
+  for (const seg of relative.split('/')) {
+    if (seg === '..') parts.pop();
+    else if (seg !== '.' && seg !== '') parts.push(seg);
+  }
+  return parts.join('/');
 }

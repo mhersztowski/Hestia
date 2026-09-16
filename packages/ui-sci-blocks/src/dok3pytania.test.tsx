@@ -5,19 +5,21 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-Pytania.md';
-const pliki = [DOK, '3-10-spadek-swobodny.md', '3-11-rownania-spadku.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-10-spadek-swobodny.md', '3-11-rownania-spadku.md', 'Slownik.md'].map(
+  (p) => ({ path: p, markdown: readDocument(p) })
+);
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 
@@ -35,8 +37,8 @@ describe('pytania do rozdziału 3 w czytniku', () => {
     // Same pytania — uwagi redakcyjne to lista wypunktowana, nie numerowana.
     const pozycje = container.querySelectorAll('ol > li');
     expect(pozycje).toHaveLength(21);
-    expect((pozycje[0].textContent ?? '')).toContain('Czy znane jest jakieś zjawisko');
-    expect((pozycje[20].textContent ?? '')).toContain('Zgodnie z poglądem Arystotelesa');
+    expect(pozycje[0].textContent ?? '').toContain('Czy znane jest jakieś zjawisko');
+    expect(pozycje[20].textContent ?? '').toContain('Zgodnie z poglądem Arystotelesa');
 
     // Rysunek przerywa listę między 18 a 19, więc numeracja musi wznowić się na 19.
     const listy = container.querySelectorAll('ol');
@@ -67,7 +69,9 @@ describe('pytania do rozdziału 3 w czytniku', () => {
 
   it('pytanie 12 sięga do (3-17) w 3-11', () => {
     const cel = resolveReference(
-      'rh1-3-eq17', { anchors: index.anchors, formulaHome: index.formulaHome }, DOK,
+      'rh1-3-eq17',
+      { anchors: index.anchors, formulaHome: index.formulaHome },
+      DOK
     );
     expect(cel.found).toBe(true);
     expect(cel.path).toBe('3-11-rownania-spadku.md');
@@ -88,10 +92,17 @@ describe('pytania do rozdziału 3 w czytniku', () => {
   // dostaje odsyłacza w żadnym.
   it('odsyłacze do haseł tylko tam, gdzie hasło jest tematem', () => {
     const uzyte = [...bodies[DOK].matchAll(/\(\(rh1-poj-([a-z-]+)\|/g)].map((m) => m[1]);
-    expect([...new Set(uzyte)].sort())
-      .toEqual(['przyspieszenie-ziemskie', 'punkt-materialny', 'wymiar']);
+    expect([...new Set(uzyte)].sort()).toEqual([
+      'przyspieszenie-ziemskie',
+      'punkt-materialny',
+      'wymiar',
+    ]);
     for (const id of uzyte) {
-      const cel = resolveReference(`rh1-poj-${id}`, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
+      const cel = resolveReference(
+        `rh1-poj-${id}`,
+        { anchors: index.anchors, formulaHome: index.formulaHome },
+        DOK
+      );
       expect(cel.path, id).toBe('Slownik.md');
     }
   });
@@ -117,7 +128,9 @@ describe('pytania do rozdziału 3 w czytniku', () => {
   // Notka wskazuje notkę z 3-10; ten odsyłacz też musi trafiać.
   it('notka odsyła do podrozdziału 3-10', () => {
     const cel = resolveReference(
-      'rh1-sec-3-10', { anchors: index.anchors, formulaHome: index.formulaHome }, DOK,
+      'rh1-sec-3-10',
+      { anchors: index.anchors, formulaHome: index.formulaHome },
+      DOK
     );
     expect(cel.found).toBe(true);
     expect(cel.path).toBe('3-10-spadek-swobodny.md');

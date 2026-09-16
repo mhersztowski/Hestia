@@ -70,9 +70,7 @@ const ProjectTreeItem: React.FC<ProjectTreeItemProps> = ({
   }, [dataSource, project.id]);
 
   const filteredTasks = useMemo(() => {
-    return filter
-      ? projectTasks.filter(t => t.matches(filter))
-      : projectTasks;
+    return filter ? projectTasks.filter((t) => t.matches(filter)) : projectTasks;
   }, [projectTasks, filter]);
 
   const hasContent = projectTasks.length > 0 || project.hasChildren();
@@ -84,7 +82,7 @@ const ProjectTreeItem: React.FC<ProjectTreeItemProps> = ({
     if (filteredTasks.length > 0) return true;
     for (const child of project.children) {
       const childTasks = dataSource.getTasksByProjectId(child.id);
-      if (child.matches(filter) || childTasks.some(t => t.matches(filter))) {
+      if (child.matches(filter) || childTasks.some((t) => t.matches(filter))) {
         return true;
       }
     }
@@ -101,11 +99,19 @@ const ProjectTreeItem: React.FC<ProjectTreeItemProps> = ({
       >
         {hasContent && (
           <Box sx={{ mr: 0.25, display: 'flex', alignItems: 'center' }}>
-            {isExpanded ? <ExpandLess sx={{ fontSize: 16 }} /> : <ExpandMore sx={{ fontSize: 16 }} />}
+            {isExpanded ? (
+              <ExpandLess sx={{ fontSize: 16 }} />
+            ) : (
+              <ExpandMore sx={{ fontSize: 16 }} />
+            )}
           </Box>
         )}
         <ListItemIcon sx={{ minWidth: 24 }}>
-          {isExpanded ? <FolderOpenIcon sx={{ fontSize: 18 }} color="success" /> : <FolderIcon sx={{ fontSize: 18 }} color="success" />}
+          {isExpanded ? (
+            <FolderOpenIcon sx={{ fontSize: 18 }} color="success" />
+          ) : (
+            <FolderIcon sx={{ fontSize: 18 }} color="success" />
+          )}
         </ListItemIcon>
         <ListItemText
           primary={project.getDisplayName()}
@@ -126,7 +132,10 @@ const ProjectTreeItem: React.FC<ProjectTreeItemProps> = ({
               sx={{ pl: 2.5 + level * 1.5, py: 0.25, minHeight: 28 }}
             >
               <ListItemIcon sx={{ minWidth: 24 }}>
-                <TaskIcon sx={{ fontSize: 16 }} color={selectedId === task.id ? 'secondary' : 'action'} />
+                <TaskIcon
+                  sx={{ fontSize: 16 }}
+                  color={selectedId === task.id ? 'secondary' : 'action'}
+                />
               </ListItemIcon>
               <ListItemText
                 primary={task.getDisplayName()}
@@ -195,12 +204,20 @@ const ProjectPickerTreeItem: React.FC<ProjectPickerTreeItemProps> = ({
             }}
             sx={{ mr: 0.25, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
           >
-            {isExpanded ? <ExpandLess sx={{ fontSize: 16 }} /> : <ExpandMore sx={{ fontSize: 16 }} />}
+            {isExpanded ? (
+              <ExpandLess sx={{ fontSize: 16 }} />
+            ) : (
+              <ExpandMore sx={{ fontSize: 16 }} />
+            )}
           </Box>
         )}
         <ListItemIcon sx={{ minWidth: 24 }}>
           {hasChildren ? (
-            isExpanded ? <FolderOpenIcon sx={{ fontSize: 18 }} color={isSelected ? 'success' : 'action'} /> : <FolderIcon sx={{ fontSize: 18 }} color={isSelected ? 'success' : 'action'} />
+            isExpanded ? (
+              <FolderOpenIcon sx={{ fontSize: 18 }} color={isSelected ? 'success' : 'action'} />
+            ) : (
+              <FolderIcon sx={{ fontSize: 18 }} color={isSelected ? 'success' : 'action'} />
+            )
           ) : (
             <FolderIcon sx={{ fontSize: 18 }} color={isSelected ? 'success' : 'action'} />
           )}
@@ -332,7 +349,7 @@ const ComponentEmbedNodeView: React.FC<NodeViewProps> = ({ node, updateAttribute
   };
 
   const handleToggleExpand = useCallback((id: string) => {
-    setExpandedIds(prev => {
+    setExpandedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -358,13 +375,19 @@ const ComponentEmbedNodeView: React.FC<NodeViewProps> = ({ node, updateAttribute
     );
   }
 
-  const filteredPersons = (componentType === 'person' && dataSource)
-    ? (filter ? dataSource.findPersons(filter) : dataSource.persons)
-    : [];
+  const filteredPersons =
+    componentType === 'person' && dataSource
+      ? filter
+        ? dataSource.findPersons(filter)
+        : dataSource.persons
+      : [];
 
-  const filteredUnassignedTasks = componentType === 'task'
-    ? (filter ? unassignedTasks.filter(t => t.matches(filter)) : unassignedTasks)
-    : [];
+  const filteredUnassignedTasks =
+    componentType === 'task'
+      ? filter
+        ? unassignedTasks.filter((t) => t.matches(filter))
+        : unassignedTasks
+      : [];
 
   return (
     <NodeViewWrapper as="span" className="component-embed-wrapper">
@@ -454,14 +477,22 @@ const ComponentEmbedNodeView: React.FC<NodeViewProps> = ({ node, updateAttribute
                     sx={{ bgcolor: 'grey.100', py: 0.25, minHeight: 32 }}
                   >
                     <Box sx={{ mr: 0.25, display: 'flex', alignItems: 'center' }}>
-                      {expandedIds.has('__unassigned__') ? <ExpandLess sx={{ fontSize: 16 }} /> : <ExpandMore sx={{ fontSize: 16 }} />}
+                      {expandedIds.has('__unassigned__') ? (
+                        <ExpandLess sx={{ fontSize: 16 }} />
+                      ) : (
+                        <ExpandMore sx={{ fontSize: 16 }} />
+                      )}
                     </Box>
                     <ListItemIcon sx={{ minWidth: 24 }}>
                       <TaskIcon sx={{ fontSize: 18 }} color="action" />
                     </ListItemIcon>
                     <ListItemText
                       primary="Unassigned"
-                      primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 500, fontStyle: 'italic' }}
+                      primaryTypographyProps={{
+                        fontSize: '0.85rem',
+                        fontWeight: 500,
+                        fontStyle: 'italic',
+                      }}
                     />
                     <Typography variant="caption" color="text.secondary">
                       {unassignedTasks.length}
@@ -477,7 +508,10 @@ const ComponentEmbedNodeView: React.FC<NodeViewProps> = ({ node, updateAttribute
                           sx={{ pl: 2.5, py: 0.25, minHeight: 28 }}
                         >
                           <ListItemIcon sx={{ minWidth: 24 }}>
-                            <TaskIcon sx={{ fontSize: 16 }} color={componentId === task.id ? 'secondary' : 'action'} />
+                            <TaskIcon
+                              sx={{ fontSize: 16 }}
+                              color={componentId === task.id ? 'secondary' : 'action'}
+                            />
                           </ListItemIcon>
                           <ListItemText
                             primary={task.getDisplayName()}
@@ -577,11 +611,14 @@ export const ComponentEmbed = Node.create({
   },
 
   renderHTML({ HTMLAttributes, node }) {
-    return ['span', mergeAttributes(HTMLAttributes, {
-      'data-type': 'component-embed',
-      'data-component-type': node.attrs.componentType,
-      'data-component-id': node.attrs.componentId,
-    })];
+    return [
+      'span',
+      mergeAttributes(HTMLAttributes, {
+        'data-type': 'component-embed',
+        'data-component-type': node.attrs.componentType,
+        'data-component-id': node.attrs.componentId,
+      }),
+    ];
   },
 
   addNodeView() {
@@ -590,12 +627,14 @@ export const ComponentEmbed = Node.create({
 
   addCommands() {
     return {
-      insertComponentEmbed: (componentType: ComponentType, componentId: string = '') => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: { componentType, componentId },
-        });
-      },
+      insertComponentEmbed:
+        (componentType: ComponentType, componentId: string = '') =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: { componentType, componentId },
+          });
+        },
     };
   },
 });

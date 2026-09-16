@@ -18,14 +18,14 @@
  */
 
 import {
-    FileChangeType,
-    FileType,
-    VfsEventEmitter,
-    type DirectoryEntry,
-    type FileChangeEvent,
-    type FileStat,
-    type FileSystemCapabilities,
-    type FileSystemProvider,
+  FileChangeType,
+  FileType,
+  VfsEventEmitter,
+  type DirectoryEntry,
+  type FileChangeEvent,
+  type FileStat,
+  type FileSystemCapabilities,
+  type FileSystemProvider,
 } from '@hestia/core';
 import { DIR_TYPE } from '@hestia/ui-core';
 import { platform } from './platform';
@@ -37,58 +37,58 @@ const decoder = new TextDecoder();
 const rel = (path: string) => path.replace(/^\/+/, '');
 
 export function platformProvider(): FileSystemProvider {
-    const emitter = new VfsEventEmitter<FileChangeEvent[]>();
+  const emitter = new VfsEventEmitter<FileChangeEvent[]>();
 
-    return {
-        scheme: 'hestia',
-        capabilities: { readonly: false, watch: false } satisfies FileSystemCapabilities,
-        onDidChangeFile: emitter.event,
+  return {
+    scheme: 'hestia',
+    capabilities: { readonly: false, watch: false } satisfies FileSystemCapabilities,
+    onDidChangeFile: emitter.event,
 
-        async stat(path: string): Promise<FileStat> {
-            const entries = await platform.dir(parentOf(rel(path)));
-            const name = baseOf(rel(path));
-            const found = entries.find((e) => e.name === name);
-            // A missing file is `File` with size 0 rather than a throw: the editor
-            // asks for a stat before opening a path the user typed, and a throw
-            // there reads to the user as "the drive is broken".
-            return {
-                type: found?.type === DIR_TYPE ? FileType.Directory : FileType.File,
-                size: 0,
-                ctime: 0,
-                mtime: 0,
-            };
-        },
+    async stat(path: string): Promise<FileStat> {
+      const entries = await platform.dir(parentOf(rel(path)));
+      const name = baseOf(rel(path));
+      const found = entries.find((e) => e.name === name);
+      // A missing file is `File` with size 0 rather than a throw: the editor
+      // asks for a stat before opening a path the user typed, and a throw
+      // there reads to the user as "the drive is broken".
+      return {
+        type: found?.type === DIR_TYPE ? FileType.Directory : FileType.File,
+        size: 0,
+        ctime: 0,
+        mtime: 0,
+      };
+    },
 
-        async readDirectory(path: string): Promise<DirectoryEntry[]> {
-            const entries = await platform.dir(rel(path));
-            return entries.map((e) => ({
-                name: e.name,
-                type: e.type === DIR_TYPE ? FileType.Directory : FileType.File,
-            }));
-        },
+    async readDirectory(path: string): Promise<DirectoryEntry[]> {
+      const entries = await platform.dir(rel(path));
+      return entries.map((e) => ({
+        name: e.name,
+        type: e.type === DIR_TYPE ? FileType.Directory : FileType.File,
+      }));
+    },
 
-        async readFile(path: string): Promise<Uint8Array> {
-            return encoder.encode(await platform.read(rel(path)));
-        },
+    async readFile(path: string): Promise<Uint8Array> {
+      return encoder.encode(await platform.read(rel(path)));
+    },
 
-        async writeFile(path: string, content: Uint8Array): Promise<void> {
-            await platform.write(rel(path), decoder.decode(content));
-            emitter.fire([{ type: FileChangeType.Changed, path }]);
-        },
+    async writeFile(path: string, content: Uint8Array): Promise<void> {
+      await platform.write(rel(path), decoder.decode(content));
+      emitter.fire([{ type: FileChangeType.Changed, path }]);
+    },
 
-        async delete(path: string): Promise<void> {
-            await platform.remove(rel(path));
-            emitter.fire([{ type: FileChangeType.Deleted, path }]);
-        },
-    };
+    async delete(path: string): Promise<void> {
+      await platform.remove(rel(path));
+      emitter.fire([{ type: FileChangeType.Deleted, path }]);
+    },
+  };
 }
 
 function parentOf(path: string): string {
-    const i = path.lastIndexOf('/');
-    return i === -1 ? '' : path.slice(0, i);
+  const i = path.lastIndexOf('/');
+  return i === -1 ? '' : path.slice(0, i);
 }
 
 function baseOf(path: string): string {
-    const i = path.lastIndexOf('/');
-    return i === -1 ? path : path.slice(i + 1);
+  const i = path.lastIndexOf('/');
+  return i === -1 ? path : path.slice(i + 1);
 }

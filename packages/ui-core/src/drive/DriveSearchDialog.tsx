@@ -22,11 +22,30 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, IconButton, TextField, Typography, Box, Stack,
-  FormControlLabel, Checkbox, ToggleButton, ToggleButtonGroup,
-  LinearProgress, Accordion, AccordionSummary, AccordionDetails,
-  List, ListItemButton, ListItemText, Chip, Alert, Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  TextField,
+  Typography,
+  Box,
+  Stack,
+  FormControlLabel,
+  Checkbox,
+  ToggleButton,
+  ToggleButtonGroup,
+  LinearProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  List,
+  ListItemButton,
+  ListItemText,
+  Chip,
+  Alert,
+  Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
@@ -58,7 +77,11 @@ export interface DriveSearchDialogProps {
 type Scope = 'current' | 'drive';
 
 const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
-  open, onClose, cwd, runSearch, onOpenFile,
+  open,
+  onClose,
+  cwd,
+  runSearch,
+  onOpenFile,
 }) => {
   const [query, setQuery] = useState('');
   const [caseSensitive, setCaseSensitive] = useState(false);
@@ -92,9 +115,7 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
   }, [open]);
 
   const baseRel = scope === 'current' ? cwd : '';
-  const scopeLabel = scope === 'current'
-    ? (cwd || '(katalog główny drive)')
-    : '(cały drive)';
+  const scopeLabel = scope === 'current' ? cwd || '(katalog główny drive)' : '(cały drive)';
 
   const handleRun = useCallback(async () => {
     if (!query.trim()) return;
@@ -122,7 +143,7 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
       setResults(out);
       // Auto-expand the first 3 files for instant context — common case
       // is "I want to see what matches look like".
-      setExpanded(new Set(out.slice(0, 3).map(r => r.path)));
+      setExpanded(new Set(out.slice(0, 3).map((r) => r.path)));
     } catch (err) {
       if ((err as DOMException).name === 'AbortError') return;
       setError((err as Error).message || 'Błąd wyszukiwania');
@@ -137,24 +158,28 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
     setRunning(false);
   }, []);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey && !running && query.trim()) {
-      e.preventDefault();
-      void handleRun();
-    }
-  }, [handleRun, running, query]);
-
-  const totalMatches = useMemo(
-    () => results.reduce((s, r) => s + r.matches.length, 0),
-    [results],
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey && !running && query.trim()) {
+        e.preventDefault();
+        void handleRun();
+      }
+    },
+    [handleRun, running, query]
   );
+
+  const totalMatches = useMemo(() => results.reduce((s, r) => s + r.matches.length, 0), [results]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <SearchIcon color="primary" />
-        <Typography variant="h6" sx={{ flex: 1 }}>Wyszukaj w plikach</Typography>
-        <IconButton size="small" onClick={onClose}><CloseIcon /></IconButton>
+        <Typography variant="h6" sx={{ flex: 1 }}>
+          Wyszukaj w plikach
+        </Typography>
+        <IconButton size="small" onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
 
       <DialogContent dividers>
@@ -164,7 +189,7 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
           <TextField
             autoFocus
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={isRegex ? 'np. ^TODO:|FIXME' : 'np. global-calendar'}
             label="Szukana fraza"
@@ -185,9 +210,7 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
                 <FolderOpenIcon fontSize="small" sx={{ mr: 0.5 }} />
                 Bieżący katalog
               </ToggleButton>
-              <ToggleButton value="drive">
-                Cały drive
-              </ToggleButton>
+              <ToggleButton value="drive">Cały drive</ToggleButton>
             </ToggleButtonGroup>
 
             <FormControlLabel
@@ -195,7 +218,7 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
                 <Checkbox
                   size="small"
                   checked={caseSensitive}
-                  onChange={e => setCaseSensitive(e.target.checked)}
+                  onChange={(e) => setCaseSensitive(e.target.checked)}
                   disabled={running}
                 />
               }
@@ -206,7 +229,7 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
                 <Checkbox
                   size="small"
                   checked={isRegex}
-                  onChange={e => setIsRegex(e.target.checked)}
+                  onChange={(e) => setIsRegex(e.target.checked)}
                   disabled={running}
                 />
               }
@@ -244,7 +267,8 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
             <Box sx={{ flex: 1 }} />
             {!running && results.length > 0 && (
               <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
-                {results.length} {results.length === 1 ? 'plik' : 'plików'} · {totalMatches} dopasowań
+                {results.length} {results.length === 1 ? 'plik' : 'plików'} · {totalMatches}{' '}
+                dopasowań
               </Typography>
             )}
           </Stack>
@@ -256,11 +280,20 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
                 value={progress.total > 0 ? (progress.scanned / progress.total) * 100 : 0}
                 sx={{ height: 6, borderRadius: 3 }}
               />
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 0.5, display: 'block' }}
+              >
                 {progress.total > 0
                   ? `Skanuję ${progress.scanned}/${progress.total}…`
                   : 'Zbieram listę plików…'}
-                {progress.current && <> · <code>{progress.current}</code></>}
+                {progress.current && (
+                  <>
+                    {' '}
+                    · <code>{progress.current}</code>
+                  </>
+                )}
               </Typography>
             </Box>
           )}
@@ -280,26 +313,47 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
           {/* Results — accordion per file. Match lines rendered with the
               matched span wrapped in <mark>. Line number on the left to
               match `grep -n` output convention. */}
-          {results.map(r => (
+          {results.map((r) => (
             <Accordion
               key={r.path}
               expanded={expanded.has(r.path)}
               onChange={(_, isExp) => {
-                setExpanded(prev => {
+                setExpanded((prev) => {
                   const next = new Set(prev);
-                  if (isExp) next.add(r.path); else next.delete(r.path);
+                  if (isExp) next.add(r.path);
+                  else next.delete(r.path);
                   return next;
                 });
               }}
               disableGutters
               sx={{ '&:before': { display: 'none' } }}
             >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: 36, '& .MuiAccordionSummary-content': { my: 0.5 } }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{ minHeight: 36, '& .MuiAccordionSummary-content': { my: 0.5 } }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                  sx={{ flex: 1, minWidth: 0 }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {r.path.split('/').pop()}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
                     {r.path}
                   </Typography>
                   <Box sx={{ flex: 1 }} />
@@ -307,7 +361,10 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
                   <Tooltip title="Otwórz plik">
                     <IconButton
                       size="small"
-                      onClick={(e) => { e.stopPropagation(); onOpenFile(r.path); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenFile(r.path);
+                      }}
                     >
                       <FolderOpenIcon fontSize="small" />
                     </IconButton>
@@ -324,26 +381,37 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
                     >
                       <ListItemText
                         primary={
-                          <Box component="span" sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
-                            <Box component="span" sx={{ color: 'text.secondary', minWidth: 36, textAlign: 'right' }}>
+                          <Box
+                            component="span"
+                            sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}
+                          >
+                            <Box
+                              component="span"
+                              sx={{ color: 'text.secondary', minWidth: 36, textAlign: 'right' }}
+                            >
                               {m.lineNumber}
                             </Box>
-                            <Box component="span" sx={{
-                              flex: 1,
-                              whiteSpace: 'pre-wrap',
-                              wordBreak: 'break-word',
-                              '& mark': {
-                                bgcolor: 'warning.light',
-                                color: 'warning.contrastText',
-                                px: 0.25,
-                                borderRadius: 0.25,
-                              },
-                            }}>
+                            <Box
+                              component="span"
+                              sx={{
+                                flex: 1,
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word',
+                                '& mark': {
+                                  bgcolor: 'warning.light',
+                                  color: 'warning.contrastText',
+                                  px: 0.25,
+                                  borderRadius: 0.25,
+                                },
+                              }}
+                            >
                               {/* Render match span wrapped in <mark>;
                                   surrounding text in plain spans so React
                                   doesn't fight the highlight styling. */}
                               {m.lineText.slice(0, m.matchStart)}
-                              <Box component="mark">{m.lineText.slice(m.matchStart, m.matchEnd)}</Box>
+                              <Box component="mark">
+                                {m.lineText.slice(m.matchStart, m.matchEnd)}
+                              </Box>
                               {m.lineText.slice(m.matchEnd)}
                             </Box>
                           </Box>
@@ -353,8 +421,13 @@ const DriveSearchDialog: React.FC<DriveSearchDialogProps> = ({
                     </ListItemButton>
                   ))}
                   {r.truncated && (
-                    <Typography variant="caption" color="warning.main" sx={{ p: 1, display: 'block' }}>
-                      Pokazano pierwsze {r.matches.length} dopasowań w tym pliku — limit reached, otwórz plik aby zobaczyć resztę.
+                    <Typography
+                      variant="caption"
+                      color="warning.main"
+                      sx={{ p: 1, display: 'block' }}
+                    >
+                      Pokazano pierwsze {r.matches.length} dopasowań w tym pliku — limit reached,
+                      otwórz plik aby zobaczyć resztę.
                     </Typography>
                   )}
                 </List>

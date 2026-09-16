@@ -13,9 +13,15 @@ import { BlockShell } from './BlockShell';
 
 function pokaz(directives = FORMULA_DIRECTIVES) {
   return render(
-    <BlockShell kind="wzór" accent="#2563eb" id="test" directives={directives} view={<div>widok</div>}>
+    <BlockShell
+      kind="wzór"
+      accent="#2563eb"
+      id="test"
+      directives={directives}
+      view={<div>widok</div>}
+    >
       {() => <pre>treść</pre>}
-    </BlockShell>,
+    </BlockShell>
   );
 }
 
@@ -34,14 +40,21 @@ describe('dostępność ściągi', () => {
     render(
       <BlockShell kind="symulacja" accent="#059669" view={<div>widok</div>}>
         {() => <pre>{'{}'}</pre>}
-      </BlockShell>,
+      </BlockShell>
     );
     fireEvent.click(screen.getByRole('button', { name: 'Kod' }));
     expect(screen.queryByTitle('Lista dyrektyw, które ten blok rozumie')).toBeNull();
   });
 
   it('blok tylko do odczytu nie pokazuje ani Kodu, ani ściągi', () => {
-    render(<BlockShell kind="wzór" accent="#2563eb" directives={FORMULA_DIRECTIVES} view={<div>widok</div>} />);
+    render(
+      <BlockShell
+        kind="wzór"
+        accent="#2563eb"
+        directives={FORMULA_DIRECTIVES}
+        view={<div>widok</div>}
+      />
+    );
     expect(screen.queryByRole('button', { name: 'Kod' })).toBeNull();
   });
 });
@@ -62,7 +75,9 @@ describe('treść ściągi', () => {
 
   it('filtr zawęża listę', () => {
     otworz();
-    fireEvent.change(screen.getByPlaceholderText('filtruj dyrektywy…'), { target: { value: 'init' } });
+    fireEvent.change(screen.getByPlaceholderText('filtruj dyrektywy…'), {
+      target: { value: 'init' },
+    });
 
     expect(screen.getByText('@init')).toBeTruthy();
     expect(screen.getByText('@init2')).toBeTruthy();
@@ -71,13 +86,17 @@ describe('treść ściągi', () => {
 
   it('brak dopasowania mówi wprost, że takiej dyrektywy nie ma', () => {
     otworz();
-    fireEvent.change(screen.getByPlaceholderText('filtruj dyrektywy…'), { target: { value: 'xyz' } });
+    fireEvent.change(screen.getByPlaceholderText('filtruj dyrektywy…'), {
+      target: { value: 'xyz' },
+    });
     expect(screen.getByText('Nie ma takiej dyrektywy.')).toBeTruthy();
   });
 
   it('znak `@` w filtrze nie przeszkadza', () => {
     otworz();
-    fireEvent.change(screen.getByPlaceholderText('filtruj dyrektywy…'), { target: { value: '@ode' } });
+    fireEvent.change(screen.getByPlaceholderText('filtruj dyrektywy…'), {
+      target: { value: '@ode' },
+    });
     // Dwa trafienia, bo `@ode` jest i nazwą, i całym przykładem — liczy się to,
     // że filtr w ogóle coś znalazł i nie pokazał reszty katalogu.
     expect(screen.getAllByText('@ode').length).toBeGreaterThan(0);

@@ -64,7 +64,11 @@ export const umlProjectFormat: DiagramFormat = {
       const doc = emptyDiagram('class');
       return {
         document: doc,
-        issues: [{ message: `Nie umiem odczytać projektu UML: ${e instanceof Error ? e.message : String(e)}` }],
+        issues: [
+          {
+            message: `Nie umiem odczytać projektu UML: ${e instanceof Error ? e.message : String(e)}`,
+          },
+        ],
       };
     }
 
@@ -85,7 +89,9 @@ export const umlProjectFormat: DiagramFormat = {
   serialize(doc: DiagramDocument): string {
     let project: UmlProjectLike;
     try {
-      project = doc.meta?.umlProject ? (JSON.parse(doc.meta.umlProject) as UmlProjectLike) : pustyProjekt();
+      project = doc.meta?.umlProject
+        ? (JSON.parse(doc.meta.umlProject) as UmlProjectLike)
+        : pustyProjekt();
     } catch {
       // Zepsuty odcisk oryginału nie może zablokować zapisu diagramu, który
       // użytkownik właśnie narysował.

@@ -27,7 +27,9 @@ describe('SnapEngine mode management', () => {
     expect(s.isEnabled('center')).toBe(true);
     expect(s.isEnabled('intersection')).toBe(true);
     expect(s.isEnabled('nearest')).toBe(false);
-    expect(new Set(s.getEnabledModes())).toEqual(new Set(['grid', 'endpoint', 'midpoint', 'center', 'intersection']));
+    expect(new Set(s.getEnabledModes())).toEqual(
+      new Set(['grid', 'endpoint', 'midpoint', 'center', 'intersection'])
+    );
   });
 
   it('enable/disable/isEnabled work', () => {
@@ -73,7 +75,15 @@ describe('SnapEngine.snap', () => {
   it('snaps to an arc center', () => {
     const s = new SnapEngine();
     s.disableMode('endpoint');
-    const arc = ent({ id: 'A', type: 'arc', cx: 5, cy: 5, radius: 30, startAngle: 0, endAngle: Math.PI } as Partial<Entity>);
+    const arc = ent({
+      id: 'A',
+      type: 'arc',
+      cx: 5,
+      cy: 5,
+      radius: 30,
+      startAngle: 0,
+      endAngle: Math.PI,
+    } as Partial<Entity>);
     const r = s.snap({ x: 6, y: 5 }, [arc]);
     expect(r.mode).toBe('center');
     expect(r.point).toEqual({ x: 5, y: 5 });
@@ -82,7 +92,14 @@ describe('SnapEngine.snap', () => {
   it('snaps to a rect center', () => {
     const s = new SnapEngine();
     s.disableMode('endpoint');
-    const rect = ent({ id: 'R', type: 'rect', x: 0, y: 0, width: 20, height: 20 } as Partial<Entity>);
+    const rect = ent({
+      id: 'R',
+      type: 'rect',
+      x: 0,
+      y: 0,
+      width: 20,
+      height: 20,
+    } as Partial<Entity>);
     const r = s.snap({ x: 10, y: 11 }, [rect]);
     expect(r.mode).toBe('center');
     expect(r.point).toEqual({ x: 10, y: 10 });
@@ -90,7 +107,14 @@ describe('SnapEngine.snap', () => {
 
   it('snaps to rect endpoints/corners', () => {
     const s = new SnapEngine();
-    const rect = ent({ id: 'R', type: 'rect', x: 0, y: 0, width: 20, height: 20 } as Partial<Entity>);
+    const rect = ent({
+      id: 'R',
+      type: 'rect',
+      x: 0,
+      y: 0,
+      width: 20,
+      height: 20,
+    } as Partial<Entity>);
     const r = s.snap({ x: 20, y: 2 }, [rect]);
     expect(r.mode).toBe('endpoint');
     expect(r.point).toEqual({ x: 20, y: 0 });
@@ -99,7 +123,15 @@ describe('SnapEngine.snap', () => {
   it('snaps to arc endpoints', () => {
     const s = new SnapEngine();
     s.disableMode('center');
-    const arc = ent({ id: 'A', type: 'arc', cx: 0, cy: 0, radius: 10, startAngle: 0, endAngle: Math.PI } as Partial<Entity>);
+    const arc = ent({
+      id: 'A',
+      type: 'arc',
+      cx: 0,
+      cy: 0,
+      radius: 10,
+      startAngle: 0,
+      endAngle: Math.PI,
+    } as Partial<Entity>);
     const r = s.snap({ x: 10, y: 1 }, [arc]);
     expect(r.mode).toBe('endpoint');
     expect(r.point.x).toBeCloseTo(10);
@@ -108,7 +140,16 @@ describe('SnapEngine.snap', () => {
 
   it('snaps to polyline endpoints and midpoints', () => {
     const s = new SnapEngine();
-    const poly = ent({ id: 'P', type: 'polyline', closed: false, points: [{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 40 }] } as Partial<Entity>);
+    const poly = ent({
+      id: 'P',
+      type: 'polyline',
+      closed: false,
+      points: [
+        { x: 0, y: 0 },
+        { x: 40, y: 0 },
+        { x: 40, y: 40 },
+      ],
+    } as Partial<Entity>);
     const endHit = s.snap({ x: 40, y: 39 }, [poly]);
     expect(endHit.mode).toBe('endpoint');
     expect(endHit.point).toEqual({ x: 40, y: 40 });
@@ -119,7 +160,17 @@ describe('SnapEngine.snap', () => {
 
   it('snaps to freehand endpoints', () => {
     const s = new SnapEngine();
-    const fh = ent({ id: 'F', type: 'freehand', strokeWidth: 1, smooth: false, points: [{ x: 0, y: 0 }, { x: 5, y: 5 }, { x: 50, y: 50 }] } as Partial<Entity>);
+    const fh = ent({
+      id: 'F',
+      type: 'freehand',
+      strokeWidth: 1,
+      smooth: false,
+      points: [
+        { x: 0, y: 0 },
+        { x: 5, y: 5 },
+        { x: 50, y: 50 },
+      ],
+    } as Partial<Entity>);
     const r = s.snap({ x: 1, y: 0 }, [fh]);
     expect(r.mode).toBe('endpoint');
     expect(r.point).toEqual({ x: 0, y: 0 });

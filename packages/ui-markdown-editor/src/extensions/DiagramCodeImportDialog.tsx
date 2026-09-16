@@ -12,12 +12,26 @@
  */
 import { useCallback, useState } from 'react';
 import {
-  Alert, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle,
-  FormControlLabel, List, ListItem, Stack, TextField, Typography,
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  List,
+  ListItem,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material';
 import {
-  umlDiagramToDocument, mermaidFormat,
-  type DiagramDocument, type UmlDiagramLike,
+  umlDiagramToDocument,
+  mermaidFormat,
+  type DiagramDocument,
+  type UmlDiagramLike,
 } from '@hestia/ui-devtools/diagrams';
 import { useEditorServices } from '../capabilities';
 import { currentUserName, writeCodeSource, type CodeSource } from './diagramCodeImport';
@@ -63,7 +77,10 @@ function grupujPoPlikach(diagram: UmlDiagramLike): PlikZKlasami[] {
 }
 
 export function DiagramCodeImportDialog({
-  open, onClose, onImport, initialDir,
+  open,
+  onClose,
+  onImport,
+  initialDir,
 }: DiagramCodeImportDialogProps) {
   const { umlCodeSync } = useEditorServices();
   const [dir, setDir] = useState(initialDir ?? '');
@@ -91,9 +108,9 @@ export function DiagramCodeImportDialog({
       const znalezione = grupujPoPlikach(pierwszy);
       setDiagram(pierwszy);
       setPliki(znalezione);
-      setWybrane(new Set(
-        znalezione.length <= PROG_AUTOZAZNACZENIA ? znalezione.map((p) => p.file) : [],
-      ));
+      setWybrane(
+        new Set(znalezione.length <= PROG_AUTOZAZNACZENIA ? znalezione.map((p) => p.file) : [])
+      );
     } catch (e) {
       setBlad(e instanceof Error ? e.message : String(e));
     } finally {
@@ -149,9 +166,15 @@ export function DiagramCodeImportDialog({
               helperText="Ścieżka względem katalogu użytkownika. Przedrostek mycastle-code/ sięga do źródeł MyCastle."
               value={dir}
               onChange={(e) => setDir(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') void szukaj(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void szukaj();
+              }}
             />
-            <Button variant="contained" onClick={() => void szukaj()} disabled={pracuje || !dir.trim()}>
+            <Button
+              variant="contained"
+              onClick={() => void szukaj()}
+              disabled={pracuje || !dir.trim()}
+            >
               {pracuje ? 'Szukam…' : 'Szukaj klas'}
             </Button>
           </Stack>
@@ -161,22 +184,40 @@ export function DiagramCodeImportDialog({
           {pliki.length > 0 && (
             <>
               <Typography variant="body2" color="text.secondary">
-                Znaleziono {pliki.length} plików. Zaznacz te, które mają trafić na diagram —
-                skan całego katalogu daje zwykle rysunek, którego nie da się przeczytać.
+                Znaleziono {pliki.length} plików. Zaznacz te, które mają trafić na diagram — skan
+                całego katalogu daje zwykle rysunek, którego nie da się przeczytać.
               </Typography>
               {pliki.length > PROG_AUTOZAZNACZENIA && wybrane.size === 0 && (
                 <Alert severity="info">
-                  Plików jest sporo, więc nic nie zaznaczyliśmy z góry. Wybierz kilka, od których chcesz zacząć.
+                  Plików jest sporo, więc nic nie zaznaczyliśmy z góry. Wybierz kilka, od których
+                  chcesz zacząć.
                 </Alert>
               )}
-              <List dense sx={{ maxHeight: 320, overflow: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+              <List
+                dense
+                sx={{
+                  maxHeight: 320,
+                  overflow: 'auto',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                }}
+              >
                 {pliki.map((p) => (
                   <ListItem key={p.file} disableGutters sx={{ px: 1 }}>
                     <FormControlLabel
-                      control={<Checkbox size="small" checked={wybrane.has(p.file)} onChange={() => przelacz(p.file)} />}
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={wybrane.has(p.file)}
+                          onChange={() => przelacz(p.file)}
+                        />
+                      }
                       label={
                         <Box>
-                          <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{p.file}</Typography>
+                          <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                            {p.file}
+                          </Typography>
                           <Typography variant="caption" color="text.secondary">
                             {p.classes.join(', ')}
                           </Typography>

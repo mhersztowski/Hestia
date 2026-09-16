@@ -101,8 +101,7 @@ export type EventListener<T> = (data: T) => void;
  * Result type for operations that can fail
  */
 export type Result<T, E = Error> =
-  | { readonly success: true; readonly value: T }
-  | { readonly success: false; readonly error: E };
+  { readonly success: true; readonly value: T } | { readonly success: false; readonly error: E };
 
 /**
  * Creates a success result

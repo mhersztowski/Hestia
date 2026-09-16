@@ -41,15 +41,12 @@ export class EventBus extends CoreObject {
   subscribe<T = unknown>(
     topic: string,
     slot: (payload: T) => void,
-    context?: IConnectionOwner,
+    context?: IConnectionOwner
   ): Connection {
     if (!this.#channels.has(topic)) {
       this.#channels.set(topic, new Signal());
     }
-    return this.#channels.get(topic)!.connect(
-      slot as AnySlot,
-      context,
-    );
+    return this.#channels.get(topic)!.connect(slot as AnySlot, context);
   }
 
   /**
@@ -58,7 +55,7 @@ export class EventBus extends CoreObject {
    */
   subscribeAll(
     slot: (topic: string, payload: unknown) => void,
-    context?: IConnectionOwner,
+    context?: IConnectionOwner
   ): Connection {
     return this.#wildcardSignal.connect(slot, context);
   }
@@ -79,7 +76,7 @@ export class EventBus extends CoreObject {
   /** Returns the set of all topics that have at least one subscriber. */
   get activeTopics(): string[] {
     return [...this.#channels.keys()].filter(
-      (t) => (this.#channels.get(t)?.connectionCount ?? 0) > 0,
+      (t) => (this.#channels.get(t)?.connectionCount ?? 0) > 0
     );
   }
 

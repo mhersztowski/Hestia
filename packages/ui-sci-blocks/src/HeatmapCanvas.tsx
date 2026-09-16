@@ -53,7 +53,15 @@ function kolor(wartosc: number, out: Uint8ClampedArray, offset: number): void {
 }
 
 export function HeatmapCanvas({
-  data, nx, ny, min, max, width = 320, height = 320, label, onCanvas,
+  data,
+  nx,
+  ny,
+  min,
+  max,
+  width = 320,
+  height = 320,
+  label,
+  onCanvas,
 }: HeatmapCanvasProps) {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
@@ -90,13 +98,18 @@ export function HeatmapCanvas({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <canvas
-        ref={(el) => { ref.current = el; onCanvas?.(el); }}
+        ref={(el) => {
+          ref.current = el;
+          onCanvas?.(el);
+        }}
         width={width}
         height={height}
         style={{ width, height, borderRadius: 4, border: '1px solid #e2e8f0', display: 'block' }}
       />
       {label && (
-        <div style={{ fontSize: 11, color: '#64748b', display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div
+          style={{ fontSize: 11, color: '#64748b', display: 'flex', gap: 8, alignItems: 'center' }}
+        >
           <span>{label}</span>
           <span style={{ flex: 1 }} />
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>

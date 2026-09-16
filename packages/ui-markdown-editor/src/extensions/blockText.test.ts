@@ -39,7 +39,9 @@ describe('replaceBlockText', () => {
     const editor = editorWith(TRESC);
     const node = editor.state.doc.child(0);
     let transakcje = 0;
-    editor.on('transaction', () => { transakcje += 1; });
+    editor.on('transaction', () => {
+      transakcje += 1;
+    });
 
     const zapisano = replaceBlockText(editor, POS, node, TRESC);
 
@@ -59,7 +61,9 @@ describe('replaceBlockText', () => {
     const editor = editorWith('');
     const node = editor.state.doc.child(0);
     let transakcje = 0;
-    editor.on('transaction', () => { transakcje += 1; });
+    editor.on('transaction', () => {
+      transakcje += 1;
+    });
 
     expect(replaceBlockText(editor, POS, node, '')).toBe(false);
     expect(transakcje).toBe(0);

@@ -60,14 +60,18 @@ describe('NodeFS', () => {
       await mkdir(join(tempDir, 'dir'));
 
       const entries = await fs.readDirectory('/');
-      expect(entries).toEqual(expect.arrayContaining([
-        { name: 'a.txt', type: FileType.File },
-        { name: 'dir', type: FileType.Directory },
-      ]));
+      expect(entries).toEqual(
+        expect.arrayContaining([
+          { name: 'a.txt', type: FileType.File },
+          { name: 'dir', type: FileType.Directory },
+        ])
+      );
     });
 
     it('should throw FileNotFound for missing dir', async () => {
-      await expect(fs.readDirectory('/missing')).rejects.toMatchObject({ code: VfsErrorCode.FileNotFound });
+      await expect(fs.readDirectory('/missing')).rejects.toMatchObject({
+        code: VfsErrorCode.FileNotFound,
+      });
     });
   });
 
@@ -83,7 +87,9 @@ describe('NodeFS', () => {
     });
 
     it('should throw FileNotFound for missing file', async () => {
-      await expect(fs.readFile('/nope.txt')).rejects.toMatchObject({ code: VfsErrorCode.FileNotFound });
+      await expect(fs.readFile('/nope.txt')).rejects.toMatchObject({
+        code: VfsErrorCode.FileNotFound,
+      });
     });
   });
 
@@ -108,17 +114,16 @@ describe('NodeFS', () => {
 
     it('should throw FileExists when overwrite is false', async () => {
       await fs.writeFile!('/f.txt', encodeText('v1'));
-      await expect(fs.writeFile!('/f.txt', encodeText('v2'), { overwrite: false }))
-        .rejects.toMatchObject({ code: VfsErrorCode.FileExists });
+      await expect(
+        fs.writeFile!('/f.txt', encodeText('v2'), { overwrite: false })
+      ).rejects.toMatchObject({ code: VfsErrorCode.FileExists });
     });
 
     it('should fire change event', async () => {
       const listener = vi.fn();
       fs.onDidChangeFile(listener);
       await fs.writeFile!('/f.txt', encodeText(''));
-      expect(listener).toHaveBeenCalledWith([
-        { type: FileChangeType.Changed, path: '/f.txt' },
-      ]);
+      expect(listener).toHaveBeenCalledWith([{ type: FileChangeType.Changed, path: '/f.txt' }]);
     });
   });
 
@@ -167,8 +172,9 @@ describe('NodeFS', () => {
     it('should throw FileExists without overwrite', async () => {
       await writeFile(join(tempDir, 'a.txt'), '');
       await writeFile(join(tempDir, 'b.txt'), '');
-      await expect(fs.rename!('/a.txt', '/b.txt'))
-        .rejects.toMatchObject({ code: VfsErrorCode.FileExists });
+      await expect(fs.rename!('/a.txt', '/b.txt')).rejects.toMatchObject({
+        code: VfsErrorCode.FileExists,
+      });
     });
   });
 

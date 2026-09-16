@@ -83,7 +83,9 @@ describe('pola kontra SciPy', () => {
     it(`${plik}: odniesienie istnieje`, () => {
       // Brak pliku nie może uciszać sprawdzenia — to byłby najgorszy rodzaj
       // zielonego testu.
-      expect(existsSync(sciezka), `brakuje ${plik}.json — uruchom generate-fixtures.mjs`).toBe(true);
+      expect(existsSync(sciezka), `brakuje ${plik}.json — uruchom generate-fixtures.mjs`).toBe(
+        true
+      );
     });
 
     it(`${plik}: zgadza się z niezależnym silnikiem`, () => {
@@ -115,7 +117,7 @@ describe('zbieżność schematu', () => {
    */
   it('gęstsza siatka daje wynik bliższy odniesienia', () => {
     const fixture = JSON.parse(
-      readFileSync(join(FIXTURES, 'cieplo-pole.json'), 'utf8'),
+      readFileSync(join(FIXTURES, 'cieplo-pole.json'), 'utf8')
     ) as FieldFixture;
     const ostatnia = fixture.frames[fixture.frames.length - 1];
 
@@ -127,7 +129,8 @@ describe('zbieżność schematu', () => {
       // Odniesienie jest na siatce `fixture.nx`; przy innej porównujemy
       // **środek pola**, bo tylko on odpowiada temu samemu punktowi przestrzeni.
       const srodekNasz = klatka.data[Math.floor(n / 2) * n + Math.floor(n / 2)];
-      const srodekRef = ostatnia.values[Math.floor(fixture.ny / 2) * fixture.nx + Math.floor(fixture.nx / 2)];
+      const srodekRef =
+        ostatnia.values[Math.floor(fixture.ny / 2) * fixture.nx + Math.floor(fixture.nx / 2)];
       return Math.abs(srodekNasz - srodekRef) / Math.abs(srodekRef);
     };
 

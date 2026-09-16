@@ -4,21 +4,34 @@ import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
-const rozdzial = ['1-1-wielkosci.md', '1-2-si.md', '1-3-dlugosc.md', '1-4-masa.md',
-  '1-5-czas.md', '1-Pytania.md', '1-Zadania.md'];
-const pliki = [...rozdzial, 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const rozdzial = [
+  '1-1-wielkosci.md',
+  '1-2-si.md',
+  '1-3-dlugosc.md',
+  '1-4-masa.md',
+  '1-5-czas.md',
+  '1-Pytania.md',
+  '1-Zadania.md',
+];
+const pliki = [...rozdzial, 'Slownik.md'].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, '1-Zadania.md');
+  const cel = resolveReference(
+    id,
+    { anchors: index.anchors, formulaHome: index.formulaHome },
+    '1-Zadania.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['1-Zadania.md']} path="1-Zadania.md" resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(
+    <ReaderView markdown={bodies['1-Zadania.md']} path="1-Zadania.md" resolveRef={resolveRef} />
+  );
 
 describe('Zadania rozdziału 1', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
@@ -60,7 +73,8 @@ describe('Zadania rozdziału 1', () => {
   it('tylko dwa nagłówki grup — brak „Paragraf 1-5" jest w druku', () => {
     const { container } = widok();
     const naglowki = [...container.querySelectorAll('div')]
-      .map((d) => d.textContent ?? '').filter((t) => t.startsWith('Paragraf 1-'));
+      .map((d) => d.textContent ?? '')
+      .filter((t) => t.startsWith('Paragraf 1-'));
     expect(naglowki).toEqual(['Paragraf 1-3', 'Paragraf 1-4']);
   });
 
@@ -72,7 +86,11 @@ describe('Zadania rozdziału 1', () => {
   });
 
   it('trzy hasła wnoszą zadania, z odsyłaczami z zadania 4', () => {
-    for (const id of ['rh1-poj-jednostka-astronomiczna', 'rh1-poj-parsek', 'rh1-poj-rok-swietlny']) {
+    for (const id of [
+      'rh1-poj-jednostka-astronomiczna',
+      'rh1-poj-parsek',
+      'rh1-poj-rok-swietlny',
+    ]) {
       expect(index.anchors.get(id)?.kind, id).toBe('term');
       expect(bodies['1-Zadania.md'], id).toContain(`((${id}|`);
     }
@@ -87,7 +105,10 @@ describe('Zadania rozdziału 1', () => {
 
   it('rozdział 1 jest kompletny: siedem dokumentów, dwadzieścia cztery hasła', () => {
     for (const p of rozdzial) {
-      expect(index.documents.some((d) => d.path === p), p).toBe(true);
+      expect(
+        index.documents.some((d) => d.path === p),
+        p
+      ).toBe(true);
     }
     expect(index.anchors.get('rh1-pyt-1')?.kind).toBe('section');
     expect(index.anchors.get('rh1-zad-1')?.kind).toBe('section');

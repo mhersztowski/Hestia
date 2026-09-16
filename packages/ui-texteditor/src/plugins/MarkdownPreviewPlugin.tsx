@@ -132,7 +132,9 @@ function usePreviewState(): PreviewState {
   useEffect(() => {
     const fn = () => setS({ ..._state });
     _listeners.add(fn);
-    return () => { _listeners.delete(fn); };
+    return () => {
+      _listeners.delete(fn);
+    };
   }, []);
   return s;
 }
@@ -154,11 +156,7 @@ function MarkdownPreviewPanel() {
   }
 
   if (!isMarkdown) {
-    return (
-      <Box sx={{ p: 2, color: '#858585', fontSize: 13 }}>
-        Not a Markdown file.
-      </Box>
-    );
+    return <Box sx={{ p: 2, color: '#858585', fontSize: 13 }}>Not a Markdown file.</Box>;
   }
 
   if (error) {
@@ -313,7 +311,7 @@ export const MarkdownPreviewPlugin = defineEditorPlugin(
         uri: PREVIEW_URI,
         title: 'Markdown Preview',
         component: MarkdownPreviewPanel,
-        toSide: true,    // open split to the right, like VSCode Ctrl+K V
+        toSide: true, // open split to the right, like VSCode Ctrl+K V
       });
     });
 
@@ -340,7 +338,10 @@ export const MarkdownPreviewPlugin = defineEditorPlugin(
 
     // Called when user switches file — renders immediately with full text
     api.editor.onDidOpenDocument((uri, text) => {
-      if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
       pendingUri = uri;
       handleUriChange(uri, text);
     });
@@ -355,5 +356,5 @@ export const MarkdownPreviewPlugin = defineEditorPlugin(
 
   () => {
     // Disposables cleaned up automatically by PluginRegistry._disposeAll()
-  },
+  }
 );

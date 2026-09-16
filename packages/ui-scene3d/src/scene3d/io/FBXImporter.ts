@@ -18,7 +18,8 @@ export interface FBXImportResult {
 function printThreeTree(obj: THREE.Object3D, depth = 0): void {
   const indent = '  '.repeat(depth);
   const flags: string[] = [];
-  if ((obj as THREE.Mesh).isMesh) flags.push((obj as THREE.SkinnedMesh).isSkinnedMesh ? 'SKINNED_MESH' : 'MESH');
+  if ((obj as THREE.Mesh).isMesh)
+    flags.push((obj as THREE.SkinnedMesh).isSkinnedMesh ? 'SKINNED_MESH' : 'MESH');
   if ((obj as THREE.Light).isLight) flags.push('LIGHT');
   if (obj.type === 'Bone') flags.push('BONE');
   if (obj.type === 'Group') flags.push('GROUP');
@@ -31,7 +32,7 @@ function printThreeTree(obj: THREE.Object3D, depth = 0): void {
     flags.length ? `(${flags.join('|')})` : '',
     verts > 0 ? `${verts}v` : '',
     matType,
-    `children=${obj.children.length}`,
+    `children=${obj.children.length}`
   );
   for (const child of obj.children) printThreeTree(child, depth + 1);
 }
@@ -49,7 +50,9 @@ export class FBXImporter {
     let skippedCount = 0;
 
     if (debug) {
-      console.group(`[FBXImporter] Three.js scene tree (${(root as THREE.Group).children.length} root objects, ${animations.length} animations)`);
+      console.group(
+        `[FBXImporter] Three.js scene tree (${(root as THREE.Group).children.length} root objects, ${animations.length} animations)`
+      );
       for (const child of (root as THREE.Group).children) printThreeTree(child, 0);
       console.groupEnd();
     }
@@ -93,7 +96,12 @@ export class FBXImporter {
           if (debug) console.warn(`  ⚠ ${warn}`);
           skippedCount++;
           if (obj.children.length > 0) {
-            const node = new GroupNode({ name: obj.name || 'Group', position: p, rotation: r, scale: s });
+            const node = new GroupNode({
+              name: obj.name || 'Group',
+              position: p,
+              rotation: r,
+              scale: s,
+            });
             graph.addNode(node, parentId);
             nodeCount++;
             for (const child of obj.children) processNode(child, node.id);
@@ -104,7 +112,9 @@ export class FBXImporter {
         const rawMat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
         const node = new MeshNode({
           name: obj.name || 'Mesh',
-          position: p, rotation: r, scale: s,
+          position: p,
+          rotation: r,
+          scale: s,
           geometry: { type: 'custom', bufferData },
           material: getMaterial(rawMat ?? null),
         });
@@ -112,10 +122,11 @@ export class FBXImporter {
         nodeCount++;
         if (debug) {
           const verts = Math.floor(bufferData.positions.length / 3);
-          console.log(`  ✓ MeshNode "${node.name}" (${verts} vertices${bufferData.indices ? `, ${bufferData.indices.length} indices` : ''})`);
+          console.log(
+            `  ✓ MeshNode "${node.name}" (${verts} vertices${bufferData.indices ? `, ${bufferData.indices.length} indices` : ''})`
+          );
         }
         for (const child of obj.children) processNode(child, node.id);
-
       } else if ((obj as THREE.Light).isLight) {
         const light = obj as THREE.Light;
         let lightType: 'ambient' | 'directional' | 'point' | 'spot' = 'directional';
@@ -124,28 +135,34 @@ export class FBXImporter {
         else if (light.type === 'SpotLight') lightType = 'spot';
         const node = new LightNode({
           name: obj.name || `${lightType.charAt(0).toUpperCase() + lightType.slice(1)} Light`,
-          position: p, lightType,
+          position: p,
+          lightType,
           color: `#${light.color.getHexString()}`,
           intensity: light.intensity,
         });
         graph.addNode(node, parentId);
         nodeCount++;
         if (debug) console.log(`  ✓ LightNode "${node.name}" (${lightType})`);
-
       } else if (obj.type === 'Bone') {
-        if (debug) console.log(`  → Bone passthrough "${obj.name || '(unnamed)'}" (${obj.children.length} children → attached to parent)`);
+        if (debug)
+          console.log(
+            `  → Bone passthrough "${obj.name || '(unnamed)'}" (${obj.children.length} children → attached to parent)`
+          );
         for (const child of obj.children) processNode(child, parentId);
-
       } else if (obj.children.length > 0) {
         const node = new GroupNode({
           name: obj.name || 'Group',
-          position: p, rotation: r, scale: s,
+          position: p,
+          rotation: r,
+          scale: s,
         });
         graph.addNode(node, parentId);
         nodeCount++;
-        if (debug) console.log(`  + GroupNode "${node.name}" (${obj.children.length} children, type=${obj.type})`);
+        if (debug)
+          console.log(
+            `  + GroupNode "${node.name}" (${obj.children.length} children, type=${obj.type})`
+          );
         for (const child of obj.children) processNode(child, node.id);
-
       } else {
         const warn = `Skipped "${obj.name || '(unnamed)'}" [${obj.type}] — not mesh/light/bone and no children`;
         warnings.push(warn);
@@ -173,7 +190,7 @@ export class FBXImporter {
               tracks: clip.tracks.length,
             }),
           }),
-          animRoot.id,
+          animRoot.id
         );
         nodeCount++;
       }
@@ -182,7 +199,7 @@ export class FBXImporter {
     if (debug) {
       console.log(
         `[FBXImporter] Done — ${nodeCount} nodes created, ${skippedCount} skipped, ${animations.length} animation(s)`,
-        warnings.length > 0 ? `\nWarnings:\n  ${warnings.join('\n  ')}` : '',
+        warnings.length > 0 ? `\nWarnings:\n  ${warnings.join('\n  ')}` : ''
       );
     }
 

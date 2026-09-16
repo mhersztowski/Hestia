@@ -56,7 +56,7 @@ export interface ReferenceIndex {
  * przypisaniu mapy kotwic.
  */
 export type ReferenceKind =
-  | 'formula' | 'term' | 'figure' | 'table' | 'section' | 'callout' | 'law' | 'exercise';
+  'formula' | 'term' | 'figure' | 'table' | 'section' | 'callout' | 'law' | 'exercise';
 
 export interface ResolvedReference {
   found: boolean;
@@ -114,10 +114,11 @@ export function parseReferences(text: string): Reference[] {
 export function resolveReference(
   id: string,
   index: ReferenceIndex,
-  currentPath: string,
+  currentPath: string
 ): ResolvedReference {
-  const cel = index.anchors?.get(id)
-    ?? (index.formulaHome.has(id)
+  const cel =
+    index.anchors?.get(id) ??
+    (index.formulaHome.has(id)
       ? { path: index.formulaHome.get(id)!, kind: 'formula' as ReferenceKind }
       : index.termHome?.has(id)
         ? { path: index.termHome.get(id)!, kind: 'term' as ReferenceKind }
@@ -134,9 +135,7 @@ export function resolveReference(
   };
 }
 
-export type TextPart =
-  | { kind: 'text'; text: string }
-  | { kind: 'ref'; id: string; label?: string };
+export type TextPart = { kind: 'text'; text: string } | { kind: 'ref'; id: string; label?: string };
 
 /**
  * Rozbija tekst na fragmenty i odsyłacze.
@@ -169,13 +168,13 @@ export function splitByReferences(text: string): TextPart[] {
  * Zgłaszamy je jawnie, bo cichy link do nieistniejącego celu wygląda jak
  * działający — czytelnik klika i nic się nie dzieje.
  */
-export function danglingReferences(
-  text: string,
-  index: ReferenceIndex,
-): string[] {
+export function danglingReferences(text: string, index: ReferenceIndex): string[] {
   return parseReferences(text)
-    .filter((ref) => !index.anchors?.has(ref.id)
-      && !index.formulaHome.has(ref.id)
-      && !index.termHome?.has(ref.id))
+    .filter(
+      (ref) =>
+        !index.anchors?.has(ref.id) &&
+        !index.formulaHome.has(ref.id) &&
+        !index.termHome?.has(ref.id)
+    )
     .map((ref) => ref.id);
 }

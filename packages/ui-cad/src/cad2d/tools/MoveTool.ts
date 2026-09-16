@@ -34,8 +34,20 @@ export class MoveTool implements Tool {
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 0.01) return [];
     return [
-      { worldX: this.cursor.x, worldY: this.cursor.y, text: `Δx: ${dx.toFixed(2)}  Δy: ${dy.toFixed(2)}`, offsetY: -18, variant: 'primary' },
-      { worldX: this.cursor.x, worldY: this.cursor.y, text: `D: ${dist.toFixed(2)}`, offsetY: -4, variant: 'secondary' },
+      {
+        worldX: this.cursor.x,
+        worldY: this.cursor.y,
+        text: `Δx: ${dx.toFixed(2)}  Δy: ${dy.toFixed(2)}`,
+        offsetY: -18,
+        variant: 'primary',
+      },
+      {
+        worldX: this.cursor.x,
+        worldY: this.cursor.y,
+        text: `D: ${dist.toFixed(2)}`,
+        offsetY: -4,
+        variant: 'secondary',
+      },
     ];
   }
 
@@ -72,7 +84,7 @@ export class MoveTool implements Tool {
     const dy = dest.y - this.basePoint!.y;
     const ids = ctx.project.selectionManager.getSelected();
     const updates = ids
-      .map(id => ({ id, entity: ctx.project.entityRegistry.get(id) }))
+      .map((id) => ({ id, entity: ctx.project.entityRegistry.get(id) }))
       .filter((x): x is { id: string; entity: Entity } => x.entity !== undefined)
       .map(({ id, entity }) => ({ id, changes: translateEntity(entity, dx, dy) }));
     ctx.project.batchUpdate(updates, 'Move entities');

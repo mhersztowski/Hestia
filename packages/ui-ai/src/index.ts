@@ -21,8 +21,18 @@ export { OpenAiCompatibleProvider } from './agent/providers/OpenAiCompatibleProv
 export { buildVfsToolDefinitions } from './agent/tools/vfsTools';
 export { DEFAULT_AGENT_CONFIG } from './agent/types';
 export type {
-    AiProvider, AiProviderConfig, AiProviderType, AiChatRequest, AiChatResponse, AiChatMessage,
-    AiToolDefinition, AiToolCall, AgentConfig, AgentMessage, ChatAttachment, ChatSession,
+  AiProvider,
+  AiProviderConfig,
+  AiProviderType,
+  AiChatRequest,
+  AiChatResponse,
+  AiChatMessage,
+  AiToolDefinition,
+  AiToolCall,
+  AgentConfig,
+  AgentMessage,
+  ChatAttachment,
+  ChatSession,
 } from './agent/types';
 
 export { driveAssistant } from './driveAssistant';

@@ -24,7 +24,16 @@ import type { C4BoundaryInfo, C4NodeInfo, C4RelInfo } from './c4';
 
 /** Rodzaj diagramu — decyduje, który edytor graficzny go obsłuży. */
 export type DiagramKind =
-  | 'flowchart' | 'state' | 'class' | 'sequence' | 'er' | 'packet' | 'gantt' | 'kanban' | 'timeline' | 'c4';
+  | 'flowchart'
+  | 'state'
+  | 'class'
+  | 'sequence'
+  | 'er'
+  | 'packet'
+  | 'gantt'
+  | 'kanban'
+  | 'timeline'
+  | 'c4';
 
 /** Kierunek układu, w terminologii wspólnej dla formatów. */
 export type DiagramDirection = 'TB' | 'BT' | 'LR' | 'RL';
@@ -34,15 +43,29 @@ export type DiagramDirection = 'TB' | 'BT' | 'LR' | 'RL';
  * na `[]`, `{}`, `(())` itd., a inny format na swoje odpowiedniki.
  */
 export type NodeShape =
-  | 'rectangle' | 'rounded' | 'stadium' | 'subroutine' | 'cylinder'
-  | 'circle' | 'doubleCircle' | 'rhombus' | 'hexagon'
+  | 'rectangle'
+  | 'rounded'
+  | 'stadium'
+  | 'subroutine'
+  | 'cylinder'
+  | 'circle'
+  | 'doubleCircle'
+  | 'rhombus'
+  | 'hexagon'
   // Cztery warianty ścięć — w Mermaidzie każdy ma własny zapis i znaczenie:
   // wejście/wyjście (`[/…/]`, `[\…\]`) oraz operacja ręczna (`[/…\]`, `[\…/]`).
-  | 'parallelogram' | 'parallelogramAlt' | 'trapezoid' | 'trapezoidAlt'
+  | 'parallelogram'
+  | 'parallelogramAlt'
+  | 'trapezoid'
+  | 'trapezoidAlt'
   /** Chorągiewka `>tekst]` — blok z wciętym lewym bokiem. */
   | 'asymmetric'
   // Kształty właściwe diagramom stanów:
-  | 'start' | 'end' | 'choice' | 'fork' | 'join';
+  | 'start'
+  | 'end'
+  | 'choice'
+  | 'fork'
+  | 'join';
 
 /** Styl linii krawędzi. */
 export type EdgeLineStyle = 'solid' | 'dotted' | 'thick';
@@ -55,8 +78,7 @@ export type EdgeLineStyle = 'solid' | 'dotted' | 'thick';
  * mogą po nie sięgnąć.
  */
 export type EdgeArrowType =
-  | 'arrow' | 'none' | 'circle' | 'cross'
-  | 'triangle' | 'diamond' | 'diamondFilled';
+  'arrow' | 'none' | 'circle' | 'cross' | 'triangle' | 'diamond' | 'diamondFilled';
 
 /**
  * Rodzaj relacji między klasami (UML).
@@ -66,8 +88,13 @@ export type EdgeArrowType =
  * Wygląd (zakończenie, styl linii) z niego wynika — patrz `RELATION_LOOK`.
  */
 export type ClassRelationKind =
-  | 'inheritance' | 'realization' | 'composition' | 'aggregation'
-  | 'association' | 'dependency' | 'link';
+  | 'inheritance'
+  | 'realization'
+  | 'composition'
+  | 'aggregation'
+  | 'association'
+  | 'dependency'
+  | 'link';
 
 /**
  * Liczebność końca relacji w diagramie ER (notacja „crow's foot").
@@ -267,7 +294,10 @@ export interface DiagramDocument {
   meta?: Record<string, string>;
 }
 
-export function emptyDiagram(kind: DiagramKind, direction: DiagramDirection = 'TB'): DiagramDocument {
+export function emptyDiagram(
+  kind: DiagramKind,
+  direction: DiagramDirection = 'TB'
+): DiagramDocument {
   return { kind, direction, nodes: [], edges: [], groups: [], unknown: [] };
 }
 

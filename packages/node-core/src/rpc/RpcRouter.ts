@@ -4,7 +4,7 @@ import { rpcMethods, type RpcMethodName } from '@hestia/core';
 
 export type RpcHandler<TDef extends RpcMethodDef> = (
   input: z.infer<TDef['input']>,
-  ctx: RpcContext,
+  ctx: RpcContext
 ) => Promise<z.infer<TDef['output']>>;
 
 export interface RpcContext {
@@ -16,7 +16,7 @@ export class RpcRouter {
 
   register<TName extends RpcMethodName>(
     name: TName,
-    handler: RpcHandler<(typeof rpcMethods)[TName]>,
+    handler: RpcHandler<(typeof rpcMethods)[TName]>
   ): void {
     const def = rpcMethods[name];
     this.handlers.set(String(name), { def, handler });
@@ -29,7 +29,7 @@ export class RpcRouter {
   async dispatch(
     methodName: string,
     rawInput: unknown,
-    ctx: RpcContext,
+    ctx: RpcContext
   ): Promise<{ statusCode: number; body: RpcResponse | RpcErrorResponse }> {
     const entry = this.handlers.get(methodName);
     if (!entry) {
@@ -41,7 +41,9 @@ export class RpcRouter {
 
     const inputResult = entry.def.input.safeParse(rawInput);
     if (!inputResult.success) {
-      const details = inputResult.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
+      const details = inputResult.error.issues
+        .map((i) => `${i.path.join('.')}: ${i.message}`)
+        .join('; ');
       return {
         statusCode: 400,
         body: { ok: false, error: `Validation error: ${details}`, code: 'VALIDATION_ERROR' },

@@ -1,6 +1,11 @@
 import TurndownService from 'turndown';
 import Showdown from 'showdown';
-import { extractCallouts, calloutToMarkdown, isCalloutVariant, type CalloutVariant } from './callout';
+import {
+  extractCallouts,
+  calloutToMarkdown,
+  isCalloutVariant,
+  type CalloutVariant,
+} from './callout';
 
 const showdownConverter = new Showdown.Converter({
   tables: true,
@@ -48,9 +53,6 @@ function escapeComponentEmbedsForHtml(content: string): string {
   return JSON.stringify({ result, componentEmbeds });
 }
 
-
-
-
 // ─── EventBlock fence ────────────────────────────────────────────────────────
 // Pulls ```event …``` fences out of the markdown before showdown runs, then
 // re-injects them as <div data-type="event-block" data-…="…"> HTML so the
@@ -66,20 +68,26 @@ interface EventBlockEscaped {
   projectName: string;
 }
 
-function escapeEventBlocksForHtml(content: string): { result: string; events: EventBlockEscaped[] } {
+function escapeEventBlocksForHtml(content: string): {
+  result: string;
+  events: EventBlockEscaped[];
+} {
   const events: EventBlockEscaped[] = [];
   const result = content.replace(/```event\s*\n([\s\S]*?)```/g, (_, json: string) => {
     let parsed: Partial<EventBlockEscaped> = {};
-    try { parsed = JSON.parse(json.trim()) as Partial<EventBlockEscaped>; }
-    catch { /* malformed JSON — store empty event so the placeholder still
-                 round-trips instead of bleeding into surrounding markdown. */ }
+    try {
+      parsed = JSON.parse(json.trim()) as Partial<EventBlockEscaped>;
+    } catch {
+      /* malformed JSON — store empty event so the placeholder still
+                 round-trips instead of bleeding into surrounding markdown. */
+    }
     events.push({
-      eventName:   String(parsed.eventName   ?? ''),
-      start:       String(parsed.start       ?? ''),
-      end:         String(parsed.end         ?? ''),
+      eventName: String(parsed.eventName ?? ''),
+      start: String(parsed.start ?? ''),
+      end: String(parsed.end ?? ''),
       description: String(parsed.description ?? ''),
-      taskId:      String(parsed.taskId      ?? ''),
-      taskName:    String(parsed.taskName    ?? ''),
+      taskId: String(parsed.taskId ?? ''),
+      taskName: String(parsed.taskName ?? ''),
       projectName: String(parsed.projectName ?? ''),
     });
     return `%%EVENTBLOCK_${events.length - 1}%%`;
@@ -101,9 +109,12 @@ function escapeTaskCardsForHtml(content: string): { result: string; cards: TaskC
   const cards: TaskCardEscaped[] = [];
   const result = content.replace(/```taskcard\s*\n([\s\S]*?)```/g, (_, json: string) => {
     let parsed: Partial<TaskCardEscaped> = {};
-    try { parsed = JSON.parse(json.trim()) as Partial<TaskCardEscaped>; }
-    catch { /* uszkodzony JSON — pusta karta i tak przejdzie w obie strony,
-                 zamiast rozlać się po sąsiednim markdownie */ }
+    try {
+      parsed = JSON.parse(json.trim()) as Partial<TaskCardEscaped>;
+    } catch {
+      /* uszkodzony JSON — pusta karta i tak przejdzie w obie strony,
+                 zamiast rozlać się po sąsiednim markdownie */
+    }
     cards.push({
       taskId: String(parsed.taskId ?? ''),
       taskName: String(parsed.taskName ?? ''),
@@ -134,12 +145,12 @@ function restoreEventBlocksFromHtml(html: string, events: EventBlockEscaped[]): 
     const push = (key: string, val: string) => {
       if (val) attrs.push(`${key}="${encodeURIComponent(val)}"`);
     };
-    push('data-event-name',  ev.eventName);
-    push('data-start',       ev.start);
-    push('data-end',         ev.end);
+    push('data-event-name', ev.eventName);
+    push('data-start', ev.start);
+    push('data-end', ev.end);
     push('data-description', ev.description);
-    push('data-task-id',     ev.taskId);
-    push('data-task-name',   ev.taskName);
+    push('data-task-id', ev.taskId);
+    push('data-task-name', ev.taskName);
     push('data-project-name', ev.projectName);
     const htmlTag = `<div ${attrs.join(' ')}></div>`;
     const placeholder = `%%EVENTBLOCK_${index}%%`;
@@ -173,13 +184,12 @@ function restorePhotoMapsFromHtml(html: string, photoMaps: string[]): string {
   return result;
 }
 
-
 // Helper to escape UI form embeds to protect them from showdown
 function escapeUIFormsForHtml(content: string): string {
   const uiForms: { id: string; inline?: string }[] = [];
 
   // Match @[uiform:form-id] syntax (simple reference)
-  let result = content.replace(/@\[uiform:([^\]\{][^\]]*)\]/g, (_, id) => {
+  let result = content.replace(/@\[uiform:([^\]{][^\]]*)\]/g, (_, id) => {
     uiForms.push({ id: id.trim() });
     return `%%UIFORM_${uiForms.length - 1}%%`;
   });
@@ -221,7 +231,7 @@ function escapeCadViewEmbedsForHtml(content: string): string {
   const cadViews: { mode: string; value: string }[] = [];
   const result = content.replace(/@\[cad:([^\]]+)\]/g, (_, params) => {
     const firstColon = params.indexOf(':');
-    const mode  = firstColon >= 0 ? params.slice(0, firstColon) : params;
+    const mode = firstColon >= 0 ? params.slice(0, firstColon) : params;
     const value = firstColon >= 0 ? params.slice(firstColon + 1) : '';
     cadViews.push({ mode: mode || 'scene3d', value });
     return `%%CADVIEW_${cadViews.length - 1}%%`;
@@ -230,7 +240,10 @@ function escapeCadViewEmbedsForHtml(content: string): string {
 }
 
 // Helper to restore CAD view embeds after showdown conversion
-function restoreCadViewEmbedsFromHtml(html: string, cadViews: { mode: string; value: string }[]): string {
+function restoreCadViewEmbedsFromHtml(
+  html: string,
+  cadViews: { mode: string; value: string }[]
+): string {
   let result = html;
   cadViews.forEach((v, i) => {
     const attr = /^https?:\/\//i.test(v.value) ? `data-url="${v.value}"` : `data-path="${v.value}"`;
@@ -248,7 +261,7 @@ function escapeWebEmbedsForHtml(content: string): string {
   const webEmbeds: { mode: string; value: string }[] = [];
   const result = content.replace(/@\[web:([^\]]+)\]/g, (_, params) => {
     const firstColon = params.indexOf(':');
-    const mode  = firstColon >= 0 ? params.slice(0, firstColon) : params;
+    const mode = firstColon >= 0 ? params.slice(0, firstColon) : params;
     const value = firstColon >= 0 ? params.slice(firstColon + 1) : '';
     webEmbeds.push({ mode: mode || 'url', value });
     return `%%WEBEMBED_${webEmbeds.length - 1}%%`;
@@ -256,7 +269,10 @@ function escapeWebEmbedsForHtml(content: string): string {
   return JSON.stringify({ result, webEmbeds });
 }
 
-function restoreWebEmbedsFromHtml(html: string, webEmbeds: { mode: string; value: string }[]): string {
+function restoreWebEmbedsFromHtml(
+  html: string,
+  webEmbeds: { mode: string; value: string }[]
+): string {
   let result = html;
   webEmbeds.forEach((v, i) => {
     const tag = `<div data-type="web-embed" data-mode="${v.mode}" data-value="${v.value}"></div>`;
@@ -269,7 +285,10 @@ function restoreWebEmbedsFromHtml(html: string, webEmbeds: { mode: string; value
 
 // Gallery embeds: @[gallery:{provider}:{source}] — provider is immich|gphotos,
 // source is the public share URL (may contain ':' and '/', so split once).
-function escapeGalleriesForHtml(content: string): { result: string; galleries: { provider: string; source: string; selected: string }[] } {
+function escapeGalleriesForHtml(content: string): {
+  result: string;
+  galleries: { provider: string; source: string; selected: string }[];
+} {
   const galleries: { provider: string; source: string; selected: string }[] = [];
   const result = content.replace(/@\[gallery:([^\]]+)\]/g, (_m, params: string) => {
     const firstColon = params.indexOf(':');
@@ -285,9 +304,13 @@ function escapeGalleriesForHtml(content: string): { result: string; galleries: {
   return { result, galleries };
 }
 
-function restoreGalleriesFromHtml(html: string, galleries: { provider: string; source: string; selected: string }[]): string {
+function restoreGalleriesFromHtml(
+  html: string,
+  galleries: { provider: string; source: string; selected: string }[]
+): string {
   let result = html;
-  const enc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const enc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   galleries.forEach((g, i) => {
     const selAttr = g.selected ? ` data-selected="${enc(g.selected)}"` : '';
     const tag = `<div data-type="gallery-embed" data-provider="${enc(g.provider)}" data-source="${enc(g.source)}"${selAttr}></div>`;
@@ -309,10 +332,15 @@ function escapeTableViewsForHtml(content: string): { result: string; tables: str
 
 function restoreTableViewsFromHtml(html: string, tables: string[]): string {
   let result = html;
-  const enc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const enc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   tables.forEach((cfg, i) => {
     const tag = `<div data-type="table-view" data-config="${enc(cfg)}"></div>`;
-    result = result.split(`<p>%%TABLEVIEW_${i}%%</p>`).join(tag).split(`%%TABLEVIEW_${i}%%`).join(tag);
+    result = result
+      .split(`<p>%%TABLEVIEW_${i}%%</p>`)
+      .join(tag)
+      .split(`%%TABLEVIEW_${i}%%`)
+      .join(tag);
   });
   return result;
 }
@@ -329,12 +357,16 @@ function escapeInfoMarksForHtml(content: string): string {
     const parts = params.split(':');
     const dec = (s: string | undefined) => {
       if (!s) return '';
-      try { return decodeURIComponent(s); } catch { return s; }
+      try {
+        return decodeURIComponent(s);
+      } catch {
+        return s;
+      }
     };
     infoMarks.push({
-      text:     dec(parts[0]),
-      title:    dec(parts[1]),
-      body:     dec(parts[2]),
+      text: dec(parts[0]),
+      title: dec(parts[1]),
+      body: dec(parts[2]),
       bodyPath: dec(parts[3]),
     });
     return `%%INFOMARK_${infoMarks.length - 1}%%`;
@@ -344,25 +376,23 @@ function escapeInfoMarksForHtml(content: string): string {
 
 function restoreInfoMarksFromHtml(
   html: string,
-  infoMarks: { text: string; title: string; body: string; bodyPath: string }[],
+  infoMarks: { text: string; title: string; body: string; bodyPath: string }[]
 ): string {
   let result = html;
   infoMarks.forEach((m, i) => {
     // Both data-text AND inner text so a non-TipTap renderer (raw markdown
     // preview, search) still shows the visible label. data-text is canonical.
-    const tag = `<span data-type="info-mark"`
-      + ` data-text="${encodeURIComponent(m.text)}"`
-      + ` data-title="${encodeURIComponent(m.title)}"`
-      + ` data-body="${encodeURIComponent(m.body)}"`
-      + ` data-body-path="${encodeURIComponent(m.bodyPath)}">`
+    const tag =
+      `<span data-type="info-mark"` +
+      ` data-text="${encodeURIComponent(m.text)}"` +
+      ` data-title="${encodeURIComponent(m.title)}"` +
+      ` data-body="${encodeURIComponent(m.body)}"` +
+      ` data-body-path="${encodeURIComponent(m.bodyPath)}">` +
       // Escape HTML-significant chars in the visible text so a "<" in a
       // user-typed marker doesn't get interpreted as a tag during the
       // showdown → TipTap reparse.
-      + m.text
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-      + `</span>`;
+      m.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+      `</span>`;
     const ph = `%%INFOMARK_${i}%%`;
     // InfoMark is INLINE — no `<p>${ph}</p>` wrapping cleanup needed; just
     // splice the raw placeholder wherever showdown left it inside <p>/<li>.
@@ -373,7 +403,10 @@ function restoreInfoMarksFromHtml(
 
 // File chips: @[file:path|env|format] (inline span). Path may contain '/' and ':'
 // so segments are split on '|' (never URL-safe in a path).
-function escapeFileRefsForHtml(content: string): { result: string; files: { path: string; env: string; format: string }[] } {
+function escapeFileRefsForHtml(content: string): {
+  result: string;
+  files: { path: string; env: string; format: string }[];
+} {
   const files: { path: string; env: string; format: string }[] = [];
   const result = content.replace(/@\[file:([^\]]+)\]/g, (_m, params: string) => {
     const [path = '', env = '', format = ''] = params.split('|');
@@ -382,9 +415,13 @@ function escapeFileRefsForHtml(content: string): { result: string; files: { path
   });
   return { result, files };
 }
-function restoreFileRefsFromHtml(html: string, files: { path: string; env: string; format: string }[]): string {
+function restoreFileRefsFromHtml(
+  html: string,
+  files: { path: string; env: string; format: string }[]
+): string {
   let result = html;
-  const enc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const enc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   files.forEach((f, i) => {
     const tag = `<span data-type="file-ref" data-path="${enc(f.path)}"${f.env ? ` data-env="${enc(f.env)}"` : ''}${f.format ? ` data-format="${enc(f.format)}"` : ''}></span>`;
     result = result.split(`%%FILEREF_${i}%%`).join(tag);
@@ -403,9 +440,12 @@ function escapeEnvValuesForHtml(content: string): { result: string; envs: string
 }
 function restoreEnvValuesFromHtml(html: string, envs: string[]): string {
   let result = html;
-  const enc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const enc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   envs.forEach((name, i) => {
-    result = result.split(`%%ENVVAL_${i}%%`).join(`<span data-type="env-value" data-name="${enc(name)}"></span>`);
+    result = result
+      .split(`%%ENVVAL_${i}%%`)
+      .join(`<span data-type="env-value" data-name="${enc(name)}"></span>`);
   });
   return result;
 }
@@ -433,7 +473,10 @@ function restoreFormEngineEmbedsFromHtml(html: string, formEmbeds: string[]): st
 }
 
 // Helper to restore component embeds after showdown conversion
-function restoreComponentEmbedsFromHtml(html: string, componentEmbeds: { type: string; id: string }[]): string {
+function restoreComponentEmbedsFromHtml(
+  html: string,
+  componentEmbeds: { type: string; id: string }[]
+): string {
   let result = html;
 
   componentEmbeds.forEach((embed, index) => {
@@ -450,7 +493,10 @@ function restoreComponentEmbedsFromHtml(html: string, componentEmbeds: { type: s
 }
 
 // Helper to restore math content after showdown conversion
-function restoreMathFromHtml(html: string, mathData: { mathBlocks: string[]; mathInlines: string[] }): string {
+function restoreMathFromHtml(
+  html: string,
+  mathData: { mathBlocks: string[]; mathInlines: string[] }
+): string {
   let result = html;
 
   // Restore block math
@@ -488,17 +534,21 @@ const turndownService = new TurndownService({
   // Emit a non-breaking-space paragraph for empty <p> so the blank line survives
   // the round-trip. Other blank blocks keep the default behaviour.
   blankReplacement: (_content, node) =>
-    (node as unknown as Node).nodeName === 'P' ? '\n\n&nbsp;\n\n' : ((node as { isBlock?: boolean }).isBlock ? '\n\n' : ''),
+    (node as unknown as Node).nodeName === 'P'
+      ? '\n\n&nbsp;\n\n'
+      : (node as { isBlock?: boolean }).isBlock
+        ? '\n\n'
+        : '',
 });
-
 
 // Preserve relative hrefs — DOMParser resolves relative URLs to absolute,
 // but getAttribute('href') returns the original attribute value.
 // We use it explicitly to avoid losing relative workspace links.
 turndownService.addRule('links', {
-  filter: (node) => node.nodeName === 'A'
-    && !!(node as HTMLAnchorElement).getAttribute('href')
-    && (node as HTMLElement).getAttribute('data-wikilink') !== 'true',   // wikilinks handled below
+  filter: (node) =>
+    node.nodeName === 'A' &&
+    !!(node as HTMLAnchorElement).getAttribute('href') &&
+    (node as HTMLElement).getAttribute('data-wikilink') !== 'true', // wikilinks handled below
   replacement: (content, node) => {
     const href = (node as HTMLAnchorElement).getAttribute('href') ?? '';
     const title = (node as HTMLAnchorElement).getAttribute('title');
@@ -511,8 +561,8 @@ turndownService.addRule('links', {
 // ((id|podpis)). Musi stać PRZED regułą linków, bo to osobny element, ale
 // kolejność reguł turndown i tak jest po nazwie — trzymamy je razem dla jasności.
 turndownService.addRule('knowledgeRef', {
-  filter: (node) => node.nodeName === 'SPAN'
-    && (node as HTMLElement).getAttribute('data-type') === 'knowledge-ref',
+  filter: (node) =>
+    node.nodeName === 'SPAN' && (node as HTMLElement).getAttribute('data-type') === 'knowledge-ref',
   replacement: (_content, node) => {
     const el = node as HTMLElement;
     const id = el.getAttribute('data-ref-id') ?? '';
@@ -526,7 +576,8 @@ turndownService.addRule('knowledgeRef', {
 // href keeps the full workspace path for navigation; we strip it to the short
 // `[[…]]` target here and rebuild it on the way back (see escapeWikiLinksForHtml).
 turndownService.addRule('wikiLink', {
-  filter: (node) => node.nodeName === 'A' && (node as HTMLElement).getAttribute('data-wikilink') === 'true',
+  filter: (node) =>
+    node.nodeName === 'A' && (node as HTMLElement).getAttribute('data-wikilink') === 'true',
   replacement: (_content, node) => {
     const el = node as HTMLElement;
     const href = el.getAttribute('href') ?? '';
@@ -544,7 +595,8 @@ turndownService.addRule('wikiLink', {
 
 // Obsidian embed node (<div data-type="md-embed" data-target="…">) → ![[target]]
 turndownService.addRule('mdEmbed', {
-  filter: (node) => node.nodeName === 'DIV' && (node as HTMLElement).getAttribute('data-type') === 'md-embed',
+  filter: (node) =>
+    node.nodeName === 'DIV' && (node as HTMLElement).getAttribute('data-type') === 'md-embed',
   replacement: (_content, node) => {
     const target = (node as HTMLElement).getAttribute('data-target') ?? '';
     return target ? `\n\n![[${target}]]\n\n` : '';
@@ -590,9 +642,10 @@ turndownService.addRule('audioNodeView', {
   replacement: (_content, node) => {
     const element = node as HTMLElement;
     // Get the audio element - either from wrapper or direct
-    const audio = element.nodeName === 'AUDIO'
-      ? element as HTMLAudioElement
-      : (element.querySelector('audio') as HTMLAudioElement);
+    const audio =
+      element.nodeName === 'AUDIO'
+        ? (element as HTMLAudioElement)
+        : (element.querySelector('audio') as HTMLAudioElement);
     if (!audio) return '';
 
     const src = audio.getAttribute('src') || '';
@@ -632,9 +685,10 @@ turndownService.addRule('videoNodeView', {
   replacement: (_content, node) => {
     const element = node as HTMLElement;
     // Get the video element - either from wrapper or direct
-    const video = element.nodeName === 'VIDEO'
-      ? element as HTMLVideoElement
-      : (element.querySelector('video') as HTMLVideoElement);
+    const video =
+      element.nodeName === 'VIDEO'
+        ? (element as HTMLVideoElement)
+        : (element.querySelector('video') as HTMLVideoElement);
     if (!video) return '';
 
     const src = video.getAttribute('src') || '';
@@ -727,12 +781,18 @@ turndownService.addRule('callout', {
     const el = node as HTMLElement;
     if (el.hasAttribute?.('data-callout')) return true;
     // NodeView opakowuje blok dodatkowym <div data-node-view-wrapper>.
-    if (el.getAttribute?.('data-node-view-wrapper') !== null && el.querySelector?.('[data-callout]')) return true;
+    if (
+      el.getAttribute?.('data-node-view-wrapper') !== null &&
+      el.querySelector?.('[data-callout]')
+    )
+      return true;
     return false;
   },
   replacement: (_content, node) => {
     const el = node as HTMLElement;
-    const box = el.hasAttribute('data-callout') ? el : (el.querySelector('[data-callout]') as HTMLElement);
+    const box = el.hasAttribute('data-callout')
+      ? el
+      : (el.querySelector('[data-callout]') as HTMLElement);
     if (!box) return '';
     const raw = (box.getAttribute('data-callout') || 'note').toLowerCase();
     const variant: CalloutVariant = isCalloutVariant(raw) ? raw : 'note';
@@ -807,9 +867,10 @@ turndownService.addRule('imageNodeView', {
   replacement: (_content, node) => {
     const element = node as HTMLElement;
     // Get the img element - either from wrapper or direct
-    const img = element.nodeName === 'IMG'
-      ? element as HTMLImageElement
-      : (element.querySelector('img') as HTMLImageElement);
+    const img =
+      element.nodeName === 'IMG'
+        ? (element as HTMLImageElement)
+        : (element.querySelector('img') as HTMLImageElement);
     if (!img) return '';
 
     const src = img.getAttribute('src') || '';
@@ -838,7 +899,7 @@ turndownService.addRule('imageNodeView', {
     else if (align === 'inline') styleParts.push('display: inline-block');
 
     // Build markdown image - use HTML if we need width or alignment
-    let result = '';
+    let result: string;
     if (styleParts.length > 0) {
       // Use HTML img tag for custom width/alignment
       result = `<img src="${src}" alt="${alt}"${title ? ` title="${title}"` : ''} style="${styleParts.join('; ')}" />`;
@@ -860,7 +921,7 @@ turndownService.addRule('tables', {
     if (rows.length === 0) return '';
 
     // Check if table has custom column widths or cell alignments
-    const hasCustomStyles = Array.from(table.querySelectorAll('th, td')).some(cell => {
+    const hasCustomStyles = Array.from(table.querySelectorAll('th, td')).some((cell) => {
       const style = (cell as HTMLElement).getAttribute('style') || '';
       const colwidth = (cell as HTMLElement).getAttribute('colwidth');
       return style.includes('width') || style.includes('text-align') || colwidth;
@@ -872,7 +933,7 @@ turndownService.addRule('tables', {
       rows.forEach((row) => {
         html += '  <tr>\n';
         const cells = Array.from(row.querySelectorAll('th, td'));
-        cells.forEach(cell => {
+        cells.forEach((cell) => {
           const tag = cell.tagName.toLowerCase();
           const style = (cell as HTMLElement).getAttribute('style') || '';
           const colwidth = (cell as HTMLElement).getAttribute('colwidth');
@@ -912,7 +973,7 @@ turndownService.addRule('tables', {
     let markdown = '\n';
     rows.forEach((row, rowIndex) => {
       const cells = Array.from(row.querySelectorAll('th, td'));
-      const cellContents = cells.map(cell => cell.textContent?.trim() || '');
+      const cellContents = cells.map((cell) => cell.textContent?.trim() || '');
       markdown += '| ' + cellContents.join(' | ') + ' |\n';
 
       if (rowIndex === 0) {
@@ -1023,11 +1084,15 @@ turndownService.addRule('infoMark', {
     const el = node as HTMLElement;
     const dec = (s: string | null) => {
       if (!s) return '';
-      try { return decodeURIComponent(s); } catch { return s; }
+      try {
+        return decodeURIComponent(s);
+      } catch {
+        return s;
+      }
     };
-    const text     = dec(el.getAttribute('data-text'))  || el.textContent || '';
-    const title    = dec(el.getAttribute('data-title'));
-    const body     = dec(el.getAttribute('data-body'));
+    const text = dec(el.getAttribute('data-text')) || el.textContent || '';
+    const title = dec(el.getAttribute('data-title'));
+    const body = dec(el.getAttribute('data-body'));
     const bodyPath = dec(el.getAttribute('data-body-path'));
     return `@[info:${encodeURIComponent(text)}:${encodeURIComponent(title)}:${encodeURIComponent(body)}:${encodeURIComponent(bodyPath)}]`;
   },
@@ -1050,8 +1115,8 @@ turndownService.addRule('componentEmbed', {
   },
   replacement: (_content, node) => {
     const element = node as HTMLElement;
-    let componentType = '';
-    let componentId = '';
+    let componentType: string;
+    let componentId: string;
 
     // Direct attributes
     componentType = element.getAttribute('data-component-type') || '';
@@ -1092,7 +1157,7 @@ turndownService.addRule('uiFormEmbed', {
   },
   replacement: (_content, node) => {
     const element = node as HTMLElement;
-    let formId = '';
+    let formId: string;
     let inlineData = '';
 
     // Direct attributes
@@ -1142,21 +1207,26 @@ turndownService.addRule('eventBlock', {
   },
   replacement: (_content, node) => {
     const element = node as HTMLElement;
-    const source: HTMLElement = element.getAttribute('data-type') === 'event-block'
-      ? element
-      : (element.querySelector('[data-type="event-block"]') as HTMLElement | null) ?? element;
+    const source: HTMLElement =
+      element.getAttribute('data-type') === 'event-block'
+        ? element
+        : ((element.querySelector('[data-type="event-block"]') as HTMLElement | null) ?? element);
     const dec = (name: string) => {
       const raw = source.getAttribute(name);
       if (!raw) return '';
-      try { return decodeURIComponent(raw); } catch { return raw; }
+      try {
+        return decodeURIComponent(raw);
+      } catch {
+        return raw;
+      }
     };
     const attrs = {
-      eventName:   dec('data-event-name'),
-      start:       dec('data-start'),
-      end:         dec('data-end'),
+      eventName: dec('data-event-name'),
+      start: dec('data-start'),
+      end: dec('data-end'),
       description: dec('data-description'),
-      taskId:      dec('data-task-id'),
-      taskName:    dec('data-task-name'),
+      taskId: dec('data-task-id'),
+      taskName: dec('data-task-name'),
       projectName: dec('data-project-name'),
     };
     return `\n\`\`\`event\n${JSON.stringify(attrs, null, 2)}\n\`\`\`\n`;
@@ -1176,19 +1246,23 @@ turndownService.addRule('taskCard', {
   },
   replacement: (_content, node) => {
     const element = node as HTMLElement;
-    const source: HTMLElement = element.getAttribute('data-type') === 'task-card'
-      ? element
-      : (element.querySelector('[data-type="task-card"]') as HTMLElement | null) ?? element;
+    const source: HTMLElement =
+      element.getAttribute('data-type') === 'task-card'
+        ? element
+        : ((element.querySelector('[data-type="task-card"]') as HTMLElement | null) ?? element);
     const dec = (name: string) => {
       const raw = source.getAttribute(name);
       if (!raw) return '';
-      try { return decodeURIComponent(raw); } catch { return raw; }
+      try {
+        return decodeURIComponent(raw);
+      } catch {
+        return raw;
+      }
     };
     const attrs = { taskId: dec('data-task-id'), taskName: dec('data-task-name') };
     return `\n\`\`\`taskcard\n${JSON.stringify(attrs, null, 2)}\n\`\`\`\n`;
   },
 });
-
 
 // Plugin script block helpers — format: ```pscript:blockId:mode:encodedLabel
 type PluginScriptEntry = { code: string; blockId: string; mode: string; label: string };
@@ -1235,7 +1309,9 @@ turndownService.addRule('pluginScriptBlock', {
       const inner = target.querySelector('[data-type="plugin-script-block"]') as HTMLElement | null;
       if (inner) target = inner;
     }
-    const code = target.getAttribute('data-code') ? decodeURIComponent(target.getAttribute('data-code')!) : '';
+    const code = target.getAttribute('data-code')
+      ? decodeURIComponent(target.getAttribute('data-code')!)
+      : '';
     const blockId = target.getAttribute('data-block-id') || '';
     const mode = target.getAttribute('data-mode') || 'manual';
     const label = encodeURIComponent(target.getAttribute('data-label') || 'Script');
@@ -1293,13 +1369,12 @@ function escapeEmbedsForHtml(content: string): { result: string; embeds: string[
 
 function restoreEmbedsToHtml(html: string, embeds: string[]): string {
   let result = html;
-  const enc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const enc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   embeds.forEach((target, i) => {
     const div = `<div data-type="md-embed" data-target="${enc(target)}"></div>`;
     // Showdown wraps the lone placeholder in a paragraph — unwrap it (block node).
-    result = result
-      .split(`<p>%%MDEMBED${i}%%</p>`).join(div)
-      .split(`%%MDEMBED${i}%%`).join(div);
+    result = result.split(`<p>%%MDEMBED${i}%%</p>`).join(div).split(`%%MDEMBED${i}%%`).join(div);
   });
   return result;
 }
@@ -1309,7 +1384,10 @@ function restoreEmbedsToHtml(html: string, embeds: string[]): string {
 // hasła zamieniał się przez to w link do nieistniejącego dokumentu.
 // Identyfikator zaczyna się od litery i nie ma spacji, więc zwykły nawias
 // w zdaniu („(patrz (a) wyżej)") nie jest brany za odsyłacz.
-function escapeKnowledgeRefsForHtml(content: string): { result: string; refs: { id: string; label: string }[] } {
+function escapeKnowledgeRefsForHtml(content: string): {
+  result: string;
+  refs: { id: string; label: string }[];
+} {
   const refs: { id: string; label: string }[] = [];
   const result = content.replace(
     // Podpis wolno złamać na wiersze — plik źródłowy jest zawijany, więc
@@ -1320,14 +1398,15 @@ function escapeKnowledgeRefsForHtml(content: string): { result: string; refs: { 
       // Złamanie wiersza jest zapisem, nie treścią — akapit składa się na nowo.
       refs.push({ id, label: (label ?? '').replace(/\s+/g, ' ').trim() });
       return `%%KNOWREF${refs.length - 1}%%`;
-    },
+    }
   );
   return { result, refs };
 }
 
 function restoreKnowledgeRefsToHtml(html: string, refs: { id: string; label: string }[]): string {
   let result = html;
-  const enc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const enc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   refs.forEach((r, i) => {
     const tag = `<span data-type="knowledge-ref" data-ref-id="${enc(r.id)}" data-label="${enc(r.label)}">${enc(r.label || r.id)}</span>`;
     result = result.split(`%%KNOWREF${i}%%`).join(tag);
@@ -1335,25 +1414,35 @@ function restoreKnowledgeRefsToHtml(html: string, refs: { id: string; label: str
   return result;
 }
 
-function escapeWikiLinksForHtml(content: string): { result: string; wikiLinks: { href: string; label: string }[] } {
+function escapeWikiLinksForHtml(content: string): {
+  result: string;
+  wikiLinks: { href: string; label: string }[];
+} {
   const wikiLinks: { href: string; label: string }[] = [];
-  const result = content.replace(/\[\[([^\]\n|]+?)(?:\|([^\]\n]+?))?\]\]/g, (_m, target: string, label?: string) => {
-    const t = String(target).trim();
-    const hashIdx = t.indexOf('#');
-    const filePart = (hashIdx >= 0 ? t.slice(0, hashIdx) : t).replace(/^\/+/, '');
-    const anchorPart = hashIdx >= 0 ? t.slice(hashIdx) : '';
-    // No file part → a same-document anchor ([[#heading]]); otherwise a link to
-    // another note (drive/<file>.md#…).
-    const href = filePart ? `drive/${filePart}.md${anchorPart}` : anchorPart;
-    wikiLinks.push({ href, label: (label ?? t).trim() });
-    return `%%WIKILINK${wikiLinks.length - 1}%%`;
-  });
+  const result = content.replace(
+    /\[\[([^\]\n|]+?)(?:\|([^\]\n]+?))?\]\]/g,
+    (_m, target: string, label?: string) => {
+      const t = String(target).trim();
+      const hashIdx = t.indexOf('#');
+      const filePart = (hashIdx >= 0 ? t.slice(0, hashIdx) : t).replace(/^\/+/, '');
+      const anchorPart = hashIdx >= 0 ? t.slice(hashIdx) : '';
+      // No file part → a same-document anchor ([[#heading]]); otherwise a link to
+      // another note (drive/<file>.md#…).
+      const href = filePart ? `drive/${filePart}.md${anchorPart}` : anchorPart;
+      wikiLinks.push({ href, label: (label ?? t).trim() });
+      return `%%WIKILINK${wikiLinks.length - 1}%%`;
+    }
+  );
   return { result, wikiLinks };
 }
 
-function restoreWikiLinksToHtml(html: string, wikiLinks: { href: string; label: string }[]): string {
+function restoreWikiLinksToHtml(
+  html: string,
+  wikiLinks: { href: string; label: string }[]
+): string {
   let result = html;
-  const enc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const enc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   wikiLinks.forEach((l, i) => {
     const tag = `<a href="${enc(l.href)}" data-wikilink="true" class="md-editor-link">${enc(l.label)}</a>`;
     result = result.split(`%%WIKILINK${i}%%`).join(tag);
@@ -1405,7 +1494,7 @@ export function markdownToHtml(markdown: string): string {
       const ph = `%%BID${blockIds.length}%%`;
       blockIds.push(id);
       return ph;
-    },
+    }
   );
 
   // Callouty (`> [!NOTE]`) wyjmujemy przed showdownem — inaczej zrobiłby z nich
@@ -1414,20 +1503,23 @@ export function markdownToHtml(markdown: string): string {
 
   // First, protect plugin script blocks from showdown processing
   const pluginScriptDataStr = escapePluginScriptsForHtml(markdownWithoutCallouts);
-  const { result: markdownWithoutPluginScripts, scripts: pluginScripts } = JSON.parse(pluginScriptDataStr);
+  const { result: markdownWithoutPluginScripts, scripts: pluginScripts } =
+    JSON.parse(pluginScriptDataStr);
 
   // Protect event blocks (```event {…json…}``` code fences) from showdown
   // — replace with `%%EVENTBLOCK_N%%` before showdown sees the fence
   // marker, then re-emit as <div data-type="event-block" data-…> after html.
-  const { result: markdownWithoutEvents, events: eventBlocks } =
-    escapeEventBlocksForHtml(markdownWithoutPluginScripts);
+  const { result: markdownWithoutEvents, events: eventBlocks } = escapeEventBlocksForHtml(
+    markdownWithoutPluginScripts
+  );
 
   // Karty zadań — ta sama droga co bloki zdarzeń.
   const { result: markdownWithoutTaskCards, cards: taskCards } =
     escapeTaskCardsForHtml(markdownWithoutEvents);
 
   // Protect photo-map blocks (```photomap {…json…}``` fences) from showdown.
-  const { result: markdownWithoutPhotoMaps, photoMaps } = escapePhotoMapsForHtml(markdownWithoutTaskCards);
+  const { result: markdownWithoutPhotoMaps, photoMaps } =
+    escapePhotoMapsForHtml(markdownWithoutTaskCards);
 
   // Protect UI form embeds from showdown processing
   const uiFormDataStr = escapeUIFormsForHtml(markdownWithoutPhotoMaps);
@@ -1445,10 +1537,12 @@ export function markdownToHtml(markdown: string): string {
   };
 
   // Protect gallery embeds (Immich / Google Photos) from showdown processing
-  const { result: markdownWithoutGalleries, galleries } = escapeGalleriesForHtml(markdownWithoutWebEmbeds);
+  const { result: markdownWithoutGalleries, galleries } =
+    escapeGalleriesForHtml(markdownWithoutWebEmbeds);
 
   // Protect TableView blocks from showdown processing
-  const { result: markdownWithoutTableViews, tables: tableViews } = escapeTableViewsForHtml(markdownWithoutGalleries);
+  const { result: markdownWithoutTableViews, tables: tableViews } =
+    escapeTableViewsForHtml(markdownWithoutGalleries);
 
   // Protect form-engine embeds from showdown processing
   const formEngineDataStr = escapeFormEngineEmbedsForHtml(markdownWithoutTableViews);
@@ -1473,8 +1567,10 @@ export function markdownToHtml(markdown: string): string {
   const { result: markdownWithoutEmbeds, embeds } = escapeEmbedsForHtml(markdownWithoutComponents);
 
   // Protect Obsidian wikilinks [[…]] from showdown
-  const { result: markdownWithoutRefs, refs: knowledgeRefs } = escapeKnowledgeRefsForHtml(markdownWithoutEmbeds);
-  const { result: markdownWithoutWikiLinks, wikiLinks } = escapeWikiLinksForHtml(markdownWithoutRefs);
+  const { result: markdownWithoutRefs, refs: knowledgeRefs } =
+    escapeKnowledgeRefsForHtml(markdownWithoutEmbeds);
+  const { result: markdownWithoutWikiLinks, wikiLinks } =
+    escapeWikiLinksForHtml(markdownWithoutRefs);
 
   // Then, protect math content from showdown processing
   const mathDataStr = escapeMathForHtml(markdownWithoutWikiLinks);
@@ -1489,11 +1585,12 @@ export function markdownToHtml(markdown: string): string {
       const i = extCodeBlocks.length;
       extCodeBlocks.push({ lang, src });
       return `%%EXTCODE${i}%%`;
-    },
+    }
   );
 
   // Osadzenia YouTube: ` ```youtube {json} ` → marker → po showdown <iframe data-youtube-id>.
-  const ytBlocks: { videoId: string; start?: number | string; width?: string; align?: string }[] = [];
+  const ytBlocks: { videoId: string; start?: number | string; width?: string; align?: string }[] =
+    [];
   const markdownWithYt = markdownWithExtCodes.replace(
     /^```youtube[ \t]*\n([\s\S]*?)^```[ \t]*$/gm,
     (_m: string, body: string) => {
@@ -1502,8 +1599,10 @@ export function markdownToHtml(markdown: string): string {
         const i = ytBlocks.length;
         ytBlocks.push(cfg);
         return `%%YOUTUBE${i}%%`;
-      } catch { return _m; }
-    },
+      } catch {
+        return _m;
+      }
+    }
   );
 
   let html = showdownConverter.makeHtml(markdownWithYt);
@@ -1518,10 +1617,11 @@ export function markdownToHtml(markdown: string): string {
   ytBlocks.forEach((cfg, i) => {
     const start = cfg.start ? Number(cfg.start) : 0;
     const src = `https://www.youtube.com/embed/${cfg.videoId}${start > 0 ? `?start=${start}` : ''}`;
-    const el = `<iframe src="${src}" class="md-editor-youtube" data-youtube-id="${cfg.videoId}"`
-      + (start > 0 ? ` data-start="${start}"` : '')
-      + ` data-align="${cfg.align || 'center'}" frameborder="0" allowfullscreen="true"`
-      + ` style="aspect-ratio: 16 / 9; width: ${cfg.width || '100%'}; max-width: 100%; display: block"></iframe>`;
+    const el =
+      `<iframe src="${src}" class="md-editor-youtube" data-youtube-id="${cfg.videoId}"` +
+      (start > 0 ? ` data-start="${start}"` : '') +
+      ` data-align="${cfg.align || 'center'}" frameborder="0" allowfullscreen="true"` +
+      ` style="aspect-ratio: 16 / 9; width: ${cfg.width || '100%'}; max-width: 100%; display: block"></iframe>`;
     html = html.replace(`<p>%%YOUTUBE${i}%%</p>`, el).replace(`%%YOUTUBE${i}%%`, el);
   });
 
@@ -1583,13 +1683,10 @@ export function markdownToHtml(markdown: string): string {
     html = html.replace(`<p>${placeholder}</p>`, tag).split(placeholder).join(tag);
   });
 
-  html = html.replace(
-    /<li>\s*\[([ xX])\]\s*/g,
-    (_, checked) => {
-      const isChecked = checked.toLowerCase() === 'x';
-      return `<li data-type="taskItem" data-checked="${isChecked}"><label><input type="checkbox"${isChecked ? ' checked' : ''}></label><div>`;
-    }
-  );
+  html = html.replace(/<li>\s*\[([ xX])\]\s*/g, (_, checked) => {
+    const isChecked = checked.toLowerCase() === 'x';
+    return `<li data-type="taskItem" data-checked="${isChecked}"><label><input type="checkbox"${isChecked ? ' checked' : ''}></label><div>`;
+  });
 
   html = html.replace(/==([^=]+)==/g, '<mark>$1</mark>');
 
@@ -1603,7 +1700,7 @@ export function markdownToHtml(markdown: string): string {
     });
     html = html.replace(
       /%%BIDREADY:([^%]+)%%\s*(<(?:h[1-6]|p|ul|ol|blockquote|pre|table)[^>]*>)/gi,
-      (_, id, openTag) => openTag.replace(/^(<\w+)/, `$1 data-block-id="${id}"`),
+      (_, id, openTag) => openTag.replace(/^(<\w+)/, `$1 data-block-id="${id}"`)
     );
     html = html.replace(/%%BIDREADY:[^%]*%%/g, '');
   }
@@ -1662,21 +1759,21 @@ export function htmlToMarkdown(html: string): string {
     });
     // Preserve "extra" whitespace that Markdown would otherwise collapse: leading
     // spaces, trailing spaces and interior runs of 2+ spaces become non-breaking
-    // spaces ( ), which Turndown/Markdown keep verbatim. Single interior
+    // spaces (U+00A0), which Turndown/Markdown keep verbatim. Single interior
     // spaces stay normal so ordinary prose remains clean Markdown. Skip code/pre
     // (their whitespace is already fenced and significant).
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
     const textNodes: Text[] = [];
     for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-      const parentTag = (n.parentElement?.closest('pre, code'));
+      const parentTag = n.parentElement?.closest('pre, code');
       if (!parentTag) textNodes.push(n as Text);
     }
     for (const t of textNodes) {
       const v = t.nodeValue ?? '';
       if (!/ {2,}| $|^ /.test(v)) continue;
       t.nodeValue = v
-        .replace(/^ +/, (m) => ' '.repeat(m.length))          // leading run
-        .replace(/ +$/, (m) => ' '.repeat(m.length))          // trailing run
+        .replace(/^ +/, (m) => ' '.repeat(m.length)) // leading run
+        .replace(/ +$/, (m) => ' '.repeat(m.length)) // trailing run
         .replace(/ {2,}/g, (m) => ' ' + ' '.repeat(m.length - 1)); // interior run: keep 1 space, pad rest
     }
     return doc.body.innerHTML;
@@ -1713,21 +1810,18 @@ export function htmlToMarkdown(html: string): string {
       const s = m.match(/data-source="([^"]*)"/i);
       rawMdBlocks.push(s ? decodeURIComponent(s[1]) : '');
       return `<p>##RAWMDBLOCK${rawMdBlocks.length - 1}##</p>`;
-    },
+    }
   );
 
   // Pre-process: Obsidian embeds. Turndown drops EMPTY <div>s (isBlank check) so
   // the mdEmbed rule never fires — swap them for a text placeholder now and
   // restore `![[target]]` after turndown (matches the event-block approach).
   const mdEmbedTargets: string[] = [];
-  processedHtml = processedHtml.replace(
-    /<div[^>]*data-type="md-embed"[^>]*><\/div>/gi,
-    (m) => {
-      const t = m.match(/data-target="([^"]*)"/i);
-      mdEmbedTargets.push(t ? t[1] : '');
-      return `<p>##MDEMBEDOUT${mdEmbedTargets.length - 1}##</p>`;
-    }
-  );
+  processedHtml = processedHtml.replace(/<div[^>]*data-type="md-embed"[^>]*><\/div>/gi, (m) => {
+    const t = m.match(/data-target="([^"]*)"/i);
+    mdEmbedTargets.push(t ? t[1] : '');
+    return `<p>##MDEMBEDOUT${mdEmbedTargets.length - 1}##</p>`;
+  });
 
   // Pre-process: Replace form-engine embeds with placeholders before Turndown
   const formEngineEmbeds: string[] = [];
@@ -1737,7 +1831,7 @@ export function htmlToMarkdown(html: string): string {
     (_, path) => {
       formEngineEmbeds.push(path);
       return `##FORMEMBED${formEngineEmbeds.length - 1}##`;
-    },
+    }
   );
 
   // Also handle self-closing variant
@@ -1746,7 +1840,7 @@ export function htmlToMarkdown(html: string): string {
     (_, path) => {
       formEngineEmbeds.push(path);
       return `##FORMEMBED${formEngineEmbeds.length - 1}##`;
-    },
+    }
   );
 
   // Pre-process: Replace CAD view embeds with placeholders before Turndown.
@@ -1759,10 +1853,10 @@ export function htmlToMarkdown(html: string): string {
     (match) => {
       const modeM = match.match(/data-mode="([^"]*)"/);
       const pathM = match.match(/data-path="([^"]*)"/);
-      const urlM  = match.match(/data-url="([^"]*)"/);
+      const urlM = match.match(/data-url="([^"]*)"/);
       cadViews.push({ mode: modeM?.[1] || 'scene3d', value: urlM?.[1] || pathM?.[1] || '' });
       return `##CADVIEW${cadViews.length - 1}##`;
-    },
+    }
   );
 
   // Pre-process: Replace Web embeds with placeholders before Turndown
@@ -1771,24 +1865,33 @@ export function htmlToMarkdown(html: string): string {
     /<div[^>]*data-type="web-embed"[^>]*>[\s\S]*?<\/div>/gi,
     (match) => {
       const modeM = match.match(/data-mode="([^"]*)"/);
-      const valM  = match.match(/data-value="([^"]*)"/);
+      const valM = match.match(/data-value="([^"]*)"/);
       webEmbeds.push({ mode: modeM?.[1] || 'url', value: valM?.[1] || '' });
       return `##WEBEMBED${webEmbeds.length - 1}##`;
-    },
+    }
   );
 
   // Pre-process: Replace gallery embeds (empty <div>, dropped by Turndown as blank)
   const galleries: { provider: string; source: string; selected: string }[] = [];
-  const decodeAttr = (s: string) => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const decodeAttr = (s: string) =>
+    s
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>');
   processedHtml = processedHtml.replace(
     /<div[^>]*data-type="gallery-embed"[^>]*>(?:[\s\S]*?<\/div>)?/gi,
     (match) => {
       const provM = match.match(/data-provider="([^"]*)"/);
       const srcM = match.match(/data-source="([^"]*)"/);
       const selM = match.match(/data-selected="([^"]*)"/);
-      galleries.push({ provider: provM?.[1] || 'immich', source: decodeAttr(srcM?.[1] || ''), selected: decodeAttr(selM?.[1] || '') });
+      galleries.push({
+        provider: provM?.[1] || 'immich',
+        source: decodeAttr(srcM?.[1] || ''),
+        selected: decodeAttr(selM?.[1] || ''),
+      });
       return `<p>##GALLERY${galleries.length - 1}##</p>`;
-    },
+    }
   );
 
   // Pre-process: Replace TableView blocks (empty <div>, dropped by Turndown as blank)
@@ -1799,7 +1902,7 @@ export function htmlToMarkdown(html: string): string {
       const cfgM = match.match(/data-config="([^"]*)"/);
       tableViews.push(decodeAttr(cfgM?.[1] || ''));
       return `<p>##TABLEVIEW${tableViews.length - 1}##</p>`;
-    },
+    }
   );
 
   // Pre-process: Replace InfoMark inline spans with placeholders before
@@ -1812,34 +1915,47 @@ export function htmlToMarkdown(html: string): string {
     (match) => {
       const dec = (s: string | undefined) => {
         if (!s) return '';
-        try { return decodeURIComponent(s); } catch { return s; }
+        try {
+          return decodeURIComponent(s);
+        } catch {
+          return s;
+        }
       };
-      const textM  = match.match(/data-text="([^"]*)"/);
+      const textM = match.match(/data-text="([^"]*)"/);
       const titleM = match.match(/data-title="([^"]*)"/);
-      const bodyM  = match.match(/data-body="([^"]*)"/);
-      const pathM  = match.match(/data-body-path="([^"]*)"/);
+      const bodyM = match.match(/data-body="([^"]*)"/);
+      const pathM = match.match(/data-body-path="([^"]*)"/);
       infoMarks.push({
-        text:     dec(textM?.[1]),
-        title:    dec(titleM?.[1]),
-        body:     dec(bodyM?.[1]),
+        text: dec(textM?.[1]),
+        title: dec(titleM?.[1]),
+        body: dec(bodyM?.[1]),
         bodyPath: dec(pathM?.[1]),
       });
       return `##INFOMARK${infoMarks.length - 1}##`;
-    },
+    }
   );
 
   // Pre-process: File chips (inline span) → placeholder → @[file:path|env|format]
   const fileRefs: { path: string; env: string; format: string }[] = [];
-  const decAttr = (s: string) => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const decAttr = (s: string) =>
+    s
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>');
   processedHtml = processedHtml.replace(
     /<span[^>]*data-type="file-ref"[^>]*>(?:[\s\S]*?<\/span>)?/gi,
     (match) => {
       const pathM = match.match(/data-path="([^"]*)"/);
       const envM = match.match(/data-env="([^"]*)"/);
       const fmtM = match.match(/data-format="([^"]*)"/);
-      fileRefs.push({ path: decAttr(pathM?.[1] || ''), env: decAttr(envM?.[1] || ''), format: decAttr(fmtM?.[1] || '') });
+      fileRefs.push({
+        path: decAttr(pathM?.[1] || ''),
+        env: decAttr(envM?.[1] || ''),
+        format: decAttr(fmtM?.[1] || ''),
+      });
       return `##FILEREF${fileRefs.length - 1}##`;
-    },
+    }
   );
 
   // Pre-process: env-value markers (inline span) → placeholder → {{env:name}}
@@ -1850,7 +1966,7 @@ export function htmlToMarkdown(html: string): string {
       const nameM = match.match(/data-name="([^"]*)"/);
       envValues.push(decAttr(nameM?.[1] || ''));
       return `##ENVVAL${envValues.length - 1}##`;
-    },
+    }
   );
 
   // Pre-process: Replace plugin script blocks with placeholders before Turndown
@@ -1869,7 +1985,7 @@ export function htmlToMarkdown(html: string): string {
         label: labelM ? labelM[1] : 'Script',
       });
       return `##PLUGINSCRIPT${pluginScriptsHtml.length - 1}##`;
-    },
+    }
   );
 
   // Pre-process: Replace event blocks with placeholders before Turndown.
@@ -1884,15 +2000,19 @@ export function htmlToMarkdown(html: string): string {
       const dec = (name: string) => {
         const m = match.match(new RegExp(`${name}="([^"]*)"`));
         if (!m) return '';
-        try { return decodeURIComponent(m[1]); } catch { return m[1]; }
+        try {
+          return decodeURIComponent(m[1]);
+        } catch {
+          return m[1];
+        }
       };
       eventBlocks.push({
-        eventName:   dec('data-event-name'),
-        start:       dec('data-start'),
-        end:         dec('data-end'),
+        eventName: dec('data-event-name'),
+        start: dec('data-start'),
+        end: dec('data-end'),
         description: dec('data-description'),
-        taskId:      dec('data-task-id'),
-        taskName:    dec('data-task-name'),
+        taskId: dec('data-task-id'),
+        taskName: dec('data-task-name'),
         projectName: dec('data-project-name'),
       });
       return `##EVENTBLOCK${eventBlocks.length - 1}##`;
@@ -1909,7 +2029,11 @@ export function htmlToMarkdown(html: string): string {
       const dec = (name: string) => {
         const m = match.match(new RegExp(`${name}="([^"]*)"`));
         if (!m) return '';
-        try { return decodeURIComponent(m[1]); } catch { return m[1]; }
+        try {
+          return decodeURIComponent(m[1]);
+        } catch {
+          return m[1];
+        }
       };
       taskCards.push({ taskId: dec('data-task-id'), taskName: dec('data-task-name') });
       return `##TASKCARD${taskCards.length - 1}##`;
@@ -1924,7 +2048,13 @@ export function htmlToMarkdown(html: string): string {
     (match) => {
       const m = match.match(/data-config="([^"]*)"/);
       let cfg = '';
-      if (m) { try { cfg = decodeURIComponent(m[1]); } catch { cfg = m[1]; } }
+      if (m) {
+        try {
+          cfg = decodeURIComponent(m[1]);
+        } catch {
+          cfg = m[1];
+        }
+      }
       photoMaps.push(cfg);
       return `##PHOTOMAP${photoMaps.length - 1}##`;
     }
@@ -1965,7 +2095,7 @@ export function htmlToMarkdown(html: string): string {
       const dl = m.match(/data-latex="([^"]*)"/i);
       mathBlockLatex.push(dl ? decodeURIComponent(dl[1]) : '');
       return `<p>##MATHBLOCK${mathBlockLatex.length - 1}##</p>`;
-    },
+    }
   );
   const mathInlineLatex: string[] = [];
   processedHtml = processedHtml.replace(
@@ -1974,7 +2104,7 @@ export function htmlToMarkdown(html: string): string {
       const dl = m.match(/data-latex="([^"]*)"/i);
       mathInlineLatex.push(dl ? decodeURIComponent(dl[1]) : '');
       return `##MATHINLINE${mathInlineLatex.length - 1}##`;
-    },
+    }
   );
   // Kolumny (i inne osadzenia) — bez zmian. Math jest już w placeholderach.
   processedHtml = preprocessColumnContent(processedHtml);
@@ -2000,7 +2130,11 @@ export function htmlToMarkdown(html: string): string {
 
   // Post-process: Restore Obsidian embeds as ![[target]]
   mdEmbedTargets.forEach((target, index) => {
-    const dec = target.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    const dec = target
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>');
     markdown = markdown.split(`##MDEMBEDOUT${index}##`).join(dec ? `![[${dec}]]` : '');
   });
 
@@ -2046,7 +2180,9 @@ export function htmlToMarkdown(html: string): string {
   // Post-process: Restore gallery embeds as @[gallery:provider:source[|selected]]
   galleries.forEach((g, index) => {
     const tail = g.selected ? `|${g.selected}` : '';
-    markdown = markdown.split(`##GALLERY${index}##`).join(`@[gallery:${g.provider}:${g.source}${tail}]`);
+    markdown = markdown
+      .split(`##GALLERY${index}##`)
+      .join(`@[gallery:${g.provider}:${g.source}${tail}]`);
   });
 
   // Post-process: Restore TableView blocks as @[tableview:<encoded>]
@@ -2114,7 +2250,9 @@ export function htmlToMarkdown(html: string): string {
     if (yt.start) cfg.start = Number(yt.start);
     if (yt.width && yt.width !== '100%') cfg.width = yt.width;
     if (yt.align && yt.align !== 'center') cfg.align = yt.align;
-    markdown = markdown.split(`%%YOUTUBE${i}%%`).join(`\`\`\`youtube\n${JSON.stringify(cfg)}\n\`\`\``);
+    markdown = markdown
+      .split(`%%YOUTUBE${i}%%`)
+      .join(`\`\`\`youtube\n${JSON.stringify(cfg)}\n\`\`\``);
   });
 
   return markdown;

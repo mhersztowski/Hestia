@@ -19,7 +19,12 @@ import AudiotrackIcon from '@mui/icons-material/Audiotrack';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import MediaPickerDialog from '../components/MediaPickerDialog';
 
-const AudioNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, deleteNode, selected }) => {
+const AudioNodeView: React.FC<NodeViewProps> = ({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}) => {
   const [isEditing, setIsEditing] = useState(!node.attrs.src);
   const [isHovered, setIsHovered] = useState(false);
   const [editSrc, setEditSrc] = useState(node.attrs.src || '');
@@ -120,7 +125,11 @@ const AudioNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, delete
             borderRadius: 2,
           }}
         >
-          <Typography variant="subtitle2" color="secondary" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography
+            variant="subtitle2"
+            color="secondary"
+            sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}
+          >
             <AudiotrackIcon /> Edit audio
           </Typography>
 
@@ -221,7 +230,9 @@ const AudioNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, delete
               </Box>
             )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}
+            >
               <Typography variant="caption" color="text.secondary">
                 Ctrl+Enter aby zapisać, Escape aby anulować
               </Typography>
@@ -312,7 +323,10 @@ const AudioNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, delete
         )}
 
         {node.attrs.title && (
-          <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}
+          >
             <AudiotrackIcon color="secondary" fontSize="small" />
             {node.attrs.title}
           </Typography>
@@ -407,12 +421,20 @@ export const AudioEmbed = Node.create({
 
   addCommands() {
     return {
-      setAudio: (options: { src: string; title?: string; controls?: boolean; autoplay?: boolean; loop?: boolean }) => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: options,
-        });
-      },
+      setAudio:
+        (options: {
+          src: string;
+          title?: string;
+          controls?: boolean;
+          autoplay?: boolean;
+          loop?: boolean;
+        }) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: options,
+          });
+        },
     };
   },
 });
@@ -420,7 +442,13 @@ export const AudioEmbed = Node.create({
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     audio: {
-      setAudio: (options: { src: string; title?: string; controls?: boolean; autoplay?: boolean; loop?: boolean }) => ReturnType;
+      setAudio: (options: {
+        src: string;
+        title?: string;
+        controls?: boolean;
+        autoplay?: boolean;
+        loop?: boolean;
+      }) => ReturnType;
     };
   }
 }

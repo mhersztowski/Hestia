@@ -38,8 +38,10 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import {
-  useEditorFileTree, useEditorSession,
-  type EditorDir as DirData, type EditorFile as FileData,
+  useEditorFileTree,
+  useEditorSession,
+  type EditorDir as DirData,
+  type EditorFile as FileData,
 } from '../capabilities';
 
 export type MediaType = 'image' | 'audio' | 'video' | 'all';
@@ -57,7 +59,6 @@ MEDIA_EXTENSIONS.all = [
   ...MEDIA_EXTENSIONS.audio,
   ...MEDIA_EXTENSIONS.video,
 ];
-
 
 interface MediaPickerDialogProps {
   open: boolean;
@@ -88,10 +89,14 @@ const getFileMediaType = (ext: string): MediaType => {
 
 const getMediaIcon = (type: MediaType) => {
   switch (type) {
-    case 'image': return <ImageIcon />;
-    case 'audio': return <AudiotrackIcon />;
-    case 'video': return <VideocamIcon />;
-    default: return <PermMediaIcon />;
+    case 'image':
+      return <ImageIcon />;
+    case 'audio':
+      return <AudiotrackIcon />;
+    case 'video':
+      return <VideocamIcon />;
+    default:
+      return <PermMediaIcon />;
   }
 };
 
@@ -111,17 +116,23 @@ const DirTreeItem: React.FC<DirTreeItemProps> = ({
 
   const extensions = MEDIA_EXTENSIONS[mediaType];
   const mediaCount = useMemo(() => {
-    return dir.getFiles().filter(f => extensions.includes(f.getExt().toLowerCase())).length;
+    return dir.getFiles().filter((f) => extensions.includes(f.getExt().toLowerCase())).length;
   }, [dir, extensions]);
 
   const matchesFilter = useMemo(() => {
     if (!filter) return true;
     const lowerFilter = filter.toLowerCase();
     if (dir.getName().toLowerCase().includes(lowerFilter)) return true;
-    if (dir.getFiles().some(f =>
-      extensions.includes(f.getExt().toLowerCase()) &&
-      f.getName().toLowerCase().includes(lowerFilter)
-    )) return true;
+    if (
+      dir
+        .getFiles()
+        .some(
+          (f) =>
+            extensions.includes(f.getExt().toLowerCase()) &&
+            f.getName().toLowerCase().includes(lowerFilter)
+        )
+    )
+      return true;
     return false;
   }, [dir, filter, extensions]);
 
@@ -152,10 +163,7 @@ const DirTreeItem: React.FC<DirTreeItemProps> = ({
             <FolderIcon color={isSelected ? 'primary' : 'action'} />
           )}
         </ListItemIcon>
-        <ListItemText
-          primary={dir.getName()}
-          primaryTypographyProps={{ noWrap: true }}
-        />
+        <ListItemText primary={dir.getName()} primaryTypographyProps={{ noWrap: true }} />
         {mediaCount > 0 && (
           <Chip
             label={mediaCount}
@@ -214,7 +222,13 @@ interface MediaItemPreviewProps {
   baseUrl: string;
 }
 
-const MediaItemPreview: React.FC<MediaItemPreviewProps> = ({ file, isSelected, onClick, userName, baseUrl }) => {
+const MediaItemPreview: React.FC<MediaItemPreviewProps> = ({
+  file,
+  isSelected,
+  onClick,
+  userName,
+  baseUrl,
+}) => {
   const fileType = getFileMediaType(file.getExt());
   const mediaUrl = buildMediaUrl(file.getPath(), userName, baseUrl);
 
@@ -363,8 +377,11 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
 
   // Katalog media per-user: `data/Minis/Users/{u}/drive/public/files` (backend tworzy go przy starcie).
   const PUBLIC_PARTS = useMemo(
-    () => (userName ? ['data', 'Minis', 'Users', userName, 'drive', 'public', 'files'] : ['data', 'public']),
-    [userName],
+    () =>
+      userName
+        ? ['data', 'Minis', 'Users', userName, 'drive', 'public', 'files']
+        : ['data', 'public'],
+    [userName]
   );
   const PUBLIC_DIR = PUBLIC_PARTS.join('/');
 
@@ -411,19 +428,17 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
 
   const mediaFiles = useMemo(() => {
     if (!currentDir) return [];
-    return currentDir.getFiles().filter(f =>
-      extensions.includes(f.getExt().toLowerCase())
-    );
+    return currentDir.getFiles().filter((f) => extensions.includes(f.getExt().toLowerCase()));
   }, [currentDir, extensions]);
 
   const filteredMedia = useMemo(() => {
     if (!filter) return mediaFiles;
     const lowerFilter = filter.toLowerCase();
-    return mediaFiles.filter(f => f.getName().toLowerCase().includes(lowerFilter));
+    return mediaFiles.filter((f) => f.getName().toLowerCase().includes(lowerFilter));
   }, [mediaFiles, filter]);
 
   const handleToggleExpand = useCallback((path: string) => {
-    setExpandedPaths(prev => {
+    setExpandedPaths((prev) => {
       const next = new Set(prev);
       if (next.has(path)) {
         next.delete(path);
@@ -438,7 +453,7 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
     setSelectedDirPath(path);
     setCurrentDirPath(path);
     setSelectedMediaPath(null);
-    setExpandedPaths(prev => {
+    setExpandedPaths((prev) => {
       const next = new Set(prev);
       next.add(path);
       return next;
@@ -472,7 +487,7 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
   const handleSubdirClick = (dir: DirData) => {
     setCurrentDirPath(dir.getPath());
     setSelectedMediaPath(null);
-    setExpandedPaths(prev => {
+    setExpandedPaths((prev) => {
       const next = new Set(prev);
       next.add(dir.getPath());
       return next;
@@ -487,20 +502,27 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
 
   const getMediaTypeLabel = (type: MediaType) => {
     switch (type) {
-      case 'image': return 'Obrazy';
-      case 'audio': return 'Audio';
-      case 'video': return 'Video';
-      default: return 'Wszystkie';
+      case 'image':
+        return 'Obrazy';
+      case 'audio':
+        return 'Audio';
+      case 'video':
+        return 'Video';
+      default:
+        return 'Wszystkie';
     }
   };
 
   if (!isDataLoaded || !rootDir || !publicDir) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+        <DialogContent
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}
+        >
           {!publicDir && isDataLoaded ? (
             <Typography color="text.secondary">
-              Folder media użytkownika nie istnieje ({PUBLIC_DIR}). Zostanie utworzony przy starcie backendu — odśwież po restarcie.
+              Folder media użytkownika nie istnieje ({PUBLIC_DIR}). Zostanie utworzony przy starcie
+              backendu — odśwież po restarcie.
             </Typography>
           ) : (
             <CircularProgress />
@@ -566,11 +588,7 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
 
       {/* View mode tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
-        <Tabs
-          value={viewMode}
-          onChange={(_, v) => setViewMode(v)}
-          sx={{ minHeight: 36 }}
-        >
+        <Tabs value={viewMode} onChange={(_, v) => setViewMode(v)} sx={{ minHeight: 36 }}>
           <Tab label="Przeglądaj" value="grid" sx={{ minHeight: 36, fontSize: '0.8rem' }} />
           <Tab label="Drzewo folderów" value="tree" sx={{ minHeight: 36, fontSize: '0.8rem' }} />
         </Tabs>
@@ -598,7 +616,17 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
         {viewMode === 'grid' && (
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Breadcrumbs navigation */}
-            <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: 1, borderColor: 'divider' }}>
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                borderBottom: 1,
+                borderColor: 'divider',
+              }}
+            >
               <IconButton
                 size="small"
                 onClick={handleNavigateUp}
@@ -639,14 +667,18 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
               {/* Subdirectories */}
               {currentDir && currentDir.getDirs().length > 0 && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 1, display: 'block' }}
+                  >
                     Foldery
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     {currentDir.getDirs().map((subdir) => {
-                      const mediaCount = subdir.getFiles().filter(f =>
-                        extensions.includes(f.getExt().toLowerCase())
-                      ).length;
+                      const mediaCount = subdir
+                        .getFiles()
+                        .filter((f) => extensions.includes(f.getExt().toLowerCase())).length;
                       return (
                         <Chip
                           key={subdir.getPath()}
@@ -665,7 +697,11 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
               {/* Media grid */}
               {filteredMedia.length > 0 ? (
                 <>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 1, display: 'block' }}
+                  >
                     {getMediaTypeLabel(mediaType)} ({filteredMedia.length})
                   </Typography>
                   <ImageList cols={4} gap={8}>
@@ -685,7 +721,9 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
                 <Box sx={{ textAlign: 'center', py: 4 }}>
                   {getMediaIcon(mediaType)}
                   <Typography color="text.secondary">
-                    {filter ? 'No media found' : `Brak ${getMediaTypeLabel(mediaType).toLowerCase()} w tym folderze`}
+                    {filter
+                      ? 'No media found'
+                      : `Brak ${getMediaTypeLabel(mediaType).toLowerCase()} w tym folderze`}
                   </Typography>
                 </Box>
               )}
@@ -746,11 +784,7 @@ const MediaPickerDialog: React.FC<MediaPickerDialogProps> = ({
           </Typography>
         )}
         <Button onClick={onClose}>Anuluj</Button>
-        <Button
-          variant="contained"
-          onClick={handleConfirm}
-          disabled={!selectedMediaPath}
-        >
+        <Button variant="contained" onClick={handleConfirm} disabled={!selectedMediaPath}>
           Select
         </Button>
       </DialogActions>

@@ -11,19 +11,14 @@ const cppSnippets: Array<{
 }> = [
   {
     label: 'main',
-    insertText: [
-      'int main(int argc, char* argv[]) {',
-      '\t${1:// code}',
-      '\treturn 0;',
-      '}',
-    ].join('\n'),
+    insertText: ['int main(int argc, char* argv[]) {', '\t${1:// code}', '\treturn 0;', '}'].join(
+      '\n'
+    ),
     documentation: 'Main function with arguments',
   },
   {
     label: 'main-simple',
-    insertText: ['int main() {', '\t${1:// code}', '\treturn 0;', '}'].join(
-      '\n'
-    ),
+    insertText: ['int main() {', '\t${1:// code}', '\treturn 0;', '}'].join('\n'),
     documentation: 'Simple main function',
   },
   {
@@ -42,9 +37,7 @@ const cppSnippets: Array<{
   },
   {
     label: 'struct',
-    insertText: ['struct ${1:StructName} {', '\t${2:// members}', '};'].join(
-      '\n'
-    ),
+    insertText: ['struct ${1:StructName} {', '\t${2:// members}', '};'].join('\n'),
     documentation: 'Struct declaration',
   },
   {
@@ -82,9 +75,7 @@ const cppSnippets: Array<{
   },
   {
     label: 'for-range',
-    insertText: ['for (${1:auto}& ${2:item} : ${3:container}) {', '\t${4:// code}', '}'].join(
-      '\n'
-    ),
+    insertText: ['for (${1:auto}& ${2:item} : ${3:container}) {', '\t${4:// code}', '}'].join('\n'),
     documentation: 'Range-based for loop',
   },
   {
@@ -103,9 +94,7 @@ const cppSnippets: Array<{
   },
   {
     label: 'do-while',
-    insertText: ['do {', '\t${1:// code}', '} while (${2:condition});'].join(
-      '\n'
-    ),
+    insertText: ['do {', '\t${1:// code}', '} while (${2:condition});'].join('\n'),
     documentation: 'Do-while loop',
   },
   {
@@ -115,13 +104,9 @@ const cppSnippets: Array<{
   },
   {
     label: 'if-else',
-    insertText: [
-      'if (${1:condition}) {',
-      '\t${2:// code}',
-      '} else {',
-      '\t${3:// code}',
-      '}',
-    ].join('\n'),
+    insertText: ['if (${1:condition}) {', '\t${2:// code}', '} else {', '\t${3:// code}', '}'].join(
+      '\n'
+    ),
     documentation: 'If-else statement',
   },
   {
@@ -179,7 +164,9 @@ const cppSnippets: Array<{
   },
   {
     label: 'namespace',
-    insertText: ['namespace ${1:name} {', '', '${2:// code}', '', '} // namespace ${1:name}'].join('\n'),
+    insertText: ['namespace ${1:name} {', '', '${2:// code}', '', '} // namespace ${1:name}'].join(
+      '\n'
+    ),
     documentation: 'Namespace declaration',
   },
   {
@@ -268,11 +255,31 @@ function parseDocumentSymbols(model: monaco.editor.ITextModel): DocumentSymbol[]
 
   // Common C++ types for variable detection
   const typePatterns = [
-    'int', 'float', 'double', 'char', 'bool', 'void', 'long', 'short',
-    'unsigned', 'signed', 'auto', 'const', 'static', 'extern',
-    'size_t', 'string', 'wstring',
-    'int8_t', 'int16_t', 'int32_t', 'int64_t',
-    'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t',
+    'int',
+    'float',
+    'double',
+    'char',
+    'bool',
+    'void',
+    'long',
+    'short',
+    'unsigned',
+    'signed',
+    'auto',
+    'const',
+    'static',
+    'extern',
+    'size_t',
+    'string',
+    'wstring',
+    'int8_t',
+    'int16_t',
+    'int32_t',
+    'int64_t',
+    'uint8_t',
+    'uint16_t',
+    'uint32_t',
+    'uint64_t',
   ];
 
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
@@ -280,8 +287,12 @@ function parseDocumentSymbols(model: monaco.editor.ITextModel): DocumentSymbol[]
     const trimmedLine = line.trim();
 
     // Skip comments and preprocessor directives
-    if (trimmedLine.startsWith('//') || trimmedLine.startsWith('#') ||
-        trimmedLine.startsWith('/*') || trimmedLine.startsWith('*')) {
+    if (
+      trimmedLine.startsWith('//') ||
+      trimmedLine.startsWith('#') ||
+      trimmedLine.startsWith('/*') ||
+      trimmedLine.startsWith('*')
+    ) {
       continue;
     }
 
@@ -294,8 +305,11 @@ function parseDocumentSymbols(model: monaco.editor.ITextModel): DocumentSymbol[]
       const returnType = funcMatch[1]?.trim();
       const funcName = funcMatch[2];
       // Exclude control flow keywords and known types
-      if (funcName && !['if', 'while', 'for', 'switch', 'catch', 'return'].includes(funcName) &&
-          !seenNames.has(funcName)) {
+      if (
+        funcName &&
+        !['if', 'while', 'for', 'switch', 'catch', 'return'].includes(funcName) &&
+        !seenNames.has(funcName)
+      ) {
         seenNames.add(funcName);
         symbols.push({
           name: funcName,
@@ -314,9 +328,10 @@ function parseDocumentSymbols(model: monaco.editor.ITextModel): DocumentSymbol[]
         seenNames.add(className);
         symbols.push({
           name: className,
-          kind: classMatch[1] === 'class'
-            ? monaco.languages.CompletionItemKind.Class
-            : monaco.languages.CompletionItemKind.Struct,
+          kind:
+            classMatch[1] === 'class'
+              ? monaco.languages.CompletionItemKind.Class
+              : monaco.languages.CompletionItemKind.Struct,
           detail: `${classMatch[1]} ${className}`,
           line: lineNumber,
         });
@@ -386,10 +401,23 @@ function parseDocumentSymbols(model: monaco.editor.ITextModel): DocumentSymbol[]
         }
 
         // Skip if it's a type keyword or function name
-        if (varName && varType &&
-            !typePatterns.includes(varName) &&
-            !['if', 'while', 'for', 'switch', 'return', 'class', 'struct', 'enum', 'namespace'].includes(varName) &&
-            !seenNames.has(varName)) {
+        if (
+          varName &&
+          varType &&
+          !typePatterns.includes(varName) &&
+          ![
+            'if',
+            'while',
+            'for',
+            'switch',
+            'return',
+            'class',
+            'struct',
+            'enum',
+            'namespace',
+          ].includes(varName) &&
+          !seenNames.has(varName)
+        ) {
           seenNames.add(varName);
           symbols.push({
             name: varName,
@@ -456,8 +484,7 @@ export function createCppCompletionProvider(): monaco.languages.CompletionItemPr
           label: snippet.label,
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: snippet.insertText,
-          insertTextRules:
-            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: snippet.documentation,
           range,
         });
@@ -491,8 +518,7 @@ export function createCppCompletionProvider(): monaco.languages.CompletionItemPr
           label: func,
           kind: monaco.languages.CompletionItemKind.Function,
           insertText: func.includes('::') ? func : `${func}($1)`,
-          insertTextRules:
-            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           range,
         });
       }
@@ -500,15 +526,56 @@ export function createCppCompletionProvider(): monaco.languages.CompletionItemPr
       // Common includes when in #include context
       if (isInclude) {
         const commonHeaders = [
-          'iostream', 'fstream', 'sstream', 'string', 'vector', 'map',
-          'set', 'unordered_map', 'unordered_set', 'algorithm', 'functional',
-          'memory', 'utility', 'tuple', 'array', 'deque', 'list', 'queue',
-          'stack', 'bitset', 'numeric', 'iterator', 'limits', 'cmath',
-          'cstdlib', 'cstdio', 'cstring', 'cctype', 'ctime', 'cassert',
-          'stdexcept', 'exception', 'typeinfo', 'thread', 'mutex',
-          'condition_variable', 'future', 'atomic', 'chrono', 'random',
-          'regex', 'filesystem', 'optional', 'variant', 'any', 'span',
-          'ranges', 'concepts', 'format', 'source_location',
+          'iostream',
+          'fstream',
+          'sstream',
+          'string',
+          'vector',
+          'map',
+          'set',
+          'unordered_map',
+          'unordered_set',
+          'algorithm',
+          'functional',
+          'memory',
+          'utility',
+          'tuple',
+          'array',
+          'deque',
+          'list',
+          'queue',
+          'stack',
+          'bitset',
+          'numeric',
+          'iterator',
+          'limits',
+          'cmath',
+          'cstdlib',
+          'cstdio',
+          'cstring',
+          'cctype',
+          'ctime',
+          'cassert',
+          'stdexcept',
+          'exception',
+          'typeinfo',
+          'thread',
+          'mutex',
+          'condition_variable',
+          'future',
+          'atomic',
+          'chrono',
+          'random',
+          'regex',
+          'filesystem',
+          'optional',
+          'variant',
+          'any',
+          'span',
+          'ranges',
+          'concepts',
+          'format',
+          'source_location',
         ];
 
         for (const header of commonHeaders) {
@@ -526,17 +593,19 @@ export function createCppCompletionProvider(): monaco.languages.CompletionItemPr
       const documentSymbols = parseDocumentSymbols(model);
       for (const symbol of documentSymbols) {
         // Add parentheses for functions
-        const insertText = symbol.kind === monaco.languages.CompletionItemKind.Function
-          ? `${symbol.name}($1)`
-          : symbol.name;
+        const insertText =
+          symbol.kind === monaco.languages.CompletionItemKind.Function
+            ? `${symbol.name}($1)`
+            : symbol.name;
 
         suggestions.push({
           label: symbol.name,
           kind: symbol.kind,
           insertText,
-          insertTextRules: symbol.kind === monaco.languages.CompletionItemKind.Function
-            ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-            : undefined,
+          insertTextRules:
+            symbol.kind === monaco.languages.CompletionItemKind.Function
+              ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+              : undefined,
           detail: symbol.detail,
           documentation: `Defined at line ${symbol.line}`,
           sortText: `0_${symbol.name}`, // Sort user symbols first

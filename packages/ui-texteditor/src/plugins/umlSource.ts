@@ -40,8 +40,14 @@ export function defaultUmlSource(): UmlSourceConfig {
 /** Hosty, które prawie nigdy nie mają TLS-a — dla nich domyślny schemat to http. */
 function isLocalHostname(hostPart: string): boolean {
   const host = hostPart.replace(/:\d+$/, '').toLowerCase();
-  return host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0'
-    || host === '[::1]' || host === '::1' || host.endsWith('.local');
+  return (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '0.0.0.0' ||
+    host === '[::1]' ||
+    host === '::1' ||
+    host.endsWith('.local')
+  );
 }
 
 /**
@@ -75,7 +81,9 @@ export function sessionUserName(): string {
       const name = parsed.user?.name ?? parsed.name;
       if (name) return name;
     }
-  } catch { /* uszkodzona sesja — spróbujemy z adresu */ }
+  } catch {
+    /* uszkodzona sesja — spróbujemy z adresu */
+  }
   try {
     return window.location.pathname.match(/\/user\/([^/]+)/)?.[1] ?? '';
   } catch {
@@ -89,7 +97,9 @@ export function sessionToken(): string {
     const raw = localStorage.getItem('minis_current_user');
     if (!raw) return '';
     return (JSON.parse(raw) as { token?: string }).token ?? '';
-  } catch { return ''; }
+  } catch {
+    return '';
+  }
 }
 
 export function readUmlSource(): UmlSourceConfig {
@@ -111,8 +121,13 @@ export function readUmlSource(): UmlSourceConfig {
 
 export function writeUmlSource(cfg: UmlSourceConfig): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...cfg, baseUrl: normalizeBaseUrl(cfg.baseUrl) }));
-  } catch { /* tryb prywatny — ustawienie nie przetrwa sesji, ale edytor działa */ }
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...cfg, baseUrl: normalizeBaseUrl(cfg.baseUrl) })
+    );
+  } catch {
+    /* tryb prywatny — ustawienie nie przetrwa sesji, ale edytor działa */
+  }
 }
 
 /** Czy z tej konfiguracji da się w ogóle czytać projekty. */
@@ -133,12 +148,18 @@ export interface UmlEndpoint {
  * Rzuca wyjątkiem z gotowym komunikatem, gdy czegoś brakuje — pusta lista
  * projektów bez powodu była najbardziej mylącym objawem tej funkcji.
  */
-export function umlEndpoint(cfg: UmlSourceConfig, op: 'readdir' | 'readFile', file?: string): UmlEndpoint {
+export function umlEndpoint(
+  cfg: UmlSourceConfig,
+  op: 'readdir' | 'readFile',
+  file?: string
+): UmlEndpoint {
   const user = (cfg.mode === 'remote' ? cfg.userName : sessionUserName()).trim();
   if (!user) {
-    throw new Error(cfg.mode === 'remote'
-      ? 'Podaj nazwę użytkownika na serwerze zdalnym.'
-      : 'Nie udało się ustalić zalogowanego użytkownika — zaloguj się albo wskaż serwer zdalny.');
+    throw new Error(
+      cfg.mode === 'remote'
+        ? 'Podaj nazwę użytkownika na serwerze zdalnym.'
+        : 'Nie udało się ustalić zalogowanego użytkownika — zaloguj się albo wskaż serwer zdalny.'
+    );
   }
 
   const dir = `/data/Minis/Users/${user}/${UML_DIR_REL}`;
@@ -172,12 +193,16 @@ export function describeUmlSource(cfg: UmlSourceConfig): string {
 export const UML_PROJECT_EXT = '.umlproj.json';
 
 /** Z listy wpisów katalogu zostawia same projekty UML, posortowane po nazwie. */
-export function filterUmlEntries(entries: Array<{ name: string; type: number }> | undefined): string[] {
-  return (entries ?? [])
-    // type 2 = katalog w VFS
-    .filter((e) => e.type !== 2 && e.name.toLowerCase().endsWith(UML_PROJECT_EXT))
-    .map((e) => e.name)
-    .sort();
+export function filterUmlEntries(
+  entries: Array<{ name: string; type: number }> | undefined
+): string[] {
+  return (
+    (entries ?? [])
+      // type 2 = katalog w VFS
+      .filter((e) => e.type !== 2 && e.name.toLowerCase().endsWith(UML_PROJECT_EXT))
+      .map((e) => e.name)
+      .sort()
+  );
 }
 
 /**
@@ -199,7 +224,11 @@ export function base64ToUtf8(data: string): string {
  * Hasło zostaje w pamięci formularza — zapisujemy wyłącznie zwrócony token,
  * bo tylko on jest potrzebny do czytania projektów.
  */
-export async function loginForToken(baseUrl: string, name: string, password: string): Promise<string> {
+export async function loginForToken(
+  baseUrl: string,
+  name: string,
+  password: string
+): Promise<string> {
   const base = normalizeBaseUrl(baseUrl);
   if (!base) throw new Error('Podaj adres serwera.');
   const res = await fetch(`${base}/api/auth/login`, {
@@ -207,7 +236,7 @@ export async function loginForToken(baseUrl: string, name: string, password: str
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, password }),
   });
-  const data = await res.json().catch(() => ({})) as { token?: string; error?: string };
+  const data = (await res.json().catch(() => ({}))) as { token?: string; error?: string };
   if (!res.ok) throw new Error(data.error ?? `Logowanie nie powiodło się (HTTP ${res.status}).`);
   if (!data.token) throw new Error('Serwer nie zwrócił tokena.');
   return data.token;

@@ -4,21 +4,34 @@ import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
-const rozdzial = ['2-1-wektory.md', '2-2-dodawanie.md', '2-3-skladowe.md', '2-4-mnozenie.md',
-  '2-5-prawa.md', '2-Pytania.md', '2-Zadania.md'];
-const pliki = [...rozdzial, 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const rozdzial = [
+  '2-1-wektory.md',
+  '2-2-dodawanie.md',
+  '2-3-skladowe.md',
+  '2-4-mnozenie.md',
+  '2-5-prawa.md',
+  '2-Pytania.md',
+  '2-Zadania.md',
+];
+const pliki = [...rozdzial, 'Slownik.md'].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, '2-Zadania.md');
+  const cel = resolveReference(
+    id,
+    { anchors: index.anchors, formulaHome: index.formulaHome },
+    '2-Zadania.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['2-Zadania.md']} path="2-Zadania.md" resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(
+    <ReaderView markdown={bodies['2-Zadania.md']} path="2-Zadania.md" resolveRef={resolveRef} />
+  );
 
 describe('Zadania rozdziału 2', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
@@ -60,7 +73,8 @@ describe('Zadania rozdziału 2', () => {
   it('cztery nagłówki grup; paragraf 2-1 nie ma zadań', () => {
     const { container } = widok();
     const naglowki = [...container.querySelectorAll('div')]
-      .map((d) => d.textContent ?? '').filter((t) => t.startsWith('Paragraf 2-'));
+      .map((d) => d.textContent ?? '')
+      .filter((t) => t.startsWith('Paragraf 2-'));
     expect(naglowki).toEqual(['Paragraf 2-2', 'Paragraf 2-3', 'Paragraf 2-4', 'Paragraf 2-5']);
   });
 
@@ -80,10 +94,12 @@ describe('Zadania rozdziału 2', () => {
     expect(index.anchors.get('rh1-2-rys6')?.path).toBe('2-3-skladowe.md');
   });
 
-
   it('rozdział 2 kompletny: siedem dokumentów', () => {
     for (const p of rozdzial) {
-      expect(index.documents.some((d) => d.path === p), p).toBe(true);
+      expect(
+        index.documents.some((d) => d.path === p),
+        p
+      ).toBe(true);
     }
     expect(index.anchors.get('rh1-zad-2')?.kind).toBe('section');
   });

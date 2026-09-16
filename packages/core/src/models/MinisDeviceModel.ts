@@ -1,8 +1,8 @@
 export interface MinisDeviceBuild {
-  platform: string;  // e.g. 'arduino', 'cmake', 'platformio'
-  fqbn?: string;     // e.g. 'esp32:esp32:esp32s3'
+  platform: string; // e.g. 'arduino', 'cmake', 'platformio'
+  fqbn?: string; // e.g. 'esp32:esp32:esp32s3'
   version?: string;
-  at: number;        // unix ms
+  at: number; // unix ms
   success: boolean;
   projectId?: string;
   sketchName?: string;

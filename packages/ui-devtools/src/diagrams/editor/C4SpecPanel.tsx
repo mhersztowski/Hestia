@@ -11,7 +11,15 @@
  */
 import type { CSSProperties } from 'react';
 import type { DiagramNode } from '../model/diagram';
-import { C4_ELEMENT_KINDS, C4_KIND_LABEL, C4_VARIANTS, hasTechnology, type C4ElementKind, type C4NodeInfo, type C4Variant } from '../model/c4';
+import {
+  C4_ELEMENT_KINDS,
+  C4_KIND_LABEL,
+  C4_VARIANTS,
+  hasTechnology,
+  type C4ElementKind,
+  type C4NodeInfo,
+  type C4Variant,
+} from '../model/c4';
 
 export interface C4SpecPanelProps {
   node: DiagramNode;
@@ -20,10 +28,22 @@ export interface C4SpecPanelProps {
 }
 
 const input: CSSProperties = {
-  fontSize: 11, padding: '2px 4px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', minWidth: 0, width: '100%', boxSizing: 'border-box',
+  fontSize: 11,
+  padding: '2px 4px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  minWidth: 0,
+  width: '100%',
+  boxSizing: 'border-box',
 };
-const iconBtn: CSSProperties = { ...input, cursor: 'pointer', padding: '2px 5px', lineHeight: 1.1, width: 'auto' };
+const iconBtn: CSSProperties = {
+  ...input,
+  cursor: 'pointer',
+  padding: '2px 5px',
+  lineHeight: 1.1,
+  width: 'auto',
+};
 const toggle = (active: boolean): CSSProperties => ({
   ...iconBtn,
   fontWeight: active ? 700 : 400,
@@ -31,7 +51,11 @@ const toggle = (active: boolean): CSSProperties => ({
   background: active ? '#dbeafe' : '#fff',
   borderColor: active ? '#2563eb' : '#cbd5e1',
 });
-const field = (basis: string): CSSProperties => ({ fontSize: 10, color: '#94a3b8', flex: `0 1 ${basis}` });
+const field = (basis: string): CSSProperties => ({
+  fontSize: 10,
+  color: '#94a3b8',
+  flex: `0 1 ${basis}`,
+});
 
 const VARIANT_LABEL: Record<C4Variant, string> = { plain: 'zwykły', db: 'baza', queue: 'kolejka' };
 
@@ -47,7 +71,9 @@ export function C4SpecPanel({ node, onChange, onClose }: C4SpecPanelProps) {
         <strong style={{ fontSize: 12 }}>{node.label || node.id}</strong>
         <span style={{ fontSize: 10, color: '#94a3b8' }}>{C4_KIND_LABEL[info.kind]}</span>
         <span style={{ flex: 1 }} />
-        <button type="button" style={iconBtn} title="Zamknij panel" onClick={onClose}>×</button>
+        <button type="button" style={iconBtn} title="Zamknij panel" onClick={onClose}>
+          ×
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
@@ -59,7 +85,9 @@ export function C4SpecPanel({ node, onChange, onClose }: C4SpecPanelProps) {
             onChange={(e) => onChange({ kind: e.target.value as C4ElementKind })}
           >
             {C4_ELEMENT_KINDS.map((kind) => (
-              <option key={kind} value={kind}>{C4_KIND_LABEL[kind]}</option>
+              <option key={kind} value={kind}>
+                {C4_KIND_LABEL[kind]}
+              </option>
             ))}
           </select>
         </label>

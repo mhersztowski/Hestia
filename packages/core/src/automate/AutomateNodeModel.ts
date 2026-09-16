@@ -83,7 +83,7 @@ export function createNode(
   position: AutomateNodePosition,
   inputs: AutomatePortModel[],
   outputs: AutomatePortModel[],
-  config: Record<string, unknown> = {},
+  config: Record<string, unknown> = {}
 ): AutomateNodeModel {
   return {
     type: 'automate_node',

@@ -50,7 +50,10 @@ export interface PluginInfo {
  * Manages plugin lifecycle and registration
  */
 export class PluginSystem implements Disposable {
-  private readonly plugins = new Map<string, { plugin: Plugin; state: PluginState; error?: Error }>();
+  private readonly plugins = new Map<
+    string,
+    { plugin: Plugin; state: PluginState; error?: Error }
+  >();
   private readonly disposables = new DisposableStore();
   private context: PluginContext | null = null;
 
@@ -158,9 +161,7 @@ export class PluginSystem implements Disposable {
         otherEntry.state === 'active' &&
         otherEntry.plugin.manifest.dependencies?.includes(pluginId)
       ) {
-        throw new Error(
-          `Cannot deactivate "${pluginId}" because "${otherId}" depends on it`
-        );
+        throw new Error(`Cannot deactivate "${pluginId}" because "${otherId}" depends on it`);
       }
     }
 

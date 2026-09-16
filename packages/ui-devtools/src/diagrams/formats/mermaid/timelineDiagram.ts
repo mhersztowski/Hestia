@@ -29,7 +29,10 @@ const SECTION = /^\s*section\s+(.*?)\s*$/i;
 
 /** Rozbija wiersz na części rozdzielone dwukropkami, bez pustych. */
 function splitParts(text: string): string[] {
-  return text.split(':').map((part) => part.trim()).filter((part) => part !== '');
+  return text
+    .split(':')
+    .map((part) => part.trim())
+    .filter((part) => part !== '');
 }
 
 export function parseTimelineDiagram(text: string): ParseResult {
@@ -50,25 +53,40 @@ export function parseTimelineDiagram(text: string): ParseResult {
     if (!trimmed) return;
 
     if (HEADER.test(line)) return;
-    if (trimmed.startsWith('%%')) { timeline.unknown.push({ index, text: line }); return; }
+    if (trimmed.startsWith('%%')) {
+      timeline.unknown.push({ index, text: line });
+      return;
+    }
 
     const title = TITLE.exec(trimmed);
-    if (title) { timeline.title = title[1]; return; }
+    if (title) {
+      timeline.title = title[1];
+      return;
+    }
 
     const section = SECTION.exec(trimmed);
-    if (section) { timeline.sections.push({ label: section[1], periods: [] }); return; }
+    if (section) {
+      timeline.sections.push({ label: section[1], periods: [] });
+      return;
+    }
 
     // Kontynuacja: wydarzenia bez własnego okresu należą do ostatniego.
     if (trimmed.startsWith(':')) {
       const section = currentSection();
       const last = section.periods[section.periods.length - 1];
-      if (!last) { timeline.unknown.push({ index, text: line }); return; }
+      if (!last) {
+        timeline.unknown.push({ index, text: line });
+        return;
+      }
       last.events.push(...splitParts(trimmed));
       return;
     }
 
     const [label, ...events] = splitParts(trimmed);
-    if (label === undefined) { timeline.unknown.push({ index, text: line }); return; }
+    if (label === undefined) {
+      timeline.unknown.push({ index, text: line });
+      return;
+    }
     currentSection().periods.push({ label, events });
   });
 

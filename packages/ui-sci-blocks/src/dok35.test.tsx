@@ -5,19 +5,22 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-5-predkosc-zmienna.md';
-const pliki = [DOK, '3-4-predkosc-chwilowa.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-4-predkosc-chwilowa.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 
 describe('3-5 w czytniku', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
@@ -25,8 +28,10 @@ describe('3-5 w czytniku', () => {
   it('cztery wzory numerowane, wszystkie jako relacje', () => {
     const d = index.documents.find((x) => x.path === DOK);
     expect(d?.formulas.map((f) => [f.id, f.kind])).toEqual([
-      ['rh1-3-eq4', 'relation'], ['rh1-3-eq5', 'relation'],
-      ['rh1-3-eq6', 'relation'], ['rh1-3-eq7', 'relation'],
+      ['rh1-3-eq4', 'relation'],
+      ['rh1-3-eq5', 'relation'],
+      ['rh1-3-eq6', 'relation'],
+      ['rh1-3-eq7', 'relation'],
     ]);
     for (const f of d!.formulas) expect(f.issues, f.id).toEqual([]);
   });
@@ -38,8 +43,9 @@ describe('3-5 w czytniku', () => {
    */
   it('(3-7) bez @relation cicho staje się wyrażeniem do policzenia', () => {
     const bez = bodies[DOK].replace(/```formula:rh1-3-eq7\n@relation\n/, '```formula:rh1-3-eq7\n');
-    const f = buildIndex([{ path: DOK, markdown: bez }]).documents[0]
-      .formulas.find((x) => x.id === 'rh1-3-eq7')!;
+    const f = buildIndex([{ path: DOK, markdown: bez }]).documents[0].formulas.find(
+      (x) => x.id === 'rh1-3-eq7'
+    )!;
     expect(f.kind).not.toBe('relation');
     expect(f.issues).toEqual([]); // nikt nie ostrzeże
   });

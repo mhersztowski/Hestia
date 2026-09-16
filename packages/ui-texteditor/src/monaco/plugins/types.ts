@@ -9,11 +9,7 @@ export interface IDisposable {
 // ── Manifest & contribution points ───────────────────────────────────────────
 
 export type ContributionPointType =
-  | 'toolbar'
-  | 'statusbar'
-  | 'contextmenu'
-  | 'commandpalette'
-  | 'sidebar';
+  'toolbar' | 'statusbar' | 'contextmenu' | 'commandpalette' | 'sidebar';
 
 export interface IPluginManifest {
   /** Unique id, e.g. "com.example.formatter" */

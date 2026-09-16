@@ -21,11 +21,14 @@ describe('wskazanie zjawiska z biblioteki', () => {
   });
 
   it('nadpisania parametrów działają tak samo jak dla modelu z dokumentu', () => {
-    const setup = buildSimSetup(PUSTY, JSON.stringify({
-      model: 'wahadlo',
-      L: '2 m',
-      theta_0: '30 deg',
-    }));
+    const setup = buildSimSetup(
+      PUSTY,
+      JSON.stringify({
+        model: 'wahadlo',
+        L: '2 m',
+        theta_0: '30 deg',
+      })
+    );
 
     expect(setup.issues).toEqual([]);
     expect(setup.values.L).toBeCloseTo(2, 12);
@@ -47,12 +50,18 @@ describe('wskazanie zjawiska z biblioteki', () => {
     // parametr zadeklarowano w radianach — i dobrze, bo „2" może znaczyć
     // stopnie albo radiany.
     const pełne = buildSimSetup(PUSTY, JSON.stringify({ model: 'wahadlo', theta_0: '2 rad' }));
-    const przybliżone = buildSimSetup(PUSTY, JSON.stringify({
-      model: 'wahadlo', smallAngle: true, theta_0: '2 rad',
-    }));
+    const przybliżone = buildSimSetup(
+      PUSTY,
+      JSON.stringify({
+        model: 'wahadlo',
+        smallAngle: true,
+        theta_0: '2 rad',
+      })
+    );
 
     const T = 2 * Math.PI * Math.sqrt(1 / 9.81);
-    const kąt = (s: typeof pełne) => s.model.run(s.values, [0, 5], 0.001).trajectory!.value('theta', T);
+    const kąt = (s: typeof pełne) =>
+      s.model.run(s.values, [0, 5], 0.001).trajectory!.value('theta', T);
 
     expect(kąt(przybliżone)).toBeCloseTo(2, 2);
     expect(kąt(pełne)).toBeLessThan(1.5);
@@ -73,17 +82,20 @@ describe('wskazanie zjawiska z biblioteki', () => {
 
 describe('N ciał z bloku', () => {
   it('przyjmuje listę ciał jako opcję i liczy orbitę', () => {
-    const setup = buildSimSetup(PUSTY, JSON.stringify({
-      model: 'nbody',
-      bodies: [
-        { mass: 1, x: 0, y: 0, vx: 0, vy: 0 },
-        { mass: 1e-6, x: 1, y: 0, vx: 0, vy: 1 },
-      ],
-      // Jednostki umowne (G = 1, masa = 1, promień = 1) zapisane jawnie:
-      // wymiar musi się zgadzać, choćby wartość była wybrana dla wygody.
-      G: '1 m^3/(kg s^2)',
-      duration: 6.283185307179586,
-    }));
+    const setup = buildSimSetup(
+      PUSTY,
+      JSON.stringify({
+        model: 'nbody',
+        bodies: [
+          { mass: 1, x: 0, y: 0, vx: 0, vy: 0 },
+          { mass: 1e-6, x: 1, y: 0, vx: 0, vy: 1 },
+        ],
+        // Jednostki umowne (G = 1, masa = 1, promień = 1) zapisane jawnie:
+        // wymiar musi się zgadzać, choćby wartość była wybrana dla wygody.
+        G: '1 m^3/(kg s^2)',
+        duration: 6.283185307179586,
+      })
+    );
 
     expect(setup.issues).toEqual([]);
     const traj = setup.model.run(setup.values, [0, 2 * Math.PI], 1e-4).trajectory!;
@@ -106,7 +118,9 @@ describe('współistnienie obu dróg', () => {
 
     const setup = buildSimSetup(dokument, '{}');
     expect(setup.usedFormulas.map((f) => f.id)).toEqual(['osc']);
-    expect(setup.model.run(setup.values, [0, 1], 0.001).trajectory!.value('x', 1))
-      .toBeCloseTo(Math.cos(1), 5);
+    expect(setup.model.run(setup.values, [0, 1], 0.001).trajectory!.value('x', 1)).toBeCloseTo(
+      Math.cos(1),
+      5
+    );
   });
 });

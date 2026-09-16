@@ -35,14 +35,16 @@ describe('compileLinAlg3', () => {
   });
 
   it('składa obroty', () => {
-    const m = model([
-      '@linalg',
-      '@mat3 A = [[0, -1, 0], [1, 0, 0], [0, 0, 1]]',
-      '@mat3 B = [[1, 0, 0], [0, 0, -1], [0, 1, 0]]',
-      'C = A \\cdot B',
-      '@vec3 v = [0, 0, 1]',
-      'w = C \\cdot v',
-    ].join('\n'));
+    const m = model(
+      [
+        '@linalg',
+        '@mat3 A = [[0, -1, 0], [1, 0, 0], [0, 0, 1]]',
+        '@mat3 B = [[1, 0, 0], [0, 0, -1], [0, 1, 0]]',
+        'C = A \\cdot B',
+        '@vec3 v = [0, 0, 1]',
+        'w = C \\cdot v',
+      ].join('\n')
+    );
 
     expect(m.issues).toEqual([]);
     expect(m.transform).toBe('C');
@@ -58,7 +60,15 @@ describe('compileLinAlg3', () => {
 
   it('podmiana ma pierwszeństwo nad definicją', () => {
     const m = model(OBROT);
-    const identycznosc = m.run({ matrices: { R: [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } });
+    const identycznosc = m.run({
+      matrices: {
+        R: [
+          [1, 0, 0],
+          [0, 1, 0],
+          [0, 0, 1],
+        ],
+      },
+    });
     expect(identycznosc.vectors.w).toEqual([1, 0, 0]);
   });
 });

@@ -52,12 +52,20 @@ describe('parsowanie bloku @pde', () => {
   });
 
   it('zgłasza siatkę, której nie da się policzyć', () => {
-    const pde = compilePde(parseFormulaBlock('złe', [
-      '@pde', '@field u', '@grid 4000 x 4000',
-      '@domain x: 0..1 m, y: 0..1 m',
-      '@d u = \\alpha \\cdot \\Delta u', '@init u = 0',
-      '@vars u: K, alpha: m^2/s, x: m, y: m',
-    ].join('\n')));
+    const pde = compilePde(
+      parseFormulaBlock(
+        'złe',
+        [
+          '@pde',
+          '@field u',
+          '@grid 4000 x 4000',
+          '@domain x: 0..1 m, y: 0..1 m',
+          '@d u = \\alpha \\cdot \\Delta u',
+          '@init u = 0',
+          '@vars u: K, alpha: m^2/s, x: m, y: m',
+        ].join('\n')
+      )
+    );
 
     // Szesnaście milionów punktów na krok to nie jest symulacja w dokumencie.
     expect(pde.issues.join(' ')).toMatch(/siatk/i);
@@ -105,14 +113,21 @@ describe('równanie ciepła', () => {
   it('brzeg izolowany zachowuje ciepło', () => {
     // Warunek Neumanna znaczy „nic nie ucieka" — suma po siatce musi zostać
     // stała. To jest sprawdzian schematu mocniejszy niż oglądanie obrazka.
-    const pde = compilePde(parseFormulaBlock('izolacja', [
-      '@pde', '@field u', '@grid 32 x 32',
-      '@domain x: 0..1 m, y: 0..1 m',
-      '@d u = \\alpha \\cdot \\Delta u',
-      '@init u = \\exp(-30 \\cdot ((x - 0.5)^2 + (y - 0.5)^2))',
-      '@boundary neumann',
-      '@vars u: K, alpha: m^2/s, x: m, y: m',
-    ].join('\n')));
+    const pde = compilePde(
+      parseFormulaBlock(
+        'izolacja',
+        [
+          '@pde',
+          '@field u',
+          '@grid 32 x 32',
+          '@domain x: 0..1 m, y: 0..1 m',
+          '@d u = \\alpha \\cdot \\Delta u',
+          '@init u = \\exp(-30 \\cdot ((x - 0.5)^2 + (y - 0.5)^2))',
+          '@boundary neumann',
+          '@vars u: K, alpha: m^2/s, x: m, y: m',
+        ].join('\n')
+      )
+    );
 
     const wynik = pde.run({ alpha: 0.02 }, [0, 2], 10);
 
@@ -123,8 +138,8 @@ describe('równanie ciepła', () => {
       let suma = 0;
       for (let j = 0; j < pde.ny; j += 1) {
         for (let i = 0; i < pde.nx; i += 1) {
-          const waga = (i === 0 || i === pde.nx - 1 ? 0.5 : 1)
-            * (j === 0 || j === pde.ny - 1 ? 0.5 : 1);
+          const waga =
+            (i === 0 || i === pde.nx - 1 ? 0.5 : 1) * (j === 0 || j === pde.ny - 1 ? 0.5 : 1);
           suma += waga * data[j * pde.nx + i];
         }
       }
@@ -157,7 +172,7 @@ describe('równanie falowe', () => {
     // wciąż rzędu jedności. Niestabilny schemat urośnie do nieskończoności.
     const pde = model(FALA);
     const c = 0.5;
-    const okres = 2 * Math.PI / (c * Math.PI * Math.SQRT2);
+    const okres = (2 * Math.PI) / (c * Math.PI * Math.SQRT2);
 
     const wynik = pde.run({ c }, [0, 10 * okres], 5);
     const amplituda = Math.abs(srodek(wynik.frames[wynik.frames.length - 1], pde.nx, pde.ny));
@@ -196,7 +211,9 @@ describe('szybka ścieżka dla równań liniowych', () => {
    * gdy sama się wyłącza dla równań, dla których nie jest prawdziwa.
    */
   const NIELINIOWE = [
-    '@pde', '@field u', '@grid 24 x 24',
+    '@pde',
+    '@field u',
+    '@grid 24 x 24',
     '@domain x: 0..1 m, y: 0..1 m',
     // Reakcja-dyfuzja: człon `u(1-u)` łamie liniowość w polu.
     '@d u = \\alpha \\cdot \\Delta u + u \\cdot (1 - u)',
@@ -228,14 +245,18 @@ describe('szybka ścieżka dla równań liniowych', () => {
     const wynik = pde.run({ alpha }, [0, 2], 20);
     const ostatnia = wynik.frames[wynik.frames.length - 1];
 
-    expect(srodek(ostatnia, pde.nx, pde.ny))
-      .toBeCloseTo(Math.exp(-2 * Math.PI ** 2 * alpha * ostatnia.t), 2);
+    expect(srodek(ostatnia, pde.nx, pde.ny)).toBeCloseTo(
+      Math.exp(-2 * Math.PI ** 2 * alpha * ostatnia.t),
+      2
+    );
   });
 });
 
 describe('warunek początkowy narysowany piórem', () => {
   const RYSUNEK = [
-    '@pde', '@field u', '@grid 48 x 48',
+    '@pde',
+    '@field u',
+    '@grid 48 x 48',
     '@domain x: 0..1 m, y: 0..1 m',
     '@d u = \\alpha \\cdot \\Delta u',
     '@init u = 0',

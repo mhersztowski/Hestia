@@ -27,7 +27,10 @@ const szybkiRozpad: Derivative = (_t, [y]) => [-1e6 * y];
 const zTransjentem: Derivative = (t, [y]) => [-1e6 * (y - Math.cos(t))];
 
 function counted(f: Derivative) {
-  const wrapped = ((t, y) => { wrapped.calls += 1; return f(t, y); }) as Derivative & { calls: number };
+  const wrapped = ((t, y) => {
+    wrapped.calls += 1;
+    return f(t, y);
+  }) as Derivative & { calls: number };
   wrapped.calls = 0;
   return wrapped;
 }
@@ -99,9 +102,11 @@ describe('dokładność', () => {
     const B = -lambda / (1 + lambda ** 2);
     const ustalone = (t: number) => A * Math.cos(t) + B * Math.sin(t);
 
-    const błąd = (rtol: number) => Math.abs(
-      rosenbrock(zTransjentem, [0], [0, 2], { rtol, atol: rtol / 100 }).value('y0', 1) - ustalone(1),
-    );
+    const błąd = (rtol: number) =>
+      Math.abs(
+        rosenbrock(zTransjentem, [0], [0, 2], { rtol, atol: rtol / 100 }).value('y0', 1) -
+          ustalone(1)
+      );
 
     // Zmierzone: 1,4·10⁻² → 6,4·10⁻⁶ → 8,2·10⁻¹⁰ dla kolejnych tolerancji.
     expect(błąd(1e-8)).toBeLessThan(błąd(1e-6) / 100);
@@ -114,10 +119,13 @@ describe('dokładność', () => {
   });
 
   it('zaostrzenie tolerancji zmniejsza błąd', () => {
-    const błąd = (rtol: number) => Math.abs(
-      rosenbrock((_t, [y]) => [-1000 * y], [1], [0, 0.01], { rtol, atol: rtol / 1000 })
-        .value('y0', 0.01) - Math.exp(-10),
-    );
+    const błąd = (rtol: number) =>
+      Math.abs(
+        rosenbrock((_t, [y]) => [-1000 * y], [1], [0, 0.01], { rtol, atol: rtol / 1000 }).value(
+          'y0',
+          0.01
+        ) - Math.exp(-10)
+      );
 
     expect(błąd(1e-9)).toBeLessThan(błąd(1e-4) / 20);
   });
@@ -125,10 +133,7 @@ describe('dokładność', () => {
   it('radzi sobie z układem, w którym sztywność siedzi w sprzężeniu', () => {
     // Dwa równania: szybkie gaśnięcie różnicy i wolny ruch sumy. Jakobian nie
     // jest diagonalny, więc sprawdza to również rozwiązywanie układu.
-    const sprzężony: Derivative = (_t, [a, b]) => [
-      -1000 * (a - b),
-      -0.5 * b,
-    ];
+    const sprzężony: Derivative = (_t, [a, b]) => [-1000 * (a - b), -0.5 * b];
     const traj = rosenbrock(sprzężony, [1, 1], [0, 3], { rtol: 1e-8, atol: 1e-10 });
 
     // Składowa wolna: b(t) = e^(−t/2).
@@ -161,10 +166,10 @@ describe('zgodność z resztą pakietu', () => {
 
     // Interpolacja Hermite'a korzysta z pochodnych w węzłach, więc na wypukłej
     // krzywej wykładniczej wypada wyraźnie bliżej niż odcinek.
-    const cięciwa = traj.samples[0].y[0]
-      + (traj.samples[1].y[0] - traj.samples[0].y[0]) * 0.5;
-    expect(Math.abs(traj.value('y0', t) - Math.exp(-t)))
-      .toBeLessThan(Math.abs(cięciwa - Math.exp(-t)) / 3);
+    const cięciwa = traj.samples[0].y[0] + (traj.samples[1].y[0] - traj.samples[0].y[0]) * 0.5;
+    expect(Math.abs(traj.value('y0', t) - Math.exp(-t))).toBeLessThan(
+      Math.abs(cięciwa - Math.exp(-t)) / 3
+    );
   });
 
   it('kończy dokładnie na końcu przedziału', () => {
@@ -184,7 +189,10 @@ describe('zgodność z resztą pakietu', () => {
 describe('rozpoznanie sztywności przez metodę jawną', () => {
   it('melduje sztywność szybko, zamiast liczyć do wyczerpania limitu', () => {
     let wywołania = 0;
-    const f: Derivative = (_t, [y]) => { wywołania += 1; return [-1e6 * y]; };
+    const f: Derivative = (_t, [y]) => {
+      wywołania += 1;
+      return [-1e6 * y];
+    };
 
     expect(() => dopri5(f, [1], [0, 1], { rtol: 1e-6 })).toThrow(/sztywny/i);
     // Rozpoznanie po kilkudziesięciu krokach, nie po dwustu tysiącach.
@@ -192,8 +200,9 @@ describe('rozpoznanie sztywności przez metodę jawną', () => {
   });
 
   it('wskazuje metodę, której należy użyć', () => {
-    expect(() => dopri5((_t, [y]) => [-1e6 * y], [1], [0, 1], { rtol: 1e-6 }))
-      .toThrow(/rosenbrock/i);
+    expect(() => dopri5((_t, [y]) => [-1e6 * y], [1], [0, 1], { rtol: 1e-6 })).toThrow(
+      /rosenbrock/i
+    );
   });
 
   it('nie oskarża o sztywność układu, który po prostu szybko zakręca', () => {
@@ -204,7 +213,8 @@ describe('rozpoznanie sztywności przez metodę jawną', () => {
       return [vx, vy, -x / r ** 3, -y / r ** 3];
     };
 
-    expect(() => dopri5(kepler, [0.3, 0, 0, Math.sqrt((2 / 0.3) - 1)], [0, 30], { rtol: 1e-9 }))
-      .not.toThrow();
+    expect(() =>
+      dopri5(kepler, [0.3, 0, 0, Math.sqrt(2 / 0.3 - 1)], [0, 30], { rtol: 1e-9 })
+    ).not.toThrow();
   });
 });

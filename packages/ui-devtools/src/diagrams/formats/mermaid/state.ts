@@ -11,9 +11,14 @@
  *    oraz sama nazwa), więc parser scala je w jedno pole `label`.
  */
 import {
-  emptyDiagram, edgeId,
-  type DiagramDocument, type DiagramDirection, type DiagramGroup, type DiagramNode,
-  type NodeShape, type UnknownLine,
+  emptyDiagram,
+  edgeId,
+  type DiagramDocument,
+  type DiagramDirection,
+  type DiagramGroup,
+  type DiagramNode,
+  type NodeShape,
+  type UnknownLine,
 } from '../../model/diagram';
 import type { ParseIssue, ParseResult } from '../../model/format';
 import { splitFrontMatter, withFrontMatter } from './frontMatter';
@@ -106,7 +111,10 @@ export function parseStateDiagram(text: string): ParseResult {
     const trimmed = line.trim();
     if (!trimmed) return;
 
-    if (!seenHeader && HEADER.test(line)) { seenHeader = true; return; }
+    if (!seenHeader && HEADER.test(line)) {
+      seenHeader = true;
+      return;
+    }
 
     const dir = DIRECTION.exec(trimmed);
     if (dir) {
@@ -124,7 +132,10 @@ export function parseStateDiagram(text: string): ParseResult {
       return;
     }
 
-    if (BLOCK_CLOSE.test(trimmed) && groupStack.length > 0) { groupStack.pop(); return; }
+    if (BLOCK_CLOSE.test(trimmed) && groupStack.length > 0) {
+      groupStack.pop();
+      return;
+    }
 
     const open = STATE_OPEN.exec(trimmed);
     if (open) {
@@ -139,7 +150,7 @@ export function parseStateDiagram(text: string): ParseResult {
 
       doc.groups.push({
         id,
-        label: label ? decodeLabel(label) : (inheritedLabel || id),
+        label: label ? decodeLabel(label) : inheritedLabel || id,
         ...(parentId() ? { parentId: parentId() } : {}),
       });
       groupStack.push(id);
@@ -221,8 +232,9 @@ function refOf(doc: DiagramDocument, id: string): string {
  * pytać o oba rejestry.
  */
 function containerOf(doc: DiagramDocument, id: string): string | undefined {
-  return doc.nodes.find((n) => n.id === id)?.parentId
-    ?? doc.groups.find((g) => g.id === id)?.parentId;
+  return (
+    doc.nodes.find((n) => n.id === id)?.parentId ?? doc.groups.find((g) => g.id === id)?.parentId
+  );
 }
 
 /** Łańcuch pojemników od najbliższego do korzenia (korzeń jako `undefined`). */
@@ -258,14 +270,21 @@ export function serializeStateDiagram(doc: DiagramDocument): string {
   const out: string[] = ['stateDiagram-v2'];
   if (doc.direction !== 'TB') out.push(`  direction ${doc.direction}`);
 
-  const SPECIAL: Partial<Record<NodeShape, string>> = { choice: 'choice', fork: 'fork', join: 'join' };
+  const SPECIAL: Partial<Record<NodeShape, string>> = {
+    choice: 'choice',
+    fork: 'fork',
+    join: 'join',
+  };
   const isPseudo = (n: DiagramNode) => n.shape === 'start' || n.shape === 'end';
 
   // Nierozpoznane linie wracają przed swoją kotwicą; te bez kotwicy na koniec.
   const byAnchor = new Map<string, UnknownLine[]>();
   const tail: UnknownLine[] = [];
   for (const line of [...doc.unknown].sort((a, b) => a.index - b.index)) {
-    if (!line.anchor) { tail.push(line); continue; }
+    if (!line.anchor) {
+      tail.push(line);
+      continue;
+    }
     const bucket = byAnchor.get(line.anchor);
     if (bucket) bucket.push(line);
     else byAnchor.set(line.anchor, [line]);
@@ -292,7 +311,7 @@ export function serializeStateDiagram(doc: DiagramDocument): string {
     if (node.className) out.push(`${indent}${node.id}:::${node.className}`);
   };
 
-  const writeEdge = (edge: typeof doc.edges[number], indent: string) => {
+  const writeEdge = (edge: (typeof doc.edges)[number], indent: string) => {
     flush(`edge:${edge.id}`, indent);
     const label = edge.label ? `: ${edge.label}` : '';
     out.push(`${indent}${refOf(doc, edge.source)} --> ${refOf(doc, edge.target)}${label}`);
@@ -324,9 +343,10 @@ export function serializeStateDiagram(doc: DiagramDocument): string {
     flush(`group:${group.id}`, indent);
     // Opis ramki zapisujemy formą z aliasem — bez tego zmiana nazwy stanu
     // złożonego w edytorze nie miała żadnego odbicia w kodzie.
-    const header = group.label && group.label !== group.id
-      ? `state "${escapeQuotes(group.label)}" as ${group.id}`
-      : `state ${group.id}`;
+    const header =
+      group.label && group.label !== group.id
+        ? `state "${escapeQuotes(group.label)}" as ${group.id}`
+        : `state ${group.id}`;
     out.push(`${indent}${header} {`);
     if (group.direction) out.push(`${indent}  direction ${group.direction}`);
     writeLevel(group.id, `${indent}  `);

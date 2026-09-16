@@ -5,20 +5,37 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const pliki = [
-  '15-7-skladanie.md', 'Slownik.md', '15-1-ruch-harmoniczny.md', '15-2-oscylator.md',
-  '15-3-ruch-prosty.md', '15-4-energia.md', '15-5-zastosowania.md', '15-6-okrag.md',
+  '15-7-skladanie.md',
+  'Slownik.md',
+  '15-1-ruch-harmoniczny.md',
+  '15-2-oscylator.md',
+  '15-3-ruch-prosty.md',
+  '15-4-energia.md',
+  '15-5-zastosowania.md',
+  '15-6-okrag.md',
 ].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, '15-7-skladanie.md');
+  const cel = resolveReference(
+    id,
+    { anchors: index.anchors, formulaHome: index.formulaHome },
+    '15-7-skladanie.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['15-7-skladanie.md']} path="15-7-skladanie.md" resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(
+    <ReaderView
+      markdown={bodies['15-7-skladanie.md']}
+      path="15-7-skladanie.md"
+      resolveRef={resolveRef}
+    />
+  );
 const dokument = () => index.documents.find((d) => d.path === '15-7-skladanie.md');
 
 describe('15-7 w czytniku', () => {
@@ -37,8 +54,14 @@ describe('15-7 w czytniku', () => {
     const { container } = widok();
     expect(container.querySelectorAll('img')).toHaveLength(1);
     expect(container.querySelector('#ref-rh1-15-rys16 img')).toBeTruthy();
-    expect(dokument()?.figures.find((f) => f.id === 'rh1-15-rys16')?.panels)
-      .toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
+    expect(dokument()?.figures.find((f) => f.id === 'rh1-15-rys16')?.panels).toEqual([
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+      'f',
+    ]);
   });
 
   it('podpis rysunku składa się z matematyką i cudzysłowami', () => {
@@ -50,8 +73,14 @@ describe('15-7 w czytniku', () => {
   });
 
   it('ten podrozdział nie dodaje haseł — skorowidz nie ma jego stron', () => {
-    const przed = ['15-1-ruch-harmoniczny.md', '15-2-oscylator.md', '15-3-ruch-prosty.md',
-      '15-4-energia.md', '15-5-zastosowania.md', '15-6-okrag.md'];
+    const przed = [
+      '15-1-ruch-harmoniczny.md',
+      '15-2-oscylator.md',
+      '15-3-ruch-prosty.md',
+      '15-4-energia.md',
+      '15-5-zastosowania.md',
+      '15-6-okrag.md',
+    ];
     expect(dokument()?.terms ?? []).toHaveLength(0);
     expect(przed.length).toBe(6);
   });

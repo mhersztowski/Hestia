@@ -9,7 +9,12 @@
  * that leads to a 403).
  */
 import { describe, it, expect } from 'vitest';
-import { PUBLIC_DRIVE_DIRS, isPublicDrivePath, publicDriveUrl, publicDriveRoot } from './publicPaths';
+import {
+  PUBLIC_DRIVE_DIRS,
+  isPublicDrivePath,
+  publicDriveUrl,
+  publicDriveRoot,
+} from './publicPaths';
 
 describe('recognising a public path', () => {
   it('a public directory and everything in it', () => {
@@ -62,8 +67,9 @@ describe('the root of a public path', () => {
 
 describe('the public address', () => {
   it('builds an address from the user name and the path', () => {
-    expect(publicDriveUrl('https://app.example', 'ala', 'knowledge/15-1.md'))
-      .toBe('https://app.example/public/drive/users/ala/knowledge/15-1.md');
+    expect(publicDriveUrl('https://app.example', 'ala', 'knowledge/15-1.md')).toBe(
+      'https://app.example/public/drive/users/ala/knowledge/15-1.md'
+    );
   });
 
   it('encodes special characters in the name and the path', () => {

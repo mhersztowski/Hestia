@@ -19,12 +19,15 @@ const DOKUMENT = readFileSync(resolve(__dirname, '../documents/orbita.md'), 'utf
 const setupZMetoda = (metoda: string) => {
   const tekst = DOKUMENT.replace('@solver verlet', `@solver ${metoda}`);
   const formuly = scanFormulas(tekst);
-  return buildSimSetup(formuly, JSON.stringify({
-    G_N: '6.6743e-11 m^3/(kg s^2)',
-    M: '5.972e24 kg',
-    r_0: '7000 km',
-    v_0: '7546 m/s',
-  }));
+  return buildSimSetup(
+    formuly,
+    JSON.stringify({
+      G_N: '6.6743e-11 m^3/(kg s^2)',
+      M: '5.972e24 kg',
+      r_0: '7000 km',
+      v_0: '7546 m/s',
+    })
+  );
 };
 
 /** Kilkadziesiąt obiegów — tyle wystarczy, żeby sprawdzić sam pomiar. */

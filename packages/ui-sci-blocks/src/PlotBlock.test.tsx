@@ -9,20 +9,45 @@
 
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { addRow, createPlotDocument, serializePlotDocument, parsePlotDocument } from '@hestia/core-sci';
+import {
+  addRow,
+  createPlotDocument,
+  serializePlotDocument,
+  parsePlotDocument,
+} from '@hestia/core-sci';
 import { PlotBlock } from './PlotBlock';
 import { registerSciBlocks, PLOT_LANG } from './register';
 
 beforeAll(() => {
-  globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} } as never;
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as never;
   Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 400 });
   Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, value: 400 });
   HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
-    setTransform: vi.fn(), fillRect: vi.fn(), clearRect: vi.fn(), beginPath: vi.fn(),
-    moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(), fill: vi.fn(), fillText: vi.fn(),
-    arc: vi.fn(), save: vi.fn(), restore: vi.fn(), setLineDash: vi.fn(),
-    fillStyle: '', strokeStyle: '', lineWidth: 1, font: '', textAlign: '', textBaseline: '',
-    lineJoin: '', lineCap: '',
+    setTransform: vi.fn(),
+    fillRect: vi.fn(),
+    clearRect: vi.fn(),
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    stroke: vi.fn(),
+    fill: vi.fn(),
+    fillText: vi.fn(),
+    arc: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    setLineDash: vi.fn(),
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+    font: '',
+    textAlign: '',
+    textBaseline: '',
+    lineJoin: '',
+    lineCap: '',
   })) as never;
 });
 
@@ -42,7 +67,10 @@ describe('infostring', () => {
 
   it('jest zarejestrowany wśród bloków sci', () => {
     const zarejestrowane: string[] = [];
-    registerSciBlocks((renderer) => { zarejestrowane.push(renderer.name); return () => {}; });
+    registerSciBlocks((renderer) => {
+      zarejestrowane.push(renderer.name);
+      return () => {};
+    });
     expect(zarejestrowane).toContain('sci-plot');
   });
 });

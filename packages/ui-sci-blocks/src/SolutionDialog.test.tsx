@@ -83,7 +83,12 @@ describe('okno rozwiązywania zadania', () => {
 
 describe('historia rozwiązań', () => {
   const historia = [
-    { at: Date.UTC(2026, 7, 4), mode: 'md' as const, content: 'nowsze wyprowadzenie', answer: '0,28 s' },
+    {
+      at: Date.UTC(2026, 7, 4),
+      mode: 'md' as const,
+      content: 'nowsze wyprowadzenie',
+      answer: '0,28 s',
+    },
     { at: Date.UTC(2026, 6, 1), mode: 'ink' as const, content: pismo },
   ];
 

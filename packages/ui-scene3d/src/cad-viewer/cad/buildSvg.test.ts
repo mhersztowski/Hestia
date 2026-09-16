@@ -13,7 +13,7 @@ const base = {
 };
 
 const line = (o: Partial<EntityInput> = {}): EntityInput =>
-  ({ ...base, type: 'line', x1: 0, y1: 0, x2: 10, y2: 0, ...o } as EntityInput);
+  ({ ...base, type: 'line', x1: 0, y1: 0, x2: 10, y2: 0, ...o }) as EntityInput;
 
 describe('buildSVGString', () => {
   it('returns a placeholder svg for an empty project', () => {
@@ -45,17 +45,42 @@ describe('buildSVGString', () => {
 
   it('emits a polygon for a closed polyline and polyline otherwise', () => {
     const p1 = new Project();
-    p1.addEntity({ ...base, type: 'polyline', points: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }], closed: true } as EntityInput);
+    p1.addEntity({
+      ...base,
+      type: 'polyline',
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+      ],
+      closed: true,
+    } as EntityInput);
     expect(buildSVGString(p1)).toContain('<polygon');
 
     const p2 = new Project();
-    p2.addEntity({ ...base, type: 'polyline', points: [{ x: 0, y: 0 }, { x: 1, y: 0 }], closed: false } as EntityInput);
+    p2.addEntity({
+      ...base,
+      type: 'polyline',
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ],
+      closed: false,
+    } as EntityInput);
     expect(buildSVGString(p2)).toContain('<polyline');
   });
 
   it('emits an arc path', () => {
     const p = new Project();
-    p.addEntity({ ...base, type: 'arc', cx: 0, cy: 0, radius: 5, startAngle: 0, endAngle: Math.PI } as EntityInput);
+    p.addEntity({
+      ...base,
+      type: 'arc',
+      cx: 0,
+      cy: 0,
+      radius: 5,
+      startAngle: 0,
+      endAngle: Math.PI,
+    } as EntityInput);
     const svg = buildSVGString(p);
     expect(svg).toContain('<path');
     expect(svg).toContain('A5,5');
@@ -63,7 +88,15 @@ describe('buildSVGString', () => {
 
   it('emits dimension lines, arrowheads and a measured-length label', () => {
     const p = new Project();
-    p.addEntity({ ...base, type: 'dimension', x1: 0, y1: 0, x2: 10, y2: 0, offset: 5 } as EntityInput);
+    p.addEntity({
+      ...base,
+      type: 'dimension',
+      x1: 0,
+      y1: 0,
+      x2: 10,
+      y2: 0,
+      offset: 5,
+    } as EntityInput);
     const svg = buildSVGString(p);
     expect(svg).toContain('<text');
     expect(svg).toContain('10.00'); // measured length label
@@ -80,7 +113,14 @@ describe('buildSVGString', () => {
 
   it('uses the layer color when entity color is bylayer', () => {
     const p = new Project();
-    const l = p.layerSystem.add({ name: 'red', color: '#ff0000', lineType: 'solid', lineWidth: 1, visible: true, locked: false });
+    const l = p.layerSystem.add({
+      name: 'red',
+      color: '#ff0000',
+      lineType: 'solid',
+      lineWidth: 1,
+      visible: true,
+      locked: false,
+    });
     p.addEntity(line({ layerId: l.id }));
     expect(buildSVGString(p)).toContain('#ff0000');
   });
@@ -115,7 +155,9 @@ describe('loadProjectFromText', () => {
     const json = JSON.stringify(src.toJSON());
     const dest = new Project();
     let loaded = false;
-    dest.eventBus.on('project:loaded', () => { loaded = true; });
+    dest.eventBus.on('project:loaded', () => {
+      loaded = true;
+    });
     loadProjectFromText(json, dest);
     expect(loaded).toBe(true);
   });

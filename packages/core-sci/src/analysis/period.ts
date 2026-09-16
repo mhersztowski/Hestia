@@ -88,9 +88,11 @@ export function periodOf(samples: Array<[number, number]>): PeriodResult | undef
   if (czasy.length >= 3) {
     const odstępy = czasy.slice(1).map((t, i) => t - czasy[i]);
     const średnia = odstępy.reduce((sum, d) => sum + d, 0) / odstępy.length;
-    const rozrzut = średnia > 0
-      ? Math.sqrt(odstępy.reduce((sum, d) => sum + (d - średnia) ** 2, 0) / odstępy.length) / średnia
-      : Number.POSITIVE_INFINITY;
+    const rozrzut =
+      średnia > 0
+        ? Math.sqrt(odstępy.reduce((sum, d) => sum + (d - średnia) ** 2, 0) / odstępy.length) /
+          średnia
+        : Number.POSITIVE_INFINITY;
 
     if (rozrzut < RÓWNY) {
       return {

@@ -14,7 +14,10 @@ export interface SignalArg {
   type: string;
 }
 
-export interface SignalPortLite { name: string; type: string }
+export interface SignalPortLite {
+  name: string;
+  type: string;
+}
 
 /* ── Skaner źródła ───────────────────────────────────────────────────────── */
 
@@ -36,7 +39,10 @@ function skipNonCode(code: string, i: number): number {
   if (c === '"' || c === "'" || c === '`') {
     let j = i + 1;
     while (j < code.length) {
-      if (code[j] === '\\') { j += 2; continue; }
+      if (code[j] === '\\') {
+        j += 2;
+        continue;
+      }
       if (code[j] === c) return j + 1;
       j++;
     }
@@ -56,11 +62,17 @@ export function splitTopLevel(s: string, sep = ','): string[] {
   let i = 0;
   while (i < s.length) {
     const skip = skipNonCode(s, i);
-    if (skip >= 0) { i = skip; continue; }
+    if (skip >= 0) {
+      i = skip;
+      continue;
+    }
     const c = s[i];
     if (OPEN.includes(c) || c === '<') depth++;
     else if (CLOSE.includes(c) || c === '>') depth--;
-    else if (c === sep && depth === 0) { out.push(s.slice(start, i)); start = i + 1; }
+    else if (c === sep && depth === 0) {
+      out.push(s.slice(start, i));
+      start = i + 1;
+    }
     i++;
   }
   if (s.slice(start).trim()) out.push(s.slice(start));
@@ -73,7 +85,10 @@ function topLevelIndexOf(s: string, ch: string): number {
   let i = 0;
   while (i < s.length) {
     const skip = skipNonCode(s, i);
-    if (skip >= 0) { i = skip; continue; }
+    if (skip >= 0) {
+      i = skip;
+      continue;
+    }
     const c = s[i];
     if (OPEN.includes(c) || c === '<') depth++;
     else if (CLOSE.includes(c) || c === '>') depth--;
@@ -90,7 +105,10 @@ function readGeneric(code: string, open: number): { content: string; end: number
   let i = open;
   while (i < code.length) {
     const skip = skipNonCode(code, i);
-    if (skip >= 0) { i = skip; continue; }
+    if (skip >= 0) {
+      i = skip;
+      continue;
+    }
     const c = code[i];
     if (c === '<') depth++;
     else if (c === '>') {
@@ -151,8 +169,14 @@ export function parseParamList(raw: string): SignalArg[] {
   return splitTopLevel(t).map((part, i) => {
     const colon = topLevelIndexOf(part, ':');
     if (colon < 0) return { name: part.trim() || `arg${i + 1}`, type: 'unknown' };
-    const name = part.slice(0, colon).trim().replace(/^(?:readonly|public|private|protected)\s+/, '');
-    return { name: name.replace(/\?$/, '') || `arg${i + 1}`, type: part.slice(colon + 1).trim() || 'unknown' };
+    const name = part
+      .slice(0, colon)
+      .trim()
+      .replace(/^(?:readonly|public|private|protected)\s+/, '');
+    return {
+      name: name.replace(/\?$/, '') || `arg${i + 1}`,
+      type: part.slice(colon + 1).trim() || 'unknown',
+    };
   });
 }
 
@@ -193,9 +217,15 @@ function topLevelMemberStarts(body: string): number[] {
   let i = 0;
   while (i < body.length) {
     const skip = skipNonCode(body, i);
-    if (skip >= 0) { i = skip; continue; }
+    if (skip >= 0) {
+      i = skip;
+      continue;
+    }
     const c = body[i];
-    if (/\s/.test(c)) { i++; continue; }
+    if (/\s/.test(c)) {
+      i++;
+      continue;
+    }
     if (depth === 0 && atMemberStart) {
       starts.push(i);
       atMemberStart = false;
@@ -213,7 +243,10 @@ function topLevelMemberStarts(body: string): number[] {
 const escRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /** Zakres ciała klasy: `start` tuż za `{`, `end` na zamykającym `}`. */
-export function findClassBody(code: string, className: string): { start: number; end: number } | null {
+export function findClassBody(
+  code: string,
+  className: string
+): { start: number; end: number } | null {
   const re = new RegExp(`class\\s+${escRe(className)}\\b[^{]*\\{`);
   const m = re.exec(code);
   if (!m) return null;
@@ -222,7 +255,10 @@ export function findClassBody(code: string, className: string): { start: number;
   let i = start;
   while (i < code.length) {
     const skip = skipNonCode(code, i);
-    if (skip >= 0) { i = skip; continue; }
+    if (skip >= 0) {
+      i = skip;
+      continue;
+    }
     if (code[i] === '{') depth++;
     else if (code[i] === '}') {
       depth--;
@@ -238,12 +274,16 @@ export function findClassBody(code: string, className: string): { start: number;
  * Szuka wyłącznie na poziomie ciała klasy, więc `this.stan` w metodzie nie
  * udaje deklaracji, a metoda `stan()` nie udaje pola.
  */
-export function findFieldRange(code: string, className: string, fieldName: string): { start: number; end: number } | null {
+export function findFieldRange(
+  code: string,
+  className: string,
+  fieldName: string
+): { start: number; end: number } | null {
   const body = findClassBody(code, className);
   if (!body) return null;
   const inner = code.slice(body.start, body.end);
   const declRe = new RegExp(
-    `^(?:(?:readonly|public|private|protected|static|override|declare|abstract)\\s+)*${escRe(fieldName)}\\s*(!?\\s*:|=)`,
+    `^(?:(?:readonly|public|private|protected|static|override|declare|abstract)\\s+)*${escRe(fieldName)}\\s*(!?\\s*:|=)`
   );
   for (const start of topLevelMemberStarts(inner)) {
     if (!declRe.test(inner.slice(start))) continue;
@@ -253,7 +293,10 @@ export function findFieldRange(code: string, className: string, fieldName: strin
     let j = start;
     while (j < inner.length) {
       const skip = skipNonCode(inner, j);
-      if (skip >= 0) { j = skip; continue; }
+      if (skip >= 0) {
+        j = skip;
+        continue;
+      }
       const k = inner[j];
       if (OPEN.includes(k) || k === '<') d++;
       else if (CLOSE.includes(k) || k === '>') d--;
@@ -272,7 +315,10 @@ export function hasFieldInCode(code: string, className: string, fieldName: strin
 
 /** Podmienia całą deklarację pola na `newMember`. `null`, gdy pola nie ma. */
 export function replaceFieldInCode(
-  code: string, className: string, fieldName: string, newMember: string,
+  code: string,
+  className: string,
+  fieldName: string,
+  newMember: string
 ): string | null {
   const r = findFieldRange(code, className, fieldName);
   if (!r) return null;
@@ -280,7 +326,11 @@ export function replaceFieldInCode(
 }
 
 /** Usuwa deklarację pola razem z jej wierszem. `null`, gdy pola nie ma. */
-export function removeFieldFromCode(code: string, className: string, fieldName: string): string | null {
+export function removeFieldFromCode(
+  code: string,
+  className: string,
+  fieldName: string
+): string | null {
   const r = findFieldRange(code, className, fieldName);
   if (!r) return null;
   // Zjadamy wiodące wcięcie i kończący znak nowej linii, żeby po usunięciu
@@ -300,18 +350,26 @@ export function removeFieldFromCode(code: string, className: string, fieldName: 
  * zrywa istniejące `connect()` — a graf pokazywałby połączenie donikąd.
  */
 export function renameMemberInCode(
-  code: string, className: string, instanceVars: string[], oldName: string, newName: string,
+  code: string,
+  className: string,
+  instanceVars: string[],
+  oldName: string,
+  newName: string
 ): string {
   if (!oldName || !newName || oldName === newName) return code;
   const body = findClassBody(code, className);
   let out = code;
   if (body) {
     const before = out.slice(0, body.start);
-    const inner = out.slice(body.start, body.end)
+    const inner = out
+      .slice(body.start, body.end)
       .replace(new RegExp(`\\bthis\\.${escRe(oldName)}\\b`, 'g'), `this.${newName}`)
       .replace(
-        new RegExp(`(^|\\n)(\\s*(?:(?:readonly|public|private|protected|static|override|declare|abstract)\\s+)*)${escRe(oldName)}(\\s*(?:!?\\s*:|=))`, 'g'),
-        `$1$2${newName}$3`,
+        new RegExp(
+          `(^|\\n)(\\s*(?:(?:readonly|public|private|protected|static|override|declare|abstract)\\s+)*)${escRe(oldName)}(\\s*(?:!?\\s*:|=))`,
+          'g'
+        ),
+        `$1$2${newName}$3`
       );
     out = before + inner + out.slice(body.end);
   }
@@ -327,7 +385,7 @@ export function renameMemberInCode(
 function scanGenericFields(body: string, ctor: string): SignalPortLite[] {
   const out: SignalPortLite[] = [];
   const re = new RegExp(
-    `^(?:(?:readonly|public|private|protected|static|override|declare)\\s+)*(\\w+)\\s*(?:!?\\s*:\\s*${ctor}\\b|=\\s*new\\s+${ctor}\\b)`,
+    `^(?:(?:readonly|public|private|protected|static|override|declare)\\s+)*(\\w+)\\s*(?:!?\\s*:\\s*${ctor}\\b|=\\s*new\\s+${ctor}\\b)`
   );
   for (const start of topLevelMemberStarts(body)) {
     const m = re.exec(body.slice(start));
@@ -347,6 +405,9 @@ function scanGenericFields(body: string, ctor: string): SignalPortLite[] {
 export function parseSignalPorts(body: string): SignalPortLite[] {
   return [
     ...scanGenericFields(body, 'Signal'),
-    ...scanGenericFields(body, 'MProperty').map((p) => ({ name: `${p.name}.changed`, type: p.type })),
+    ...scanGenericFields(body, 'MProperty').map((p) => ({
+      name: `${p.name}.changed`,
+      type: p.type,
+    })),
   ];
 }

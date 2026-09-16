@@ -13,9 +13,7 @@ const oscylator = () => buildModel('oscylator').model!;
 
 /** Amplituda ustalona przy wymuszeniu o częstości Ω — po wygaśnięciu transjentu. */
 function amplitudaUstalona(Omega: number, c = 0.2): number {
-  const wynik = oscylator().run(
-    { m: 1, k: 4, c, F_0: 1, Omega, x_0: 0, v_0: 0 }, [0, 400], 0.005,
-  );
+  const wynik = oscylator().run({ m: 1, k: 4, c, F_0: 1, Omega, x_0: 0, v_0: 0 }, [0, 400], 0.005);
   const traj = wynik.trajectory!;
 
   let max = 0;
@@ -48,7 +46,9 @@ describe('widmo drgania wymuszonego', () => {
     // Układ drga własną częstością 2 rad/s, ale wymuszamy 3,5 rad/s.
     // Po transjencie w widmie ma zostać wyłącznie wymuszenie.
     const wynik = oscylator().run(
-      { m: 1, k: 4, c: 0.3, F_0: 1, Omega: 3.5, x_0: 0, v_0: 0 }, [0, 200], 0.005,
+      { m: 1, k: 4, c: 0.3, F_0: 1, Omega: 3.5, x_0: 0, v_0: 0 },
+      [0, 200],
+      0.005
     );
     const traj = wynik.trajectory!;
 
@@ -62,7 +62,9 @@ describe('widmo drgania wymuszonego', () => {
 
   it('drganie swobodne ma w widmie częstość własną', () => {
     const wynik = oscylator().run(
-      { m: 1, k: 4, c: 0, F_0: 0, Omega: 0, x_0: 0.1, v_0: 0 }, [0, 100], 0.005,
+      { m: 1, k: 4, c: 0, F_0: 0, Omega: 0, x_0: 0.1, v_0: 0 },
+      [0, 100],
+      0.005
     );
 
     const f = dominantFrequency(spectrum(wynik.series.x ?? []))!;
@@ -105,9 +107,7 @@ describe('dokument o rezonansie', () => {
     const { buildSimSetup } = await import('./documentModel');
     const { suggestViews } = await import('@hestia/core-sci');
 
-    const markdown = readFileSync(
-      resolve(__dirname, '../documents/rezonans.md'), 'utf8',
-    );
+    const markdown = readFileSync(resolve(__dirname, '../documents/rezonans.md'), 'utf8');
     const sim = /```sim(?::[\w-]+)?\n([\s\S]*?)```/.exec(markdown)![1];
     const setup = buildSimSetup(markdown, sim);
 
@@ -130,7 +130,8 @@ describe('dokument o rezonansie', () => {
     const wynik = setup.model.run({ ...setup.values, Omega: omega0 }, [0, 400], 0.005);
 
     let max = 0;
-    for (let t = 300; t <= 400; t += 0.01) max = Math.max(max, Math.abs(wynik.trajectory!.value('x', t)));
+    for (let t = 300; t <= 400; t += 0.01)
+      max = Math.max(max, Math.abs(wynik.trajectory!.value('x', t)));
     expect(max).toBeCloseTo(1 / (2 * 1 * 0.15 * omega0), 1);
   }, 60_000);
 });

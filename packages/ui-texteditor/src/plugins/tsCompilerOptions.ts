@@ -12,10 +12,10 @@
  * więc test może podstawić prawdziwe enumy TypeScriptu.
  */
 export interface TsNamespaceLike {
-    ScriptTarget: { ES2020: number };
-    ModuleKind: { ESNext: number };
-    ModuleResolutionKind: { NodeJs: number };
-    JsxEmit: { React: number };
+  ScriptTarget: { ES2020: number };
+  ModuleKind: { ESNext: number };
+  ModuleResolutionKind: { NodeJs: number };
+  JsxEmit: { React: number };
 }
 
 /**
@@ -25,23 +25,23 @@ export interface TsNamespaceLike {
  * dopuszcza dowolne klucze), a nie ozdobą — bez niej obiekt nie przechodzi.
  */
 export interface EditorCompilerOptions {
-    [key: string]: string | number | boolean | string[] | undefined;
-    target: number;
-    module: number;
-    moduleResolution: number;
-    jsx: number;
-    allowSyntheticDefaultImports: boolean;
-    esModuleInterop: boolean;
-    allowJs: boolean;
-    strict: boolean;
-    skipLibCheck: boolean;
-    noEmit: boolean;
-    isolatedModules: boolean;
-    allowImportingTsExtensions: boolean;
-    allowNonTsExtensions: boolean;
-    checkJs?: boolean;
-    /** Zobacz uwagę o `lib` niżej — celowo nieustawiane. */
-    lib?: string[];
+  [key: string]: string | number | boolean | string[] | undefined;
+  target: number;
+  module: number;
+  moduleResolution: number;
+  jsx: number;
+  allowSyntheticDefaultImports: boolean;
+  esModuleInterop: boolean;
+  allowJs: boolean;
+  strict: boolean;
+  skipLibCheck: boolean;
+  noEmit: boolean;
+  isolatedModules: boolean;
+  allowImportingTsExtensions: boolean;
+  allowNonTsExtensions: boolean;
+  checkJs?: boolean;
+  /** Zobacz uwagę o `lib` niżej — celowo nieustawiane. */
+  lib?: string[];
 }
 
 /**
@@ -65,27 +65,27 @@ export interface EditorCompilerOptions {
  * trzeba wpisać **pełne nazwy plików**, nie skróty.
  */
 export function buildCompilerOptions(ts: TsNamespaceLike): EditorCompilerOptions {
-    return {
-        target: ts.ScriptTarget.ES2020,
-        module: ts.ModuleKind.ESNext,
-        // Monaco domyślnie rozwiązuje moduły „po staremu", czyli bez zaglądania
-        // do `node_modules` — bez tego import po nazwie pakietu daje `any`,
-        // choćby jego deklaracje były już wczytane.
-        moduleResolution: ts.ModuleResolutionKind.NodeJs,
-        jsx: ts.JsxEmit.React,
-        allowSyntheticDefaultImports: true,
-        esModuleInterop: true,
-        allowJs: true,
-        // Podpowiedzi nie mogą zależeć od tego, czy kod użytkownika przechodzi
-        // tryb ścisły — to jego wybór, nie warunek działania edytora.
-        strict: false,
-        skipLibCheck: true,
-        noEmit: true,
-        isolatedModules: true,
-        allowImportingTsExtensions: true,
-        // Plik z Drive ma URI takie, jakie ma na dysku — bywa z rozszerzeniem,
-        // którego TypeScript nie uzna za swoje. Bez tej opcji wypada z programu
-        // i nie dostaje żadnych podpowiedzi.
-        allowNonTsExtensions: true,
-    };
+  return {
+    target: ts.ScriptTarget.ES2020,
+    module: ts.ModuleKind.ESNext,
+    // Monaco domyślnie rozwiązuje moduły „po staremu", czyli bez zaglądania
+    // do `node_modules` — bez tego import po nazwie pakietu daje `any`,
+    // choćby jego deklaracje były już wczytane.
+    moduleResolution: ts.ModuleResolutionKind.NodeJs,
+    jsx: ts.JsxEmit.React,
+    allowSyntheticDefaultImports: true,
+    esModuleInterop: true,
+    allowJs: true,
+    // Podpowiedzi nie mogą zależeć od tego, czy kod użytkownika przechodzi
+    // tryb ścisły — to jego wybór, nie warunek działania edytora.
+    strict: false,
+    skipLibCheck: true,
+    noEmit: true,
+    isolatedModules: true,
+    allowImportingTsExtensions: true,
+    // Plik z Drive ma URI takie, jakie ma na dysku — bywa z rozszerzeniem,
+    // którego TypeScript nie uzna za swoje. Bez tej opcji wypada z programu
+    // i nie dostaje żadnych podpowiedzi.
+    allowNonTsExtensions: true,
+  };
 }

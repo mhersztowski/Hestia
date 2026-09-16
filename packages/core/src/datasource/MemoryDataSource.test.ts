@@ -6,11 +6,19 @@ import type { MinisModuleDefsModel } from '../models/MinisModuleDefModel';
 import type { MinisProjectDefsModel } from '../models/MinisProjectDefModel';
 
 const makeUser = (id: string, name: string): UserModel => ({
-  type: 'user', id, name, password: 'pw', isAdmin: false, roles: [],
+  type: 'user',
+  id,
+  name,
+  password: 'pw',
+  isAdmin: false,
+  roles: [],
 });
 
 const makeDeviceDef = (id: string, name: string, modules: string[] = []): MinisDeviceDefModel => ({
-  type: 'device_def', id, name, modules,
+  type: 'device_def',
+  id,
+  name,
+  modules,
 });
 
 describe('MemoryDataSource', () => {
@@ -125,9 +133,7 @@ describe('MemoryDataSource', () => {
     it('populates from model', () => {
       const data: MinisModuleDefsModel = {
         type: 'module_defs',
-        moduleDefs: [
-          { type: 'module_def', id: 'md1', name: 'WiFi', isProgrammable: true },
-        ],
+        moduleDefs: [{ type: 'module_def', id: 'md1', name: 'WiFi', isProgrammable: true }],
       };
       ds.loadMinisModuleDefs(data);
       expect(ds.minisModuleDefs).toHaveLength(1);
@@ -141,9 +147,14 @@ describe('MemoryDataSource', () => {
         type: 'project_defs',
         projectDefs: [
           {
-            type: 'project_def', id: 'pd1', name: 'Blinky',
-            version: '1.0', deviceDefId: 'dd1', moduleDefId: 'md1',
-            softwarePlatform: 'Arduino', blocklyDef: '',
+            type: 'project_def',
+            id: 'pd1',
+            name: 'Blinky',
+            version: '1.0',
+            deviceDefId: 'dd1',
+            moduleDefId: 'md1',
+            softwarePlatform: 'Arduino',
+            blocklyDef: '',
           },
         ],
       };

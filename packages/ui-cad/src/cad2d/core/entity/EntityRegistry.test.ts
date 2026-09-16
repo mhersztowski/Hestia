@@ -30,7 +30,15 @@ describe('EntityRegistry', () => {
   });
 
   it('addWithId() inserts an entity and recomputes the bounding box', () => {
-    const e = { ...base, id: 'fixed', type: 'circle', cx: 0, cy: 0, radius: 5, boundingBox: { minX: 0, minY: 0, maxX: 0, maxY: 0 } } as Entity;
+    const e = {
+      ...base,
+      id: 'fixed',
+      type: 'circle',
+      cx: 0,
+      cy: 0,
+      radius: 5,
+      boundingBox: { minX: 0, minY: 0, maxX: 0, maxY: 0 },
+    } as Entity;
     reg.addWithId(e);
     const stored = reg.get('fixed')!;
     expect(stored.boundingBox).toEqual({ minX: -5, minY: -5, maxX: 5, maxY: 5 });
@@ -108,78 +116,134 @@ describe('EntityRegistry', () => {
 });
 
 describe('computeBoundingBox — all entity types', () => {
-  const b = (over: Partial<Entity>): Entity => ({ ...base, id: 'x', boundingBox: { minX: 0, minY: 0, maxX: 0, maxY: 0 }, ...over } as Entity);
+  const b = (over: Partial<Entity>): Entity =>
+    ({ ...base, id: 'x', boundingBox: { minX: 0, minY: 0, maxX: 0, maxY: 0 }, ...over }) as Entity;
 
   it('line', () => {
-    expect(computeBoundingBox(b({ type: 'line', x1: 1, y1: 2, x2: 4, y2: 6 } as any)))
-      .toEqual({ minX: 1, minY: 2, maxX: 4, maxY: 6 });
+    expect(computeBoundingBox(b({ type: 'line', x1: 1, y1: 2, x2: 4, y2: 6 } as any))).toEqual({
+      minX: 1,
+      minY: 2,
+      maxX: 4,
+      maxY: 6,
+    });
   });
 
   it('circle', () => {
-    expect(computeBoundingBox(b({ type: 'circle', cx: 0, cy: 0, radius: 3 } as any)))
-      .toEqual({ minX: -3, minY: -3, maxX: 3, maxY: 3 });
+    expect(computeBoundingBox(b({ type: 'circle', cx: 0, cy: 0, radius: 3 } as any))).toEqual({
+      minX: -3,
+      minY: -3,
+      maxX: 3,
+      maxY: 3,
+    });
   });
 
   it('polyline', () => {
-    expect(computeBoundingBox(b({ type: 'polyline', closed: false, points: [{ x: 0, y: 0 }, { x: 5, y: 8 }] } as any)))
-      .toEqual({ minX: 0, minY: 0, maxX: 5, maxY: 8 });
+    expect(
+      computeBoundingBox(
+        b({
+          type: 'polyline',
+          closed: false,
+          points: [
+            { x: 0, y: 0 },
+            { x: 5, y: 8 },
+          ],
+        } as any)
+      )
+    ).toEqual({ minX: 0, minY: 0, maxX: 5, maxY: 8 });
   });
 
   it('rect', () => {
-    expect(computeBoundingBox(b({ type: 'rect', x: 2, y: 3, width: 4, height: 5 } as any)))
-      .toEqual({ minX: 2, minY: 3, maxX: 6, maxY: 8 });
+    expect(computeBoundingBox(b({ type: 'rect', x: 2, y: 3, width: 4, height: 5 } as any))).toEqual(
+      { minX: 2, minY: 3, maxX: 6, maxY: 8 }
+    );
   });
 
   it('arc', () => {
-    expect(computeBoundingBox(b({ type: 'arc', cx: 0, cy: 0, radius: 2, startAngle: 0, endAngle: Math.PI } as any)))
-      .toEqual({ minX: -2, minY: -2, maxX: 2, maxY: 2 });
+    expect(
+      computeBoundingBox(
+        b({ type: 'arc', cx: 0, cy: 0, radius: 2, startAngle: 0, endAngle: Math.PI } as any)
+      )
+    ).toEqual({ minX: -2, minY: -2, maxX: 2, maxY: 2 });
   });
 
   it('text', () => {
-    const bb = computeBoundingBox(b({ type: 'text', x: 0, y: 0, content: 'abc', fontSize: 10, fontFamily: 'Arial', angle: 0 } as any));
+    const bb = computeBoundingBox(
+      b({
+        type: 'text',
+        x: 0,
+        y: 0,
+        content: 'abc',
+        fontSize: 10,
+        fontFamily: 'Arial',
+        angle: 0,
+      } as any)
+    );
     expect(bb.minX).toBe(0);
     expect(bb.maxX).toBeCloseTo(3 * 10 * 0.6);
     expect(bb.maxY).toBeCloseTo(14);
   });
 
   it('image', () => {
-    expect(computeBoundingBox(b({ type: 'image', x: 1, y: 1, width: 10, height: 20, src: 'x' } as any)))
-      .toEqual({ minX: 1, minY: 1, maxX: 11, maxY: 21 });
+    expect(
+      computeBoundingBox(b({ type: 'image', x: 1, y: 1, width: 10, height: 20, src: 'x' } as any))
+    ).toEqual({ minX: 1, minY: 1, maxX: 11, maxY: 21 });
   });
 
   it('freehand with points', () => {
-    expect(computeBoundingBox(b({ type: 'freehand', strokeWidth: 1, smooth: false, points: [{ x: -1, y: -2 }, { x: 3, y: 4 }] } as any)))
-      .toEqual({ minX: -1, minY: -2, maxX: 3, maxY: 4 });
+    expect(
+      computeBoundingBox(
+        b({
+          type: 'freehand',
+          strokeWidth: 1,
+          smooth: false,
+          points: [
+            { x: -1, y: -2 },
+            { x: 3, y: 4 },
+          ],
+        } as any)
+      )
+    ).toEqual({ minX: -1, minY: -2, maxX: 3, maxY: 4 });
   });
 
   it('freehand empty returns zero box', () => {
-    expect(computeBoundingBox(b({ type: 'freehand', strokeWidth: 1, smooth: false, points: [] } as any)))
-      .toEqual({ minX: 0, minY: 0, maxX: 0, maxY: 0 });
+    expect(
+      computeBoundingBox(b({ type: 'freehand', strokeWidth: 1, smooth: false, points: [] } as any))
+    ).toEqual({ minX: 0, minY: 0, maxX: 0, maxY: 0 });
   });
 
   it('dimension accounts for the offset', () => {
-    const bb = computeBoundingBox(b({ type: 'dimension', x1: 0, y1: 0, x2: 10, y2: 0, offset: 5 } as any));
+    const bb = computeBoundingBox(
+      b({ type: 'dimension', x1: 0, y1: 0, x2: 10, y2: 0, offset: 5 } as any)
+    );
     expect(bb).toEqual({ minX: 0, minY: 0, maxX: 10, maxY: 5 });
   });
 
   it('dimension with zero-length uses len fallback', () => {
-    const bb = computeBoundingBox(b({ type: 'dimension', x1: 0, y1: 0, x2: 0, y2: 0, offset: 4 } as any));
+    const bb = computeBoundingBox(
+      b({ type: 'dimension', x1: 0, y1: 0, x2: 0, y2: 0, offset: 4 } as any)
+    );
     // len falls back to 1; nx = -0*4, ny = 0*4 → all points at origin
     expect(bb).toEqual({ minX: 0, minY: 0, maxX: 0, maxY: 0 });
   });
 
   it('box3d', () => {
-    expect(computeBoundingBox(b({ type: 'box3d', cx: 0, cy: 0, width: 4, depth: 6, height: 2 } as any)))
-      .toEqual({ minX: -2, minY: -3, maxX: 2, maxY: 3 });
+    expect(
+      computeBoundingBox(b({ type: 'box3d', cx: 0, cy: 0, width: 4, depth: 6, height: 2 } as any))
+    ).toEqual({ minX: -2, minY: -3, maxX: 2, maxY: 3 });
   });
 
   it('cylinder3d', () => {
-    expect(computeBoundingBox(b({ type: 'cylinder3d', cx: 0, cy: 0, radius: 3, height: 5 } as any)))
-      .toEqual({ minX: -3, minY: -3, maxX: 3, maxY: 3 });
+    expect(
+      computeBoundingBox(b({ type: 'cylinder3d', cx: 0, cy: 0, radius: 3, height: 5 } as any))
+    ).toEqual({ minX: -3, minY: -3, maxX: 3, maxY: 3 });
   });
 
   it('sphere3d', () => {
-    expect(computeBoundingBox(b({ type: 'sphere3d', cx: 1, cy: 1, radius: 2 } as any)))
-      .toEqual({ minX: -1, minY: -1, maxX: 3, maxY: 3 });
+    expect(computeBoundingBox(b({ type: 'sphere3d', cx: 1, cy: 1, radius: 2 } as any))).toEqual({
+      minX: -1,
+      minY: -1,
+      maxX: 3,
+      maxY: 3,
+    });
   });
 });

@@ -12,14 +12,22 @@ import { buildGraph } from './formulaGraph';
 import { compileGraph, defaultValues } from './compileGraph';
 
 /** Obwód RC ze źródłem: sztywny, gdy stała czasowa jest bardzo krótka. */
-const rc = (extra: string[]) => compileGraph(buildGraph([parseFormulaBlock('rc', [
-  '@ode',
-  '@state U',
-  '@d U = \\frac{E - U}{\\tau}',
-  '@init U = 0',
-  '@vars U: V, E: V, tau: s',
-  ...extra,
-].join('\n'))]));
+const rc = (extra: string[]) =>
+  compileGraph(
+    buildGraph([
+      parseFormulaBlock(
+        'rc',
+        [
+          '@ode',
+          '@state U',
+          '@d U = \\frac{E - U}{\\tau}',
+          '@init U = 0',
+          '@vars U: V, E: V, tau: s',
+          ...extra,
+        ].join('\n')
+      ),
+    ])
+  );
 
 const NASTAWY = { E: 5, tau: 1e-6 };
 
@@ -45,8 +53,9 @@ describe('wybór metody niejawnej', () => {
 
   it('rozumie `stiff` jako nazwę mówiącą o układzie, nie o metodzie', () => {
     const m = rc(['@solver stiff']);
-    expect(m.run({ ...defaultValues(m), ...NASTAWY }, [0, 1], 0.01).trajectory!.value('U', 1))
-      .toBeCloseTo(5, 9);
+    expect(
+      m.run({ ...defaultValues(m), ...NASTAWY }, [0, 1], 0.01).trajectory!.value('U', 1)
+    ).toBeCloseTo(5, 9);
   });
 
   it('odtwarza przebieg ładowania, nie tylko stan końcowy', () => {

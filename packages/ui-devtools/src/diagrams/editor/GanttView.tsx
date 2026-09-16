@@ -28,7 +28,11 @@ export function GanttView({ layout, selected, onSelect, onSelectSection }: Gantt
   const { labelWidth, chartWidth, headerHeight, width, height } = layout;
 
   return (
-    <svg width={width} height={height} style={{ display: 'block', fontFamily: 'system-ui, sans-serif' }}>
+    <svg
+      width={width}
+      height={height}
+      style={{ display: 'block', fontFamily: 'system-ui, sans-serif' }}
+    >
       {/* Pas czasu ma własne tło — od razu widać, gdzie kończą się nazwy. */}
       <rect x={labelWidth} y={0} width={chartWidth} height={height} fill="#f8fafc" />
 
@@ -57,9 +61,19 @@ export function GanttView({ layout, selected, onSelect, onSelectSection }: Gantt
       {layout.rows.map((row, i) => {
         if (row.kind === 'section') {
           return (
-            <g key={`r${i}`} onClick={() => onSelectSection?.(row.sectionIndex)} style={{ cursor: 'pointer' }}>
+            <g
+              key={`r${i}`}
+              onClick={() => onSelectSection?.(row.sectionIndex)}
+              style={{ cursor: 'pointer' }}
+            >
               <rect x={0} y={row.y} width={width} height={row.height} fill="#eef2f7" />
-              <text x={8} y={row.y + row.height / 2 + 3.5} fontSize={11} fontWeight={600} fill="#334155">
+              <text
+                x={8}
+                y={row.y + row.height / 2 + 3.5}
+                fontSize={11}
+                fontWeight={600}
+                fill="#334155"
+              >
                 {row.label}
               </text>
             </g>
@@ -81,7 +95,12 @@ export function GanttView({ layout, selected, onSelect, onSelectSection }: Gantt
               fill={active ? '#dbeafe' : 'transparent'}
               opacity={active ? 0.6 : 1}
             />
-            <text x={8} y={row.y + row.height / 2 + 4} fontSize={11} fill={row.entry?.issue ? '#b91c1c' : '#0f172a'}>
+            <text
+              x={8}
+              y={row.y + row.height / 2 + 4}
+              fontSize={11}
+              fill={row.entry?.issue ? '#b91c1c' : '#0f172a'}
+            >
               {row.label.length > 26 ? `${row.label.slice(0, 25)}…` : row.label}
             </text>
             {/* Zadanie bez miejsca na osi mówi wprost, czego brakuje. */}
@@ -144,7 +163,12 @@ export function GanttView({ layout, selected, onSelect, onSelectSection }: Gantt
             strokeWidth={1.5}
             strokeDasharray="4 3"
           />
-          <text x={labelWidth + layout.todayX + 3} y={headerHeight - 10} fontSize={9} fill="#ef4444">
+          <text
+            x={labelWidth + layout.todayX + 3}
+            y={headerHeight - 10}
+            fontSize={9}
+            fill="#ef4444"
+          >
             dziś
           </text>
         </g>

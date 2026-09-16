@@ -14,20 +14,23 @@
 import { createTheme } from '@mui/material/styles';
 
 const wspolne = {
-    text: { primary: '#cccccc', secondary: '#9d9d9d' },
-    divider: '#3c3c3c',
-    // Domyślne wygaszenie MUI (30% bieli) na tym tle robi z „Commit"
-    // napis na granicy widoczności — a to jedyne miejsce, które tłumaczy,
-    // czego brakuje do commita, więc musi dać się przeczytać.
-    action: { disabled: 'rgba(255, 255, 255, 0.45)', disabledBackground: 'rgba(255, 255, 255, 0.12)' },
+  text: { primary: '#cccccc', secondary: '#9d9d9d' },
+  divider: '#3c3c3c',
+  // Domyślne wygaszenie MUI (30% bieli) na tym tle robi z „Commit"
+  // napis na granicy widoczności — a to jedyne miejsce, które tłumaczy,
+  // czego brakuje do commita, więc musi dać się przeczytać.
+  action: {
+    disabled: 'rgba(255, 255, 255, 0.45)',
+    disabledBackground: 'rgba(255, 255, 255, 0.12)',
+  },
 } as const;
 
 /** Boczny pasek — tło `#252526`, jak lista plików w eksploratorze. */
 export const MOTYW_PASKA = createTheme({
-    palette: { mode: 'dark', background: { paper: '#252526', default: '#252526' }, ...wspolne },
+  palette: { mode: 'dark', background: { paper: '#252526', default: '#252526' }, ...wspolne },
 });
 
 /** Zakładka edytora — tło `#1e1e1e`, jak obszar kodu. */
 export const MOTYW_ZAKLADKI = createTheme({
-    palette: { mode: 'dark', background: { paper: '#1e1e1e', default: '#1e1e1e' }, ...wspolne },
+  palette: { mode: 'dark', background: { paper: '#1e1e1e', default: '#1e1e1e' }, ...wspolne },
 });

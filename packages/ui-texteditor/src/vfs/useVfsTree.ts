@@ -7,12 +7,12 @@ import type { VfsTreeNode } from './types';
 function mergeChildren(
   tree: VfsTreeNode[],
   parentId: string,
-  children: VfsTreeNode[],
+  children: VfsTreeNode[]
 ): VfsTreeNode[] {
-  return tree.map(node => {
+  return tree.map((node) => {
     if (node.id === parentId) {
-      const existingMap = new Map((node.children ?? []).map(c => [c.id, c]));
-      const merged = children.map(child => {
+      const existingMap = new Map((node.children ?? []).map((c) => [c.id, c]));
+      const merged = children.map((child) => {
         const existing = existingMap.get(child.id);
         if (existing && child.isDirectory && existing.children && existing.children.length > 0) {
           return { ...child, children: existing.children };
@@ -47,31 +47,34 @@ export function useVfsTree(provider: FileSystemProvider, rootPath: string = '/')
   }, []);
 
   /** Read a directory and return sorted VfsTreeNode children */
-  const buildNodes = useCallback(async (dirPath: string): Promise<VfsTreeNode[]> => {
-    const dp = normalize(dirPath);
-    const entries = await provider.readDirectory(dp);
-    entries.sort((a, b) => {
-      const aDir = a.type === FileType.Directory ? 0 : 1;
-      const bDir = b.type === FileType.Directory ? 0 : 1;
-      if (aDir !== bDir) return aDir - bDir;
-      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
-    });
-    return entries.map(e => {
-      const childPath = normalize(dp === '/' ? '/' + e.name : dp + '/' + e.name);
-      const isDir = e.type === FileType.Directory;
-      return {
-        id: childPath,
-        label: e.name,
-        isDirectory: isDir,
-        children: isDir ? [] : undefined,
-      };
-    });
-  }, [provider]);
+  const buildNodes = useCallback(
+    async (dirPath: string): Promise<VfsTreeNode[]> => {
+      const dp = normalize(dirPath);
+      const entries = await provider.readDirectory(dp);
+      entries.sort((a, b) => {
+        const aDir = a.type === FileType.Directory ? 0 : 1;
+        const bDir = b.type === FileType.Directory ? 0 : 1;
+        if (aDir !== bDir) return aDir - bDir;
+        return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+      });
+      return entries.map((e) => {
+        const childPath = normalize(dp === '/' ? '/' + e.name : dp + '/' + e.name);
+        const isDir = e.type === FileType.Directory;
+        return {
+          id: childPath,
+          label: e.name,
+          isDirectory: isDir,
+          children: isDir ? [] : undefined,
+        };
+      });
+    },
+    [provider]
+  );
 
   /** Rebuild the entire tree by reloading all previously loaded directories */
   const refresh = useCallback(async () => {
     const dirs = [...loadedDirsRef.current].sort(
-      (a, b) => a.split('/').length - b.split('/').length,
+      (a, b) => a.split('/').length - b.split('/').length
     );
 
     let newTree: VfsTreeNode[] = [];
@@ -109,7 +112,7 @@ export function useVfsTree(provider: FileSystemProvider, rootPath: string = '/')
     setExpandedItems([]);
     startLoading();
     buildNodes(rp)
-      .then(nodes => {
+      .then((nodes) => {
         loadedDirsRef.current.add(rp);
         setItems(nodes);
       })
@@ -134,7 +137,7 @@ export function useVfsTree(provider: FileSystemProvider, rootPath: string = '/')
         try {
           const children = await buildNodes(itemId);
           loadedDirsRef.current.add(itemId);
-          setItems(prev => mergeChildren(prev, itemId, children));
+          setItems((prev) => mergeChildren(prev, itemId, children));
         } catch {
           // Ignore errors for directories that can't be read
         } finally {
@@ -142,7 +145,7 @@ export function useVfsTree(provider: FileSystemProvider, rootPath: string = '/')
         }
       }
     },
-    [buildNodes, startLoading, stopLoading],
+    [buildNodes, startLoading, stopLoading]
   );
 
   return {

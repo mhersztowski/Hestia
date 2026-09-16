@@ -45,7 +45,14 @@ describe('BlockShell', () => {
     // Uwaga dotyczy zapisu, więc czytelnik ma zobaczyć zapis, a nie widok,
     // który przy błędzie i tak jest pusty albo mylący.
     render(
-      <BlockShell kind="wzór" accent="#000" id="a" view={WIDOK} children={TRESC} issues={['coś nie gra']} />,
+      <BlockShell
+        kind="wzór"
+        accent="#000"
+        id="a"
+        view={WIDOK}
+        children={TRESC}
+        issues={['coś nie gra']}
+      />
     );
 
     expect(screen.queryByTestId('widok')).toBeNull();

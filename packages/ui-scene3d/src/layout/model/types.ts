@@ -13,9 +13,7 @@
 
 /** Wartość: liczba wprost, odwołanie do nazwy albo wyrażenie. */
 export type ParamValue =
-  | { src: 'literal'; value: number }
-  | { src: 'ref'; name: string }
-  | { src: 'expr'; code: string };
+  { src: 'literal'; value: number } | { src: 'ref'; name: string } | { src: 'expr'; code: string };
 
 /** Skrót do zapisu literału — w dokumentach ręcznych bywa ich najwięcej. */
 export const lit = (value: number): ParamValue => ({ src: 'literal', value });
@@ -85,10 +83,16 @@ export interface Shape {
 
 /** Rodzaje więzów — podzbiór tego, co ma szkic CAD, w wersji prostokątnej. */
 export type ConstraintType =
-  | 'coincidentX' | 'coincidentY'
-  | 'sameWidth' | 'sameHeight'
-  | 'distanceX' | 'distanceY'
-  | 'alignLeft' | 'alignTop' | 'alignCenterX' | 'alignCenterY'
+  | 'coincidentX'
+  | 'coincidentY'
+  | 'sameWidth'
+  | 'sameHeight'
+  | 'distanceX'
+  | 'distanceY'
+  | 'alignLeft'
+  | 'alignTop'
+  | 'alignCenterX'
+  | 'alignCenterY'
   | 'fixed';
 
 export interface Constraint {

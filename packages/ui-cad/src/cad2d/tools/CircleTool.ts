@@ -31,24 +31,36 @@ export class CircleTool implements Tool {
     return [
       {
         id: 'radius',
-        worldX: midX, worldY: midY,
+        worldX: midX,
+        worldY: midY,
         text: `R: ${r.toFixed(2)}`,
         offsetY: -14,
         variant: 'primary',
         editable: true,
-        onEdit: (newR: number) => { this.lockR = newR; }, // hold the radius, do not commit yet
+        onEdit: (newR: number) => {
+          this.lockR = newR;
+        }, // hold the radius, do not commit yet
       },
     ];
   }
 
   private commitCircle(radius: number, ctx: ToolContext): void {
-    if (!this.center || radius <= 0) { this.reset(); return; }
+    if (!this.center || radius <= 0) {
+      this.reset();
+      return;
+    }
     ctx.project.addEntity({
       type: 'circle',
       layerId: ctx.project.layerSystem.getActiveId(),
-      cx: this.center.x, cy: this.center.y, radius,
-      color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-      visible: true, locked: false, extrudeHeight: 0,
+      cx: this.center.x,
+      cy: this.center.y,
+      radius,
+      color: 'bylayer',
+      lineType: 'bylayer',
+      lineWidth: 'bylayer',
+      visible: true,
+      locked: false,
+      extrudeHeight: 0,
     });
     this.reset();
   }

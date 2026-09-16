@@ -8,7 +8,9 @@ export class TextTool implements Tool {
   fontFamily = 'Arial';
   content = 'Text';
 
-  getPreview(): PreviewGeometry | null { return null; }
+  getPreview(): PreviewGeometry | null {
+    return null;
+  }
 
   onPointerDown(point: Point2D, ctx: ToolContext): void {
     ctx.project.addEntity({
@@ -31,7 +33,9 @@ export class TextTool implements Tool {
 
   onPointerMove(_p: Point2D, _ctx: ToolContext): void {}
   onPointerUp(_p: Point2D, _ctx: ToolContext): void {}
-  onKeyDown(key: string, _ctx: ToolContext): void { if (key === 'Escape') this.reset(); }
+  onKeyDown(key: string, _ctx: ToolContext): void {
+    if (key === 'Escape') this.reset();
+  }
   reset(): void {}
 }
 

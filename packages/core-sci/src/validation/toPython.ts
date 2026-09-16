@@ -35,10 +35,20 @@ export interface PythonExpression {
  * MathJSON (dziesiętny) trafia osobno na `log10`.
  */
 const FUNKCJE: Record<string, string> = {
-  Sin: 'sin', Cos: 'cos', Tan: 'tan',
-  Arcsin: 'asin', Arccos: 'acos', Arctan: 'atan',
-  Sinh: 'sinh', Cosh: 'cosh', Tanh: 'tanh',
-  Exp: 'exp', Ln: 'log', Log: 'log10', Sqrt: 'sqrt', Abs: 'fabs',
+  Sin: 'sin',
+  Cos: 'cos',
+  Tan: 'tan',
+  Arcsin: 'asin',
+  Arccos: 'acos',
+  Arctan: 'atan',
+  Sinh: 'sinh',
+  Cosh: 'cosh',
+  Tanh: 'tanh',
+  Exp: 'exp',
+  Ln: 'log',
+  Log: 'log10',
+  Sqrt: 'sqrt',
+  Abs: 'fabs',
 };
 
 const STALE: Record<string, string> = {
@@ -70,18 +80,24 @@ function serialize(json: unknown, symbols: Set<string>, issues: string[]): strin
   const dzieci = () => args.map((a) => serialize(a, symbols, issues));
 
   switch (head) {
-    case 'Add': return `(${dzieci().join(' + ')})`;
-    case 'Subtract': return `(${dzieci().join(' - ')})`;
-    case 'Negate': return `(-${dzieci()[0]})`;
-    case 'Multiply': return `(${dzieci().join(' * ')})`;
-    case 'Divide': return `(${dzieci().join(' / ')})`;
+    case 'Add':
+      return `(${dzieci().join(' + ')})`;
+    case 'Subtract':
+      return `(${dzieci().join(' - ')})`;
+    case 'Negate':
+      return `(-${dzieci()[0]})`;
+    case 'Multiply':
+      return `(${dzieci().join(' * ')})`;
+    case 'Divide':
+      return `(${dzieci().join(' / ')})`;
     case 'Power': {
       const [podstawa, wykladnik] = dzieci();
       // `^` w Pythonie znaczy XOR, więc pomyłka tutaj nie wywala kodu, tylko
       // po cichu liczy co innego. Stąd osobny przypadek zamiast przepisania.
       return `(${podstawa} ** ${wykladnik})`;
     }
-    case 'Square': return `(${dzieci()[0]} ** 2)`;
+    case 'Square':
+      return `(${dzieci()[0]} ** 2)`;
     case 'Root': {
       const [radykand, stopien] = dzieci();
       return `(${radykand} ** (1 / ${stopien}))`;
@@ -98,7 +114,7 @@ function serialize(json: unknown, symbols: Set<string>, issues: string[]): strin
       if (funkcja) return `${funkcja}(${dzieci().join(', ')})`;
 
       issues.push(
-        `Nie umiem przetłumaczyć „${head}" na Pythona — cross-walidacja pominie ten wzór.`,
+        `Nie umiem przetłumaczyć „${head}" na Pythona — cross-walidacja pominie ten wzór.`
       );
       return '0';
     }
@@ -114,7 +130,11 @@ export function latexToPython(latex: string): PythonExpression {
   try {
     json = engine.parse(latex).json;
   } catch (error) {
-    return { code: '0', symbols: [], issues: [`Nie umiem odczytać „${latex}": ${(error as Error).message}`] };
+    return {
+      code: '0',
+      symbols: [],
+      issues: [`Nie umiem odczytać „${latex}": ${(error as Error).message}`],
+    };
   }
 
   const code = serialize(json, symbols, issues);

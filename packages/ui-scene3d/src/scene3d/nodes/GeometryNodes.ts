@@ -72,7 +72,14 @@ export class GeometryPointNode extends SceneNode {
   getEditableFields(): GeoEditableField[] {
     return [
       { key: 'color', label: 'Color', kind: 'color', value: this.color },
-      { key: 'pixelSize', label: 'Size (px)', kind: 'number', value: this.pixelSize, step: 1, min: 1 },
+      {
+        key: 'pixelSize',
+        label: 'Size (px)',
+        kind: 'number',
+        value: this.pixelSize,
+        step: 1,
+        min: 1,
+      },
       { key: 'showLabel', label: 'Show Label', kind: 'boolean', value: this.showLabel },
       { key: 'label', label: 'Label', kind: 'text', value: this.label },
     ];
@@ -84,16 +91,36 @@ export class GeometryPointNode extends SceneNode {
 
   override setProperty(property: string, value: unknown): boolean {
     switch (property) {
-      case 'geo.color': this.color = value as string; this.notifyChange(); return true;
-      case 'geo.pixelSize': this.pixelSize = value as number; this.notifyChange(); return true;
-      case 'geo.showLabel': this.showLabel = value as boolean; this.notifyChange(); return true;
-      case 'geo.label': this.label = value as string; this.notifyChange(); return true;
-      default: return super.setProperty(property, value);
+      case 'geo.color':
+        this.color = value as string;
+        this.notifyChange();
+        return true;
+      case 'geo.pixelSize':
+        this.pixelSize = value as number;
+        this.notifyChange();
+        return true;
+      case 'geo.showLabel':
+        this.showLabel = value as boolean;
+        this.notifyChange();
+        return true;
+      case 'geo.label':
+        this.label = value as string;
+        this.notifyChange();
+        return true;
+      default:
+        return super.setProperty(property, value);
     }
   }
 
   override toData(): GeometryPointNodeData {
-    return { ...super.toData(), type: 'geometry-point', color: this.color, pixelSize: this.pixelSize, showLabel: this.showLabel, label: this.label };
+    return {
+      ...super.toData(),
+      type: 'geometry-point',
+      color: this.color,
+      pixelSize: this.pixelSize,
+      showLabel: this.showLabel,
+      label: this.label,
+    };
   }
 }
 
@@ -134,10 +161,35 @@ export class GeometrySegmentNode extends SceneNode {
 
   getEditableFields(): GeoEditableField[] {
     return [
-      { key: 'start', label: 'Start', kind: 'vector3', value: this.start, step: 0.1, gizmoEditable: true, bindable: true, binding: this.startBinding },
-      { key: 'end', label: 'End', kind: 'vector3', value: this.end, step: 0.1, gizmoEditable: true, bindable: true, binding: this.endBinding },
+      {
+        key: 'start',
+        label: 'Start',
+        kind: 'vector3',
+        value: this.start,
+        step: 0.1,
+        gizmoEditable: true,
+        bindable: true,
+        binding: this.startBinding,
+      },
+      {
+        key: 'end',
+        label: 'End',
+        kind: 'vector3',
+        value: this.end,
+        step: 0.1,
+        gizmoEditable: true,
+        bindable: true,
+        binding: this.endBinding,
+      },
       { key: 'color', label: 'Color', kind: 'color', value: this.color },
-      { key: 'pixelSize', label: 'Endpoint (px)', kind: 'number', value: this.pixelSize, step: 1, min: 0 },
+      {
+        key: 'pixelSize',
+        label: 'Endpoint (px)',
+        kind: 'number',
+        value: this.pixelSize,
+        step: 1,
+        min: 0,
+      },
       { key: 'showLength', label: 'Show Length', kind: 'boolean', value: this.showLength },
     ];
   }
@@ -149,19 +201,51 @@ export class GeometrySegmentNode extends SceneNode {
 
   override setProperty(property: string, value: unknown): boolean {
     switch (property) {
-      case 'geo.start': this.start = toVec3(value, this.start); this.notifyChange(); return true;
-      case 'geo.end': this.end = toVec3(value, this.end); this.notifyChange(); return true;
-      case 'geo.color': this.color = value as string; this.notifyChange(); return true;
-      case 'geo.pixelSize': this.pixelSize = value as number; this.notifyChange(); return true;
-      case 'geo.showLength': this.showLength = value as boolean; this.notifyChange(); return true;
-      case 'geo.bindStart': this.startBinding = (value as string) || null; this.notifyChange(); return true;
-      case 'geo.bindEnd': this.endBinding = (value as string) || null; this.notifyChange(); return true;
-      default: return super.setProperty(property, value);
+      case 'geo.start':
+        this.start = toVec3(value, this.start);
+        this.notifyChange();
+        return true;
+      case 'geo.end':
+        this.end = toVec3(value, this.end);
+        this.notifyChange();
+        return true;
+      case 'geo.color':
+        this.color = value as string;
+        this.notifyChange();
+        return true;
+      case 'geo.pixelSize':
+        this.pixelSize = value as number;
+        this.notifyChange();
+        return true;
+      case 'geo.showLength':
+        this.showLength = value as boolean;
+        this.notifyChange();
+        return true;
+      case 'geo.bindStart':
+        this.startBinding = (value as string) || null;
+        this.notifyChange();
+        return true;
+      case 'geo.bindEnd':
+        this.endBinding = (value as string) || null;
+        this.notifyChange();
+        return true;
+      default:
+        return super.setProperty(property, value);
     }
   }
 
   override toData(): GeometrySegmentNodeData {
-    return { ...super.toData(), type: 'geometry-segment', start: [...this.start], end: [...this.end], color: this.color, pixelSize: this.pixelSize, showLength: this.showLength, startBinding: this.startBinding, endBinding: this.endBinding };
+    return {
+      ...super.toData(),
+      type: 'geometry-segment',
+      start: [...this.start],
+      end: [...this.end],
+      color: this.color,
+      pixelSize: this.pixelSize,
+      showLength: this.showLength,
+      startBinding: this.startBinding,
+      endBinding: this.endBinding,
+    };
   }
 }
 
@@ -197,7 +281,16 @@ export class GeometryLineNode extends SceneNode {
 
   getEditableFields(): GeoEditableField[] {
     return [
-      { key: 'origin', label: 'Origin', kind: 'vector3', value: this.origin, step: 0.1, gizmoEditable: true, bindable: true, binding: this.originBinding },
+      {
+        key: 'origin',
+        label: 'Origin',
+        kind: 'vector3',
+        value: this.origin,
+        step: 0.1,
+        gizmoEditable: true,
+        bindable: true,
+        binding: this.originBinding,
+      },
       { key: 'direction', label: 'Direction', kind: 'vector3', value: this.direction, step: 0.1 },
       { key: 'color', label: 'Color', kind: 'color', value: this.color },
       { key: 'showLabel', label: 'Show Label', kind: 'boolean', value: this.showLabel },
@@ -207,23 +300,62 @@ export class GeometryLineNode extends SceneNode {
 
   getMetrics(): GeoMetric[] {
     const d = new Vector3(...this.direction);
-    return d.lengthSq() > 1e-9 ? [{ label: 'Direction', value: d.normalize().toArray().map((n) => n.toFixed(2)).join(', ') }] : [];
+    return d.lengthSq() > 1e-9
+      ? [
+          {
+            label: 'Direction',
+            value: d
+              .normalize()
+              .toArray()
+              .map((n) => n.toFixed(2))
+              .join(', '),
+          },
+        ]
+      : [];
   }
 
   override setProperty(property: string, value: unknown): boolean {
     switch (property) {
-      case 'geo.origin': this.origin = toVec3(value, this.origin); this.notifyChange(); return true;
-      case 'geo.direction': this.direction = toVec3(value, this.direction); this.notifyChange(); return true;
-      case 'geo.color': this.color = value as string; this.notifyChange(); return true;
-      case 'geo.showLabel': this.showLabel = value as boolean; this.notifyChange(); return true;
-      case 'geo.label': this.label = value as string; this.notifyChange(); return true;
-      case 'geo.bindOrigin': this.originBinding = (value as string) || null; this.notifyChange(); return true;
-      default: return super.setProperty(property, value);
+      case 'geo.origin':
+        this.origin = toVec3(value, this.origin);
+        this.notifyChange();
+        return true;
+      case 'geo.direction':
+        this.direction = toVec3(value, this.direction);
+        this.notifyChange();
+        return true;
+      case 'geo.color':
+        this.color = value as string;
+        this.notifyChange();
+        return true;
+      case 'geo.showLabel':
+        this.showLabel = value as boolean;
+        this.notifyChange();
+        return true;
+      case 'geo.label':
+        this.label = value as string;
+        this.notifyChange();
+        return true;
+      case 'geo.bindOrigin':
+        this.originBinding = (value as string) || null;
+        this.notifyChange();
+        return true;
+      default:
+        return super.setProperty(property, value);
     }
   }
 
   override toData(): GeometryLineNodeData {
-    return { ...super.toData(), type: 'geometry-line', origin: [...this.origin], direction: [...this.direction], color: this.color, showLabel: this.showLabel, label: this.label, originBinding: this.originBinding };
+    return {
+      ...super.toData(),
+      type: 'geometry-line',
+      origin: [...this.origin],
+      direction: [...this.direction],
+      color: this.color,
+      showLabel: this.showLabel,
+      label: this.label,
+      originBinding: this.originBinding,
+    };
   }
 }
 
@@ -280,11 +412,45 @@ export class GeometryAngleNode extends SceneNode {
 
   getEditableFields(): GeoEditableField[] {
     return [
-      { key: 'vertex', label: 'Vertex', kind: 'vector3', value: this.vertex, step: 0.1, gizmoEditable: true, bindable: true, binding: this.vertexBinding },
-      { key: 'p1', label: 'Arm A', kind: 'vector3', value: this.p1, step: 0.1, gizmoEditable: true, bindable: true, binding: this.p1Binding },
-      { key: 'p2', label: 'Arm B', kind: 'vector3', value: this.p2, step: 0.1, gizmoEditable: true, bindable: true, binding: this.p2Binding },
+      {
+        key: 'vertex',
+        label: 'Vertex',
+        kind: 'vector3',
+        value: this.vertex,
+        step: 0.1,
+        gizmoEditable: true,
+        bindable: true,
+        binding: this.vertexBinding,
+      },
+      {
+        key: 'p1',
+        label: 'Arm A',
+        kind: 'vector3',
+        value: this.p1,
+        step: 0.1,
+        gizmoEditable: true,
+        bindable: true,
+        binding: this.p1Binding,
+      },
+      {
+        key: 'p2',
+        label: 'Arm B',
+        kind: 'vector3',
+        value: this.p2,
+        step: 0.1,
+        gizmoEditable: true,
+        bindable: true,
+        binding: this.p2Binding,
+      },
       { key: 'color', label: 'Color', kind: 'color', value: this.color },
-      { key: 'arcPixelRadius', label: 'Arc (px)', kind: 'number', value: this.arcPixelRadius, step: 2, min: 8 },
+      {
+        key: 'arcPixelRadius',
+        label: 'Arc (px)',
+        kind: 'number',
+        value: this.arcPixelRadius,
+        step: 2,
+        min: 8,
+      },
       { key: 'showLabel', label: 'Show Angle', kind: 'boolean', value: this.showLabel },
     ];
   }
@@ -295,29 +461,66 @@ export class GeometryAngleNode extends SceneNode {
 
   override setProperty(property: string, value: unknown): boolean {
     switch (property) {
-      case 'geo.vertex': this.vertex = toVec3(value, this.vertex); this.notifyChange(); return true;
-      case 'geo.p1': this.p1 = toVec3(value, this.p1); this.notifyChange(); return true;
-      case 'geo.p2': this.p2 = toVec3(value, this.p2); this.notifyChange(); return true;
-      case 'geo.color': this.color = value as string; this.notifyChange(); return true;
-      case 'geo.arcPixelRadius': this.arcPixelRadius = value as number; this.notifyChange(); return true;
-      case 'geo.showLabel': this.showLabel = value as boolean; this.notifyChange(); return true;
-      case 'geo.bindVertex': this.vertexBinding = (value as string) || null; this.notifyChange(); return true;
-      case 'geo.bindP1': this.p1Binding = (value as string) || null; this.notifyChange(); return true;
-      case 'geo.bindP2': this.p2Binding = (value as string) || null; this.notifyChange(); return true;
-      default: return super.setProperty(property, value);
+      case 'geo.vertex':
+        this.vertex = toVec3(value, this.vertex);
+        this.notifyChange();
+        return true;
+      case 'geo.p1':
+        this.p1 = toVec3(value, this.p1);
+        this.notifyChange();
+        return true;
+      case 'geo.p2':
+        this.p2 = toVec3(value, this.p2);
+        this.notifyChange();
+        return true;
+      case 'geo.color':
+        this.color = value as string;
+        this.notifyChange();
+        return true;
+      case 'geo.arcPixelRadius':
+        this.arcPixelRadius = value as number;
+        this.notifyChange();
+        return true;
+      case 'geo.showLabel':
+        this.showLabel = value as boolean;
+        this.notifyChange();
+        return true;
+      case 'geo.bindVertex':
+        this.vertexBinding = (value as string) || null;
+        this.notifyChange();
+        return true;
+      case 'geo.bindP1':
+        this.p1Binding = (value as string) || null;
+        this.notifyChange();
+        return true;
+      case 'geo.bindP2':
+        this.p2Binding = (value as string) || null;
+        this.notifyChange();
+        return true;
+      default:
+        return super.setProperty(property, value);
     }
   }
 
   override toData(): GeometryAngleNodeData {
-    return { ...super.toData(), type: 'geometry-angle', vertex: [...this.vertex], p1: [...this.p1], p2: [...this.p2], color: this.color, arcPixelRadius: this.arcPixelRadius, showLabel: this.showLabel, vertexBinding: this.vertexBinding, p1Binding: this.p1Binding, p2Binding: this.p2Binding };
+    return {
+      ...super.toData(),
+      type: 'geometry-angle',
+      vertex: [...this.vertex],
+      p1: [...this.p1],
+      p2: [...this.p2],
+      color: this.color,
+      arcPixelRadius: this.arcPixelRadius,
+      showLabel: this.showLabel,
+      vertexBinding: this.vertexBinding,
+      p1Binding: this.p1Binding,
+      p2Binding: this.p2Binding,
+    };
   }
 }
 
 export type GeometryPrimitiveNode =
-  | GeometryPointNode
-  | GeometrySegmentNode
-  | GeometryLineNode
-  | GeometryAngleNode;
+  GeometryPointNode | GeometrySegmentNode | GeometryLineNode | GeometryAngleNode;
 
 export const GEOMETRY_PRIMITIVE_TYPES = [
   'geometry-point',

@@ -17,13 +17,7 @@
  * Otherwise a "not loaded yet" placeholder is shown.
  */
 
-import React, {
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-  useMemo,
-} from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   Dialog,
   AppBar,
@@ -143,7 +137,19 @@ interface PropDef {
 const WIDGET_PROPS: Record<string, PropDef[]> = {
   QLabel: [
     { key: 'text', label: 'Text', type: 'string', default: 'Label' },
-    { key: 'alignment', label: 'Alignment', type: 'select', default: 'Qt.AlignLeft', options: ['Qt.AlignLeft', 'Qt.AlignHCenter', 'Qt.AlignRight', 'Qt.AlignTop', 'Qt.AlignBottom'] },
+    {
+      key: 'alignment',
+      label: 'Alignment',
+      type: 'select',
+      default: 'Qt.AlignLeft',
+      options: [
+        'Qt.AlignLeft',
+        'Qt.AlignHCenter',
+        'Qt.AlignRight',
+        'Qt.AlignTop',
+        'Qt.AlignBottom',
+      ],
+    },
     { key: 'wordWrap', label: 'Word wrap', type: 'boolean', default: false },
   ],
   QPushButton: [
@@ -173,14 +179,26 @@ const WIDGET_PROPS: Record<string, PropDef[]> = {
     { key: 'minimum', label: 'Minimum', type: 'number', default: 0, min: 0, max: 9999, step: 1 },
     { key: 'maximum', label: 'Maximum', type: 'number', default: 100, min: 1, max: 99999, step: 1 },
     { key: 'value', label: 'Value', type: 'number', default: 50, min: 0, max: 99999, step: 1 },
-    { key: 'orientation', label: 'Orientation', type: 'select', default: 'Qt.Horizontal', options: ['Qt.Horizontal', 'Qt.Vertical'] },
+    {
+      key: 'orientation',
+      label: 'Orientation',
+      type: 'select',
+      default: 'Qt.Horizontal',
+      options: ['Qt.Horizontal', 'Qt.Vertical'],
+    },
     { key: 'enabled', label: 'Enabled', type: 'boolean', default: true },
   ],
   QScrollBar: [
     { key: 'minimum', label: 'Minimum', type: 'number', default: 0, min: 0, max: 9999, step: 1 },
     { key: 'maximum', label: 'Maximum', type: 'number', default: 100, min: 1, max: 99999, step: 1 },
     { key: 'value', label: 'Value', type: 'number', default: 0, min: 0, max: 99999, step: 1 },
-    { key: 'orientation', label: 'Orientation', type: 'select', default: 'Qt.Horizontal', options: ['Qt.Horizontal', 'Qt.Vertical'] },
+    {
+      key: 'orientation',
+      label: 'Orientation',
+      type: 'select',
+      default: 'Qt.Horizontal',
+      options: ['Qt.Horizontal', 'Qt.Vertical'],
+    },
   ],
   QDial: [
     { key: 'minimum', label: 'Minimum', type: 'number', default: 0, min: 0, max: 9999, step: 1 },
@@ -193,12 +211,34 @@ const WIDGET_PROPS: Record<string, PropDef[]> = {
     { key: 'minimum', label: 'Minimum', type: 'number', default: 0, min: 0, max: 9999, step: 1 },
     { key: 'maximum', label: 'Maximum', type: 'number', default: 100, min: 1, max: 99999, step: 1 },
     { key: 'value', label: 'Value', type: 'number', default: 50, min: 0, max: 99999, step: 1 },
-    { key: 'orientation', label: 'Orientation', type: 'select', default: 'Qt.Horizontal', options: ['Qt.Horizontal', 'Qt.Vertical'] },
+    {
+      key: 'orientation',
+      label: 'Orientation',
+      type: 'select',
+      default: 'Qt.Horizontal',
+      options: ['Qt.Horizontal', 'Qt.Vertical'],
+    },
     { key: 'textVisible', label: 'Text visible', type: 'boolean', default: true },
   ],
   QSpinBox: [
-    { key: 'minimum', label: 'Minimum', type: 'number', default: 0, min: -99999, max: 99999, step: 1 },
-    { key: 'maximum', label: 'Maximum', type: 'number', default: 100, min: -99999, max: 99999, step: 1 },
+    {
+      key: 'minimum',
+      label: 'Minimum',
+      type: 'number',
+      default: 0,
+      min: -99999,
+      max: 99999,
+      step: 1,
+    },
+    {
+      key: 'maximum',
+      label: 'Maximum',
+      type: 'number',
+      default: 100,
+      min: -99999,
+      max: 99999,
+      step: 1,
+    },
     { key: 'value', label: 'Value', type: 'number', default: 0, min: -99999, max: 99999, step: 1 },
     { key: 'singleStep', label: 'Step', type: 'number', default: 1, min: 1, max: 1000, step: 1 },
     { key: 'prefix', label: 'Prefix', type: 'string', default: '' },
@@ -233,23 +273,74 @@ const WIDGET_PROPS: Record<string, PropDef[]> = {
     { key: 'flat', label: 'Flat', type: 'boolean', default: false },
   ],
   QComboBox: [
-    { key: 'currentIndex', label: 'Current index', type: 'number', default: 0, min: 0, max: 99, step: 1 },
+    {
+      key: 'currentIndex',
+      label: 'Current index',
+      type: 'number',
+      default: 0,
+      min: 0,
+      max: 99,
+      step: 1,
+    },
     { key: 'enabled', label: 'Enabled', type: 'boolean', default: true },
   ],
   QListWidget: [],
   QTabWidget: [
-    { key: 'currentIndex', label: 'Current tab', type: 'number', default: 0, min: 0, max: 9, step: 1 },
+    {
+      key: 'currentIndex',
+      label: 'Current tab',
+      type: 'number',
+      default: 0,
+      min: 0,
+      max: 9,
+      step: 1,
+    },
   ],
   QTabBar: [
-    { key: 'currentIndex', label: 'Current tab', type: 'number', default: 0, min: 0, max: 9, step: 1 },
+    {
+      key: 'currentIndex',
+      label: 'Current tab',
+      type: 'number',
+      default: 0,
+      min: 0,
+      max: 9,
+      step: 1,
+    },
   ],
   QStackedWidget: [
-    { key: 'currentIndex', label: 'Current page', type: 'number', default: 0, min: 0, max: 9, step: 1 },
+    {
+      key: 'currentIndex',
+      label: 'Current page',
+      type: 'number',
+      default: 0,
+      min: 0,
+      max: 9,
+      step: 1,
+    },
   ],
   QScrollArea: [],
   QFrame: [
-    { key: 'frameShape', label: 'Shape', type: 'select', default: 'QFrame.StyledPanel', options: ['QFrame.NoFrame', 'QFrame.Box', 'QFrame.Panel', 'QFrame.StyledPanel', 'QFrame.HLine', 'QFrame.VLine'] },
-    { key: 'frameShadow', label: 'Shadow', type: 'select', default: 'QFrame.Raised', options: ['QFrame.Plain', 'QFrame.Raised', 'QFrame.Sunken'] },
+    {
+      key: 'frameShape',
+      label: 'Shape',
+      type: 'select',
+      default: 'QFrame.StyledPanel',
+      options: [
+        'QFrame.NoFrame',
+        'QFrame.Box',
+        'QFrame.Panel',
+        'QFrame.StyledPanel',
+        'QFrame.HLine',
+        'QFrame.VLine',
+      ],
+    },
+    {
+      key: 'frameShadow',
+      label: 'Shadow',
+      type: 'select',
+      default: 'QFrame.Raised',
+      options: ['QFrame.Plain', 'QFrame.Raised', 'QFrame.Sunken'],
+    },
   ],
   QVBoxLayout: [
     { key: 'spacing', label: 'Spacing', type: 'number', default: 4, min: 0, max: 40, step: 1 },
@@ -258,17 +349,39 @@ const WIDGET_PROPS: Record<string, PropDef[]> = {
     { key: 'spacing', label: 'Spacing', type: 'number', default: 4, min: 0, max: 40, step: 1 },
   ],
   QGridLayout: [
-    { key: 'horizontalSpacing', label: 'H Spacing', type: 'number', default: 4, min: 0, max: 40, step: 1 },
-    { key: 'verticalSpacing', label: 'V Spacing', type: 'number', default: 4, min: 0, max: 40, step: 1 },
+    {
+      key: 'horizontalSpacing',
+      label: 'H Spacing',
+      type: 'number',
+      default: 4,
+      min: 0,
+      max: 40,
+      step: 1,
+    },
+    {
+      key: 'verticalSpacing',
+      label: 'V Spacing',
+      type: 'number',
+      default: 4,
+      min: 0,
+      max: 40,
+      step: 1,
+    },
   ],
   QFormLayout: [
     { key: 'spacing', label: 'Spacing', type: 'number', default: 4, min: 0, max: 40, step: 1 },
   ],
-  QWidget: [
-    { key: 'enabled', label: 'Enabled', type: 'boolean', default: true },
-  ],
+  QWidget: [{ key: 'enabled', label: 'Enabled', type: 'boolean', default: true }],
   QInkCanvas: [
-    { key: 'strokeWidth', label: 'Stroke width', type: 'number', default: 2, min: 0.5, max: 20, step: 0.5 },
+    {
+      key: 'strokeWidth',
+      label: 'Stroke width',
+      type: 'number',
+      default: 2,
+      min: 0.5,
+      max: 20,
+      step: 0.5,
+    },
   ],
 };
 
@@ -283,12 +396,15 @@ interface SceneNode {
   collapsed?: boolean;
 }
 
-const LAYOUT_TYPES = new Set([
-  'QVBoxLayout', 'QHBoxLayout', 'QGridLayout', 'QFormLayout',
-]);
+const LAYOUT_TYPES = new Set(['QVBoxLayout', 'QHBoxLayout', 'QGridLayout', 'QFormLayout']);
 const CONTAINER_TYPES = new Set([
-  'QGroupBox', 'QTabWidget', 'QTabBar', 'QStackedWidget',
-  'QScrollArea', 'QFrame', 'QWidget',
+  'QGroupBox',
+  'QTabWidget',
+  'QTabBar',
+  'QStackedWidget',
+  'QScrollArea',
+  'QFrame',
+  'QWidget',
 ]);
 
 function canHaveChildren(type: string): boolean {
@@ -320,7 +436,7 @@ function makeNode(type: string, counter: number): SceneNode {
     id: uid(),
     className: type,
     objectName: defaultObjectName(type, counter),
-    properties: defs.map(d => ({ key: d.key, value: d.default })),
+    properties: defs.map((d) => ({ key: d.key, value: d.default })),
     children: [],
   };
 }
@@ -350,7 +466,7 @@ function generateInitCode(roots: SceneNode[]): string {
     for (const { key, value } of node.properties) {
       if (value === undefined || value === null) continue;
       const defs = WIDGET_PROPS[node.className] ?? [];
-      const def = defs.find(d => d.key === key);
+      const def = defs.find((d) => d.key === key);
       // Skip unmodified defaults to keep code short.
       if (def && value === def.default) continue;
       const setter = `set${ucFirst(key)}`;
@@ -380,10 +496,10 @@ function generateInitCode(roots: SceneNode[]): string {
   lines.push(
     '// ── Mount to QtCanvas ───────────────────────────────────────────────',
     "const _qtTag = (typeof QtCanvas !== 'undefined' && QtCanvas.__tag) ? QtCanvas.__tag : 'qt-canvas';",
-    "const _canvas = document.createElement(_qtTag);",
+    'const _canvas = document.createElement(_qtTag);',
     "_canvas.style.cssText = 'width:100%;height:420px;display:block;';",
-    "display.dom(_canvas);",
-    "await new Promise(r => setTimeout(r, 40));",
+    'display.dom(_canvas);',
+    'await new Promise(r => setTimeout(r, 40));'
   );
   if (roots.length === 1) {
     lines.push(`_canvas.setRootWidget(${rootVar});`);
@@ -394,11 +510,10 @@ function generateInitCode(roots: SceneNode[]): string {
       lines.push(`// _canvas.setRootWidget(${varFor(root)});`);
     }
     lines.push(`_canvas.setRootWidget(${rootVar});`);
-    lines.push(`globalThis.__qscene_roots = [${roots.map(r => varFor(r)).join(', ')}];`);
+    lines.push(`globalThis.__qscene_roots = [${roots.map((r) => varFor(r)).join(', ')}];`);
   }
   return lines.join('\n');
 }
-
 
 function generateModifyCode(roots: SceneNode[]): string {
   if (!roots.length) return '// No widgets in scene — add some first.';
@@ -408,16 +523,16 @@ function generateModifyCode(roots: SceneNode[]): string {
     '',
     '// 1. Build live objects from QObject Scene JSON (api.scripts.getRoots uses scene from panel).',
     'const _roots = api.scripts.getRoots();',
-    "if (!_roots.length) {",
+    'if (!_roots.length) {',
     "  api.notify('No scene — embed qt.module.js and set Scene JSON path in block settings (⚙).', 'warning');",
-    "  return;",
-    "}",
+    '  return;',
+    '}',
     'const _root = _roots[0];',
     'globalThis.__qscene_roots = _roots;',
     '',
     '// 2. Mount on canvas.',
     "const _qtTag = (typeof QtCanvas !== 'undefined' && QtCanvas.__tag) ? QtCanvas.__tag : 'qt-canvas';",
-    "const _canvas = document.createElement(_qtTag);",
+    'const _canvas = document.createElement(_qtTag);',
     "_canvas.style.cssText = 'width:100%;height:420px;display:block;';",
     'display.dom(_canvas);',
     'await new Promise(r => setTimeout(r, 40));',
@@ -445,7 +560,9 @@ function generateModifyCode(roots: SceneNode[]): string {
       lines.push(`if (${v}) {`);
       for (const { key, value } of props) {
         const setter = `set${ucFirst(key)}`;
-        lines.push(`  if (typeof ${v}.${setter} === 'function') ${v}.${setter}(${JSON.stringify(value)});`);
+        lines.push(
+          `  if (typeof ${v}.${setter} === 'function') ${v}.${setter}(${JSON.stringify(value)});`
+        );
       }
       lines.push(`}`);
     }
@@ -464,31 +581,58 @@ function generateModifyCode(roots: SceneNode[]): string {
 // ─── Live preview (best-effort QtCanvas) ─────────────────────────────────────
 
 function buildLiveNode(node: SceneNode): unknown {
-  const g = globalThis as unknown as Record<string, new (...a: unknown[]) => Record<string, unknown>>;
+  const g = globalThis as unknown as Record<
+    string,
+    new (...a: unknown[]) => Record<string, unknown>
+  >;
   const Cls = g[node.className];
   if (typeof Cls !== 'function') return null;
   let obj: Record<string, unknown>;
-  try { obj = new Cls(); } catch { return null; }
+  try {
+    obj = new Cls();
+  } catch {
+    return null;
+  }
 
   if (node.objectName && typeof obj['setObjectName'] === 'function') {
-    try { (obj['setObjectName'] as (s: string) => void)(node.objectName); } catch { /* ignore */ }
+    try {
+      (obj['setObjectName'] as (s: string) => void)(node.objectName);
+    } catch {
+      /* ignore */
+    }
   }
   for (const { key, value } of node.properties) {
     const setter = `set${ucFirst(key)}`;
     if (typeof obj[setter] === 'function') {
-      try { (obj[setter] as (v: unknown) => void)(value); } catch { /* ignore */ }
+      try {
+        (obj[setter] as (v: unknown) => void)(value);
+      } catch {
+        /* ignore */
+      }
     }
   }
   for (const child of node.children) {
     const childObj = buildLiveNode(child);
     if (!childObj) continue;
     if (isLayout(node.className) && typeof obj['addWidget'] === 'function') {
-      try { (obj['addWidget'] as (w: unknown) => void)(childObj); } catch { /* ignore */ }
+      try {
+        (obj['addWidget'] as (w: unknown) => void)(childObj);
+      } catch {
+        /* ignore */
+      }
     } else if (CONTAINER_TYPES.has(node.className)) {
       if (isLayout(child.className) && typeof obj['setLayout'] === 'function') {
-        try { (obj['setLayout'] as (l: unknown) => void)(childObj); } catch { /* ignore */ }
+        try {
+          (obj['setLayout'] as (l: unknown) => void)(childObj);
+        } catch {
+          /* ignore */
+        }
       } else if (typeof obj['addWidget'] === 'function') {
-        try { (obj['addWidget'] as (w: unknown) => void)(childObj); } catch { /* ignore */ }
+        try {
+          (obj['addWidget'] as (w: unknown) => void)(childObj);
+        } catch {
+          /* ignore */
+        }
       }
     }
   }
@@ -528,12 +672,8 @@ function findParentInChildren(node: SceneNode, id: string): ParentInfo | null {
   return null;
 }
 
-function updateNode(
-  roots: SceneNode[],
-  id: string,
-  patch: Partial<SceneNode>,
-): SceneNode[] {
-  return roots.map(r => {
+function updateNode(roots: SceneNode[], id: string, patch: Partial<SceneNode>): SceneNode[] {
+  return roots.map((r) => {
     if (r.id === id) return { ...r, ...patch };
     return { ...r, children: updateNode(r.children, id, patch) };
   });
@@ -541,16 +681,12 @@ function updateNode(
 
 function deleteNode(roots: SceneNode[], id: string): SceneNode[] {
   return roots
-    .filter(r => r.id !== id)
-    .map(r => ({ ...r, children: deleteNode(r.children, id) }));
+    .filter((r) => r.id !== id)
+    .map((r) => ({ ...r, children: deleteNode(r.children, id) }));
 }
 
-function addChildNode(
-  roots: SceneNode[],
-  parentId: string,
-  child: SceneNode,
-): SceneNode[] {
-  return roots.map(r => {
+function addChildNode(roots: SceneNode[], parentId: string, child: SceneNode): SceneNode[] {
+  return roots.map((r) => {
     if (r.id === parentId) return { ...r, children: [...r.children, child] };
     return { ...r, children: addChildNode(r.children, parentId, child) };
   });
@@ -571,7 +707,10 @@ function moveNode(roots: SceneNode[], id: string, dir: 'up' | 'down'): SceneNode
 
 function useCounter() {
   const ref = useRef(0);
-  return useCallback(() => { ref.current++; return ref.current; }, []);
+  return useCallback(() => {
+    ref.current++;
+    return ref.current;
+  }, []);
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -589,14 +728,19 @@ interface TreeItemProps {
 }
 
 const TreeItem: React.FC<TreeItemProps> = ({
-  node, depth, selectedId, onSelect, onDelete, onMove,
-  onToggleCollapse, onAddChild, nextCount,
+  node,
+  depth,
+  selectedId,
+  onSelect,
+  onDelete,
+  onMove,
+  onToggleCollapse,
+  onAddChild,
+  nextCount,
 }) => {
   const selected = selectedId === node.id;
   const hasKids = node.children.length > 0;
-  const meta = WIDGET_CATALOG
-    .flatMap(c => c.widgets)
-    .find(w => w.type === node.className);
+  const meta = WIDGET_CATALOG.flatMap((c) => c.widgets).find((w) => w.type === node.className);
 
   return (
     <Box>
@@ -616,41 +760,95 @@ const TreeItem: React.FC<TreeItemProps> = ({
       >
         {/* Collapse toggle */}
         {hasKids ? (
-          <IconButton size="small" sx={{ p: 0.2, mr: 0.25 }}
-            onClick={e => { e.stopPropagation(); onToggleCollapse(node.id); }}>
-            {node.collapsed ? <ExpandMoreIcon sx={{ fontSize: 14 }} /> : <ExpandLessIcon sx={{ fontSize: 14 }} />}
+          <IconButton
+            size="small"
+            sx={{ p: 0.2, mr: 0.25 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCollapse(node.id);
+            }}
+          >
+            {node.collapsed ? (
+              <ExpandMoreIcon sx={{ fontSize: 14 }} />
+            ) : (
+              <ExpandLessIcon sx={{ fontSize: 14 }} />
+            )}
           </IconButton>
         ) : (
           <Box sx={{ width: 22, flexShrink: 0 }} />
         )}
         {/* Icon */}
-        <Typography sx={{ fontFamily: 'monospace', fontSize: 13, mr: 0.75, opacity: 0.7, width: 18, textAlign: 'center', flexShrink: 0 }}>
+        <Typography
+          sx={{
+            fontFamily: 'monospace',
+            fontSize: 13,
+            mr: 0.75,
+            opacity: 0.7,
+            width: 18,
+            textAlign: 'center',
+            flexShrink: 0,
+          }}
+        >
           {meta?.icon ?? '▢'}
         </Typography>
         {/* Class name + objectName */}
         <Typography variant="caption" sx={{ fontWeight: 500, mr: 0.5, flexShrink: 0 }}>
           {node.className}
         </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+            flex: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {node.objectName}
         </Typography>
         {/* Action buttons — show on hover/select */}
-        <Box sx={{ display: 'flex', opacity: selected ? 1 : 0, '&:hover': { opacity: 1 }, flexShrink: 0 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            opacity: selected ? 1 : 0,
+            '&:hover': { opacity: 1 },
+            flexShrink: 0,
+          }}
+        >
           <Tooltip title="Move up">
-            <IconButton size="small" sx={{ p: 0.2 }}
-              onClick={e => { e.stopPropagation(); onMove(node.id, 'up'); }}>
+            <IconButton
+              size="small"
+              sx={{ p: 0.2 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(node.id, 'up');
+              }}
+            >
               <ArrowUpwardIcon sx={{ fontSize: 12 }} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Move down">
-            <IconButton size="small" sx={{ p: 0.2 }}
-              onClick={e => { e.stopPropagation(); onMove(node.id, 'down'); }}>
+            <IconButton
+              size="small"
+              sx={{ p: 0.2 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(node.id, 'down');
+              }}
+            >
               <ArrowDownwardIcon sx={{ fontSize: 12 }} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
-            <IconButton size="small" sx={{ p: 0.2, color: 'error.main' }}
-              onClick={e => { e.stopPropagation(); onDelete(node.id); }}>
+            <IconButton
+              size="small"
+              sx={{ p: 0.2, color: 'error.main' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(node.id);
+              }}
+            >
               <DeleteIcon sx={{ fontSize: 12 }} />
             </IconButton>
           </Tooltip>
@@ -660,7 +858,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
       {/* Children */}
       {hasKids && !node.collapsed && (
         <Box>
-          {node.children.map(child => (
+          {node.children.map((child) => (
             <TreeItem
               key={child.id}
               node={child}
@@ -696,17 +894,28 @@ const PropertiesPanel: React.FC<PropsPanelProps> = ({ node, onChange }) => {
   }, [node.properties]);
 
   function setProp(key: string, value: unknown) {
-    const next = node.properties.map(p => p.key === key ? { key, value } : p);
+    const next = node.properties.map((p) => (p.key === key ? { key, value } : p));
     // If it's a new key, append.
-    if (!next.find(p => p.key === key)) next.push({ key, value });
+    if (!next.find((p) => p.key === key)) next.push({ key, value });
     onChange(node.id, { properties: next });
   }
 
   return (
-    <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, overflowY: 'auto', flex: 1 }}>
+    <Box
+      sx={{
+        p: 1.5,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1.5,
+        overflowY: 'auto',
+        flex: 1,
+      }}
+    >
       {/* Header */}
       <Box>
-        <Typography variant="caption" color="text.secondary">Type</Typography>
+        <Typography variant="caption" color="text.secondary">
+          Type
+        </Typography>
         <Typography variant="body2" fontWeight={600} sx={{ fontFamily: 'monospace' }}>
           {node.className}
         </Typography>
@@ -715,14 +924,16 @@ const PropertiesPanel: React.FC<PropsPanelProps> = ({ node, onChange }) => {
         label="objectName"
         size="small"
         value={node.objectName}
-        onChange={e => onChange(node.id, { objectName: e.target.value })}
+        onChange={(e) => onChange(node.id, { objectName: e.target.value })}
         inputProps={{ spellCheck: false, style: { fontFamily: 'monospace', fontSize: 12 } }}
         fullWidth
       />
       {defs.length === 0 && (
-        <Typography variant="caption" color="text.secondary">No configurable properties.</Typography>
+        <Typography variant="caption" color="text.secondary">
+          No configurable properties.
+        </Typography>
       )}
-      {defs.map(def => {
+      {defs.map((def) => {
         const val = propMap.has(def.key) ? propMap.get(def.key) : def.default;
         if (def.type === 'boolean') {
           return (
@@ -732,7 +943,7 @@ const PropertiesPanel: React.FC<PropsPanelProps> = ({ node, onChange }) => {
                 <Switch
                   size="small"
                   checked={Boolean(val)}
-                  onChange={e => setProp(def.key, e.target.checked)}
+                  onChange={(e) => setProp(def.key, e.target.checked)}
                 />
               }
               label={<Typography variant="caption">{def.label}</Typography>}
@@ -747,11 +958,13 @@ const PropertiesPanel: React.FC<PropsPanelProps> = ({ node, onChange }) => {
               <Select
                 value={String(val ?? def.default)}
                 label={def.label}
-                onChange={e => setProp(def.key, e.target.value)}
+                onChange={(e) => setProp(def.key, e.target.value)}
                 sx={{ fontSize: 12 }}
               >
-                {def.options!.map(o => (
-                  <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>{o}</MenuItem>
+                {def.options!.map((o) => (
+                  <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+                    {o}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -765,8 +978,13 @@ const PropertiesPanel: React.FC<PropsPanelProps> = ({ node, onChange }) => {
               size="small"
               type="number"
               value={val ?? def.default}
-              inputProps={{ min: def.min, max: def.max, step: def.step ?? 1, style: { fontFamily: 'monospace', fontSize: 12 } }}
-              onChange={e => setProp(def.key, parseFloat(e.target.value))}
+              inputProps={{
+                min: def.min,
+                max: def.max,
+                step: def.step ?? 1,
+                style: { fontFamily: 'monospace', fontSize: 12 },
+              }}
+              onChange={(e) => setProp(def.key, parseFloat(e.target.value))}
               fullWidth
             />
           );
@@ -780,7 +998,7 @@ const PropertiesPanel: React.FC<PropsPanelProps> = ({ node, onChange }) => {
             value={String(val ?? def.default)}
             multiline={def.multiline}
             rows={def.multiline ? 3 : undefined}
-            onChange={e => setProp(def.key, e.target.value)}
+            onChange={(e) => setProp(def.key, e.target.value)}
             inputProps={{ style: { fontFamily: 'monospace', fontSize: 12 } }}
             fullWidth
           />
@@ -824,7 +1042,9 @@ const LivePreview: React.FC<LivePreviewProps> = ({ roots, version }) => {
         try {
           const rootObj = buildLiveNode(roots[0]);
           if (rootObj) canvas.setRootWidget(rootObj);
-        } catch { /* ignore preview errors */ }
+        } catch {
+          /* ignore preview errors */
+        }
       });
     }
 
@@ -838,8 +1058,19 @@ const LivePreview: React.FC<LivePreviewProps> = ({ roots, version }) => {
   return (
     <Box sx={{ flex: 1, position: 'relative', bgcolor: '#000', overflow: 'hidden' }}>
       {msg && (
-        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-          <Typography variant="caption" color="text.secondary" textAlign="center">{msg}</Typography>
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 2,
+          }}
+        >
+          <Typography variant="caption" color="text.secondary" textAlign="center">
+            {msg}
+          </Typography>
         </Box>
       )}
       <Box ref={containerRef} sx={{ width: '100%', height: '100%' }} />
@@ -858,25 +1089,39 @@ const Palette: React.FC<PaletteProps> = ({ onAdd, selectedCanHaveChildren }) => 
   const [expanded, setExpanded] = useState<string[]>(['Layout', 'Display', 'Input']);
 
   const toggle = (cat: string) =>
-    setExpanded(prev =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat],
-    );
+    setExpanded((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
 
   return (
     <Box sx={{ overflowY: 'auto', flex: 1 }}>
-      {WIDGET_CATALOG.map(cat => (
+      {WIDGET_CATALOG.map((cat) => (
         <Box key={cat.category}>
           <Box
-            sx={{ display: 'flex', alignItems: 'center', px: 1, py: 0.5, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              px: 1,
+              py: 0.5,
+              cursor: 'pointer',
+              '&:hover': { bgcolor: 'action.hover' },
+            }}
             onClick={() => toggle(cat.category)}
           >
-            {expanded.includes(cat.category) ? <ExpandLessIcon sx={{ fontSize: 14, mr: 0.5 }} /> : <ExpandMoreIcon sx={{ fontSize: 14, mr: 0.5 }} />}
-            <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            {expanded.includes(cat.category) ? (
+              <ExpandLessIcon sx={{ fontSize: 14, mr: 0.5 }} />
+            ) : (
+              <ExpandMoreIcon sx={{ fontSize: 14, mr: 0.5 }} />
+            )}
+            <Typography
+              variant="caption"
+              fontWeight={700}
+              color="text.secondary"
+              sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
+            >
               {cat.category}
             </Typography>
           </Box>
           <Collapse in={expanded.includes(cat.category)}>
-            {cat.widgets.map(w => (
+            {cat.widgets.map((w) => (
               <Tooltip key={w.type} title={w.desc} placement="right">
                 <Box
                   sx={{
@@ -891,7 +1136,16 @@ const Palette: React.FC<PaletteProps> = ({ onAdd, selectedCanHaveChildren }) => 
                   }}
                   onClick={() => onAdd(w.type)}
                 >
-                  <Typography sx={{ fontFamily: 'monospace', fontSize: 12, width: 20, textAlign: 'center', flexShrink: 0, opacity: 0.6 }}>
+                  <Typography
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      width: 20,
+                      textAlign: 'center',
+                      flexShrink: 0,
+                      opacity: 0.6,
+                    }}
+                  >
                     {w.icon}
                   </Typography>
                   <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 11 }}>
@@ -947,21 +1201,21 @@ export interface QObjectSceneBuilderProps {
 }
 
 function qsceneToBuilderNodes(nodes: QObjectSceneNode[]): SceneNode[] {
-  return nodes.map(n => ({
+  return nodes.map((n) => ({
     id: n.id,
     className: n.className,
     objectName: n.objectName ?? '',
-    properties: n.properties.map(p => ({ key: p.key, value: p.value as unknown })),
+    properties: n.properties.map((p) => ({ key: p.key, value: p.value as unknown })),
     children: qsceneToBuilderNodes(n.children),
   }));
 }
 
 function builderToQsceneNodes(nodes: SceneNode[]): QObjectSceneNode[] {
-  return nodes.map(n => ({
+  return nodes.map((n) => ({
     id: n.id,
     className: n.className,
     objectName: n.objectName || undefined,
-    properties: n.properties.map(p => ({ key: p.key, value: String(p.value ?? '') })),
+    properties: n.properties.map((p) => ({ key: p.key, value: String(p.value ?? '') })),
     children: builderToQsceneNodes(n.children),
   }));
 }
@@ -978,7 +1232,7 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
   onRootsChange,
 }) => {
   const [roots, setRoots] = useState<SceneNode[]>(() =>
-    initialRoots && initialRoots.length > 0 ? qsceneToBuilderNodes(initialRoots) : [],
+    initialRoots && initialRoots.length > 0 ? qsceneToBuilderNodes(initialRoots) : []
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<OutputMode>('code');
@@ -990,55 +1244,61 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
 
   const selectedNode = useMemo(
     () => (selectedId ? findNode(roots, selectedId) : null),
-    [roots, selectedId],
+    [roots, selectedId]
   );
-  const selectedCanHaveChildren = selectedNode
-    ? canHaveChildren(selectedNode.className)
-    : true; // no selection → add as root
+  const selectedCanHaveChildren = selectedNode ? canHaveChildren(selectedNode.className) : true; // no selection → add as root
 
   // ── Tree mutations ─────────────────────────────────────────────────────────
 
-  const handleAdd = useCallback((type: string) => {
-    const newNode = makeNode(type, nextCount());
-    if (!selectedId || !selectedNode || !canHaveChildren(selectedNode.className)) {
-      // Add as new root.
-      setRoots(prev => [...prev, newNode]);
-    } else {
-      setRoots(prev => addChildNode(prev, selectedId, newNode));
-    }
-    setSelectedId(newNode.id);
-  }, [selectedId, selectedNode, nextCount]);
+  const handleAdd = useCallback(
+    (type: string) => {
+      const newNode = makeNode(type, nextCount());
+      if (!selectedId || !selectedNode || !canHaveChildren(selectedNode.className)) {
+        // Add as new root.
+        setRoots((prev) => [...prev, newNode]);
+      } else {
+        setRoots((prev) => addChildNode(prev, selectedId, newNode));
+      }
+      setSelectedId(newNode.id);
+    },
+    [selectedId, selectedNode, nextCount]
+  );
 
   const handleDelete = useCallback((id: string) => {
-    setRoots(prev => deleteNode(prev, id));
-    setSelectedId(prev => prev === id ? null : prev);
+    setRoots((prev) => deleteNode(prev, id));
+    setSelectedId((prev) => (prev === id ? null : prev));
   }, []);
 
   const handleMove = useCallback((id: string, dir: 'up' | 'down') => {
-    setRoots(prev => moveNode(prev, id, dir));
+    setRoots((prev) => moveNode(prev, id, dir));
   }, []);
 
   const handleToggleCollapse = useCallback((id: string) => {
-    setRoots(prev => updateNode(prev, id, {
-      collapsed: !findNode(prev, id)?.collapsed,
-    }));
+    setRoots((prev) =>
+      updateNode(prev, id, {
+        collapsed: !findNode(prev, id)?.collapsed,
+      })
+    );
   }, []);
 
   const handlePropChange = useCallback((id: string, patch: Partial<SceneNode>) => {
-    setRoots(prev => updateNode(prev, id, patch));
+    setRoots((prev) => updateNode(prev, id, patch));
   }, []);
 
-  const handleAddChild = useCallback((parentId: string, type: string) => {
-    const newNode = makeNode(type, nextCount());
-    setRoots(prev => addChildNode(prev, parentId, newNode));
-    setSelectedId(newNode.id);
-  }, [nextCount]);
+  const handleAddChild = useCallback(
+    (parentId: string, type: string) => {
+      const newNode = makeNode(type, nextCount());
+      setRoots((prev) => addChildNode(prev, parentId, newNode));
+      setSelectedId(newNode.id);
+    },
+    [nextCount]
+  );
 
   // ── Code generation ────────────────────────────────────────────────────────
 
   const generatedCode = useMemo(
-    () => mode === 'code' ? generateInitCode(roots) : generateModifyCode(roots),
-    [roots, mode],
+    () => (mode === 'code' ? generateInitCode(roots) : generateModifyCode(roots)),
+    [roots, mode]
   );
 
   const handleCopy = useCallback(() => {
@@ -1081,7 +1341,11 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
         if (value === undefined || value === null) continue;
         const setter = `set${ucFirst(key)}`;
         if (typeof o[setter] === 'function') {
-          try { (o[setter] as (v: unknown) => void)(value); } catch { /* skip */ }
+          try {
+            (o[setter] as (v: unknown) => void)(value);
+          } catch {
+            /* skip */
+          }
         }
       }
     }
@@ -1101,7 +1365,11 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
     for (let i = 0; i < Math.min(roots.length, liveRoots.length); i++) {
       const liveRoot = liveRoots[i] as LiveObj;
       applySubtree(roots[i], liveRoot);
-      try { liveRoot.update?.(); } catch { /* ignore repaint error */ }
+      try {
+        liveRoot.update?.();
+      } catch {
+        /* ignore repaint error */
+      }
       changed++;
     }
 
@@ -1110,7 +1378,7 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
   }, [roots, getLiveRoots, onRootsChange]);
 
   const handleRefreshPreview = useCallback(() => {
-    setPreviewVersion(v => v + 1);
+    setPreviewVersion((v) => v + 1);
   }, []);
 
   return (
@@ -1124,19 +1392,28 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
         disableRestoreFocus
       >
         {/* ── App bar ── */}
-        <AppBar position="relative" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <AppBar
+          position="relative"
+          color="default"
+          elevation={0}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
           <Toolbar variant="dense" sx={{ gap: 1, minHeight: 48, px: 1.5 }}>
             <Typography variant="subtitle2" fontWeight={700} sx={{ flex: 1 }}>
               QWidget Scene Builder
             </Typography>
 
             {/* Mode toggle */}
-            <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>Mode:</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+              Mode:
+            </Typography>
             <ToggleButtonGroup
               size="small"
               exclusive
               value={mode}
-              onChange={(_e, v) => { if (v) setMode(v); }}
+              onChange={(_e, v) => {
+                if (v) setMode(v);
+              }}
               sx={{ '& .MuiToggleButton-root': { py: 0.25, px: 1, fontSize: 11 } }}
             >
               <ToggleButton value="code">
@@ -1162,17 +1439,25 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
               size="small"
               exclusive
               value={rightPanel}
-              onChange={(_e, v) => { if (v) setRightPanel(v); }}
+              onChange={(_e, v) => {
+                if (v) setRightPanel(v);
+              }}
               sx={{ '& .MuiToggleButton-root': { py: 0.25, px: 0.75 } }}
             >
               <ToggleButton value="props">
-                <Tooltip title="Properties"><Typography sx={{ fontSize: 11 }}>Props</Typography></Tooltip>
+                <Tooltip title="Properties">
+                  <Typography sx={{ fontSize: 11 }}>Props</Typography>
+                </Tooltip>
               </ToggleButton>
               <ToggleButton value="code">
-                <Tooltip title="Generated code preview"><CodeIcon sx={{ fontSize: 14 }} /></Tooltip>
+                <Tooltip title="Generated code preview">
+                  <CodeIcon sx={{ fontSize: 14 }} />
+                </Tooltip>
               </ToggleButton>
               <ToggleButton value="preview">
-                <Tooltip title="Live QtCanvas preview"><VisibilityIcon sx={{ fontSize: 14 }} /></Tooltip>
+                <Tooltip title="Live QtCanvas preview">
+                  <VisibilityIcon sx={{ fontSize: 14 }} />
+                </Tooltip>
               </ToggleButton>
             </ToggleButtonGroup>
 
@@ -1213,7 +1498,6 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
 
         {/* ── Body (3 columns) ── */}
         <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 48px)' }}>
-
           {/* ── Left: Palette ── */}
           <Box
             sx={{
@@ -1226,7 +1510,15 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
               overflow: 'hidden',
             }}
           >
-            <Box sx={{ px: 1, py: 0.75, borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover' }}>
+            <Box
+              sx={{
+                px: 1,
+                py: 0.75,
+                borderBottom: 1,
+                borderColor: 'divider',
+                bgcolor: 'action.hover',
+              }}
+            >
               <Typography variant="caption" fontWeight={700} color="text.secondary">
                 WIDGET PALETTE
               </Typography>
@@ -1255,8 +1547,23 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
               overflow: 'hidden',
             }}
           >
-            <Box sx={{ px: 1, py: 0.75, borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover', display: 'flex', alignItems: 'center' }}>
-              <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ flex: 1 }}>
+            <Box
+              sx={{
+                px: 1,
+                py: 0.75,
+                borderBottom: 1,
+                borderColor: 'divider',
+                bgcolor: 'action.hover',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Typography
+                variant="caption"
+                fontWeight={700}
+                color="text.secondary"
+                sx={{ flex: 1 }}
+              >
                 SCENE TREE
               </Typography>
               <Tooltip title="Add root widget">
@@ -1265,19 +1572,29 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
                 </IconButton>
               </Tooltip>
               <Tooltip title="Clear scene">
-                <IconButton size="small" sx={{ p: 0.25, color: 'error.main' }}
-                  onClick={() => { setRoots([]); setSelectedId(null); }}>
+                <IconButton
+                  size="small"
+                  sx={{ p: 0.25, color: 'error.main' }}
+                  onClick={() => {
+                    setRoots([]);
+                    setSelectedId(null);
+                  }}
+                >
                   <DeleteIcon sx={{ fontSize: 14 }} />
                 </IconButton>
               </Tooltip>
             </Box>
             <Box sx={{ flex: 1, overflowY: 'auto', py: 0.5 }}>
               {roots.length === 0 ? (
-                <Typography variant="caption" color="text.secondary" sx={{ p: 1.5, display: 'block' }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ p: 1.5, display: 'block' }}
+                >
                   No widgets yet — click a widget in the palette to add the first root.
                 </Typography>
               ) : (
-                roots.map(node => (
+                roots.map((node) => (
                   <TreeItem
                     key={node.id}
                     node={node}
@@ -1307,7 +1624,15 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {rightPanel === 'props' && (
               <>
-                <Box sx={{ px: 1, py: 0.75, borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover' }}>
+                <Box
+                  sx={{
+                    px: 1,
+                    py: 0.75,
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    bgcolor: 'action.hover',
+                  }}
+                >
                   <Typography variant="caption" fontWeight={700} color="text.secondary">
                     PROPERTIES{selectedNode ? ` — ${selectedNode.className}` : ''}
                   </Typography>
@@ -1326,8 +1651,24 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
 
             {rightPanel === 'code' && (
               <>
-                <Box sx={{ px: 1, py: 0.75, borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ flex: 1 }}>
+                <Box
+                  sx={{
+                    px: 1,
+                    py: 0.75,
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    bgcolor: 'action.hover',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    fontWeight={700}
+                    color="text.secondary"
+                    sx={{ flex: 1 }}
+                  >
                     GENERATED CODE — {mode === 'code' ? 'Mode 1 (init)' : 'Mode 2 (live update)'}
                   </Typography>
                   <Chip
@@ -1348,8 +1689,24 @@ const QObjectSceneBuilderDialog: React.FC<QObjectSceneBuilderProps> = ({
 
             {rightPanel === 'preview' && (
               <>
-                <Box sx={{ px: 1, py: 0.75, borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ flex: 1 }}>
+                <Box
+                  sx={{
+                    px: 1,
+                    py: 0.75,
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    bgcolor: 'action.hover',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    fontWeight={700}
+                    color="text.secondary"
+                    sx={{ flex: 1 }}
+                  >
                     LIVE PREVIEW — Qt widget render
                   </Typography>
                   <Tooltip title="Refresh preview">

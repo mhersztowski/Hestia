@@ -23,7 +23,7 @@ describe('Project — entity operations & history', () => {
 
   it('addEntity assigns the active layer when none given and emits entity:added', () => {
     const events: Entity[] = [];
-    p.eventBus.on('entity:added', e => events.push(e));
+    p.eventBus.on('entity:added', (e) => events.push(e));
     const e = p.addEntity(line());
     expect(e.layerId).toBe(p.layerSystem.getActiveId());
     expect(p.entityRegistry.get(e.id)).toBeTruthy();
@@ -31,7 +31,14 @@ describe('Project — entity operations & history', () => {
   });
 
   it('addEntity keeps an explicit layerId', () => {
-    const l = p.layerSystem.add({ name: 'x', color: '#fff', lineType: 'solid', lineWidth: 1, visible: true, locked: false });
+    const l = p.layerSystem.add({
+      name: 'x',
+      color: '#fff',
+      lineType: 'solid',
+      lineWidth: 1,
+      visible: true,
+      locked: false,
+    });
     const e = p.addEntity(line({ layerId: l.id }));
     expect(e.layerId).toBe(l.id);
   });
@@ -97,11 +104,14 @@ describe('Project — entity operations & history', () => {
     const a = p.addEntity(line());
     const b = p.addEntity(line({ x1: 5 }));
     p.historyManager.clear();
-    p.batchUpdate([
-      { id: a.id, changes: { x2: 20 } as Partial<Entity> },
-      { id: b.id, changes: { x2: 30 } as Partial<Entity> },
-      { id: 'missing', changes: { x2: 0 } as Partial<Entity> },
-    ], 'move');
+    p.batchUpdate(
+      [
+        { id: a.id, changes: { x2: 20 } as Partial<Entity> },
+        { id: b.id, changes: { x2: 30 } as Partial<Entity> },
+        { id: 'missing', changes: { x2: 0 } as Partial<Entity> },
+      ],
+      'move'
+    );
     expect((p.entityRegistry.get(a.id) as any).x2).toBe(20);
     expect((p.entityRegistry.get(b.id) as any).x2).toBe(30);
     p.undo();
@@ -176,7 +186,9 @@ describe('Project — entity operations & history', () => {
 
   it('setViewMode updates and emits viewmode:changed', () => {
     let mode: unknown;
-    p.eventBus.on('viewmode:changed', m => { mode = m; });
+    p.eventBus.on('viewmode:changed', (m) => {
+      mode = m;
+    });
     p.setViewMode('3d');
     expect(p.viewMode).toBe('3d');
     expect(mode).toBe('3d');
@@ -199,7 +211,14 @@ describe('Project — serialization', () => {
     const p = new Project();
     p.settings.name = 'RoundTrip';
     p.settings.gridSize = 42;
-    const l = p.layerSystem.add({ name: 'walls', color: '#abc', lineType: 'solid', lineWidth: 2, visible: true, locked: false });
+    const l = p.layerSystem.add({
+      name: 'walls',
+      color: '#abc',
+      lineType: 'solid',
+      lineWidth: 2,
+      visible: true,
+      locked: false,
+    });
     p.layerSystem.setActive(l.id);
     p.addEntity(line({ layerId: l.id }));
     const json = p.toJSON();
@@ -232,7 +251,9 @@ describe('Project — serialization', () => {
     p.addEntity(line());
     p.settings.name = 'Dirty';
     let loaded = false;
-    p.eventBus.on('project:loaded', () => { loaded = true; });
+    p.eventBus.on('project:loaded', () => {
+      loaded = true;
+    });
     p.reset();
     expect(p.entityRegistry.getAll()).toHaveLength(0);
     expect(p.settings.name).toBe('Untitled');
@@ -248,7 +269,10 @@ describe('Project — anchored (intelligent) dimensions', () => {
     const dimInput = {
       ...base,
       type: 'dimension',
-      x1: 0, y1: 0, x2: 100, y2: 0,
+      x1: 0,
+      y1: 0,
+      x2: 100,
+      y2: 0,
       offset: 20,
       anchor1: { entityId: l.id, kind: 'endpoint', index: 0 },
       anchor2: { entityId: l.id, kind: 'endpoint', index: 1 },
@@ -271,7 +295,11 @@ describe('Project — anchored (intelligent) dimensions', () => {
     const dim = p.addEntity({
       ...base,
       type: 'dimension',
-      x1: 0, y1: 0, x2: 100, y2: 0, offset: 10,
+      x1: 0,
+      y1: 0,
+      x2: 100,
+      y2: 0,
+      offset: 10,
       anchor1: { entityId: l.id, kind: 'endpoint', index: 0, disabled: true },
     } as EntityInput);
     p.updateEntity(l.id, { x1: -50 } as Partial<Entity>);

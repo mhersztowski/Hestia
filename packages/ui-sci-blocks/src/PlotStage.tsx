@@ -19,8 +19,16 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  fitAspect, minorStep, niceTicks, panByPixels, screenToWorld, worldToScreen, zoomAt,
-  type Point, type Size, type Viewport,
+  fitAspect,
+  minorStep,
+  niceTicks,
+  panByPixels,
+  screenToWorld,
+  worldToScreen,
+  zoomAt,
+  type Point,
+  type Size,
+  type Viewport,
 } from '@hestia/core-sci';
 
 export interface PlotStageSettings {
@@ -63,7 +71,13 @@ function formatTick(value: number): string {
   return String(Number(value.toPrecision(12)));
 }
 
-export function PlotStage({ viewport, onViewportChange, settings, onDraw, height = 420 }: PlotStageProps) {
+export function PlotStage({
+  viewport,
+  onViewportChange,
+  settings,
+  onDraw,
+  height = 420,
+}: PlotStageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<Size>({ width: 0, height: 0 });
@@ -96,7 +110,10 @@ export function PlotStage({ viewport, onViewportChange, settings, onDraw, height
   useEffect(() => {
     if (size.width <= 0 || size.height <= 0) return;
     const dopasowany = fitAspect(viewport, size, 'x');
-    if (Math.abs(dopasowany.yMin - viewport.yMin) > 1e-9 || Math.abs(dopasowany.yMax - viewport.yMax) > 1e-9) {
+    if (
+      Math.abs(dopasowany.yMin - viewport.yMin) > 1e-9 ||
+      Math.abs(dopasowany.yMax - viewport.yMax) > 1e-9
+    ) {
       onViewportChange(dopasowany);
     }
   }, [size.width, size.height]);
@@ -146,8 +163,10 @@ export function PlotStage({ viewport, onViewportChange, settings, onDraw, height
     if (settings.grid && settings.minorGrid) {
       const mx = minorStep(xStep);
       const my = minorStep(yStep);
-      for (let v = Math.ceil(viewport.xMin / mx) * mx; v <= viewport.xMax; v += mx) pionowa(v, COLORS.minor, 1);
-      for (let v = Math.ceil(viewport.yMin / my) * my; v <= viewport.yMax; v += my) pozioma(v, COLORS.minor, 1);
+      for (let v = Math.ceil(viewport.xMin / mx) * mx; v <= viewport.xMax; v += mx)
+        pionowa(v, COLORS.minor, 1);
+      for (let v = Math.ceil(viewport.yMin / my) * my; v <= viewport.yMax; v += my)
+        pozioma(v, COLORS.minor, 1);
     }
 
     if (settings.grid) {
@@ -268,7 +287,13 @@ export function PlotStage({ viewport, onViewportChange, settings, onDraw, height
   return (
     <div
       ref={boxRef}
-      style={{ position: 'relative', width: '100%', height, touchAction: 'none', overflow: 'hidden' }}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height,
+        touchAction: 'none',
+        overflow: 'hidden',
+      }}
     >
       <canvas
         ref={canvasRef}
@@ -287,12 +312,12 @@ export function PlotStage({ viewport, onViewportChange, settings, onDraw, height
 export function pointerWorld(
   event: { clientX: number; clientY: number },
   element: HTMLElement,
-  viewport: Viewport,
+  viewport: Viewport
 ): Point {
   const rect = element.getBoundingClientRect();
   return screenToWorld(
     viewport,
     { width: rect.width, height: rect.height },
-    { x: event.clientX - rect.left, y: event.clientY - rect.top },
+    { x: event.clientX - rect.left, y: event.clientY - rect.top }
   );
 }

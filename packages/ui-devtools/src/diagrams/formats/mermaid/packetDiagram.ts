@@ -46,7 +46,10 @@ export function parsePacketDiagram(text: string): ParseResult {
     }
 
     const title = TITLE.exec(trimmed);
-    if (title) { spec.title = title[1]; return; }
+    if (title) {
+      spec.title = title[1];
+      return;
+    }
 
     const field = trimmed.startsWith('%%') ? null : FIELD.exec(trimmed);
     if (field) {
@@ -92,7 +95,8 @@ export function serializePacketDiagram(doc: DiagramDocument): string {
   const wszystkie = [
     ...spec.fields.map((field, order) => ({ order, text: fieldLine(field) })),
     ...[...unknownBefore.entries()].flatMap(([index, texts]) =>
-      texts.map((text) => ({ order: index - 1000, text }))),
+      texts.map((text) => ({ order: index - 1000, text }))
+    ),
   ].sort((a, b) => a.order - b.order);
 
   for (const item of wszystkie) out.push(item.text);

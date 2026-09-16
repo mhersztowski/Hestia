@@ -42,7 +42,7 @@ export function sampleSurface(
   expression: string,
   range: SurfaceRange,
   parameters: Record<string, number>,
-  n: number,
+  n: number
 ): SurfaceGrid {
   const compiled = compileExpression(expression);
   if (compiled.issues.length > 0) {

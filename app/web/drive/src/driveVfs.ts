@@ -16,26 +16,26 @@ import { DIR_TYPE, FILE_TYPE, type DriveVfs, type VfsEntry } from '@hestia/ui-co
 import { platform } from './platform';
 
 export function platformVfs(): DriveVfs {
-    return {
-        async list(path: string): Promise<VfsEntry[]> {
-            return (await platform.dir(path)).map((e) => ({
-                name: e.name,
-                type: e.type === DIR_TYPE ? DIR_TYPE : FILE_TYPE,
-            }));
-        },
+  return {
+    async list(path: string): Promise<VfsEntry[]> {
+      return (await platform.dir(path)).map((e) => ({
+        name: e.name,
+        type: e.type === DIR_TYPE ? DIR_TYPE : FILE_TYPE,
+      }));
+    },
 
-        readFile: (path) => platform.readBytes(path),
-        writeFile: (path, data) => platform.writeBytes(path, data),
-        mkdir: (path) => platform.mkdir(path),
-        // The platform decides for itself whether the target is a directory, so
-        // the flag the drive passes is not needed on the wire.
-        delete: (path) => platform.remove(path),
-        rename: (from, to) => platform.move(from, to, 'rename'),
-        copy: (from, to) => platform.move(from, to, 'copy'),
-        stat: (path) => platform.stat(path),
-        zipPack: (source, destination) => platform.zipPack(source, destination),
-        zipUnpack: (archive, destination) => platform.zipUnpack(archive, destination),
-        runCommand: (directory, command, args, onLine) =>
-            platform.runCommand(directory, command, args, onLine),
-    };
+    readFile: (path) => platform.readBytes(path),
+    writeFile: (path, data) => platform.writeBytes(path, data),
+    mkdir: (path) => platform.mkdir(path),
+    // The platform decides for itself whether the target is a directory, so
+    // the flag the drive passes is not needed on the wire.
+    delete: (path) => platform.remove(path),
+    rename: (from, to) => platform.move(from, to, 'rename'),
+    copy: (from, to) => platform.move(from, to, 'copy'),
+    stat: (path) => platform.stat(path),
+    zipPack: (source, destination) => platform.zipPack(source, destination),
+    zipUnpack: (archive, destination) => platform.zipUnpack(archive, destination),
+    runCommand: (directory, command, args, onLine) =>
+      platform.runCommand(directory, command, args, onLine),
+  };
 }

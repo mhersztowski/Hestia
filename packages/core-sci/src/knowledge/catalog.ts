@@ -35,13 +35,15 @@ const WEIGHTS: Record<MatchKind, number> = {
 
 /** Porównanie bez rozróżniania wielkości liter i polskich znaków diakrytycznych. */
 function normalize(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    // `ł` nie rozkłada się przez NFD — trzeba go podmienić wprost, inaczej
-    // „wahadlo" nie znajdzie „wahadło", co jest najczęstszym zapytaniem.
-    .replace(/ł/g, 'l');
+  return (
+    text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      // `ł` nie rozkłada się przez NFD — trzeba go podmienić wprost, inaczej
+      // „wahadlo" nie znajdzie „wahadło", co jest najczęstszym zapytaniem.
+      .replace(/ł/g, 'l')
+  );
 }
 
 /**
@@ -54,7 +56,7 @@ function normalize(text: string): string {
 export function search(
   index: KnowledgeIndex,
   query: string,
-  bodies: Record<string, string> = {},
+  bodies: Record<string, string> = {}
 ): SearchHit[] {
   const needle = normalize(query.trim());
   if (!needle) return [];
@@ -71,7 +73,10 @@ export function search(
       if (normalize(tag).includes(needle)) matches.push({ kind: 'tag', detail: tag });
     }
     for (const formula of document.formulas) {
-      if (normalize(formula.id).includes(needle) || normalize(formula.expression ?? '').includes(needle)) {
+      if (
+        normalize(formula.id).includes(needle) ||
+        normalize(formula.expression ?? '').includes(needle)
+      ) {
         matches.push({ kind: 'formula', detail: formula.id });
       }
     }
@@ -192,7 +197,7 @@ export function learningOrder(index: KnowledgeIndex): KnowledgeDocument[] {
   const byPath = new Map(index.documents.map((d) => [d.path, d] as const));
 
   return [...layout.nodes]
-    .sort((a, b) => (a.level - b.level) || a.title.localeCompare(b.title, 'pl'))
+    .sort((a, b) => a.level - b.level || a.title.localeCompare(b.title, 'pl'))
     .map((node) => byPath.get(node.path)!)
     .filter(Boolean);
 }

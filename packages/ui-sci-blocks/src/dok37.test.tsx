@@ -5,19 +5,22 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-7-przyspieszenie-zmienne.md';
-const pliki = [DOK, '3-5-predkosc-zmienna.md', '3-6-przyspieszenie.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-5-predkosc-zmienna.md', '3-6-przyspieszenie.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 
@@ -26,8 +29,10 @@ describe('3-7 w czytniku', () => {
 
   it('dwa wzory numerowane, oba jako relacje', () => {
     const d = index.documents.find((x) => x.path === DOK);
-    expect(d?.formulas.map((f) => [f.id, f.kind]))
-      .toEqual([['rh1-3-eq10', 'relation'], ['rh1-3-eq11', 'relation']]);
+    expect(d?.formulas.map((f) => [f.id, f.kind])).toEqual([
+      ['rh1-3-eq10', 'relation'],
+      ['rh1-3-eq11', 'relation'],
+    ]);
     for (const f of d!.formulas) expect(f.issues, f.id).toEqual([]);
   });
 
@@ -40,8 +45,9 @@ describe('3-7 w czytniku', () => {
   it('odsyłacz z 3-5 zamyka się wstecz na (3-10) w 3-7', () => {
     expect(bodies['3-5-predkosc-zmienna.md']).toContain('(((rh1-3-eq10|3-10)))');
     const cel = resolveReference(
-      'rh1-3-eq10', { anchors: index.anchors, formulaHome: index.formulaHome },
-      '3-5-predkosc-zmienna.md',
+      'rh1-3-eq10',
+      { anchors: index.anchors, formulaHome: index.formulaHome },
+      '3-5-predkosc-zmienna.md'
     );
     expect(cel.found).toBe(true);
     expect(cel.path).toBe(DOK);
@@ -53,14 +59,20 @@ describe('3-7 w czytniku', () => {
     expect(index.documents.find((x) => x.path === DOK)?.figures ?? []).toHaveLength(0);
     expect(widok().container.querySelectorAll('img')).toHaveLength(0);
     for (const id of ['rh1-3-rys3', 'rh1-3-rys5']) {
-      const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
+      const cel = resolveReference(
+        id,
+        { anchors: index.anchors, formulaHome: index.formulaHome },
+        DOK
+      );
       expect(cel.path, id).toBe('3-5-predkosc-zmienna.md');
     }
   });
 
   it('odsyłacz do (3-9) sięga poprzedniego podrozdziału', () => {
     const cel = resolveReference(
-      'rh1-3-eq9', { anchors: index.anchors, formulaHome: index.formulaHome }, DOK,
+      'rh1-3-eq9',
+      { anchors: index.anchors, formulaHome: index.formulaHome },
+      DOK
     );
     expect(cel.path).toBe('3-6-przyspieszenie.md');
   });

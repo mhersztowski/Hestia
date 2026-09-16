@@ -7,14 +7,35 @@
  * pliku) jest natychmiast widoczna — nie ma czego synchronizować.
  */
 import { SceneGraph, SceneNode, MeshNode, LightNode, GroupNode, CameraNode } from '../../scene3d';
-import type { ILayer, INode, INode3D, IScene, NodeData, SceneChange, SceneKind, Transform } from './types';
+import type {
+  ILayer,
+  INode,
+  INode3D,
+  IScene,
+  NodeData,
+  SceneChange,
+  SceneKind,
+  Transform,
+} from './types';
 import { obejdzDrzewo, sciezkaWezla, wolnaNazwa, znajdzPoSciezce, znajdzWezly } from './helpers';
 
 /** Pola węzła sceny, które nie są danymi obiektu, tylko jego miejscem w drzewie. */
-const POLA_DRZEWA = new Set(['id', 'name', 'type', 'children', 'parent', 'position', 'rotation', 'scale']);
+const POLA_DRZEWA = new Set([
+  'id',
+  'name',
+  'type',
+  'children',
+  'parent',
+  'position',
+  'rotation',
+  'scale',
+]);
 
 class Scene3dNode implements INode3D {
-  constructor(private scena: Scene3dScene, readonly id: string) {}
+  constructor(
+    private scena: Scene3dScene,
+    readonly id: string
+  ) {}
 
   private get node(): SceneNode | null {
     return this.scena.graph.findNode(this.id) ?? null;
@@ -27,28 +48,45 @@ class Scene3dNode implements INode3D {
     return n;
   }
 
-  isAlive(): boolean { return this.node !== null; }
+  isAlive(): boolean {
+    return this.node !== null;
+  }
 
-  getName(): string { return this.node?.name ?? ''; }
+  getName(): string {
+    return this.node?.name ?? '';
+  }
 
   setName(name: string): void {
     const n = this.zywy;
     const rodzenstwo = (n.parent?.children ?? []).filter((c) => c.id !== n.id);
-    n.setProperty('name', wolnaNazwa(rodzenstwo.map((c) => this.scena.wezel(c.id)), name));
+    n.setProperty(
+      'name',
+      wolnaNazwa(
+        rodzenstwo.map((c) => this.scena.wezel(c.id)),
+        name
+      )
+    );
     this.scena.powiadom({ kind: 'updated', nodeId: this.id });
   }
 
-  getPath(): string { return sciezkaWezla(this); }
+  getPath(): string {
+    return sciezkaWezla(this);
+  }
 
   getParent(): INode | null {
     const rodzic = this.node?.parent;
     // Korzeń grafu jest korzeniem sceny — poza drzewem obiektów.
     if (!rodzic) return null;
-    return rodzic.id === this.scena.graph.root.id ? this.scena.getRoot() : this.scena.wezel(rodzic.id);
+    return rodzic.id === this.scena.graph.root.id
+      ? this.scena.getRoot()
+      : this.scena.wezel(rodzic.id);
   }
 
   setParent(parent: INode | null): void {
-    this.scena.graph.moveNode(this.id, parent && parent.id !== this.scena.getRoot().id ? parent.id : undefined);
+    this.scena.graph.moveNode(
+      this.id,
+      parent && parent.id !== this.scena.getRoot().id ? parent.id : undefined
+    );
     this.scena.powiadom({ kind: 'moved', nodeId: this.id });
   }
 
@@ -92,7 +130,9 @@ class Scene3dNode implements INode3D {
     this.scena.powiadom({ kind: 'updated', nodeId: this.id });
   }
 
-  getVisible(): boolean { return this.node?.visible ?? false; }
+  getVisible(): boolean {
+    return this.node?.visible ?? false;
+  }
 
   setVisible(visible: boolean): void {
     this.zywy.setProperty('visible', visible);
@@ -114,16 +154,36 @@ class Scene3dNode implements INode3D {
 /** Korzeń: istnieje, żeby drzewo miało jeden początek, ale nie jest obiektem sceny. */
 class Scene3dRoot implements INode {
   constructor(private scena: Scene3dScene) {}
-  get id(): string { return this.scena.graph.root.id; }
-  isAlive(): boolean { return true; }
-  getName(): string { return this.scena.graph.root.name || 'scene'; }
-  setName(): void { /* korzeń nie ma nazwy do zmiany — nie wchodzi do ścieżek */ }
-  getPath(): string { return ''; }
-  getParent(): INode | null { return null; }
-  setParent(): void { /* korzenia nie da się przenieść */ }
-  getChildren(): INode[] { return this.scena.graph.root.children.map((c) => this.scena.wezel(c.id)); }
-  getData(): NodeData { return { type: 'root' }; }
-  update(): void { /* korzeń nie niesie danych */ }
+  get id(): string {
+    return this.scena.graph.root.id;
+  }
+  isAlive(): boolean {
+    return true;
+  }
+  getName(): string {
+    return this.scena.graph.root.name || 'scene';
+  }
+  setName(): void {
+    /* korzeń nie ma nazwy do zmiany — nie wchodzi do ścieżek */
+  }
+  getPath(): string {
+    return '';
+  }
+  getParent(): INode | null {
+    return null;
+  }
+  setParent(): void {
+    /* korzenia nie da się przenieść */
+  }
+  getChildren(): INode[] {
+    return this.scena.graph.root.children.map((c) => this.scena.wezel(c.id));
+  }
+  getData(): NodeData {
+    return { type: 'root' };
+  }
+  update(): void {
+    /* korzeń nie niesie danych */
+  }
 }
 
 export class Scene3dScene implements IScene {
@@ -134,7 +194,10 @@ export class Scene3dScene implements IScene {
   private sluchacze = new Set<(z: SceneChange) => void>();
   private zaznaczenie: string[] = [];
 
-  constructor(readonly graph: SceneGraph, kind: SceneKind = 'scene3d') {
+  constructor(
+    readonly graph: SceneGraph,
+    kind: SceneKind = 'scene3d'
+  ) {
     this.kind = kind;
   }
 
@@ -156,15 +219,21 @@ export class Scene3dScene implements IScene {
     for (const sluchacz of this.sluchacze) sluchacz(zmiana);
   }
 
-  getRoot(): INode { return this.korzen; }
+  getRoot(): INode {
+    return this.korzen;
+  }
 
   getNodeById(id: string): INode | null {
     return this.graph.findNode(id) ? this.wezel(id) : null;
   }
 
-  getNode(path: string): INode | null { return znajdzPoSciezce(this, path); }
+  getNode(path: string): INode | null {
+    return znajdzPoSciezce(this, path);
+  }
 
-  getNodeIdByPath(path: string): string | null { return this.getNode(path)?.id ?? null; }
+  getNodeIdByPath(path: string): string | null {
+    return this.getNode(path)?.id ?? null;
+  }
 
   nodeCreate(data: NodeData, parent?: INode | null): INode | null {
     const { type, ...reszta } = data;
@@ -172,11 +241,20 @@ export class Scene3dScene implements IScene {
 
     let node: SceneNode;
     switch (type) {
-      case 'mesh': node = new MeshNode(wspolne as never); break;
-      case 'light': node = new LightNode(wspolne as never); break;
-      case 'camera': node = new CameraNode(wspolne as never); break;
-      case 'group': node = new GroupNode(wspolne as never); break;
-      default: return null;
+      case 'mesh':
+        node = new MeshNode(wspolne as never);
+        break;
+      case 'light':
+        node = new LightNode(wspolne as never);
+        break;
+      case 'camera':
+        node = new CameraNode(wspolne as never);
+        break;
+      case 'group':
+        node = new GroupNode(wspolne as never);
+        break;
+      default:
+        return null;
     }
 
     const rodzicId = parent && parent.id !== this.korzen.id ? parent.id : undefined;
@@ -186,7 +264,13 @@ export class Scene3dScene implements IScene {
     // Nadajemy ją wprost, bez `setName`: utworzenie obiektu jest **jednym**
     // zdarzeniem, a nie utworzeniem i zaraz po nim zmianą.
     const rodzenstwo = (node.parent?.children ?? []).filter((c) => c.id !== node.id);
-    node.setProperty('name', wolnaNazwa(rodzenstwo.map((c) => this.wezel(c.id)), node.name));
+    node.setProperty(
+      'name',
+      wolnaNazwa(
+        rodzenstwo.map((c) => this.wezel(c.id)),
+        node.name
+      )
+    );
 
     const uchwyt = this.wezel(node.id);
     this.powiadom({ kind: 'created', nodeId: node.id });
@@ -202,9 +286,13 @@ export class Scene3dScene implements IScene {
     return true;
   }
 
-  getAllNodes(): INode[] { return obejdzDrzewo(this.korzen); }
+  getAllNodes(): INode[] {
+    return obejdzDrzewo(this.korzen);
+  }
 
-  find(predicate: (node: INode) => boolean): INode[] { return znajdzWezly(this, predicate); }
+  find(predicate: (node: INode) => boolean): INode[] {
+    return znajdzWezly(this, predicate);
+  }
 
   /**
    * Scena 3D nie ma warstw w rozumieniu CAD-a.
@@ -212,7 +300,9 @@ export class Scene3dScene implements IScene {
    * Grupy pełnią podobną rolę porządkującą, ale nie mają blokady ani barwy
    * warstwy — podawanie ich jako warstw obiecywałoby zachowanie, którego nie ma.
    */
-  getLayers(): ILayer[] { return []; }
+  getLayers(): ILayer[] {
+    return [];
+  }
 
   getSelection(): INode[] {
     return this.zaznaczenie.map((id) => this.getNodeById(id)).filter((n): n is INode => n !== null);
@@ -224,6 +314,8 @@ export class Scene3dScene implements IScene {
 
   subscribe(listener: (change: SceneChange) => void): () => void {
     this.sluchacze.add(listener);
-    return () => { this.sluchacze.delete(listener); };
+    return () => {
+      this.sluchacze.delete(listener);
+    };
   }
 }

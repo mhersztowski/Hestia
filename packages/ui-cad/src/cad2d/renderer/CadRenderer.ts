@@ -52,9 +52,12 @@ export class CadRenderer {
 
     // Orthographic camera (2D mode)
     this.orthoCamera = new THREE.OrthographicCamera(
-      -this.width / 2, this.width / 2,
-      this.height / 2, -this.height / 2,
-      -1000, 1000
+      -this.width / 2,
+      this.width / 2,
+      this.height / 2,
+      -this.height / 2,
+      -1000,
+      1000
     );
     this.orthoCamera.position.set(0, 0, 100);
     this.orthoCamera.lookAt(0, 0, 0);
@@ -74,14 +77,22 @@ export class CadRenderer {
     this.placementGroup = new THREE.Group();
     this.placementGroup.visible = false;
     this.lightsGroup = new THREE.Group();
-    this.scene.add(this.gridGroup, this.entitiesGroup, this.previewGroup, this.highlightGroup, this.placementGroup, this.lightsGroup);
+    this.scene.add(
+      this.gridGroup,
+      this.entitiesGroup,
+      this.previewGroup,
+      this.highlightGroup,
+      this.placementGroup,
+      this.lightsGroup
+    );
 
     // Snap marker
     const markerGeo = new THREE.BufferGeometry();
     const s = 5;
-    markerGeo.setAttribute('position', new THREE.Float32BufferAttribute([
-      -s, 0, 1, s, 0, 1, 0, -s, 1, 0, s, 1,
-    ], 3));
+    markerGeo.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute([-s, 0, 1, s, 0, 1, 0, -s, 1, 0, s, 1], 3)
+    );
     const markerMat = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 1 });
     this.snapMarker = new THREE.LineSegments(markerGeo, markerMat);
     this.snapMarker.visible = false;
@@ -115,23 +126,42 @@ export class CadRenderer {
     this.gridGroup.add(new THREE.LineSegments(geo, mat));
 
     const xGeo = new THREE.BufferGeometry();
-    xGeo.setAttribute('position', new THREE.Float32BufferAttribute([
-      -extent, 0, -0.4, extent, 0, -0.4,
-    ], 3));
-    this.gridGroup.add(new THREE.LineSegments(xGeo, new THREE.LineBasicMaterial({ color: light ? 0xd98d94 : 0xcc4444 })));
+    xGeo.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute([-extent, 0, -0.4, extent, 0, -0.4], 3)
+    );
+    this.gridGroup.add(
+      new THREE.LineSegments(
+        xGeo,
+        new THREE.LineBasicMaterial({ color: light ? 0xd98d94 : 0xcc4444 })
+      )
+    );
 
     const yGeo = new THREE.BufferGeometry();
-    yGeo.setAttribute('position', new THREE.Float32BufferAttribute([
-      0, -extent, -0.4, 0, extent, -0.4,
-    ], 3));
-    this.gridGroup.add(new THREE.LineSegments(yGeo, new THREE.LineBasicMaterial({ color: light ? 0x8fca8f : 0x44cc44 })));
+    yGeo.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute([0, -extent, -0.4, 0, extent, -0.4], 3)
+    );
+    this.gridGroup.add(
+      new THREE.LineSegments(
+        yGeo,
+        new THREE.LineBasicMaterial({ color: light ? 0x8fca8f : 0x44cc44 })
+      )
+    );
 
     // The origin (0,0,0), as in FreeCAD. A fixed size on screen, whatever the zoom.
     const originGeo = new THREE.BufferGeometry();
     originGeo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, -0.3], 3));
-    this.gridGroup.add(new THREE.Points(originGeo, new THREE.PointsMaterial({
-      color: light ? 0x333333 : 0xffffff, size: 7, sizeAttenuation: false,
-    })));
+    this.gridGroup.add(
+      new THREE.Points(
+        originGeo,
+        new THREE.PointsMaterial({
+          color: light ? 0x333333 : 0xffffff,
+          size: 7,
+          sizeAttenuation: false,
+        })
+      )
+    );
   }
 
   private buildLights(): void {
@@ -183,7 +213,9 @@ export class CadRenderer {
     this.syncAll();
   }
 
-  getViewMode(): ViewMode { return this.viewMode; }
+  getViewMode(): ViewMode {
+    return this.viewMode;
+  }
 
   private _initOrbitControls(): void {
     if (this.orbitControls) return;
@@ -234,7 +266,10 @@ export class CadRenderer {
   syncEntity(entityId: string): void {
     const entity = this.project.entityRegistry.get(entityId);
     const old = this.meshMap.get(entityId);
-    if (old) { this.entitiesGroup.remove(old); this.meshMap.delete(entityId); }
+    if (old) {
+      this.entitiesGroup.remove(old);
+      this.meshMap.delete(entityId);
+    }
 
     if (!entity || !entity.visible) return;
     const layer = this.project.layerSystem.get(entity.layerId);
@@ -249,23 +284,37 @@ export class CadRenderer {
     }
   }
 
-  private _buildObject(entity: Entity, layer: ReturnType<typeof this.project.layerSystem.get>, selected: boolean): THREE.Object3D {
+  private _buildObject(
+    entity: Entity,
+    layer: ReturnType<typeof this.project.layerSystem.get>,
+    selected: boolean
+  ): THREE.Object3D {
     if (this.viewMode === '3d') return build3dEntityObject(entity, layer, selected);
     return buildEntityObject(entity, layer, selected);
   }
 
   removeEntity(entityId: string): void {
     const obj = this.meshMap.get(entityId);
-    if (obj) { this.entitiesGroup.remove(obj); this.meshMap.delete(entityId); }
+    if (obj) {
+      this.entitiesGroup.remove(obj);
+      this.meshMap.delete(entityId);
+    }
   }
 
   setPreview(preview: PreviewGeometry | null): void {
-    while (this.previewGroup.children.length) this.previewGroup.remove(this.previewGroup.children[0]);
+    while (this.previewGroup.children.length)
+      this.previewGroup.remove(this.previewGroup.children[0]);
     if (!preview) return;
-    const obj = buildPreviewObject(preview.type, preview.points, preview.radius, preview.ghostSegments, {
-      startAngle: preview.startAngle,
-      endAngle: preview.endAngle,
-    });
+    const obj = buildPreviewObject(
+      preview.type,
+      preview.points,
+      preview.radius,
+      preview.ghostSegments,
+      {
+        startAngle: preview.startAngle,
+        endAngle: preview.endAngle,
+      }
+    );
     if (obj) this.previewGroup.add(obj);
   }
 
@@ -277,12 +326,16 @@ export class CadRenderer {
   setHighlight(
     segments: Array<{ a: Point2D; b: Point2D }>,
     vertices: Point2D[] = [],
-    color = 0xffb300,
+    color = 0xffb300
   ): void {
-    while (this.highlightGroup.children.length) this.highlightGroup.remove(this.highlightGroup.children[0]);
+    while (this.highlightGroup.children.length)
+      this.highlightGroup.remove(this.highlightGroup.children[0]);
     if (segments.length) {
       const pts: number[] = [];
-      for (const s of segments) { pts.push(s.a.x, s.a.y, 0.2); pts.push(s.b.x, s.b.y, 0.2); }
+      for (const s of segments) {
+        pts.push(s.a.x, s.a.y, 0.2);
+        pts.push(s.b.x, s.b.y, 0.2);
+      }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
       this.highlightGroup.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color })));
@@ -292,25 +345,35 @@ export class CadRenderer {
       for (const v of vertices) vp.push(v.x, v.y, 0.3);
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(vp, 3));
-      this.highlightGroup.add(new THREE.Points(geo, new THREE.PointsMaterial({ color, size: 9, sizeAttenuation: false })));
+      this.highlightGroup.add(
+        new THREE.Points(geo, new THREE.PointsMaterial({ color, size: 9, sizeAttenuation: false }))
+      );
     }
   }
 
   clearHighlight(): void {
-    while (this.highlightGroup.children.length) this.highlightGroup.remove(this.highlightGroup.children[0]);
+    while (this.highlightGroup.children.length)
+      this.highlightGroup.remove(this.highlightGroup.children[0]);
   }
 
   setPlacementObjects(objs: THREE.Object3D[] | null, centroidX: number, centroidY: number): void {
     while (this.placementGroup.children.length)
       this.placementGroup.remove(this.placementGroup.children[0]);
-    if (!objs || objs.length === 0) { this.placementGroup.visible = false; return; }
+    if (!objs || objs.length === 0) {
+      this.placementGroup.visible = false;
+      return;
+    }
     this.placementCentroid = { x: centroidX, y: centroidY };
     for (const obj of objs) this.placementGroup.add(obj);
     this.placementGroup.visible = true;
   }
 
   movePlacement(wx: number, wy: number): void {
-    this.placementGroup.position.set(wx - this.placementCentroid.x, wy - this.placementCentroid.y, 0.5);
+    this.placementGroup.position.set(
+      wx - this.placementCentroid.x,
+      wy - this.placementCentroid.y,
+      0.5
+    );
   }
 
   clearPlacement(): void {
@@ -330,7 +393,10 @@ export class CadRenderer {
   }
 
   showSnapMarker(point: Point2D | null): void {
-    if (!point) { this.snapMarker.visible = false; return; }
+    if (!point) {
+      this.snapMarker.visible = false;
+      return;
+    }
     this.snapMarker.position.set(point.x, point.y, 1);
     this.snapMarker.visible = true;
   }
@@ -345,10 +411,7 @@ export class CadRenderer {
 
   /** Raycast screen coord to Z=0 plane (3D mode). Returns null if ray is parallel. */
   screenToWorldPlane(screenX: number, screenY: number): Point2D | null {
-    const ndc = new THREE.Vector2(
-      (screenX / this.width) * 2 - 1,
-      -(screenY / this.height) * 2 + 1,
-    );
+    const ndc = new THREE.Vector2((screenX / this.width) * 2 - 1, -(screenY / this.height) * 2 + 1);
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(ndc, this.perspCamera);
     const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
@@ -361,7 +424,7 @@ export class CadRenderer {
   pickEntity(screenX: number, screenY: number): string | null {
     const worldPt = this.screenToWorld(screenX, screenY);
     const threshold = 8 * this.zoom;
-    const entities = this.project.entityRegistry.getAll().filter(e => e.visible && !e.locked);
+    const entities = this.project.entityRegistry.getAll().filter((e) => e.visible && !e.locked);
 
     // Pass 1 — outline/line proximity. Lines, edges and curves take priority over
     // a filled shape's interior, so a line drawn over a rectangle stays selectable.
@@ -369,7 +432,10 @@ export class CadRenderer {
     let bestDist = threshold;
     for (const entity of entities) {
       const d = outlineDistanceToEntity(worldPt, entity);
-      if (d <= bestDist) { bestDist = d; best = entity.id; } // `<=` → topmost wins on overlap
+      if (d <= bestDist) {
+        bestDist = d;
+        best = entity.id;
+      } // `<=` → topmost wins on overlap
     }
     if (best) return best;
 
@@ -381,17 +447,17 @@ export class CadRenderer {
       if (!containsPoint(worldPt, entity)) continue;
       const b = entity.boundingBox;
       const area = Math.max(1e-6, (b.maxX - b.minX) * (b.maxY - b.minY));
-      if (area <= bestArea) { bestArea = area; contained = entity.id; }
+      if (area <= bestArea) {
+        bestArea = area;
+        contained = entity.id;
+      }
     }
     return contained;
   }
 
   /** Pick entity in 3D mode via raycasting against meshes */
   pickEntity3d(screenX: number, screenY: number): string | null {
-    const ndc = new THREE.Vector2(
-      (screenX / this.width) * 2 - 1,
-      -(screenY / this.height) * 2 + 1,
-    );
+    const ndc = new THREE.Vector2((screenX / this.width) * 2 - 1, -(screenY / this.height) * 2 + 1);
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(ndc, this.perspCamera);
     const intersects = raycaster.intersectObjects(this.entitiesGroup.children, true);
@@ -416,15 +482,19 @@ export class CadRenderer {
     const before = this.screenToWorld(screenX, screenY);
     this.zoom = Math.max(0.01, Math.min(100, this.zoom * factor));
     const after = this.screenToWorld(screenX, screenY);
-    this.panX += (before.x - after.x);
-    this.panY += (before.y - after.y);
+    this.panX += before.x - after.x;
+    this.panY += before.y - after.y;
     this.updateCamera();
     this.onViewChange?.();
   }
 
-  getPixelToWorld(): number { return this.zoom; }
+  getPixelToWorld(): number {
+    return this.zoom;
+  }
 
-  getCanvasRect(): DOMRect { return this.canvas.getBoundingClientRect(); }
+  getCanvasRect(): DOMRect {
+    return this.canvas.getBoundingClientRect();
+  }
 
   resize(width: number, height: number): void {
     this.width = width;
@@ -436,7 +506,9 @@ export class CadRenderer {
     this.updateCamera();
   }
 
-  rebuildGrid(): void { this.buildGrid(); }
+  rebuildGrid(): void {
+    this.buildGrid();
+  }
 
   dispose(): void {
     cancelAnimationFrame(this.animFrameId);
@@ -468,7 +540,13 @@ function outlineDistanceToEntity(pt: Pt, entity: Entity): number {
     case 'rect':
       return rectOutlineDist(pt, entity.x, entity.y, entity.width, entity.height);
     case 'box3d':
-      return rectOutlineDist(pt, entity.cx - entity.width / 2, entity.cy - entity.depth / 2, entity.width, entity.depth);
+      return rectOutlineDist(
+        pt,
+        entity.cx - entity.width / 2,
+        entity.cy - entity.depth / 2,
+        entity.width,
+        entity.depth
+      );
     case 'polyline':
       return polylineOutlineDist(pt, entity.points, entity.closed);
     case 'freehand':
@@ -477,12 +555,16 @@ function outlineDistanceToEntity(pt: Pt, entity: Entity): number {
       // Pick by the visible dimension line (at `offset`), NOT the measured
       // segment — otherwise a dimension drawn along a shape sits exactly on it
       // and would steal every click meant for that shape.
-      const dx = entity.x2 - entity.x1, dy = entity.y2 - entity.y1;
+      const dx = entity.x2 - entity.x1,
+        dy = entity.y2 - entity.y1;
       const len = Math.hypot(dx, dy) || 1;
-      const nx = (-dy / len) * entity.offset, ny = (dx / len) * entity.offset;
-      return distToSegment(pt,
+      const nx = (-dy / len) * entity.offset,
+        ny = (dx / len) * entity.offset;
+      return distToSegment(
+        pt,
         { x: entity.x1 + nx, y: entity.y1 + ny },
-        { x: entity.x2 + nx, y: entity.y2 + ny });
+        { x: entity.x2 + nx, y: entity.y2 + ny }
+      );
     }
     case 'text':
     case 'image': {
@@ -502,9 +584,17 @@ function containsPoint(pt: Pt, entity: Entity): boolean {
     case 'sphere3d':
       return Math.hypot(pt.x - entity.cx, pt.y - entity.cy) <= entity.radius;
     case 'rect':
-      return pt.x >= entity.x && pt.x <= entity.x + entity.width && pt.y >= entity.y && pt.y <= entity.y + entity.height;
+      return (
+        pt.x >= entity.x &&
+        pt.x <= entity.x + entity.width &&
+        pt.y >= entity.y &&
+        pt.y <= entity.y + entity.height
+      );
     case 'box3d':
-      return Math.abs(pt.x - entity.cx) <= entity.width / 2 && Math.abs(pt.y - entity.cy) <= entity.depth / 2;
+      return (
+        Math.abs(pt.x - entity.cx) <= entity.width / 2 &&
+        Math.abs(pt.y - entity.cy) <= entity.depth / 2
+      );
     case 'polyline':
       return entity.closed && pointInPolygon(pt, entity.points);
     case 'text':
@@ -518,7 +608,12 @@ function containsPoint(pt: Pt, entity: Entity): boolean {
 }
 
 function rectOutlineDist(pt: Pt, x: number, y: number, w: number, h: number): number {
-  const c = [{ x, y }, { x: x + w, y }, { x: x + w, y: y + h }, { x, y: y + h }];
+  const c = [
+    { x, y },
+    { x: x + w, y },
+    { x: x + w, y: y + h },
+    { x, y: y + h },
+  ];
   let min = Infinity;
   for (let i = 0; i < 4; i++) min = Math.min(min, distToSegment(pt, c[i], c[(i + 1) % 4]));
   return min;
@@ -526,8 +621,10 @@ function rectOutlineDist(pt: Pt, x: number, y: number, w: number, h: number): nu
 
 function polylineOutlineDist(pt: Pt, points: Pt[], closed: boolean): number {
   let min = Infinity;
-  for (let i = 0; i < points.length - 1; i++) min = Math.min(min, distToSegment(pt, points[i], points[i + 1]));
-  if (closed && points.length > 1) min = Math.min(min, distToSegment(pt, points[points.length - 1], points[0]));
+  for (let i = 0; i < points.length - 1; i++)
+    min = Math.min(min, distToSegment(pt, points[i], points[i + 1]));
+  if (closed && points.length > 1)
+    min = Math.min(min, distToSegment(pt, points[points.length - 1], points[0]));
   return min;
 }
 
@@ -535,15 +632,23 @@ function polylineOutlineDist(pt: Pt, points: Pt[], closed: boolean): number {
 function pointInPolygon(pt: { x: number; y: number }, poly: { x: number; y: number }[]): boolean {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
-    const intersect = (yi > pt.y) !== (yj > pt.y) && pt.x < ((xj - xi) * (pt.y - yi)) / (yj - yi) + xi;
+    const xi = poly[i].x,
+      yi = poly[i].y,
+      xj = poly[j].x,
+      yj = poly[j].y;
+    const intersect = yi > pt.y !== yj > pt.y && pt.x < ((xj - xi) * (pt.y - yi)) / (yj - yi) + xi;
     if (intersect) inside = !inside;
   }
   return inside;
 }
 
-function distToSegment(p: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }): number {
-  const dx = b.x - a.x, dy = b.y - a.y;
+function distToSegment(
+  p: { x: number; y: number },
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+): number {
+  const dx = b.x - a.x,
+    dy = b.y - a.y;
   const lenSq = dx * dx + dy * dy;
   if (lenSq === 0) return Math.sqrt((p.x - a.x) ** 2 + (p.y - a.y) ** 2);
   const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq));

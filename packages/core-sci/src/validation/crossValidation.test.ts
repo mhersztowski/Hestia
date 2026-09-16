@@ -120,7 +120,7 @@ describe('cross-walidacja ze SciPy', () => {
 
         expect(
           roznica,
-          `${id}/${nazwa}: rozjazd ${roznica.toExponential(2)} względem ${fixture!.solver}`,
+          `${id}/${nazwa}: rozjazd ${roznica.toExponential(2)} względem ${fixture!.solver}`
         ).toBeLessThan(tolerancja);
       }
     });
@@ -148,7 +148,7 @@ describe('cross-walidacja ze SciPy', () => {
     expect(nasze).toBeDefined();
     expect(
       Math.abs(nasze! - fixture.eventTimes[0][0]),
-      `nasze ${nasze}, SciPy ${fixture.eventTimes[0][0]}`,
+      `nasze ${nasze}, SciPy ${fixture.eventTimes[0][0]}`
     ).toBeLessThan(1e-8);
   });
 
@@ -159,8 +159,8 @@ describe('cross-walidacja ze SciPy', () => {
 
     expect(
       brakujace,
-      `Brak odniesień: ${brakujace.join(', ')}. Wygeneruj je poleceniem `
-      + '`node validation/generate-fixtures.mjs <python-ze-scipy>`.',
+      `Brak odniesień: ${brakujace.join(', ')}. Wygeneruj je poleceniem ` +
+        '`node validation/generate-fixtures.mjs <python-ze-scipy>`.'
     ).toEqual([]);
   });
 });

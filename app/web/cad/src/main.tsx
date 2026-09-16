@@ -28,19 +28,19 @@ configureFreecadIcons({ baseUrl: '/freecad-icons' });
  * background.
  */
 const theme = createTheme({
-    palette: {
-        mode: 'dark',
-        background: { default: '#121212', paper: '#1a1a1a' },
-    },
-    shape: { borderRadius: 10 },
-    typography: { fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' },
+  palette: {
+    mode: 'dark',
+    background: { default: '#121212', paper: '#1a1a1a' },
+  },
+  shape: { borderRadius: 10 },
+  typography: { fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' },
 });
 
 createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <App />
-        </ThemeProvider>
-    </StrictMode>,
+  <StrictMode>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <App />
+    </ThemeProvider>
+  </StrictMode>
 );

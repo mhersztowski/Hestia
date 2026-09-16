@@ -59,7 +59,17 @@ const doc = mermaidFormat.parse(SOURCE).document;
 const fingerprint = (d: DiagramDocument) => ({
   nodes: d.nodes.map((n) => `${n.id}:${n.shape}:${n.label}`).sort(),
   edges: d.edges
-    .map((e) => [e.source, e.target, e.lineStyle, e.arrow, e.label ?? '', e.length ?? '', JSON.stringify(e.meta ?? {})].join('|'))
+    .map((e) =>
+      [
+        e.source,
+        e.target,
+        e.lineStyle,
+        e.arrow,
+        e.label ?? '',
+        e.length ?? '',
+        JSON.stringify(e.meta ?? {}),
+      ].join('|')
+    )
     .sort(),
 });
 
@@ -67,9 +77,20 @@ describe('pełny przegląd składni flowchartu', () => {
   it('każdy kształt trafia na swój typ', () => {
     const shapes = Object.fromEntries(doc.nodes.map((n) => [n.id, n.shape]));
     expect(shapes).toMatchObject({
-      A: 'rectangle', B: 'rounded', C: 'stadium', D: 'subroutine', E: 'cylinder',
-      F: 'circle', G: 'asymmetric', H: 'rhombus', I: 'hexagon', J: 'parallelogram',
-      K: 'parallelogramAlt', L: 'trapezoid', M: 'trapezoidAlt', N: 'doubleCircle',
+      A: 'rectangle',
+      B: 'rounded',
+      C: 'stadium',
+      D: 'subroutine',
+      E: 'cylinder',
+      F: 'circle',
+      G: 'asymmetric',
+      H: 'rhombus',
+      I: 'hexagon',
+      J: 'parallelogram',
+      K: 'parallelogramAlt',
+      L: 'trapezoid',
+      M: 'trapezoidAlt',
+      N: 'doubleCircle',
     });
   });
 
@@ -85,7 +106,9 @@ describe('pełny przegląd składni flowchartu', () => {
   });
 
   it('`&` rozwija się w iloczyn', () => {
-    const pairs = doc.edges.filter((e) => e.source.startsWith('R')).map((e) => `${e.source}->${e.target}`);
+    const pairs = doc.edges
+      .filter((e) => e.source.startsWith('R'))
+      .map((e) => `${e.source}->${e.target}`);
     expect(pairs.sort()).toEqual(['R1->R3', 'R1->R4', 'R2->R3', 'R2->R4']);
   });
 

@@ -78,9 +78,7 @@ describe('checkAuth', () => {
   });
 
   it('returns null for an unknown api key', () => {
-    expect(
-      checkAuth(reqWith('Bearer minis_unknown'), jwtService, apiKeyService),
-    ).toBeNull();
+    expect(checkAuth(reqWith('Bearer minis_unknown'), jwtService, apiKeyService)).toBeNull();
   });
 
   it('falls back to JWT verify for minis_ tokens when no ApiKeyService is given', () => {

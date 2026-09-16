@@ -161,7 +161,9 @@ function czytajWykres(code: string): PlotSpec | undefined {
   for (const surowa of code.split('\n')) {
     const linia = surowa.trim();
 
-    const domena = /^@domain\s+([A-Za-z][A-Za-z0-9_]*)\s*:\s*(-?[\d.]+)\s*\.\.\s*(-?[\d.]+)/.exec(linia);
+    const domena = /^@domain\s+([A-Za-z][A-Za-z0-9_]*)\s*:\s*(-?[\d.]+)\s*\.\.\s*(-?[\d.]+)/.exec(
+      linia
+    );
     if (domena) {
       variable = domena[1];
       from = Number(domena[2]);
@@ -171,10 +173,17 @@ function czytajWykres(code: string): PlotSpec | undefined {
     }
 
     const osie = /^@axis\s+(\S+)\s*,\s*(\S+)/.exec(linia);
-    if (osie) { axisX = osie[1]; axisY = osie[2]; continue; }
+    if (osie) {
+      axisX = osie[1];
+      axisY = osie[2];
+      continue;
+    }
 
     const panel = /^@panel\s+(\S+)/.exec(linia);
-    if (panel) { panels.push({ name: panel[1], curves: [] }); continue; }
+    if (panel) {
+      panels.push({ name: panel[1], curves: [] });
+      continue;
+    }
 
     const krzywa = /^@curve\s+([^:]+):\s*(.+)$/.exec(linia);
     if (krzywa) {
@@ -190,7 +199,15 @@ function czytajWykres(code: string): PlotSpec | undefined {
   }
 
   if (!maKrzywe) return undefined;
-  return { variable: variable ?? 'x', from, to, axisX, axisY, panels, ...(maDziedzine ? {} : { brakDziedziny: true }) } as PlotSpec & { brakDziedziny?: boolean };
+  return {
+    variable: variable ?? 'x',
+    from,
+    to,
+    axisX,
+    axisY,
+    panels,
+    ...(maDziedzine ? {} : { brakDziedziny: true }),
+  } as PlotSpec & { brakDziedziny?: boolean };
 }
 
 /** Szerokość z dyrektywy `@width` — wspólna dla rysunku i wykresu. */
@@ -200,8 +217,9 @@ function czytajSzerokosc(block: FigureBlock, dyrektywy: Record<string, string>):
   const znormalizowana = normalizeFigureWidth(dyrektywy.width);
   if (!znormalizowana) {
     block.issues.push({
-      message: `Rysunek „${block.id}" ma szerokość „${dyrektywy.width}", której nie rozumiem. `
-        + 'Napisz np. „@width 60%" albo „@width 420px".',
+      message:
+        `Rysunek „${block.id}" ma szerokość „${dyrektywy.width}", której nie rozumiem. ` +
+        'Napisz np. „@width 60%" albo „@width 420px".',
     });
     return;
   }
@@ -215,26 +233,36 @@ export function parseFigureBlock(id: string, code: string): FigureBlock {
   const wykres = czytajWykres(code) as (PlotSpec & { brakDziedziny?: boolean }) | undefined;
   if (wykres) {
     if (wykres.brakDziedziny) {
-      block.issues.push({ message: `Rysunek „${id}" ma krzywe, ale nie ma dziedziny („@domain t: 0..1").` });
+      block.issues.push({
+        message: `Rysunek „${id}" ma krzywe, ale nie ma dziedziny („@domain t: 0..1").`,
+      });
     }
     delete wykres.brakDziedziny;
     block.plot = wykres;
     czytajSzerokosc(block, dyrektywy);
     if (dyrektywy.caption) block.caption = dyrektywy.caption;
     if (dyrektywy.panels) {
-      block.panels = dyrektywy.panels.split(',').map((s) => s.trim()).filter(Boolean);
+      block.panels = dyrektywy.panels
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
     }
     return block;
   }
 
   if (dyrektywy.caption) block.caption = dyrektywy.caption;
   if (dyrektywy.panels) {
-    block.panels = dyrektywy.panels.split(',').map((s) => s.trim()).filter(Boolean);
+    block.panels = dyrektywy.panels
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
   czytajSzerokosc(block, dyrektywy);
 
   if (!tresc.length) {
-    block.issues.push({ message: `Rysunek „${id}" nie ma treści — ani obrazu, ani kodu rysującego.` });
+    block.issues.push({
+      message: `Rysunek „${id}" nie ma treści — ani obrazu, ani kodu rysującego.`,
+    });
     return block;
   }
 
@@ -261,7 +289,10 @@ export function parseTableBlock(id: string, code: string): TableBlock {
 
   for (const linia of tresc) {
     if (!linia.startsWith('|')) continue;
-    const komorki = linia.replace(/^\||\|$/g, '').split('|').map((s) => s.trim());
+    const komorki = linia
+      .replace(/^\||\|$/g, '')
+      .split('|')
+      .map((s) => s.trim());
     // Wiersz oddzielający („|---|---|") należy do składni, nie do danych.
     if (komorki.every((k) => /^:?-{2,}:?$/.test(k))) continue;
     block.rows.push(komorki);

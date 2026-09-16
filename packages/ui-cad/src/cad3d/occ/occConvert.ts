@@ -8,10 +8,17 @@ type Deletable = { delete(): void };
 
 export class OccScope {
   private owned: Deletable[] = [];
-  track<T extends Deletable>(obj: T): T { this.owned.push(obj); return obj; }
+  track<T extends Deletable>(obj: T): T {
+    this.owned.push(obj);
+    return obj;
+  }
   dispose(): void {
     for (let i = this.owned.length - 1; i >= 0; i--) {
-      try { this.owned[i].delete(); } catch { /* ignore */ }
+      try {
+        this.owned[i].delete();
+      } catch {
+        /* ignore */
+      }
     }
     this.owned = [];
   }
@@ -20,7 +27,10 @@ export class OccScope {
 // ── Plane transform helpers ────────────────────────────────────────────────────
 
 /** Returns a gp_Trsf mapping from the sketch's local XY space to world space. */
-export function sketchToWorldTrsf(oc: OCC, sketch: Pick<SketchFeature, 'plane' | 'offset' | 'planeMatrix'>): unknown {
+export function sketchToWorldTrsf(
+  oc: OCC,
+  sketch: Pick<SketchFeature, 'plane' | 'offset' | 'planeMatrix'>
+): unknown {
   const trsf = new oc.gp_Trsf_1();
 
   if (sketch.plane === 'face' && sketch.planeMatrix) {
@@ -29,9 +39,18 @@ export function sketchToWorldTrsf(oc: OCC, sketch: Pick<SketchFeature, 'plane' |
     const m = sketch.planeMatrix;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (trsf as any).SetValues(
-      m[0], m[4], m[8],  m[12],
-      m[1], m[5], m[9],  m[13],
-      m[2], m[6], m[10], m[14],
+      m[0],
+      m[4],
+      m[8],
+      m[12],
+      m[1],
+      m[5],
+      m[9],
+      m[13],
+      m[2],
+      m[6],
+      m[10],
+      m[14]
     );
     return trsf;
   }
@@ -46,7 +65,7 @@ export function sketchToWorldTrsf(oc: OCC, sketch: Pick<SketchFeature, 'plane' |
     const rotTrsf = new oc.gp_Trsf_1();
     rotTrsf.SetRotation_1(
       new oc.gp_Ax1_2(new oc.gp_Pnt_3(0, 0, 0), new oc.gp_Dir_4(1, 0, 0)),
-      Math.PI / 2,
+      Math.PI / 2
     );
     trsf.SetTranslation_1(new oc.gp_Vec_4(0, sketch.offset, 0));
     trsf.Multiply_1(rotTrsf);
@@ -57,7 +76,7 @@ export function sketchToWorldTrsf(oc: OCC, sketch: Pick<SketchFeature, 'plane' |
   const rotTrsf = new oc.gp_Trsf_1();
   rotTrsf.SetRotation_1(
     new oc.gp_Ax1_2(new oc.gp_Pnt_3(0, 0, 0), new oc.gp_Dir_4(0, 1, 0)),
-    Math.PI / 2,
+    Math.PI / 2
   );
   trsf.SetTranslation_1(new oc.gp_Vec_4(sketch.offset, 0, 0));
   trsf.Multiply_1(rotTrsf);
@@ -79,7 +98,7 @@ export function entitiesToWires(oc: OCC, entities: Entity[], sc: OccScope): unkn
   }
 
   // 2. Chain open segments (lines, arcs, open polylines) into closed contours
-  const openSegs = entities.filter(e => !isDirectlyClosed(e));
+  const openSegs = entities.filter((e) => !isDirectlyClosed(e));
   const chained = chainSegmentsToWires(oc, openSegs, sc);
   wires.push(...chained);
 
@@ -99,8 +118,10 @@ export function entitiesToOpenPathWire(oc: OCC, entities: Entity[], sc: OccScope
   for (const e of entities) {
     const type = e['type'] as string;
     if (type === 'line') {
-      const x1 = e['x1'] as number, y1 = e['y1'] as number;
-      const x2 = e['x2'] as number, y2 = e['y2'] as number;
+      const x1 = e['x1'] as number,
+        y1 = e['y1'] as number;
+      const x2 = e['x2'] as number,
+        y2 = e['y2'] as number;
       const p1 = sc.track(new oc.gp_Pnt_3(x1, y1, 0));
       const p2 = sc.track(new oc.gp_Pnt_3(x2, y2, 0));
       const edge = sc.track(new oc.BRepBuilderAPI_MakeEdge_3(p1, p2)).Edge();
@@ -116,27 +137,35 @@ export function entitiesToOpenPathWire(oc: OCC, entities: Entity[], sc: OccScope
         addedEdges++;
       }
     }
-      // rect, circle, closed polyline — skipped, a path should not close
+    // rect, circle, closed polyline — skipped, a path should not close
   }
 
   if (addedEdges === 0) return null;
-  try { return wb.Wire(); } catch { return null; }
+  try {
+    return wb.Wire();
+  } catch {
+    return null;
+  }
 }
 
 function isDirectlyClosed(e: Entity): boolean {
-  return e['type'] === 'circle' || e['type'] === 'rect' ||
-    (e['type'] === 'polyline' && (e['closed'] as boolean));
+  return (
+    e['type'] === 'circle' ||
+    e['type'] === 'rect' ||
+    (e['type'] === 'polyline' && (e['closed'] as boolean))
+  );
 }
 
 function tryBuildClosedWire(oc: OCC, e: Entity, sc: OccScope): unknown | null {
   const type = e['type'] as string;
 
   if (type === 'circle') {
-    const cx = e['cx'] as number, cy = e['cy'] as number, r = e['radius'] as number;
-    const ax2 = sc.track(new oc.gp_Ax2_3(
-      sc.track(new oc.gp_Pnt_3(cx, cy, 0)),
-      sc.track(new oc.gp_Dir_4(0, 0, 1)),
-    ));
+    const cx = e['cx'] as number,
+      cy = e['cy'] as number,
+      r = e['radius'] as number;
+    const ax2 = sc.track(
+      new oc.gp_Ax2_3(sc.track(new oc.gp_Pnt_3(cx, cy, 0)), sc.track(new oc.gp_Dir_4(0, 0, 1)))
+    );
     const circ = sc.track(new oc.gp_Circ_2(ax2, r));
     const edge = sc.track(new oc.BRepBuilderAPI_MakeEdge_8(circ)).Edge();
     const wb = sc.track(new oc.BRepBuilderAPI_MakeWire_2(edge));
@@ -144,8 +173,10 @@ function tryBuildClosedWire(oc: OCC, e: Entity, sc: OccScope): unknown | null {
   }
 
   if (type === 'rect') {
-    const x = e['x'] as number, y = e['y'] as number;
-    const w = e['width'] as number, h = e['height'] as number;
+    const x = e['x'] as number,
+      y = e['y'] as number;
+    const w = e['width'] as number,
+      h = e['height'] as number;
     const pts = [
       sc.track(new oc.gp_Pnt_3(x, y, 0)),
       sc.track(new oc.gp_Pnt_3(x + w, y, 0)),
@@ -166,7 +197,9 @@ function tryBuildClosedWire(oc: OCC, e: Entity, sc: OccScope): unknown | null {
     const wb = sc.track(new oc.BRepBuilderAPI_MakeWire_1());
     for (let i = 0; i < pts2.length; i++) {
       const p1 = sc.track(new oc.gp_Pnt_3(pts2[i].x, pts2[i].y, 0));
-      const p2 = sc.track(new oc.gp_Pnt_3(pts2[(i + 1) % pts2.length].x, pts2[(i + 1) % pts2.length].y, 0));
+      const p2 = sc.track(
+        new oc.gp_Pnt_3(pts2[(i + 1) % pts2.length].x, pts2[(i + 1) % pts2.length].y, 0)
+      );
       wb.Add_1(sc.track(new oc.BRepBuilderAPI_MakeEdge_3(p1, p2)).Edge());
     }
     return wb.Wire();
@@ -176,8 +209,10 @@ function tryBuildClosedWire(oc: OCC, e: Entity, sc: OccScope): unknown | null {
 }
 
 interface ChainSeg {
-  sx: number; sy: number;
-  ex: number; ey: number;
+  sx: number;
+  sy: number;
+  ex: number;
+  ey: number;
   addToWire(oc: OCC, wb: unknown, sc: OccScope): void;
 }
 
@@ -185,31 +220,44 @@ function entityToChainSeg(e: Entity): ChainSeg | null {
   const type = e['type'] as string;
 
   if (type === 'line') {
-    const x1 = e['x1'] as number, y1 = e['y1'] as number;
-    const x2 = e['x2'] as number, y2 = e['y2'] as number;
+    const x1 = e['x1'] as number,
+      y1 = e['y1'] as number;
+    const x2 = e['x2'] as number,
+      y2 = e['y2'] as number;
     return {
-      sx: x1, sy: y1, ex: x2, ey: y2,
+      sx: x1,
+      sy: y1,
+      ex: x2,
+      ey: y2,
       addToWire(oc, wb, sc) {
-        const edge = sc.track(new oc.BRepBuilderAPI_MakeEdge_3(
-          sc.track(new oc.gp_Pnt_3(x1, y1, 0)),
-          sc.track(new oc.gp_Pnt_3(x2, y2, 0)),
-        )).Edge();
+        const edge = sc
+          .track(
+            new oc.BRepBuilderAPI_MakeEdge_3(
+              sc.track(new oc.gp_Pnt_3(x1, y1, 0)),
+              sc.track(new oc.gp_Pnt_3(x2, y2, 0))
+            )
+          )
+          .Edge();
         (wb as { Add_1(e: unknown): void }).Add_1(edge);
       },
     };
   }
 
   if (type === 'arc') {
-    const cx = e['cx'] as number, cy = e['cy'] as number, r = e['radius'] as number;
-    const a0 = e['startAngle'] as number, a1 = e['endAngle'] as number;
+    const cx = e['cx'] as number,
+      cy = e['cy'] as number,
+      r = e['radius'] as number;
+    const a0 = e['startAngle'] as number,
+      a1 = e['endAngle'] as number;
     return {
-      sx: cx + Math.cos(a0) * r, sy: cy + Math.sin(a0) * r,
-      ex: cx + Math.cos(a1) * r, ey: cy + Math.sin(a1) * r,
+      sx: cx + Math.cos(a0) * r,
+      sy: cy + Math.sin(a0) * r,
+      ex: cx + Math.cos(a1) * r,
+      ey: cy + Math.sin(a1) * r,
       addToWire(oc, wb, sc) {
-        const ax2 = sc.track(new oc.gp_Ax2_3(
-          sc.track(new oc.gp_Pnt_3(cx, cy, 0)),
-          sc.track(new oc.gp_Dir_4(0, 0, 1)),
-        ));
+        const ax2 = sc.track(
+          new oc.gp_Ax2_3(sc.track(new oc.gp_Pnt_3(cx, cy, 0)), sc.track(new oc.gp_Dir_4(0, 0, 1)))
+        );
         const circ = sc.track(new oc.gp_Circ_2(ax2, r));
         const edge = sc.track(new oc.BRepBuilderAPI_MakeEdge_9(circ, a0, a1)).Edge();
         (wb as { Add_1(e: unknown): void }).Add_1(edge);
@@ -221,14 +269,20 @@ function entityToChainSeg(e: Entity): ChainSeg | null {
     const pts = e['points'] as Array<{ x: number; y: number }>;
     if (pts.length < 2) return null;
     return {
-      sx: pts[0].x, sy: pts[0].y,
-      ex: pts[pts.length - 1].x, ey: pts[pts.length - 1].y,
+      sx: pts[0].x,
+      sy: pts[0].y,
+      ex: pts[pts.length - 1].x,
+      ey: pts[pts.length - 1].y,
       addToWire(oc, wb, sc) {
         for (let i = 0; i < pts.length - 1; i++) {
-          const edge = sc.track(new oc.BRepBuilderAPI_MakeEdge_3(
-            sc.track(new oc.gp_Pnt_3(pts[i].x, pts[i].y, 0)),
-            sc.track(new oc.gp_Pnt_3(pts[i + 1].x, pts[i + 1].y, 0)),
-          )).Edge();
+          const edge = sc
+            .track(
+              new oc.BRepBuilderAPI_MakeEdge_3(
+                sc.track(new oc.gp_Pnt_3(pts[i].x, pts[i].y, 0)),
+                sc.track(new oc.gp_Pnt_3(pts[i + 1].x, pts[i + 1].y, 0))
+              )
+            )
+            .Edge();
           (wb as { Add_1(e: unknown): void }).Add_1(edge);
         }
       },
@@ -242,9 +296,9 @@ const CHAIN_TOL = 0.5;
 
 function chainSegmentsToWires(oc: OCC, entities: Entity[], sc: OccScope): unknown[] {
   const segs: (ChainSeg & { used: boolean; reversed?: boolean })[] = entities
-    .map(e => entityToChainSeg(e))
+    .map((e) => entityToChainSeg(e))
     .filter((s): s is ChainSeg => s !== null)
-    .map(s => ({ ...s, used: false }));
+    .map((s) => ({ ...s, used: false }));
 
   const wires: unknown[] = [];
 
@@ -255,32 +309,47 @@ function chainSegmentsToWires(oc: OCC, entities: Entity[], sc: OccScope): unknow
     const wb = sc.track(new oc.BRepBuilderAPI_MakeWire_1());
     segs[si].addToWire(oc, wb, sc);
 
-    let chainSx = segs[si].sx, chainSy = segs[si].sy;
-    let chainEx = segs[si].ex, chainEy = segs[si].ey;
+    const chainSx = segs[si].sx,
+      chainSy = segs[si].sy;
+    let chainEx = segs[si].ex,
+      chainEy = segs[si].ey;
 
     let extended = true;
     while (extended) {
       extended = false;
       for (let i = 0; i < segs.length; i++) {
         if (segs[i].used) continue;
-        const d = (ax: number, ay: number, bx: number, by: number) =>
-          Math.hypot(ax - bx, ay - by);
+        const d = (ax: number, ay: number, bx: number, by: number) => Math.hypot(ax - bx, ay - by);
         if (d(segs[i].sx, segs[i].sy, chainEx, chainEy) < CHAIN_TOL) {
           segs[i].addToWire(oc, wb, sc);
-          chainEx = segs[i].ex; chainEy = segs[i].ey;
-          segs[i].used = true; extended = true; break;
+          chainEx = segs[i].ex;
+          chainEy = segs[i].ey;
+          segs[i].used = true;
+          extended = true;
+          break;
         }
         if (d(segs[i].ex, segs[i].ey, chainEx, chainEy) < CHAIN_TOL) {
           // Reversed — add as reversed line segments
-          const pts = reverseEntityPoints(entities.find(e => entityToChainSeg(e) === segs[i]) ?? {});
+          const pts = reverseEntityPoints(
+            entities.find((e) => entityToChainSeg(e) === segs[i]) ?? {}
+          );
           for (let pi = 0; pi + 1 < pts.length; pi++) {
-            wb.Add_1(sc.track(new oc.BRepBuilderAPI_MakeEdge_3(
-              sc.track(new oc.gp_Pnt_3(pts[pi].x, pts[pi].y, 0)),
-              sc.track(new oc.gp_Pnt_3(pts[pi + 1].x, pts[pi + 1].y, 0)),
-            )).Edge());
+            wb.Add_1(
+              sc
+                .track(
+                  new oc.BRepBuilderAPI_MakeEdge_3(
+                    sc.track(new oc.gp_Pnt_3(pts[pi].x, pts[pi].y, 0)),
+                    sc.track(new oc.gp_Pnt_3(pts[pi + 1].x, pts[pi + 1].y, 0))
+                  )
+                )
+                .Edge()
+            );
           }
-          chainEx = segs[i].sx; chainEy = segs[i].sy;
-          segs[i].used = true; extended = true; break;
+          chainEx = segs[i].sx;
+          chainEy = segs[i].sy;
+          segs[i].used = true;
+          extended = true;
+          break;
         }
       }
     }
@@ -289,14 +358,22 @@ function chainSegmentsToWires(oc: OCC, entities: Entity[], sc: OccScope): unknow
       try {
         // Close the wire by connecting end back to start
         if (Math.hypot(chainEx - chainSx, chainEy - chainSy) > 0.001) {
-          wb.Add_1(sc.track(new oc.BRepBuilderAPI_MakeEdge_3(
-            sc.track(new oc.gp_Pnt_3(chainEx, chainEy, 0)),
-            sc.track(new oc.gp_Pnt_3(chainSx, chainSy, 0)),
-          )).Edge());
+          wb.Add_1(
+            sc
+              .track(
+                new oc.BRepBuilderAPI_MakeEdge_3(
+                  sc.track(new oc.gp_Pnt_3(chainEx, chainEy, 0)),
+                  sc.track(new oc.gp_Pnt_3(chainSx, chainSy, 0))
+                )
+              )
+              .Edge()
+          );
         }
         const w = wb.Wire();
         wires.push(w);
-      } catch { /* non-planar chain, skip */ }
+      } catch {
+        /* non-planar chain, skip */
+      }
     }
   }
 
@@ -306,7 +383,10 @@ function chainSegmentsToWires(oc: OCC, entities: Entity[], sc: OccScope): unknow
 function reverseEntityPoints(e: Entity): Array<{ x: number; y: number }> {
   const type = e['type'] as string;
   if (type === 'line') {
-    return [{ x: e['x2'] as number, y: e['y2'] as number }, { x: e['x1'] as number, y: e['y1'] as number }];
+    return [
+      { x: e['x2'] as number, y: e['y2'] as number },
+      { x: e['x1'] as number, y: e['y1'] as number },
+    ];
   }
   if (type === 'polyline') {
     return [...(e['points'] as Array<{ x: number; y: number }>)].reverse();
@@ -353,11 +433,15 @@ export function shapeToThreeMesh(
   oc: OCC,
   shape: unknown,
   linearDeflection = 0.5,
-  angularDeflection = 0.3,
+  angularDeflection = 0.3
 ): { geo: THREE.BufferGeometry; edgeGeo: THREE.BufferGeometry } {
   // Tessellate — Perform_1 wymaga Message_ProgressRange w nowszych wersjach opencascade.js.
   const mesher = new oc.BRepMesh_IncrementalMesh_2(
-    shape as object, linearDeflection, false, angularDeflection, false,
+    shape as object,
+    linearDeflection,
+    false,
+    angularDeflection,
+    false
   );
   mesher.Perform_1(new oc.Message_ProgressRange_1());
 
@@ -368,7 +452,7 @@ export function shapeToThreeMesh(
   const faceExplorer = new oc.TopExp_Explorer_2(
     shape as object,
     oc.TopAbs_ShapeEnum.TopAbs_FACE,
-    oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+    oc.TopAbs_ShapeEnum.TopAbs_SHAPE
   );
 
   while (faceExplorer.More()) {
@@ -381,10 +465,10 @@ export function shapeToThreeMesh(
       const nn = p.NbNodes();
       const isReversed = face.Orientation_1() === oc.TopAbs_Orientation.TopAbs_REVERSED;
 
-        // The face's position matrix: after a CSG cut the new inner faces carry a
-        // non-identity TopLoc_Location. Their vertices have to be transformed into
-        // world space, or the walls of the hole render in the wrong place — on top
-        // of the box's outer faces, which looks like "there is no hole".
+      // The face's position matrix: after a CSG cut the new inner faces carry a
+      // non-identity TopLoc_Location. Their vertices have to be transformed into
+      // world space, or the walls of the hole render in the wrong place — on top
+      // of the box's outer faces, which looks like "there is no hole".
       let locMat: THREE.Matrix4 | null = null;
       if (!aLoc.IsIdentity()) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -394,25 +478,49 @@ export function shapeToThreeMesh(
         };
         const t = trsf.TranslationPart();
         const m = trsf.VectorialPart();
-        const tx = t.X(), ty = t.Y(), tz = t.Z();
-        const m11 = m.Value(1, 1), m12 = m.Value(1, 2), m13 = m.Value(1, 3);
-        const m21 = m.Value(2, 1), m22 = m.Value(2, 2), m23 = m.Value(2, 3);
-        const m31 = m.Value(3, 1), m32 = m.Value(3, 2), m33 = m.Value(3, 3);
+        const tx = t.X(),
+          ty = t.Y(),
+          tz = t.Z();
+        const m11 = m.Value(1, 1),
+          m12 = m.Value(1, 2),
+          m13 = m.Value(1, 3);
+        const m21 = m.Value(2, 1),
+          m22 = m.Value(2, 2),
+          m23 = m.Value(2, 3);
+        const m31 = m.Value(3, 1),
+          m32 = m.Value(3, 2),
+          m33 = m.Value(3, 3);
         // THREE.Matrix4.set() jest row-major.
         locMat = new THREE.Matrix4().set(
-          m11, m12, m13, tx,
-          m21, m22, m23, ty,
-          m31, m32, m33, tz,
-          0, 0, 0, 1,
+          m11,
+          m12,
+          m13,
+          tx,
+          m21,
+          m22,
+          m23,
+          ty,
+          m31,
+          m32,
+          m33,
+          tz,
+          0,
+          0,
+          0,
+          1
         );
       }
 
       for (let i = 1; i <= nn; i++) {
         const node = p.Node(i);
-        let nx = node.X(), ny = node.Y(), nz = node.Z();
+        let nx = node.X(),
+          ny = node.Y(),
+          nz = node.Z();
         if (locMat) {
           const v = new THREE.Vector3(nx, ny, nz).applyMatrix4(locMat);
-          nx = v.x; ny = v.y; nz = v.z;
+          nx = v.x;
+          ny = v.y;
+          nz = v.z;
         }
         positions.push(nx, ny, nz);
       }
@@ -423,12 +531,12 @@ export function shapeToThreeMesh(
         const n1 = tri.Value(1) - 1 + offset;
         const n2 = tri.Value(2) - 1 + offset;
         const n3 = tri.Value(3) - 1 + offset;
-          // Keep OCC's own winding and flip it only for a REVERSED face. The
-          // triangles from BRepMesh wind with the surface's NATURAL orientation;
-          // OCC sets the REVERSED flag when a face's normal in the solid points
-          // the other way. Flipping the winding for those gives outward normals
-          // CONSISTENTLY over the whole solid, and computeVertexNormals then
-          // shades it evenly.
+        // Keep OCC's own winding and flip it only for a REVERSED face. The
+        // triangles from BRepMesh wind with the surface's NATURAL orientation;
+        // OCC sets the REVERSED flag when a face's normal in the solid points
+        // the other way. Flipping the winding for those gives outward normals
+        // CONSISTENTLY over the whole solid, and computeVertexNormals then
+        // shades it evenly.
         if (isReversed) {
           indices.push(n1, n3, n2);
         } else {
@@ -457,7 +565,7 @@ export function shapeToThreeMesh(
   const edgeExplorer = new oc.TopExp_Explorer_2(
     shape as object,
     oc.TopAbs_ShapeEnum.TopAbs_EDGE,
-    oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+    oc.TopAbs_ShapeEnum.TopAbs_SHAPE
   );
   while (edgeExplorer.More()) {
     const edge = oc.TopoDS.Edge_1(edgeExplorer.Current());
@@ -478,10 +586,22 @@ export function shapeToThreeMesh(
         const t = trsf.TranslationPart();
         const m = trsf.VectorialPart();
         edgeLocMat = new THREE.Matrix4().set(
-          m.Value(1, 1), m.Value(1, 2), m.Value(1, 3), t.X(),
-          m.Value(2, 1), m.Value(2, 2), m.Value(2, 3), t.Y(),
-          m.Value(3, 1), m.Value(3, 2), m.Value(3, 3), t.Z(),
-          0, 0, 0, 1,
+          m.Value(1, 1),
+          m.Value(1, 2),
+          m.Value(1, 3),
+          t.X(),
+          m.Value(2, 1),
+          m.Value(2, 2),
+          m.Value(2, 3),
+          t.Y(),
+          m.Value(3, 1),
+          m.Value(3, 2),
+          m.Value(3, 3),
+          t.Z(),
+          0,
+          0,
+          0,
+          1
         );
       }
       // LineSegments wants PAIRS of vertices: a polyline [A, B, C] → [A,B, B,C]
@@ -490,11 +610,21 @@ export function shapeToThreeMesh(
       for (let i = 1; i < enodes; i++) {
         const a = nodes.Value(i);
         const b = nodes.Value(i + 1);
-        let ax = a.X(), ay = a.Y(), az = a.Z();
-        let bx = b.X(), by = b.Y(), bz = b.Z();
+        let ax = a.X(),
+          ay = a.Y(),
+          az = a.Z();
+        let bx = b.X(),
+          by = b.Y(),
+          bz = b.Z();
         if (edgeLocMat) {
-          tmpVec.set(ax, ay, az).applyMatrix4(edgeLocMat); ax = tmpVec.x; ay = tmpVec.y; az = tmpVec.z;
-          tmpVec.set(bx, by, bz).applyMatrix4(edgeLocMat); bx = tmpVec.x; by = tmpVec.y; bz = tmpVec.z;
+          tmpVec.set(ax, ay, az).applyMatrix4(edgeLocMat);
+          ax = tmpVec.x;
+          ay = tmpVec.y;
+          az = tmpVec.z;
+          tmpVec.set(bx, by, bz).applyMatrix4(edgeLocMat);
+          bx = tmpVec.x;
+          by = tmpVec.y;
+          bz = tmpVec.z;
         }
         edgePositions.push(ax, ay, az, bx, by, bz);
       }
@@ -516,7 +646,7 @@ export function shapeToGroup(
   oc: OCC,
   shape: unknown,
   color: THREE.Color,
-  featureId: string,
+  featureId: string
 ): THREE.Group {
   const group = new THREE.Group();
   const { geo, edgeGeo } = shapeToThreeMesh(oc, shape);
@@ -550,7 +680,9 @@ export function shapeToGroup(
   // edgeGeo is kept for future use; nothing in the rendering uses it today.
   void edgeGeo;
   const edgesMat = new THREE.LineBasicMaterial({
-    color: 0x2a2a2a, transparent: true, opacity: 0.6,
+    color: 0x2a2a2a,
+    transparent: true,
+    opacity: 0.6,
   });
   group.add(new THREE.LineSegments(edgesGeo, edgesMat));
 

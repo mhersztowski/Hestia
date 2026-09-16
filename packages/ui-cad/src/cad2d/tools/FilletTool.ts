@@ -24,8 +24,10 @@ export class FilletTool implements Tool {
 
   onPointerDown(point: Point2D, ctx: ToolContext): void {
     const nearby = ctx.project.entityRegistry.getInBoundingBox({
-      minX: point.x - 40, minY: point.y - 40,
-      maxX: point.x + 40, maxY: point.y + 40,
+      minX: point.x - 40,
+      minY: point.y - 40,
+      maxX: point.x + 40,
+      maxY: point.y + 40,
     });
     const e = pickNearestEntity(nearby, point, 25);
     if (!e || e.type !== 'line') return;
@@ -36,27 +38,30 @@ export class FilletTool implements Tool {
     } else {
       if (e.id === this.firstId) return;
       const first = ctx.project.entityRegistry.get(this.firstId!);
-      if (!first || first.type !== 'line') { this.reset(); return; }
+      if (!first || first.type !== 'line') {
+        this.reset();
+        return;
+      }
       this.doFillet(first, e, ctx);
       this.reset();
     }
   }
 
   private doFillet(l1: LineEntity, l2: LineEntity, ctx: ToolContext): void {
-    const isect = lineLineIntersection(
-      l1.x1, l1.y1, l1.x2, l1.y2,
-      l2.x1, l2.y1, l2.x2, l2.y2,
-    );
+    const isect = lineLineIntersection(l1.x1, l1.y1, l1.x2, l1.y2, l2.x1, l2.y1, l2.x2, l2.y2);
     if (!isect) return; // parallel lines
 
     const ip: Point2D = { x: isect.x, y: isect.y };
 
     if (this.radius <= 0) {
       // Sharp corner: trim the nearest end of each line to the intersection
-      ctx.project.batchUpdate([
-        { id: l1.id, changes: nearestEndChanges(l1, ip) },
-        { id: l2.id, changes: nearestEndChanges(l2, ip) },
-      ], 'Fillet (sharp)');
+      ctx.project.batchUpdate(
+        [
+          { id: l1.id, changes: nearestEndChanges(l1, ip) },
+          { id: l2.id, changes: nearestEndChanges(l2, ip) },
+        ],
+        'Fillet (sharp)'
+      );
       return;
     }
 
@@ -69,12 +74,14 @@ export class FilletTool implements Tool {
     if (len1 < 1e-9 || len2 < 1e-9) return;
 
     // Determine which "half" of each line is away from the intersection
-    const p1far = dist2d(ip, { x: l1.x1, y: l1.y1 }) > dist2d(ip, { x: l1.x2, y: l1.y2 })
-      ? { x: l1.x1, y: l1.y1 }
-      : { x: l1.x2, y: l1.y2 };
-    const p2far = dist2d(ip, { x: l2.x1, y: l2.y1 }) > dist2d(ip, { x: l2.x2, y: l2.y2 })
-      ? { x: l2.x1, y: l2.y1 }
-      : { x: l2.x2, y: l2.y2 };
+    const p1far =
+      dist2d(ip, { x: l1.x1, y: l1.y1 }) > dist2d(ip, { x: l1.x2, y: l1.y2 })
+        ? { x: l1.x1, y: l1.y1 }
+        : { x: l1.x2, y: l1.y2 };
+    const p2far =
+      dist2d(ip, { x: l2.x1, y: l2.y1 }) > dist2d(ip, { x: l2.x2, y: l2.y2 })
+        ? { x: l2.x1, y: l2.y1 }
+        : { x: l2.x2, y: l2.y2 };
 
     const u1x = (p1far.x - ip.x) / dist2d(ip, p1far);
     const u1y = (p1far.y - ip.y) / dist2d(ip, p1far);
@@ -96,7 +103,8 @@ export class FilletTool implements Tool {
 
     // Arc center: along the angle bisector at distance r / sin(halfAngle)
     const bisLen = r / Math.sin(halfAngle);
-    const bisX = (u1x + u2x), bisY = (u1y + u2y);
+    const bisX = u1x + u2x,
+      bisY = u1y + u2y;
     const bisLen0 = Math.sqrt(bisX * bisX + bisY * bisY);
     if (bisLen0 < 1e-9) return;
     const arcCx = ip.x + (bisX / bisLen0) * bisLen;
@@ -108,16 +116,27 @@ export class FilletTool implements Tool {
 
     // Trim both lines + insert arc — one atomic undo step
     ctx.project.beginCompound();
-    ctx.project.batchUpdate([
-      { id: l1.id, changes: nearestEndChanges(l1, t1) },
-      { id: l2.id, changes: nearestEndChanges(l2, t2) },
-    ], 'Fillet (trim)');
+    ctx.project.batchUpdate(
+      [
+        { id: l1.id, changes: nearestEndChanges(l1, t1) },
+        { id: l2.id, changes: nearestEndChanges(l2, t2) },
+      ],
+      'Fillet (trim)'
+    );
     ctx.project.addEntity({
       type: 'arc',
-      cx: arcCx, cy: arcCy, radius: r,
-      startAngle: arcStart, endAngle: arcEnd,
-      layerId: l1.layerId, color: l1.color, lineType: l1.lineType,
-      lineWidth: l1.lineWidth, visible: true, locked: false, extrudeHeight: 0,
+      cx: arcCx,
+      cy: arcCy,
+      radius: r,
+      startAngle: arcStart,
+      endAngle: arcEnd,
+      layerId: l1.layerId,
+      color: l1.color,
+      lineType: l1.lineType,
+      lineWidth: l1.lineWidth,
+      visible: true,
+      locked: false,
+      extrudeHeight: 0,
     });
     ctx.project.commitCompound('Fillet');
   }
@@ -136,13 +155,8 @@ export class FilletTool implements Tool {
 }
 
 /** Returns { x1,y1 } or { x2,y2 } changes to move the NEAREST endpoint of a line to the target point. */
-function nearestEndChanges(
-  line: LineEntity,
-  target: Point2D,
-): Partial<LineEntity> {
+function nearestEndChanges(line: LineEntity, target: Point2D): Partial<LineEntity> {
   const d1 = dist2d({ x: line.x1, y: line.y1 }, target);
   const d2 = dist2d({ x: line.x2, y: line.y2 }, target);
-  return d1 <= d2
-    ? { x1: target.x, y1: target.y }
-    : { x2: target.x, y2: target.y };
+  return d1 <= d2 ? { x1: target.x, y1: target.y } : { x2: target.x, y2: target.y };
 }

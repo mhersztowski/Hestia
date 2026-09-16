@@ -137,7 +137,7 @@ export function useBooxPen(opts: UseBooxPenOptions): BooxPenStatus {
       const area = areaRef.current;
       if (!area) return;
       const outside = fractionOutside(stroke.points, area);
-      setReceived(prev => ({ strokes: prev.strokes + 1, lastOutside: outside }));
+      setReceived((prev) => ({ strokes: prev.strokes + 1, lastOutside: outside }));
       if (!warnedRef.current && outside > OFFSET_ALARM) {
         warnedRef.current = true;
         // Konsekwentne trafianie obok kanwy znaczy jedno: warstwa natywna
@@ -145,7 +145,7 @@ export function useBooxPen(opts: UseBooxPenOptions): BooxPenStatus {
         console.warn(
           '[booxPen] strokes are landing outside the declared area — ' +
             'check the WebView offset in the native module',
-          { area, first: stroke.points[0] },
+          { area, first: stroke.points[0] }
         );
       }
       const dpr = window.devicePixelRatio || 1;
@@ -172,7 +172,9 @@ export function useBooxPen(opts: UseBooxPenOptions): BooxPenStatus {
     const el = target.current;
     if (!el) return;
 
-    const refresh = () => { publishArea(); };
+    const refresh = () => {
+      publishArea();
+    };
     refresh();
 
     // Two extra attempts on the following frames: the MUI dialog opens with an

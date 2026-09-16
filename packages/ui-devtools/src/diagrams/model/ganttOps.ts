@@ -9,20 +9,43 @@
  * ciągły zamiast rozjechać się bez śladu.
  */
 import type { DiagramDocument } from './diagram';
-import { emptyGantt, type GanttChart, type GanttSection, type GanttTag, type GanttTask } from './gantt';
+import {
+  emptyGantt,
+  type GanttChart,
+  type GanttSection,
+  type GanttTag,
+  type GanttTask,
+} from './gantt';
 
-function withChart(doc: DiagramDocument, change: (chart: GanttChart) => GanttChart): DiagramDocument {
+function withChart(
+  doc: DiagramDocument,
+  change: (chart: GanttChart) => GanttChart
+): DiagramDocument {
   return { ...doc, gantt: change(doc.gantt ?? emptyGantt()) };
 }
 
-function mapSection(chart: GanttChart, index: number, change: (section: GanttSection) => GanttSection): GanttChart {
-  return { ...chart, sections: chart.sections.map((section, i) => (i === index ? change(section) : section)) };
+function mapSection(
+  chart: GanttChart,
+  index: number,
+  change: (section: GanttSection) => GanttSection
+): GanttChart {
+  return {
+    ...chart,
+    sections: chart.sections.map((section, i) => (i === index ? change(section) : section)),
+  };
 }
 
-export function addSection(doc: DiagramDocument, label: string, afterIndex?: number): DiagramDocument {
+export function addSection(
+  doc: DiagramDocument,
+  label: string,
+  afterIndex?: number
+): DiagramDocument {
   return withChart(doc, (chart) => {
     const sections = [...chart.sections];
-    sections.splice(afterIndex === undefined ? sections.length : afterIndex + 1, 0, { label, tasks: [] });
+    sections.splice(afterIndex === undefined ? sections.length : afterIndex + 1, 0, {
+      label,
+      tasks: [],
+    });
     return { ...chart, sections };
   });
 }
@@ -32,7 +55,10 @@ export function updateSection(doc: DiagramDocument, index: number, label: string
 }
 
 export function removeSection(doc: DiagramDocument, index: number): DiagramDocument {
-  return withChart(doc, (chart) => ({ ...chart, sections: chart.sections.filter((_, i) => i !== index) }));
+  return withChart(doc, (chart) => ({
+    ...chart,
+    sections: chart.sections.filter((_, i) => i !== index),
+  }));
 }
 
 export function moveSection(doc: DiagramDocument, from: number, to: number): DiagramDocument {
@@ -52,15 +78,25 @@ export function moveSection(doc: DiagramDocument, from: number, to: number): Dia
  * znaczy „po poprzednim", czyli dokładnie to, czego się oczekuje po dołożeniu
  * pozycji do harmonogramu.
  */
-export function addTask(doc: DiagramDocument, sectionIndex: number, label: string, afterIndex?: number): DiagramDocument {
+export function addTask(
+  doc: DiagramDocument,
+  sectionIndex: number,
+  label: string,
+  afterIndex?: number
+): DiagramDocument {
   return withChart(doc, (chart) => {
     if (!chart.sections.length) {
-      return { ...chart, sections: [{ tasks: [{ label, tags: [], end: { kind: 'duration', value: '1d' } }] }] };
+      return {
+        ...chart,
+        sections: [{ tasks: [{ label, tags: [], end: { kind: 'duration', value: '1d' } }] }],
+      };
     }
     return mapSection(chart, sectionIndex, (section) => {
       const tasks = [...section.tasks];
       tasks.splice(afterIndex === undefined ? tasks.length : afterIndex + 1, 0, {
-        label, tags: [], end: { kind: 'duration', value: '1d' },
+        label,
+        tags: [],
+        end: { kind: 'duration', value: '1d' },
       });
       return { ...section, tasks };
     });
@@ -71,30 +107,39 @@ export function updateTask(
   doc: DiagramDocument,
   sectionIndex: number,
   taskIndex: number,
-  patch: Partial<GanttTask>,
+  patch: Partial<GanttTask>
 ): DiagramDocument {
-  return withChart(doc, (chart) => mapSection(chart, sectionIndex, (section) => ({
-    ...section,
-    tasks: section.tasks.map((task, i) => {
-      if (i !== taskIndex) return task;
-      const next = { ...task, ...patch };
-      // Skoro zmiana czegokolwiek znaczy, że rozumiemy tę pozycję, zapis
-      // źródłowy przestaje obowiązywać — inaczej nadpisałby edycję.
-      if (patch.raw === undefined && task.raw !== undefined) delete next.raw;
-      return next;
-    }),
-  })));
+  return withChart(doc, (chart) =>
+    mapSection(chart, sectionIndex, (section) => ({
+      ...section,
+      tasks: section.tasks.map((task, i) => {
+        if (i !== taskIndex) return task;
+        const next = { ...task, ...patch };
+        // Skoro zmiana czegokolwiek znaczy, że rozumiemy tę pozycję, zapis
+        // źródłowy przestaje obowiązywać — inaczej nadpisałby edycję.
+        if (patch.raw === undefined && task.raw !== undefined) delete next.raw;
+        return next;
+      }),
+    }))
+  );
 }
 
-export function toggleTag(doc: DiagramDocument, sectionIndex: number, taskIndex: number, tag: GanttTag): DiagramDocument {
-  return withChart(doc, (chart) => mapSection(chart, sectionIndex, (section) => ({
-    ...section,
-    tasks: section.tasks.map((task, i) => {
-      if (i !== taskIndex) return task;
-      const has = task.tags.includes(tag);
-      return { ...task, tags: has ? task.tags.filter((t) => t !== tag) : [...task.tags, tag] };
-    }),
-  })));
+export function toggleTag(
+  doc: DiagramDocument,
+  sectionIndex: number,
+  taskIndex: number,
+  tag: GanttTag
+): DiagramDocument {
+  return withChart(doc, (chart) =>
+    mapSection(chart, sectionIndex, (section) => ({
+      ...section,
+      tasks: section.tasks.map((task, i) => {
+        if (i !== taskIndex) return task;
+        const has = task.tags.includes(tag);
+        return { ...task, tags: has ? task.tags.filter((t) => t !== tag) : [...task.tags, tag] };
+      }),
+    }))
+  );
 }
 
 /**
@@ -105,7 +150,11 @@ export function toggleTag(doc: DiagramDocument, sectionIndex: number, taskIndex:
  * (usunięte zaczynało się datą), odniesienie znika, a zadanie rusza po
  * poprzedniku — to nadal lepiej niż nazwa wskazująca w próżnię.
  */
-export function removeTask(doc: DiagramDocument, sectionIndex: number, taskIndex: number): DiagramDocument {
+export function removeTask(
+  doc: DiagramDocument,
+  sectionIndex: number,
+  taskIndex: number
+): DiagramDocument {
   return withChart(doc, (chart) => {
     const removed = chart.sections[sectionIndex]?.tasks[taskIndex];
     if (!removed) return chart;
@@ -119,10 +168,14 @@ export function removeTask(doc: DiagramDocument, sectionIndex: number, taskIndex
      * `selfId` odsiewa odniesienie do samego siebie, które powstałoby przy
      * dziedziczeniu z zapętlonych zależności.
      */
-    const patchIds = (ids: string[], selfId: string | undefined, inherit: boolean): string[] | undefined => {
+    const patchIds = (
+      ids: string[],
+      selfId: string | undefined,
+      inherit: boolean
+    ): string[] | undefined => {
       if (!removed.id || !ids.includes(removed.id)) return ids;
       const rest = ids.filter((id) => id !== removed.id);
-      const next = [...rest, ...(inherit ? inherited ?? [] : [])].filter((id) => id !== selfId);
+      const next = [...rest, ...(inherit ? (inherited ?? []) : [])].filter((id) => id !== selfId);
       return next.length ? next : undefined;
     };
 
@@ -149,14 +202,21 @@ export function removeTask(doc: DiagramDocument, sectionIndex: number, taskIndex
   });
 }
 
-export function moveTask(doc: DiagramDocument, sectionIndex: number, from: number, to: number): DiagramDocument {
-  return withChart(doc, (chart) => mapSection(chart, sectionIndex, (section) => {
-    if (to < 0 || to >= section.tasks.length) return section;
-    const tasks = [...section.tasks];
-    const [moved] = tasks.splice(from, 1);
-    tasks.splice(to, 0, moved);
-    return { ...section, tasks };
-  }));
+export function moveTask(
+  doc: DiagramDocument,
+  sectionIndex: number,
+  from: number,
+  to: number
+): DiagramDocument {
+  return withChart(doc, (chart) =>
+    mapSection(chart, sectionIndex, (section) => {
+      if (to < 0 || to >= section.tasks.length) return section;
+      const tasks = [...section.tasks];
+      const [moved] = tasks.splice(from, 1);
+      tasks.splice(to, 0, moved);
+      return { ...section, tasks };
+    })
+  );
 }
 
 /** Przenosi zadanie do innej sekcji, na jej koniec — z całym opisem. */
@@ -164,7 +224,7 @@ export function moveTaskToSection(
   doc: DiagramDocument,
   fromSection: number,
   taskIndex: number,
-  toSection: number,
+  toSection: number
 ): DiagramDocument {
   return withChart(doc, (chart) => {
     const task = chart.sections[fromSection]?.tasks[taskIndex];
@@ -173,7 +233,8 @@ export function moveTaskToSection(
     return {
       ...chart,
       sections: chart.sections.map((section, i) => {
-        if (i === fromSection) return { ...section, tasks: section.tasks.filter((_, j) => j !== taskIndex) };
+        if (i === fromSection)
+          return { ...section, tasks: section.tasks.filter((_, j) => j !== taskIndex) };
         if (i === toSection) return { ...section, tasks: [...section.tasks, task] };
         return section;
       }),
@@ -184,8 +245,16 @@ export function moveTaskToSection(
 /** Zmienia ustawienie dokumentu; pusta wartość je usuwa. */
 export function setGanttSetting(
   doc: DiagramDocument,
-  key: 'title' | 'dateFormat' | 'axisFormat' | 'tickInterval' | 'excludes' | 'includes' | 'todayMarker' | 'weekday',
-  value: string,
+  key:
+    | 'title'
+    | 'dateFormat'
+    | 'axisFormat'
+    | 'tickInterval'
+    | 'excludes'
+    | 'includes'
+    | 'todayMarker'
+    | 'weekday',
+  value: string
 ): DiagramDocument {
   return withChart(doc, (chart) => {
     const next = { ...chart };

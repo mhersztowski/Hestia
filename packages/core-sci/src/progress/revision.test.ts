@@ -2,8 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { emptyProgress } from './schedule';
 import { markRead } from './read';
 import {
-  defaultRevisionSettings, planRevision, DAY,
-  type RevisionSource, type ProgressWithRevision,
+  defaultRevisionSettings,
+  planRevision,
+  DAY,
+  type RevisionSource,
+  type ProgressWithRevision,
 } from './revision';
 
 const T = Date.UTC(2026, 7, 4);
@@ -47,8 +50,7 @@ describe('plan powtórek', () => {
     p = markRead(p, 'k/15-2.md', T - 2 * DAY);
 
     const plan = planRevision(zrodlo(), p, defaultRevisionSettings(), T);
-    expect(plan.subsection.map((x) => x.path))
-      .toEqual(['k/15-3.md', 'k/15-4.md', 'k/15-1.md']);
+    expect(plan.subsection.map((x) => x.path)).toEqual(['k/15-3.md', 'k/15-4.md', 'k/15-1.md']);
     expect(plan.subsection[0].lastAt).toBe(0);
   });
 
@@ -89,8 +91,10 @@ describe('plan powtórek', () => {
     p = markRead(p, 'k/15-4.md', T - 1 * DAY);
 
     const plan = planRevision(zrodlo(), p, s, T);
-    expect(plan.subsection.filter((x) => x.due).map((x) => x.path))
-      .toEqual(['k/15-2.md', 'k/15-3.md']);
+    expect(plan.subsection.filter((x) => x.due).map((x) => x.path)).toEqual([
+      'k/15-2.md',
+      'k/15-3.md',
+    ]);
   });
 
   /**

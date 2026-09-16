@@ -14,7 +14,10 @@ function pyVisibility(name: string): Visibility {
 
 function firstIdentifier(n: TSNode): string | undefined {
   if (n.type === 'identifier') return n.text;
-  for (const c of n.namedChildren) { const r = firstIdentifier(c); if (r) return r; }
+  for (const c of n.namedChildren) {
+    const r = firstIdentifier(c);
+    if (r) return r;
+  }
   return undefined;
 }
 
@@ -22,9 +25,13 @@ function methodParams(paramsNode: TSNode | null): CodeParam[] {
   if (!paramsNode) return [];
   const out: CodeParam[] = [];
   for (const p of paramsNode.namedChildren) {
-    if (p.type === 'identifier') { if (p.text !== 'self' && p.text !== 'cls') out.push({ name: p.text }); continue; }
+    if (p.type === 'identifier') {
+      if (p.text !== 'self' && p.text !== 'cls') out.push({ name: p.text });
+      continue;
+    }
     if (p.type === 'typed_parameter') {
-      const nm = firstIdentifier(p); const ty = fieldText(p, 'type');
+      const nm = firstIdentifier(p);
+      const ty = fieldText(p, 'type');
       if (nm && nm !== 'self' && nm !== 'cls') out.push({ name: nm, type: ty });
       continue;
     }
@@ -47,7 +54,12 @@ export class PythonParser implements LanguageParser {
       const name = fieldText(cls, 'name');
       if (!name) continue;
       const supers = cls.childForFieldName('superclasses');
-      const extendsList = supers ? supers.namedChildren.filter((c) => c.type === 'identifier' || c.type === 'attribute').map((c) => c.text.split('.').pop()!).filter((x) => x !== 'object') : [];
+      const extendsList = supers
+        ? supers.namedChildren
+            .filter((c) => c.type === 'identifier' || c.type === 'attribute')
+            .map((c) => c.text.split('.').pop()!)
+            .filter((x) => x !== 'object')
+        : [];
 
       const body = cls.childForFieldName('body');
       const members: CodeMember[] = [];
@@ -63,16 +75,35 @@ export class PythonParser implements LanguageParser {
       if (body) {
         const processFunction = (fnDef: TSNode, isStatic = false): void => {
           const mn = fieldText(fnDef, 'name') ?? 'method';
-          push({ kind: 'method', name: mn, visibility: pyVisibility(mn), params: methodParams(fnDef.childForFieldName('parameters')), type: fieldText(fnDef, 'return_type'), isStatic });
+          push({
+            kind: 'method',
+            name: mn,
+            visibility: pyVisibility(mn),
+            params: methodParams(fnDef.childForFieldName('parameters')),
+            type: fieldText(fnDef, 'return_type'),
+            isStatic,
+          });
           // self.<x> = ... fields inside __init__ / __post_init__
           if (mn === '__init__' || mn === '__post_init__') {
             const fnBody = fnDef.childForFieldName('body');
             if (fnBody) {
               for (const asn of collect(fnBody, 'assignment')) {
                 const left = asn.childForFieldName('left');
-                if (left && left.type === 'attribute' && left.childForFieldName('object')?.text === 'self') {
+                if (
+                  left &&
+                  left.type === 'attribute' &&
+                  left.childForFieldName('object')?.text === 'self'
+                ) {
                   const fn = left.childForFieldName('attribute')?.text;
-                  if (fn && !fieldNames.has(fn)) { fieldNames.add(fn); push({ kind: 'field', name: fn, visibility: pyVisibility(fn), type: fieldText(asn, 'type') }); }
+                  if (fn && !fieldNames.has(fn)) {
+                    fieldNames.add(fn);
+                    push({
+                      kind: 'field',
+                      name: fn,
+                      visibility: pyVisibility(fn),
+                      type: fieldText(asn, 'type'),
+                    });
+                  }
                 }
               }
             }
@@ -84,12 +115,14 @@ export class PythonParser implements LanguageParser {
             processFunction(stmt);
           } else if (stmt.type === 'decorated_definition') {
             // @staticmethod / @classmethod → isStatic; @property / @x.setter → regular method
-            const decorators = stmt.namedChildren.filter(c => c.type === 'decorator');
-            const isStatic = decorators.some(d => {
+            const decorators = stmt.namedChildren.filter((c) => c.type === 'decorator');
+            const isStatic = decorators.some((d) => {
               const name = d.namedChildren[0]?.text ?? '';
               return name === 'staticmethod' || name === 'classmethod';
             });
-            const fnDef = stmt.childForFieldName('definition') ?? stmt.namedChildren.find(c => c.type === 'function_definition');
+            const fnDef =
+              stmt.childForFieldName('definition') ??
+              stmt.namedChildren.find((c) => c.type === 'function_definition');
             if (fnDef && fnDef.type === 'function_definition') processFunction(fnDef, isStatic);
           } else if (stmt.type === 'expression_statement') {
             const asn = stmt.namedChildren[0];
@@ -97,18 +130,36 @@ export class PythonParser implements LanguageParser {
               const left = asn.childForFieldName('left');
               if (left && left.type === 'identifier' && !fieldNames.has(left.text)) {
                 fieldNames.add(left.text);
-                push({ kind: 'field', name: left.text, visibility: pyVisibility(left.text), type: fieldText(asn, 'type') });
+                push({
+                  kind: 'field',
+                  name: left.text,
+                  visibility: pyVisibility(left.text),
+                  type: fieldText(asn, 'type'),
+                });
               }
             }
           }
         }
       }
 
-      symbols.push({ id: symbolId(name), name, kind: 'class', file, language: 'python', extends: extendsList, implements: [], members });
+      symbols.push({
+        id: symbolId(name),
+        name,
+        kind: 'class',
+        file,
+        language: 'python',
+        extends: extendsList,
+        implements: [],
+        members,
+      });
     }
 
     // Collect module-level functions and variables (outside any class).
-    const moduleName = file.replace(/\.[^.]+$/, '').split(/[/\\]/).pop() ?? 'module';
+    const moduleName =
+      file
+        .replace(/\.[^.]+$/, '')
+        .split(/[/\\]/)
+        .pop() ?? 'module';
     const modMembers: CodeMember[] = [];
     const usedMod = new Set<string>();
     const pushMod = (base: Omit<CodeMember, 'id' | 'text'>) => {
@@ -121,26 +172,54 @@ export class PythonParser implements LanguageParser {
     for (const stmt of tree.rootNode.namedChildren) {
       if (stmt.type === 'function_definition') {
         const mn = fieldText(stmt, 'name') ?? 'fn';
-        pushMod({ kind: 'method', name: mn, visibility: pyVisibility(mn), params: methodParams(stmt.childForFieldName('parameters')), type: fieldText(stmt, 'return_type') });
+        pushMod({
+          kind: 'method',
+          name: mn,
+          visibility: pyVisibility(mn),
+          params: methodParams(stmt.childForFieldName('parameters')),
+          type: fieldText(stmt, 'return_type'),
+        });
       } else if (stmt.type === 'decorated_definition') {
-        const fnDef = stmt.childForFieldName('definition') ?? stmt.namedChildren.find(c => c.type === 'function_definition');
+        const fnDef =
+          stmt.childForFieldName('definition') ??
+          stmt.namedChildren.find((c) => c.type === 'function_definition');
         if (fnDef && fnDef.type === 'function_definition') {
           const mn = fieldText(fnDef, 'name') ?? 'fn';
-          pushMod({ kind: 'method', name: mn, visibility: pyVisibility(mn), params: methodParams(fnDef.childForFieldName('parameters')), type: fieldText(fnDef, 'return_type') });
+          pushMod({
+            kind: 'method',
+            name: mn,
+            visibility: pyVisibility(mn),
+            params: methodParams(fnDef.childForFieldName('parameters')),
+            type: fieldText(fnDef, 'return_type'),
+          });
         }
       } else if (stmt.type === 'expression_statement') {
         const asn = stmt.namedChildren[0];
         if (asn && asn.type === 'assignment') {
           const left = asn.childForFieldName('left');
           if (left && left.type === 'identifier') {
-            pushMod({ kind: 'field', name: left.text, visibility: pyVisibility(left.text), type: fieldText(asn, 'type') });
+            pushMod({
+              kind: 'field',
+              name: left.text,
+              visibility: pyVisibility(left.text),
+              type: fieldText(asn, 'type'),
+            });
           }
         }
       }
     }
 
     if (modMembers.length > 0) {
-      symbols.push({ id: symbolId(moduleName), name: moduleName, kind: 'module', file, language: 'python', extends: [], implements: [], members: modMembers });
+      symbols.push({
+        id: symbolId(moduleName),
+        name: moduleName,
+        kind: 'module',
+        file,
+        language: 'python',
+        extends: [],
+        implements: [],
+        members: modMembers,
+      });
     }
 
     return symbols;

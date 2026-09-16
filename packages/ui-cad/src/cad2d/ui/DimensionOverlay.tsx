@@ -24,7 +24,13 @@ function extractNumber(text: string): string {
   return m ? m[1] : '0';
 }
 
-export function DimensionOverlay({ labels, renderer, onCommit, onCommitDraft, touchMode = false }: Props) {
+export function DimensionOverlay({
+  labels,
+  renderer,
+  onCommit,
+  onCommitDraft,
+  touchMode = false,
+}: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   // A "fresh" field is one nobody has typed into yet. Its value follows the
@@ -55,7 +61,10 @@ export function DimensionOverlay({ labels, renderer, onCommit, onCommitDraft, to
       setFresh(true);
       wantFocus.current = true;
     } else if (!has) {
-      if (editingId != null) { setEditingId(null); setFresh(true); }
+      if (editingId != null) {
+        setEditingId(null);
+        setFresh(true);
+      }
       dismissedSig.current = null; // the shape is done — the next one may take focus again
     }
   });
@@ -70,7 +79,10 @@ export function DimensionOverlay({ labels, renderer, onCommit, onCommitDraft, to
     if (!active) return;
     const el = inputRef.current;
     if (!el) return;
-    if (wantFocus.current) { el.focus(); wantFocus.current = false; }
+    if (wantFocus.current) {
+      el.focus();
+      wantFocus.current = false;
+    }
     if (fresh) el.select();
   });
 
@@ -99,7 +111,11 @@ export function DimensionOverlay({ labels, renderer, onCommit, onCommitDraft, to
 
   const gotoNextParam = () => {
     if (active) applyLive(editValue, active.l);
-    if (ids.length <= 1) { setFresh(true); wantFocus.current = true; return; }
+    if (ids.length <= 1) {
+      setFresh(true);
+      wantFocus.current = true;
+      return;
+    }
     const pos = ids.indexOf(editingId ?? ids[0]);
     activate(ids[(pos + 1) % ids.length]);
   };
@@ -119,10 +135,20 @@ export function DimensionOverlay({ labels, renderer, onCommit, onCommitDraft, to
   const multiParam = ids.length > 1;
 
   const btnStyle: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    minWidth: 26, height: 22, padding: '0 6px', borderRadius: 3, border: 'none',
-    cursor: 'pointer', fontSize: 13, fontWeight: 700, lineHeight: 1,
-    fontFamily: 'monospace', touchAction: 'manipulation',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 26,
+    height: 22,
+    padding: '0 6px',
+    borderRadius: 3,
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: 13,
+    fontWeight: 700,
+    lineHeight: 1,
+    fontFamily: 'monospace',
+    touchAction: 'manipulation',
   };
 
   return (
@@ -141,30 +167,52 @@ export function DimensionOverlay({ labels, renderer, onCommit, onCommitDraft, to
           <div
             key={id}
             style={{
-              position: 'absolute', left: x, top: y,
+              position: 'absolute',
+              left: x,
+              top: y,
               transform: 'translate(-50%, -50%)',
-              pointerEvents: (isEditable && touchMode) ? 'auto' : 'none', zIndex: 1,
+              pointerEvents: isEditable && touchMode ? 'auto' : 'none',
+              zIndex: 1,
             }}
           >
             <div
-              onClick={isEditable ? (e) => { e.stopPropagation(); switchTo(id); } : undefined}
+              onClick={
+                isEditable
+                  ? (e) => {
+                      e.stopPropagation();
+                      switchTo(id);
+                    }
+                  : undefined
+              }
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
                 background: isPrimary ? 'rgba(10,20,30,0.85)' : 'rgba(10,20,30,0.65)',
-                fontSize: 12, fontFamily: 'monospace',
-                padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap',
+                fontSize: 12,
+                fontFamily: 'monospace',
+                padding: '2px 6px',
+                borderRadius: 4,
+                whiteSpace: 'nowrap',
                 border: `1px solid ${isEditable ? 'rgba(79,195,247,0.6)' : 'rgba(79,195,247,0.3)'}`,
-                userSelect: 'none', cursor: isEditable ? 'pointer' : 'default',
+                userSelect: 'none',
+                cursor: isEditable ? 'pointer' : 'default',
               }}
               title={isEditable ? 'Click to edit' : undefined}
             >
               {label.prefix && (
-                <span style={{ color: isPrimary ? '#e8eef2' : '#a0d8ef', fontWeight: 700 }}>{label.prefix}</span>
+                <span style={{ color: isPrimary ? '#e8eef2' : '#a0d8ef', fontWeight: 700 }}>
+                  {label.prefix}
+                </span>
               )}
-              <span style={{
-                color: isPrimary ? '#e8eef2' : '#a0d8ef',
-                fontWeight: 700,
-              }}>{extractNumber(label.text)}</span>
+              <span
+                style={{
+                  color: isPrimary ? '#e8eef2' : '#a0d8ef',
+                  fontWeight: 700,
+                }}
+              >
+                {extractNumber(label.text)}
+              </span>
               <span style={{ color: '#9fb0ba', fontWeight: 400 }}>{unit}</span>
             </div>
           </div>
@@ -172,74 +220,117 @@ export function DimensionOverlay({ labels, renderer, onCommit, onCommitDraft, to
       })}
 
       {/* The active parameter — one input that lasts, so focus and the phone's keyboard survive switching between them. */}
-      {active && (() => {
-        const label = active.l;
-        const screen = renderer.worldToScreen(label.worldX, label.worldY);
-        const x = screen.x + (label.offsetX ?? 0);
-        const y = screen.y + (label.offsetY ?? 0);
-        const unit = label.unit ?? (label.text.includes('°') ? '°' : 'mm');
-        return (
-          <div style={{
-            position: 'absolute', left: x, top: y,
-            transform: 'translate(-50%, -50%)', pointerEvents: touchMode ? 'auto' : 'none', zIndex: 20,
-          }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 4,
-              background: 'rgba(10,20,30,0.92)', border: '1.5px solid #4fc3f7', borderRadius: 4,
-              padding: '2px 6px', boxShadow: '0 0 8px rgba(79,195,247,0.5)', fontFamily: 'monospace', fontSize: 12,
-            }}>
-              <input
-                ref={inputRef}
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
-                // type=text rather than number: Chrome ignores .select() on a
-                // number input, so the first character would append instead of
-                // replacing. inputMode=decimal still gets the numeric keypad.
-                type="text"
-                inputMode="decimal"
-                value={editValue}
-                onFocus={e => e.currentTarget.select()}
-                onChange={e => {
-                  const raw = e.target.value.replace(/[^0-9.\-]/g, '');
-                  setFresh(false);
-                  setEditValue(raw);
-                  applyLive(raw, label); // live — the geometry changes at once
-                }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') { e.preventDefault(); commitAll(); }
-                  else if (e.key === 'Tab') { e.preventDefault(); gotoNextParam(); }
-                  else if (e.key === 'Escape') { e.preventDefault(); dismiss(); }
-                  e.stopPropagation();
-                }}
+      {active &&
+        (() => {
+          const label = active.l;
+          const screen = renderer.worldToScreen(label.worldX, label.worldY);
+          const x = screen.x + (label.offsetX ?? 0);
+          const y = screen.y + (label.offsetY ?? 0);
+          const unit = label.unit ?? (label.text.includes('°') ? '°' : 'mm');
+          return (
+            <div
+              style={{
+                position: 'absolute',
+                left: x,
+                top: y,
+                transform: 'translate(-50%, -50%)',
+                pointerEvents: touchMode ? 'auto' : 'none',
+                zIndex: 20,
+              }}
+            >
+              <div
                 style={{
-                  width: 58, background: '#2a6cff', color: '#fff', border: 'none', borderRadius: 2,
-                  padding: '1px 3px', fontSize: 12, fontFamily: 'monospace', fontWeight: 700,
-                  textAlign: 'right', outline: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  background: 'rgba(10,20,30,0.92)',
+                  border: '1.5px solid #4fc3f7',
+                  borderRadius: 4,
+                  padding: '2px 6px',
+                  boxShadow: '0 0 8px rgba(79,195,247,0.5)',
+                  fontFamily: 'monospace',
+                  fontSize: 12,
                 }}
-              />
-              <span style={{ color: '#cfd8dc' }}>{unit}</span>
+              >
+                <input
+                  ref={inputRef}
+                  // Focused on open on purpose: the field appears because the
+                  // user asked to edit this dimension, and typing is the next
+                  // thing they mean to do.
+                  autoFocus
+                  // type=text rather than number: Chrome ignores .select() on a
+                  // number input, so the first character would append instead of
+                  // replacing. inputMode=decimal still gets the numeric keypad.
+                  type="text"
+                  inputMode="decimal"
+                  value={editValue}
+                  onFocus={(e) => e.currentTarget.select()}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9.-]/g, '');
+                    setFresh(false);
+                    setEditValue(raw);
+                    applyLive(raw, label); // live — the geometry changes at once
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      commitAll();
+                    } else if (e.key === 'Tab') {
+                      e.preventDefault();
+                      gotoNextParam();
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      dismiss();
+                    }
+                    e.stopPropagation();
+                  }}
+                  style={{
+                    width: 58,
+                    background: '#2a6cff',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 2,
+                    padding: '1px 3px',
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                    fontWeight: 700,
+                    textAlign: 'right',
+                    outline: 'none',
+                  }}
+                />
+                <span style={{ color: '#cfd8dc' }}>{unit}</span>
 
-              {/* Buttons for touch and pen — Tab and Enter without a hardware keyboard. */}
-              {multiParam && (
+                {/* Buttons for touch and pen — Tab and Enter without a hardware keyboard. */}
+                {multiParam && (
+                  <button
+                    type="button"
+                    title="Next parameter (Tab)"
+                    onPointerDown={(e) => e.preventDefault()} // nie odbieraj focusu polu → klawiatura zostaje
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      gotoNextParam();
+                    }}
+                    style={{ ...btnStyle, background: '#1976d2', color: '#fff' }}
+                  >
+                    →
+                  </button>
+                )}
                 <button
                   type="button"
-                  title="Next parameter (Tab)"
-                  onPointerDown={e => e.preventDefault()} // nie odbieraj focusu polu → klawiatura zostaje
-                  onClick={e => { e.stopPropagation(); gotoNextParam(); }}
-                  style={{ ...btnStyle, background: '#1976d2', color: '#fff' }}
-                >→</button>
-              )}
-              <button
-                type="button"
-                title="Commit (Enter)"
-                onPointerDown={e => e.preventDefault()}
-                onClick={e => { e.stopPropagation(); commitAll(); }}
-                style={{ ...btnStyle, background: '#2e7d32', color: '#fff' }}
-              >✓</button>
+                  title="Commit (Enter)"
+                  onPointerDown={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    commitAll();
+                  }}
+                  style={{ ...btnStyle, background: '#2e7d32', color: '#fff' }}
+                >
+                  ✓
+                </button>
+              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 }

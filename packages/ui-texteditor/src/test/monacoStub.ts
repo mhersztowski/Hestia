@@ -11,11 +11,23 @@
 const kinds = new Proxy({} as Record<string, number>, { get: () => 0 });
 
 export const languages = {
-    CompletionItemKind: kinds,
-    CompletionItemInsertTextRule: kinds,
-    registerCompletionItemProvider: () => ({ dispose() { /* atrapa */ } }),
-    registerHoverProvider: () => ({ dispose() { /* atrapa */ } }),
-    registerSignatureHelpProvider: () => ({ dispose() { /* atrapa */ } }),
+  CompletionItemKind: kinds,
+  CompletionItemInsertTextRule: kinds,
+  registerCompletionItemProvider: () => ({
+    dispose() {
+      /* atrapa */
+    },
+  }),
+  registerHoverProvider: () => ({
+    dispose() {
+      /* atrapa */
+    },
+  }),
+  registerSignatureHelpProvider: () => ({
+    dispose() {
+      /* atrapa */
+    },
+  }),
 };
 
 export const editor = { getModels: () => [] as unknown[] };

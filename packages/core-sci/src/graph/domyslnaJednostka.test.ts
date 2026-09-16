@@ -72,14 +72,19 @@ describe('rygor, który zostaje', () => {
 
 describe('wielkości bezwymiarowe', () => {
   it('działają jak dotąd', () => {
-    const bezwymiarowy = parseFormulaBlock('l', [
-      '@ode',
-      '@state x',
-      '@d x = \\sigma \\cdot x',
-      '@init x = 1',
-      '@vars x: 1, sigma: 1, t: s',
-    ].join('\n'));
-    const { values, issues } = applyOverrides(compileGraph(buildGraph([bezwymiarowy])), { sigma: 10 });
+    const bezwymiarowy = parseFormulaBlock(
+      'l',
+      [
+        '@ode',
+        '@state x',
+        '@d x = \\sigma \\cdot x',
+        '@init x = 1',
+        '@vars x: 1, sigma: 1, t: s',
+      ].join('\n')
+    );
+    const { values, issues } = applyOverrides(compileGraph(buildGraph([bezwymiarowy])), {
+      sigma: 10,
+    });
 
     expect(issues).toEqual([]);
     expect(values.sigma).toBe(10);

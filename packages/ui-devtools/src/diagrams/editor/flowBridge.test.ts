@@ -19,7 +19,9 @@ function doc(): DiagramDocument {
     { id: 'A', label: 'Start', shape: 'rectangle', position: { x: 10, y: 20 } },
     { id: 'B', label: '', shape: 'rhombus' },
   ];
-  d.edges = [{ id: 'A__B', source: 'A', target: 'B', label: 'dalej', lineStyle: 'dotted', arrow: 'arrow' }];
+  d.edges = [
+    { id: 'A__B', source: 'A', target: 'B', label: 'dalej', lineStyle: 'dotted', arrow: 'arrow' },
+  ];
   return d;
 }
 
@@ -36,7 +38,10 @@ describe('toFlowNodes', () => {
 
   it('pseudostany dostają własny typ, żeby narysować je jako punkt', () => {
     const d = emptyDiagram('state');
-    d.nodes = [{ id: 's', label: '', shape: 'start' }, { id: 'x', label: '', shape: 'rectangle' }];
+    d.nodes = [
+      { id: 's', label: '', shape: 'start' },
+      { id: 'x', label: '', shape: 'rectangle' },
+    ];
     expect(toFlowNodes(d).map((n) => n.type)).toEqual(['diagramPseudo', 'diagramNode']);
   });
 
@@ -71,7 +76,9 @@ describe('toFlowEdges', () => {
 
 describe('applyFlowPositions', () => {
   const flowNode = (id: string, x: number, y: number): Node<FlowNodeData> => ({
-    id, position: { x, y }, data: { label: '', shape: 'rectangle', fallback: id },
+    id,
+    position: { x, y },
+    data: { label: '', shape: 'rectangle', fallback: id },
   });
 
   it('zapisuje nowe pozycje do modelu, zaokrąglając do pełnych pikseli', () => {
@@ -102,8 +109,12 @@ describe('applyFlowPositions', () => {
 describe('toFlowNodes — grupy', () => {
   function withGroup(): DiagramDocument {
     const d = emptyDiagram('state');
-    d.groups = [{ id: 'g', label: 'Grupa', position: { x: 30, y: 40 }, size: { width: 320, height: 200 } }];
-    d.nodes = [{ id: 'A', label: '', shape: 'rectangle', parentId: 'g', position: { x: 24, y: 34 } }];
+    d.groups = [
+      { id: 'g', label: 'Grupa', position: { x: 30, y: 40 }, size: { width: 320, height: 200 } },
+    ];
+    d.nodes = [
+      { id: 'A', label: '', shape: 'rectangle', parentId: 'g', position: { x: 24, y: 34 } },
+    ];
     return d;
   }
 
@@ -208,7 +219,10 @@ describe('krawędzie równoległe', () => {
 describe('toFlowEdges — zakończenia', () => {
   function withArrow(arrow: 'arrow' | 'none' | 'circle' | 'cross') {
     const d = emptyDiagram('flowchart');
-    d.nodes = [{ id: 'A', label: '', shape: 'rectangle' }, { id: 'B', label: '', shape: 'rectangle' }];
+    d.nodes = [
+      { id: 'A', label: '', shape: 'rectangle' },
+      { id: 'B', label: '', shape: 'rectangle' },
+    ];
     d.edges = [{ id: 'A__B', source: 'A', target: 'B', lineStyle: 'solid', arrow }];
     return toFlowEdges(d)[0];
   }
@@ -247,9 +261,15 @@ describe('toFlowEdges — zakończenia', () => {
  * strzałka w jedną stronę, a `~~~` jak normalne połączenie.
  */
 describe('toFlowEdges — krawędzie dwustronne i niewidzialne', () => {
-  function edgeWith(meta: Record<string, string>, arrow: 'arrow' | 'none' | 'circle' | 'cross' = 'arrow') {
+  function edgeWith(
+    meta: Record<string, string>,
+    arrow: 'arrow' | 'none' | 'circle' | 'cross' = 'arrow'
+  ) {
     const d = emptyDiagram('flowchart');
-    d.nodes = [{ id: 'A', label: '', shape: 'rectangle' }, { id: 'B', label: '', shape: 'rectangle' }];
+    d.nodes = [
+      { id: 'A', label: '', shape: 'rectangle' },
+      { id: 'B', label: '', shape: 'rectangle' },
+    ];
     d.edges = [{ id: 'A__B', source: 'A', target: 'B', lineStyle: 'solid', arrow, meta }];
     return toFlowEdges(d)[0];
   }
@@ -299,7 +319,10 @@ describe('toFlowNodes — rozmiar zgodny z układem', () => {
   });
 
   it('wysokość jest miękka — długi tekst może pudełko rozepchnąć, nie zostać ucięty', () => {
-    const flow = nodeWith('rectangle', 'Bardzo długi opis kroku, który musi się zawinąć na kilka linii');
+    const flow = nodeWith(
+      'rectangle',
+      'Bardzo długi opis kroku, który musi się zawinąć na kilka linii'
+    );
     expect((flow.style as Record<string, unknown>).height).toBeUndefined();
     expect((flow.style as Record<string, unknown>).minHeight).toBeGreaterThan(0);
   });

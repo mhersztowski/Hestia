@@ -40,7 +40,9 @@ const Z_THREE = new Map<THREE.Wrapping, TextureWrap>([
  * Zwraca `undefined`, gdy wszystko jest domyślne — pusty obiekt w każdym
  * materiale rozdmuchiwałby zapis sceny bez żadnej treści.
  */
-export function odczytajUstawienia(t: THREE.Texture | null | undefined): TextureSettings | undefined {
+export function odczytajUstawienia(
+  t: THREE.Texture | null | undefined
+): TextureSettings | undefined {
   if (!t) return undefined;
 
   const u: TextureSettings = {};

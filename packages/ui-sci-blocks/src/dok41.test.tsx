@@ -5,9 +5,13 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '4-1-przemieszczenie.md';
-const pliki = [DOK, '3-4-predkosc-chwilowa.md', '3-5-predkosc-zmienna.md',
-  '3-7-przyspieszenie-zmienne.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [
+  DOK,
+  '3-4-predkosc-chwilowa.md',
+  '3-5-predkosc-zmienna.md',
+  '3-7-przyspieszenie-zmienne.md',
+  'Slownik.md',
+].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const cel = (id: string) =>
@@ -15,12 +19,13 @@ const cel = (id: string) =>
 const resolveRef = (id: string) => {
   const c = cel(id);
   if (!c.found || !c.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[c.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[c.path] ?? ''
+  );
   return { code: m?.[1], kind: c.kind, sameDocument: c.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 const wyklad = () => bodies[DOK].split('## Uwagi redakcyjne')[0];
@@ -43,10 +48,12 @@ describe('4-1 w czytniku', () => {
     expect(d!.formulas.flatMap((f) => f.issues)).toEqual([]);
 
     expect(resolveRef('rh1-4-eq1')?.code).toContain('\\mathbf{r} = \\mathbf{i}x+\\mathbf{j}y,');
-    expect(resolveRef('rh1-4-eq2')?.code)
-      .toContain('\\mathbf{v} = \\frac{\\mathrm{d}\\mathbf{r}}{\\mathrm{d}t} = \\mathbf{i}v_x+\\mathbf{j}v_y,');
-    expect(resolveRef('rh1-4-eq3')?.code)
-      .toContain('\\mathbf{a} = \\frac{\\mathrm{d}\\mathbf{v}}{\\mathrm{d}t} = \\mathbf{i}a_x+\\mathbf{j}a_y.');
+    expect(resolveRef('rh1-4-eq2')?.code).toContain(
+      '\\mathbf{v} = \\frac{\\mathrm{d}\\mathbf{r}}{\\mathrm{d}t} = \\mathbf{i}v_x+\\mathbf{j}v_y,'
+    );
+    expect(resolveRef('rh1-4-eq3')?.code).toContain(
+      '\\mathbf{a} = \\frac{\\mathrm{d}\\mathbf{v}}{\\mathrm{d}t} = \\mathbf{i}a_x+\\mathbf{j}a_y.'
+    );
     for (const n of ['(4-1)', '(4-2)', '(4-3)']) expect(tekst()).toContain(n);
   });
 
@@ -81,7 +88,11 @@ describe('4-1 w czytniku', () => {
       expect(cel(id).path, id).toBe('Slownik.md');
       expect(resolveRef(id)?.code, id).toContain('@source 4-1');
     }
-    for (const id of ['rh1-poj-przyspieszenie', 'rh1-poj-wektor-polozenia', 'rh1-poj-predkosc-punktu']) {
+    for (const id of [
+      'rh1-poj-przyspieszenie',
+      'rh1-poj-wektor-polozenia',
+      'rh1-poj-predkosc-punktu',
+    ]) {
       expect(cel(id).found, id).toBe(true);
       expect(resolveRef(id)?.code, id).toContain('@source 3-');
     }

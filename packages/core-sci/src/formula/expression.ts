@@ -71,7 +71,7 @@ export interface CompiledExpression {
 export function compileExpression(
   latex: string,
   declared: string[] = [],
-  angularUnit: AngularUnit = 'radians',
+  angularUnit: AngularUnit = 'radians'
 ): CompiledExpression {
   const issues: string[] = [];
 
@@ -93,8 +93,8 @@ export function compileExpression(
 
   if (!result.success || typeof result.run !== 'function') {
     issues.push(
-      `Nie umiem skompilować „${latex}". Najczęstsza przyczyna to mnożenie przez sąsiedztwo `
-      + '— zapisz je jawnie, np. `m \\cdot L^2` zamiast `m L^2`.',
+      `Nie umiem skompilować „${latex}". Najczęstsza przyczyna to mnożenie przez sąsiedztwo ` +
+        '— zapisz je jawnie, np. `m \\cdot L^2` zamiast `m L^2`.'
     );
     return { evaluate: () => Number.NaN, freeSymbols, code: result.code, issues };
   }
@@ -127,11 +127,15 @@ export function compileExpression(
 function collisionMessage(name: string): string {
   const reserved = reservedSymbol(name);
   if (reserved) {
-    return `Symbol „${name}" jest zajęty — dla silnika matematycznego znaczy `
-      + `${reserved.meaning}. Użyj innej nazwy, np. ${reserved.suggestion}.`;
+    return (
+      `Symbol „${name}" jest zajęty — dla silnika matematycznego znaczy ` +
+      `${reserved.meaning}. Użyj innej nazwy, np. ${reserved.suggestion}.`
+    );
   }
-  return `Symbol „${name}" występuje w zapisie, ale silnik nie traktuje go jak zmiennej `
-    + '— prawdopodobnie ma wbudowane znaczenie. Zmień nazwę zmiennej.';
+  return (
+    `Symbol „${name}" występuje w zapisie, ale silnik nie traktuje go jak zmiennej ` +
+    '— prawdopodobnie ma wbudowane znaczenie. Zmień nazwę zmiennej.'
+  );
 }
 
 /**
@@ -174,12 +178,20 @@ export function compileCondition(latex: string, declared: string[] = []): Compil
   try {
     result = compile(engine.parse(latex), { to: 'javascript' });
   } catch (error) {
-    return { test: () => false, freeSymbols: [], issues: [`Nie umiem odczytać warunku „${latex}": ${(error as Error).message}`] };
+    return {
+      test: () => false,
+      freeSymbols: [],
+      issues: [`Nie umiem odczytać warunku „${latex}": ${(error as Error).message}`],
+    };
   }
 
   const freeSymbols = [...(result.freeSymbols ?? [])];
   if (!result.success || typeof result.run !== 'function') {
-    return { test: () => false, freeSymbols, issues: [`Nie umiem skompilować warunku „${latex}".`] };
+    return {
+      test: () => false,
+      freeSymbols,
+      issues: [`Nie umiem skompilować warunku „${latex}".`],
+    };
   }
 
   for (const name of declared) {
@@ -193,7 +205,7 @@ export function compileCondition(latex: string, declared: string[] = []): Compil
   // liczbę zamiast prawdy/fałszu, jest błędem zapisu i autor ma go zobaczyć
   // przy pisaniu, a nie dopiero wtedy, gdy zdarzenie nie zajdzie.
   const probe = Object.fromEntries(freeSymbols.map((name) => [name, 0]));
-  let returnsBoolean = false;
+  let returnsBoolean: boolean;
   try {
     returnsBoolean = typeof run(probe) === 'boolean';
   } catch {
@@ -246,7 +258,9 @@ const COMPARISONS: Array<[RegExp, 'up' | 'down' | 'any']> = [
  * Bez pilnowania nawiasów `\frac{a<b}{c}` rozpadłoby się w środku argumentu —
  * a takie zapisy zdarzają się w warunkach z ułamkami.
  */
-function splitAtComparison(latex: string): { left: string; right: string; direction: 'up' | 'down' | 'any' } | undefined {
+function splitAtComparison(
+  latex: string
+): { left: string; right: string; direction: 'up' | 'down' | 'any' } | undefined {
   for (const [pattern, direction] of COMPARISONS) {
     let depth = 0;
     for (let i = 0; i < latex.length; i += 1) {
@@ -275,7 +289,10 @@ function splitAtComparison(latex: string): { left: string; right: string; direct
  * cichu zgubiłoby drugi. Wołający ma wtedy wrócić do sprawdzania po kroku
  * i o tym powiedzieć.
  */
-export function compileComparison(latex: string, declared: string[] = []): CompiledComparison | undefined {
+export function compileComparison(
+  latex: string,
+  declared: string[] = []
+): CompiledComparison | undefined {
   const parts = splitAtComparison(latex);
   if (!parts) return undefined;
   // Człon z operatorem logicznym znaczy, że to nie jest proste porównanie.

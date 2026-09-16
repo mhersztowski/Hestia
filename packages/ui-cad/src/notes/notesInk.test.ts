@@ -4,7 +4,7 @@ import { isLightColor, defaultInkFor, needsInkSwitch } from './notesInk';
 describe('isLightColor', () => {
   it('tells light and dark backgrounds apart', () => {
     expect(isLightColor('#ffffff')).toBe(true);
-    expect(isLightColor('#fef3c7')).toBe(true);   // "Paper"
+    expect(isLightColor('#fef3c7')).toBe(true); // "Paper"
     expect(isLightColor('#000000')).toBe(false);
     expect(isLightColor('#1a1a1a')).toBe(false);
   });
@@ -38,13 +38,13 @@ describe('defaultInkFor', () => {
 
 describe('needsInkSwitch', () => {
   it('a pen invisible on the new background needs changing', () => {
-    expect(needsInkSwitch('#ffffff', '#ffffff')).toBe(true);   // white on white
-    expect(needsInkSwitch('#1a1a1a', '#000000')).toBe(true);   // black on black
+    expect(needsInkSwitch('#ffffff', '#ffffff')).toBe(true); // white on white
+    expect(needsInkSwitch('#1a1a1a', '#000000')).toBe(true); // black on black
   });
 
   it('a legible pen is left untouched', () => {
     expect(needsInkSwitch('#ffffff', '#000000')).toBe(false);
-    expect(needsInkSwitch('#ef4444', '#ffffff')).toBe(false);  // red on white
+    expect(needsInkSwitch('#ef4444', '#ffffff')).toBe(false); // red on white
   });
 
   it('a transparent pen is not touched', () => {

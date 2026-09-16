@@ -13,10 +13,22 @@
  * re-eksportuje to API dla wygody).
  */
 export type {
-  DiagramDocument, DiagramNode, DiagramEdge, DiagramGroup, DiagramKind,
-  DiagramDirection, NodeShape, EdgeArrowType, EdgeLineStyle, UnknownLine,
-  ClassMember, MemberVisibility, ClassRelationKind,
-  EntityAttribute, EntityKey, ErCardinality,
+  DiagramDocument,
+  DiagramNode,
+  DiagramEdge,
+  DiagramGroup,
+  DiagramKind,
+  DiagramDirection,
+  NodeShape,
+  EdgeArrowType,
+  EdgeLineStyle,
+  UnknownLine,
+  ClassMember,
+  MemberVisibility,
+  ClassRelationKind,
+  EntityAttribute,
+  EntityKey,
+  ErCardinality,
 } from './model/diagram';
 export { emptyDiagram, findNode, uniqueNodeId, edgeId, removeNode } from './model/diagram';
 
@@ -24,62 +36,145 @@ export type { DiagramFormat, ParseResult, ParseIssue } from './model/format';
 export { DiagramFormatRegistry, diagramFormats } from './model/format';
 
 export {
-  addNode, setNodeLabel, setNodeShape, setEdgeLabel, connect, removeEdge, renameNode, baseNameFor,
-  addGroup, setGroupLabel, setGroupSize, setGroupPosition, removeGroup, moveNodeToGroup, resetLayout, mergeLayout,
-  setEdgeStyle, reverseEdge, setNodeName,
+  addNode,
+  setNodeLabel,
+  setNodeShape,
+  setEdgeLabel,
+  connect,
+  removeEdge,
+  renameNode,
+  baseNameFor,
+  addGroup,
+  setGroupLabel,
+  setGroupSize,
+  setGroupPosition,
+  removeGroup,
+  moveNodeToGroup,
+  resetLayout,
+  mergeLayout,
+  setEdgeStyle,
+  reverseEdge,
+  setNodeName,
 } from './model/operations';
 export type { AddNodeOptions, AddGroupOptions, EdgeStylePatch } from './model/operations';
 
 export {
-  addMember, updateMember, removeMember, moveMember, setStereotype, formatMember, emptyMember,
+  addMember,
+  updateMember,
+  removeMember,
+  moveMember,
+  setStereotype,
+  formatMember,
+  emptyMember,
 } from './model/classMembers';
 
 export {
-  addAttribute, updateAttribute, toggleAttributeKey, removeAttribute, moveAttribute,
-  formatAttribute, emptyAttribute,
+  addAttribute,
+  updateAttribute,
+  toggleAttributeKey,
+  removeAttribute,
+  moveAttribute,
+  formatAttribute,
+  emptyAttribute,
 } from './model/entityAttributes';
 
 export {
-  classRelations, relationOf, setEdgeRelation, swapRelationSides,
-  RELATION_LOOK, RELATION_MEANING, CLASS_RELATION_KINDS,
+  classRelations,
+  relationOf,
+  setEdgeRelation,
+  swapRelationSides,
+  RELATION_LOOK,
+  RELATION_MEANING,
+  CLASS_RELATION_KINDS,
 } from './model/classRelations';
 export type { ClassRelationView, RelationLook } from './model/classRelations';
 
-export {
-  emptySequence, isBlock, participantsUsed, stepsAt, stepAt,
-} from './model/sequence';
+export { emptySequence, isBlock, participantsUsed, stepsAt, stepAt } from './model/sequence';
 export type {
-  SequenceScript, SequenceStep, SequenceMessage, SequenceNote, SequenceBlock,
-  SequenceParticipant, SequenceArrow, SequenceBlockKind, SequenceSection, StepPath,
+  SequenceScript,
+  SequenceStep,
+  SequenceMessage,
+  SequenceNote,
+  SequenceBlock,
+  SequenceParticipant,
+  SequenceArrow,
+  SequenceBlockKind,
+  SequenceSection,
+  StepPath,
 } from './model/sequence';
 export { layoutSequence } from './model/sequenceLayout';
 export type { SequenceLayout } from './model/sequenceLayout';
 export {
-  insertStep, insertIntoSection, removeStep, updateStep, moveStep, newBlock, addSection,
-  addParticipant, updateParticipant, renameParticipant, removeParticipant, setAutonumber,
+  insertStep,
+  insertIntoSection,
+  removeStep,
+  updateStep,
+  moveStep,
+  newBlock,
+  addSection,
+  addParticipant,
+  updateParticipant,
+  renameParticipant,
+  removeParticipant,
+  setAutonumber,
 } from './model/sequenceOps';
 
 export {
-  emptyPacket, fieldWidth, packetSize, validatePacket, DEFAULT_BITS_PER_ROW,
+  emptyPacket,
+  fieldWidth,
+  packetSize,
+  validatePacket,
+  DEFAULT_BITS_PER_ROW,
 } from './model/packet';
 export type { PacketSpec, PacketField, PacketIssue, PacketIssueKind } from './model/packet';
 export { layoutPacket } from './model/packetLayout';
 export type { PacketLayout } from './model/packetLayout';
 export {
-  addPacketField, updatePacketField, removePacketField, resizePacketField,
-  movePacketField, setPacketTitle,
+  addPacketField,
+  updatePacketField,
+  removePacketField,
+  resizePacketField,
+  movePacketField,
+  setPacketTitle,
 } from './model/packetOps';
 
 export { emptyKanban, cardCount, isPriority, KANBAN_PRIORITIES } from './model/kanban';
 export type { KanbanBoard, KanbanColumn, KanbanCard, KanbanPriority } from './model/kanban';
 export {
-  addColumn, updateColumn, removeColumn, moveColumn,
-  addCard, updateCard, removeCard, moveCard, moveCardToColumn,
+  addColumn,
+  updateColumn,
+  removeColumn,
+  moveColumn,
+  addCard,
+  updateCard,
+  removeCard,
+  moveCard,
+  moveCardToColumn,
 } from './model/kanbanOps';
 
-export { emptyGantt, ganttTasks, findTaskById, taskCount, isMilestone, GANTT_TAGS } from './model/gantt';
-export type { GanttChart, GanttSection, GanttTask, GanttTag, GanttStart, GanttEnd } from './model/gantt';
-export { scheduleGantt, parseDateWithFormat, parseDuration, placedCount, referenceableIds } from './model/ganttSchedule';
+export {
+  emptyGantt,
+  ganttTasks,
+  findTaskById,
+  taskCount,
+  isMilestone,
+  GANTT_TAGS,
+} from './model/gantt';
+export type {
+  GanttChart,
+  GanttSection,
+  GanttTask,
+  GanttTag,
+  GanttStart,
+  GanttEnd,
+} from './model/gantt';
+export {
+  scheduleGantt,
+  parseDateWithFormat,
+  parseDuration,
+  placedCount,
+  referenceableIds,
+} from './model/ganttSchedule';
 export type { GanttSchedule, ScheduledTask, ScheduledSection } from './model/ganttSchedule';
 export { layoutGantt, pickTickStep } from './model/ganttLayout';
 export type { GanttLayout, GanttRow, GanttBar, GanttTick } from './model/ganttLayout';
@@ -102,17 +197,39 @@ export {
 export { emptyTimeline, periodCount, eventCount } from './model/timeline';
 export type { Timeline, TimelineSection, TimelinePeriod } from './model/timeline';
 export {
-  addTimelineSection, updateTimelineSection, removeTimelineSection, moveTimelineSection,
-  addPeriod, updatePeriod, removePeriod, movePeriod, movePeriodToSection,
-  addEvent, updateEvent, removeEvent, moveEvent, setTimelineTitle,
+  addTimelineSection,
+  updateTimelineSection,
+  removeTimelineSection,
+  moveTimelineSection,
+  addPeriod,
+  updatePeriod,
+  removePeriod,
+  movePeriod,
+  movePeriodToSection,
+  addEvent,
+  updateEvent,
+  removeEvent,
+  moveEvent,
+  setTimelineTitle,
 } from './model/timelineOps';
 
 export {
-  c4CallName, c4BoundaryCallName, hasTechnology,
-  C4_ELEMENT_KINDS, C4_VARIANTS, C4_BOUNDARY_KINDS, C4_DIAGRAM_KINDS, C4_KIND_LABEL,
+  c4CallName,
+  c4BoundaryCallName,
+  hasTechnology,
+  C4_ELEMENT_KINDS,
+  C4_VARIANTS,
+  C4_BOUNDARY_KINDS,
+  C4_DIAGRAM_KINDS,
+  C4_KIND_LABEL,
 } from './model/c4';
 export type {
-  C4NodeInfo, C4BoundaryInfo, C4RelInfo, C4ElementKind, C4Variant, C4BoundaryKind,
+  C4NodeInfo,
+  C4BoundaryInfo,
+  C4RelInfo,
+  C4ElementKind,
+  C4Variant,
+  C4BoundaryKind,
 } from './model/c4';
 
 export { setC4Info, setC4Boundary, setC4Rel, withC4Kind } from './model/c4Ops';
@@ -125,20 +242,35 @@ export { estimateNodeSize } from './model/nodeSize';
 export { autoLayout, computeRanks } from './model/layout';
 export type { LayoutOptions } from './model/layout';
 
-export { mermaidFormat, parseFlowchart, serializeFlowchart, parseStateDiagram, serializeStateDiagram } from './formats/mermaid';
+export {
+  mermaidFormat,
+  parseFlowchart,
+  serializeFlowchart,
+  parseStateDiagram,
+  serializeStateDiagram,
+} from './formats/mermaid';
 export { readSectionLines, writeSectionLines } from './formats/mermaid/layoutFrontMatter';
 export { splitFrontMatter, withFrontMatter } from './formats/mermaid/frontMatter';
 
 // Most do projektów UML (`*.umlproj.json`) — wejście dla importu z kodu
 // źródłowego i wyjście dla strony Programming → UML.
 export {
-  umlDiagramToDocument, documentToUmlDiagram, parseUmlMember, formatUmlMember,
+  umlDiagramToDocument,
+  documentToUmlDiagram,
+  parseUmlMember,
+  formatUmlMember,
 } from './formats/uml/umlProject';
 export { umlProjectFormat } from './formats/uml/umlFormat';
 export { dotFormat, parseDot, serializeDot } from './formats/dot';
 export { plantUmlFormat, parsePlantUml, serializePlantUml } from './formats/plantuml';
 export type {
-  UmlDiagramLike, UmlNodeLike, UmlEdgeLike, UmlMemberLike, UmlNodeDataLike, UmlKind, UmlRelType,
+  UmlDiagramLike,
+  UmlNodeLike,
+  UmlEdgeLike,
+  UmlMemberLike,
+  UmlNodeDataLike,
+  UmlKind,
+  UmlRelType,
 } from './formats/uml/umlProject';
 
 export { DiagramEditor } from './editor/DiagramEditor';

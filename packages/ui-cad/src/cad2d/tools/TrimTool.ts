@@ -11,13 +11,19 @@ type TrimState = 'idle' | 'boundary';
  */
 function getLineBoundaryIntersections(
   target: LineEntity,
-  boundary: Entity,
+  boundary: Entity
 ): Array<{ x: number; y: number; t: number }> {
   if (boundary.type === 'line') {
     // Extend both lines infinitely for intersection finding
     const r = lineLineIntersection(
-      target.x1, target.y1, target.x2, target.y2,
-      boundary.x1, boundary.y1, boundary.x2, boundary.y2,
+      target.x1,
+      target.y1,
+      target.x2,
+      target.y2,
+      boundary.x1,
+      boundary.y1,
+      boundary.x2,
+      boundary.y2
     );
     if (!r) return [];
     // Allow target t outside [0,1] only slightly (intersection near segment)
@@ -28,9 +34,14 @@ function getLineBoundaryIntersections(
 
   if (boundary.type === 'circle') {
     return lineSegmentCircleIntersections(
-      target.x1, target.y1, target.x2, target.y2,
-      boundary.cx, boundary.cy, boundary.radius,
-    ).map(h => ({ x: h.point.x, y: h.point.y, t: h.t }));
+      target.x1,
+      target.y1,
+      target.x2,
+      target.y2,
+      boundary.cx,
+      boundary.cy,
+      boundary.radius
+    ).map((h) => ({ x: h.point.x, y: h.point.y, t: h.t }));
   }
 
   return [];
@@ -53,8 +64,10 @@ export class TrimTool implements Tool {
   onPointerDown(point: Point2D, ctx: ToolContext): void {
     if (this.state === 'idle') {
       const nearby = ctx.project.entityRegistry.getInBoundingBox({
-        minX: point.x - 40, minY: point.y - 40,
-        maxX: point.x + 40, maxY: point.y + 40,
+        minX: point.x - 40,
+        minY: point.y - 40,
+        maxX: point.x + 40,
+        maxY: point.y + 40,
       });
       const e = pickNearestEntity(nearby, point, 25);
       if (e) {
@@ -68,16 +81,21 @@ export class TrimTool implements Tool {
 
   private doTrim(clickPoint: Point2D, ctx: ToolContext): void {
     const boundary = ctx.project.entityRegistry.get(this.boundaryId!);
-    if (!boundary) { this.reset(); return; }
+    if (!boundary) {
+      this.reset();
+      return;
+    }
 
     const nearby = ctx.project.entityRegistry.getInBoundingBox({
-      minX: clickPoint.x - 40, minY: clickPoint.y - 40,
-      maxX: clickPoint.x + 40, maxY: clickPoint.y + 40,
+      minX: clickPoint.x - 40,
+      minY: clickPoint.y - 40,
+      maxX: clickPoint.x + 40,
+      maxY: clickPoint.y + 40,
     });
     const target = pickNearestEntity(
-      nearby.filter(e => e.id !== this.boundaryId),
+      nearby.filter((e) => e.id !== this.boundaryId),
       clickPoint,
-      25,
+      25
     );
 
     if (!target || target.type !== 'line') {
@@ -89,7 +107,12 @@ export class TrimTool implements Tool {
     // After trim, stay in 'boundary' state so user can keep trimming with same boundary
   }
 
-  private trimLine(target: LineEntity, boundary: Entity, clickPoint: Point2D, ctx: ToolContext): void {
+  private trimLine(
+    target: LineEntity,
+    boundary: Entity,
+    clickPoint: Point2D,
+    ctx: ToolContext
+  ): void {
     const intersections = getLineBoundaryIntersections(target, boundary);
     if (intersections.length === 0) return;
 
@@ -97,10 +120,13 @@ export class TrimTool implements Tool {
     intersections.sort((a, b) => a.t - b.t);
 
     // Determine the click's t parameter on the target line
-    const dx = target.x2 - target.x1, dy = target.y2 - target.y1;
+    const dx = target.x2 - target.x1,
+      dy = target.y2 - target.y1;
     const lenSq = dx * dx + dy * dy;
-    const clickT = lenSq < 1e-12 ? 0
-      : ((clickPoint.x - target.x1) * dx + (clickPoint.y - target.y1) * dy) / lenSq;
+    const clickT =
+      lenSq < 1e-12
+        ? 0
+        : ((clickPoint.x - target.x1) * dx + (clickPoint.y - target.y1) * dy) / lenSq;
 
     // Find which segment the click falls in:
     // Segments: [start … t0], [t0 … t1], …, [tn … end]
@@ -112,7 +138,8 @@ export class TrimTool implements Tool {
     ];
 
     for (let i = 0; i < ts.length - 1; i++) {
-      const tLo = ts[i].t, tHi = ts[i + 1].t;
+      const tLo = ts[i].t,
+        tHi = ts[i + 1].t;
       if (clickT >= tLo - 0.01 && clickT <= tHi + 0.01) {
         // User clicked this segment → remove it by updating the line to exclude this part
         this.commitTrim(target, ts, i, ctx);
@@ -125,7 +152,7 @@ export class TrimTool implements Tool {
     target: LineEntity,
     tSegments: Array<{ x: number; y: number; t: number }>,
     removedIdx: number,
-    ctx: ToolContext,
+    ctx: ToolContext
   ): void {
     // The removed segment is between tSegments[removedIdx] and tSegments[removedIdx + 1]
     // Remaining segments before: [0 … removedIdx]
@@ -137,19 +164,32 @@ export class TrimTool implements Tool {
     ctx.project.beginCompound();
 
     if (before.length >= 2 && after.length >= 2) {
-      const p1 = before[0], p2 = before[before.length - 1];
-      const p3 = after[0], p4 = after[after.length - 1];
+      const p1 = before[0],
+        p2 = before[before.length - 1];
+      const p3 = after[0],
+        p4 = after[after.length - 1];
       ctx.project.updateEntity(target.id, { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
       ctx.project.addEntity({
-        type: 'line', x1: p3.x, y1: p3.y, x2: p4.x, y2: p4.y,
-        layerId: target.layerId, color: target.color, lineType: target.lineType,
-        lineWidth: target.lineWidth, visible: true, locked: false, extrudeHeight: 0,
+        type: 'line',
+        x1: p3.x,
+        y1: p3.y,
+        x2: p4.x,
+        y2: p4.y,
+        layerId: target.layerId,
+        color: target.color,
+        lineType: target.lineType,
+        lineWidth: target.lineWidth,
+        visible: true,
+        locked: false,
+        extrudeHeight: 0,
       });
     } else if (before.length >= 2) {
-      const p1 = before[0], p2 = before[before.length - 1];
+      const p1 = before[0],
+        p2 = before[before.length - 1];
       ctx.project.updateEntity(target.id, { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
     } else if (after.length >= 2) {
-      const p3 = after[0], p4 = after[after.length - 1];
+      const p3 = after[0],
+        p4 = after[after.length - 1];
       ctx.project.updateEntity(target.id, { x1: p3.x, y1: p3.y, x2: p4.x, y2: p4.y });
     } else {
       ctx.project.removeEntity(target.id);

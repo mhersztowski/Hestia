@@ -5,15 +5,17 @@ export type { PartDef };
 // ── Helper: generate side pins for DIP/SIP components ──────────────────────
 
 function leftRightPins(
-  width: number, height: number, leftLabels: string[], rightLabels: string[],
+  width: number,
+  height: number,
+  leftLabels: string[],
+  rightLabels: string[]
 ): PartDef['pins'] {
   const pins: PartDef['pins'] = [];
   // Right-side pins sit on the body's last column — derived from width so a
   // wider package still places them on its actual right edge.
   const rightX = width - 1;
   for (let i = 0; i < height; i++) {
-    if (leftLabels[i] !== undefined)
-      pins.push({ id: `L${i}`, x: 0, y: i, label: leftLabels[i] });
+    if (leftLabels[i] !== undefined) pins.push({ id: `L${i}`, x: 0, y: i, label: leftLabels[i] });
     if (rightLabels[i] !== undefined)
       pins.push({ id: `R${i}`, x: rightX, y: i, label: rightLabels[i] });
   }
@@ -35,14 +37,14 @@ const breadboard830: PartDef = {
   // Pins: power rail endpoints + corner references
   // Individual hole snap is handled by the grid; we only mark special points here.
   pins: [
-    { id: 'vcc-top-l',  x: 1,  y: 0,  label: '+' },
-    { id: 'gnd-top-l',  x: 1,  y: 1,  label: '−' },
-    { id: 'vcc-top-r',  x: 63, y: 0,  label: '+' },
-    { id: 'gnd-top-r',  x: 63, y: 1,  label: '−' },
-    { id: 'vcc-bot-l',  x: 1,  y: 15, label: '+' },
-    { id: 'gnd-bot-l',  x: 1,  y: 16, label: '−' },
-    { id: 'vcc-bot-r',  x: 63, y: 15, label: '+' },
-    { id: 'gnd-bot-r',  x: 63, y: 16, label: '−' },
+    { id: 'vcc-top-l', x: 1, y: 0, label: '+' },
+    { id: 'gnd-top-l', x: 1, y: 1, label: '−' },
+    { id: 'vcc-top-r', x: 63, y: 0, label: '+' },
+    { id: 'gnd-top-r', x: 63, y: 1, label: '−' },
+    { id: 'vcc-bot-l', x: 1, y: 15, label: '+' },
+    { id: 'gnd-bot-l', x: 1, y: 16, label: '−' },
+    { id: 'vcc-bot-r', x: 63, y: 15, label: '+' },
+    { id: 'gnd-bot-r', x: 63, y: 16, label: '−' },
   ],
 };
 
@@ -56,9 +58,27 @@ const arduinoNano: PartDef = {
   bodyColor: '#0d47a1',
   bodyShape: 'dip',
   label: 'Arduino\nNano',
-  pins: leftRightPins(4, 15,
-    ['TX1','RX0','RST','GND','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12'],
-    ['D13','3V3','REF','A0','A1','A2','A3','A4','A5','A6','A7','5V','RST','GND','VIN'],
+  pins: leftRightPins(
+    4,
+    15,
+    [
+      'TX1',
+      'RX0',
+      'RST',
+      'GND',
+      'D2',
+      'D3',
+      'D4',
+      'D5',
+      'D6',
+      'D7',
+      'D8',
+      'D9',
+      'D10',
+      'D11',
+      'D12',
+    ],
+    ['D13', '3V3', 'REF', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', '5V', 'RST', 'GND', 'VIN']
   ),
 };
 
@@ -73,9 +93,51 @@ const esp32DevKit: PartDef = {
   bodyColor: '#1a237e',
   bodyShape: 'dip',
   label: 'ESP32',
-  pins: leftRightPins(4, 19,
-    ['3V3','EN','VP','VN','D34','D35','D32','D33','D25','D26','D27','D14','D12','D13','GND','D15','D2','D4','RX2'],
-    ['GND','D23','D22','TX0','RX0','D21','D19','D18','D5','D17','D16','D4','D0','D2','D15','D8','D7','D6','D5'],
+  pins: leftRightPins(
+    4,
+    19,
+    [
+      '3V3',
+      'EN',
+      'VP',
+      'VN',
+      'D34',
+      'D35',
+      'D32',
+      'D33',
+      'D25',
+      'D26',
+      'D27',
+      'D14',
+      'D12',
+      'D13',
+      'GND',
+      'D15',
+      'D2',
+      'D4',
+      'RX2',
+    ],
+    [
+      'GND',
+      'D23',
+      'D22',
+      'TX0',
+      'RX0',
+      'D21',
+      'D19',
+      'D18',
+      'D5',
+      'D17',
+      'D16',
+      'D4',
+      'D0',
+      'D2',
+      'D15',
+      'D8',
+      'D7',
+      'D6',
+      'D5',
+    ]
   ),
 };
 
@@ -89,9 +151,11 @@ const esp8266Wemos: PartDef = {
   bodyColor: '#1565c0',
   bodyShape: 'dip',
   label: 'D1 Mini',
-  pins: leftRightPins(4, 8,
-    ['RST','A0','D0','D5','D6','D7','D8','3V3'],
-    ['TX','RX','D1','D2','D3','D4','GND','5V'],
+  pins: leftRightPins(
+    4,
+    8,
+    ['RST', 'A0', 'D0', 'D5', 'D6', 'D7', 'D8', '3V3'],
+    ['TX', 'RX', 'D1', 'D2', 'D3', 'D4', 'GND', '5V']
   ),
 };
 
@@ -124,7 +188,7 @@ const ledRed: PartDef = {
   indicatorColor: '#ff1744',
   pins: [
     { id: 'cathode', x: 0, y: 0, label: '−' },
-    { id: 'anode',   x: 2, y: 0, label: '+' },
+    { id: 'anode', x: 2, y: 0, label: '+' },
   ],
 };
 
@@ -141,7 +205,7 @@ const ledGreen: PartDef = {
   indicatorColor: '#00e676',
   pins: [
     { id: 'cathode', x: 0, y: 0, label: '−' },
-    { id: 'anode',   x: 2, y: 0, label: '+' },
+    { id: 'anode', x: 2, y: 0, label: '+' },
   ],
 };
 
@@ -158,7 +222,7 @@ const ledBlue: PartDef = {
   indicatorColor: '#448aff',
   pins: [
     { id: 'cathode', x: 0, y: 0, label: '−' },
-    { id: 'anode',   x: 2, y: 0, label: '+' },
+    { id: 'anode', x: 2, y: 0, label: '+' },
   ],
 };
 
@@ -196,7 +260,7 @@ const joystickPs: PartDef = {
     { id: 'vcc', x: 1, y: 5, label: '+5V' },
     { id: 'vrx', x: 2, y: 5, label: 'VRx' },
     { id: 'vry', x: 3, y: 5, label: 'VRy' },
-    { id: 'sw',  x: 4, y: 5, label: 'SW' },
+    { id: 'sw', x: 4, y: 5, label: 'SW' },
   ],
 };
 
@@ -227,8 +291,8 @@ const npnTransistor: PartDef = {
   bodyShape: 'transistor',
   label: 'NPN',
   pins: [
-    { id: 'emitter',   x: 0, y: 1, label: 'E' },
-    { id: 'base',      x: 1, y: 1, label: 'B' },
+    { id: 'emitter', x: 0, y: 1, label: 'E' },
+    { id: 'base', x: 1, y: 1, label: 'B' },
     { id: 'collector', x: 2, y: 1, label: 'C' },
   ],
 };
@@ -244,10 +308,10 @@ const dht22: PartDef = {
   bodyShape: 'ic',
   label: 'DHT22',
   pins: [
-    { id: 'vcc',  x: 0, y: 1, label: 'VCC' },
+    { id: 'vcc', x: 0, y: 1, label: 'VCC' },
     { id: 'data', x: 0, y: 2, label: 'DATA' },
-    { id: 'nc',   x: 0, y: 3, label: 'NC' },
-    { id: 'gnd',  x: 0, y: 4, label: 'GND' },
+    { id: 'nc', x: 0, y: 3, label: 'NC' },
+    { id: 'gnd', x: 0, y: 4, label: 'GND' },
   ],
 };
 
@@ -262,9 +326,9 @@ const potentiometer: PartDef = {
   bodyShape: 'ic',
   label: 'POT',
   pins: [
-    { id: 'p1',   x: 1, y: 2, label: 'P1' },
+    { id: 'p1', x: 1, y: 2, label: 'P1' },
     { id: 'wiper', x: 2, y: 2, label: 'W' },
-    { id: 'p2',   x: 3, y: 2, label: 'P2' },
+    { id: 'p2', x: 3, y: 2, label: 'P2' },
   ],
 };
 
@@ -280,13 +344,12 @@ const oledI2c: PartDef = {
   label: 'OLED\n0.96"',
   // 4-pin header on the bottom edge — y = h-1 so they render as proper bottom pins.
   pins: [
-    { id: 'gnd',  x: 1, y: 7, label: 'GND' },
-    { id: 'vcc',  x: 2, y: 7, label: 'VCC' },
-    { id: 'scl',  x: 3, y: 7, label: 'SCL' },
-    { id: 'sda',  x: 4, y: 7, label: 'SDA' },
+    { id: 'gnd', x: 1, y: 7, label: 'GND' },
+    { id: 'vcc', x: 2, y: 7, label: 'VCC' },
+    { id: 'scl', x: 3, y: 7, label: 'SCL' },
+    { id: 'sda', x: 4, y: 7, label: 'SDA' },
   ],
 };
-
 
 const esp32s3Pico: PartDef = {
   id: 'esp32-s3-pico',
@@ -298,13 +361,57 @@ const esp32s3Pico: PartDef = {
   bodyColor: '#1a237e',
   bodyShape: 'dip',
   label: 'ESP32S3Pico',
-  pins: leftRightPins(7, 20,
-    ['GP11','GP12','GND','GP13','GP14','GP15','GP16','GND','GP17','GP18','GP33','GP34','GND','GP35','GP36','GP37','GP38','GND','GP39', 'GP40'],
-    ['VBUS','VSYS','GND','3V3_EN','3V3(OUT)','GP10','GP9','GND','GP8','GP7','RUN','GP6','GND','GP5','GP4','GP2','GP1','GND','GP41', 'GP42'],
+  pins: leftRightPins(
+    7,
+    20,
+    [
+      'GP11',
+      'GP12',
+      'GND',
+      'GP13',
+      'GP14',
+      'GP15',
+      'GP16',
+      'GND',
+      'GP17',
+      'GP18',
+      'GP33',
+      'GP34',
+      'GND',
+      'GP35',
+      'GP36',
+      'GP37',
+      'GP38',
+      'GND',
+      'GP39',
+      'GP40',
+    ],
+    [
+      'VBUS',
+      'VSYS',
+      'GND',
+      '3V3_EN',
+      '3V3(OUT)',
+      'GP10',
+      'GP9',
+      'GND',
+      'GP8',
+      'GP7',
+      'RUN',
+      'GP6',
+      'GND',
+      'GP5',
+      'GP4',
+      'GP2',
+      'GP1',
+      'GND',
+      'GP41',
+      'GP42',
+    ]
   ),
 };
 
-const ky_018: PartDef = {
+const ky018: PartDef = {
   id: 'ky_018',
   name: 'KY-018 Sensor',
   category: 'sensor',
@@ -315,9 +422,9 @@ const ky_018: PartDef = {
   bodyShape: 'ic',
   label: 'KY-018',
   pins: [
-    { id: 'S',  x: 0, y: 1, label: 'S' },
+    { id: 'S', x: 0, y: 1, label: 'S' },
     { id: 'VCC', x: 0, y: 2, label: 'VCC' },
-    { id: 'GND',   x: 0, y: 3, label: 'GND' },
+    { id: 'GND', x: 0, y: 3, label: 'GND' },
   ],
 };
 
@@ -332,14 +439,14 @@ const dht11: PartDef = {
   bodyShape: 'ic',
   label: 'DHT11',
   pins: [
-    { id: 'VCC',  x: 0, y: 1, label: 'VCC' },
+    { id: 'VCC', x: 0, y: 1, label: 'VCC' },
     { id: 'DATA', x: 0, y: 2, label: 'DATA' },
-    { id: 'NC',   x: 0, y: 3, label: 'NC' },
-    { id: 'GND',   x: 0, y: 4, label: 'GND' },
+    { id: 'NC', x: 0, y: 3, label: 'NC' },
+    { id: 'GND', x: 0, y: 4, label: 'GND' },
   ],
 };
 
-const hc_sr04: PartDef = {
+const hcSr04: PartDef = {
   id: 'hc_sr04',
   name: 'HC-SR04 Sensor',
   category: 'sensor',
@@ -350,10 +457,10 @@ const hc_sr04: PartDef = {
   bodyShape: 'ic',
   label: 'HC-SR04',
   pins: [
-    { id: 'VCC',  x: 0, y: 1, label: 'VCC' },
+    { id: 'VCC', x: 0, y: 1, label: 'VCC' },
     { id: 'TRIG', x: 0, y: 2, label: 'TRIG' },
-    { id: 'ECHO',   x: 0, y: 3, label: 'ECHO' },
-    { id: 'GND',   x: 0, y: 4, label: 'GND' },
+    { id: 'ECHO', x: 0, y: 3, label: 'ECHO' },
+    { id: 'GND', x: 0, y: 4, label: 'GND' },
   ],
 };
 
@@ -368,10 +475,10 @@ const tcrt5000: PartDef = {
   bodyShape: 'ic',
   label: 'TCRT5000',
   pins: [
-    { id: 'A0',  x: 0, y: 1, label: 'A0' },
+    { id: 'A0', x: 0, y: 1, label: 'A0' },
     { id: 'D0', x: 0, y: 2, label: 'D0' },
-    { id: 'GND',   x: 0, y: 3, label: 'GND' },
-    { id: 'VCC',   x: 0, y: 4, label: 'VCC' },
+    { id: 'GND', x: 0, y: 3, label: 'GND' },
+    { id: 'VCC', x: 0, y: 4, label: 'VCC' },
   ],
 };
 
@@ -386,15 +493,15 @@ const max72198: PartDef = {
   bodyShape: 'ic',
   label: 'MAX72198',
   pins: [
-    { id: 'CLK',  x: 0, y: 1, label: 'CLK' },
+    { id: 'CLK', x: 0, y: 1, label: 'CLK' },
     { id: 'CS', x: 0, y: 2, label: 'CS' },
-    { id: 'DIN',   x: 0, y: 3, label: 'DIN' },
-    { id: 'GND',   x: 0, y: 4, label: 'GND' },
-    { id: 'VCC',   x: 0, y: 5, label: 'VCC' },
+    { id: 'DIN', x: 0, y: 3, label: 'DIN' },
+    { id: 'GND', x: 0, y: 4, label: 'GND' },
+    { id: 'VCC', x: 0, y: 5, label: 'VCC' },
   ],
 };
 
-const ath20_bmp280: PartDef = {
+const ath20Bmp280: PartDef = {
   id: 'ath20_bmp280',
   name: 'ATH20_BMP280 Sensor',
   category: 'sensor',
@@ -405,10 +512,10 @@ const ath20_bmp280: PartDef = {
   bodyShape: 'ic',
   label: 'ATH20_BMP280',
   pins: [
-    { id: 'VCC',  x: 0, y: 1, label: 'VCC' },
+    { id: 'VCC', x: 0, y: 1, label: 'VCC' },
     { id: 'SDA', x: 0, y: 2, label: 'SDA' },
-    { id: 'GND',   x: 0, y: 3, label: 'GND' },
-    { id: 'SCL',   x: 0, y: 4, label: 'SCL' },
+    { id: 'GND', x: 0, y: 3, label: 'GND' },
+    { id: 'SCL', x: 0, y: 4, label: 'SCL' },
   ],
 };
 
@@ -431,8 +538,6 @@ const lcd1602i2c: PartDef = {
   ],
 };
 
-
-
 // ── Registry ────────────────────────────────────────────────────────────────
 
 export const PART_LIBRARY: PartDef[] = [
@@ -452,12 +557,12 @@ export const PART_LIBRARY: PartDef[] = [
   potentiometer,
   oledI2c,
   esp32s3Pico,
-  ky_018,
+  ky018,
   dht11,
-  hc_sr04,
+  hcSr04,
   tcrt5000,
   max72198,
-  ath20_bmp280,
+  ath20Bmp280,
   lcd1602i2c,
 ];
 
@@ -469,11 +574,17 @@ export function registerEmbeddedPart(def: PartDef): void {
 }
 
 export function getPartDef(id: string): PartDef | undefined {
-  return EMBEDDED_PARTS.get(id) ?? PART_LIBRARY.find(p => p.id === id);
+  return EMBEDDED_PARTS.get(id) ?? PART_LIBRARY.find((p) => p.id === id);
 }
 
 export const CATEGORY_ORDER: PartCategory[] = [
-  'board', 'microcontroller', 'sensor', 'display', 'active', 'passive', 'power',
+  'board',
+  'microcontroller',
+  'sensor',
+  'display',
+  'active',
+  'passive',
+  'power',
 ];
 
 export const CATEGORY_LABEL: Record<PartCategory, string> = {

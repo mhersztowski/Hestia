@@ -22,12 +22,12 @@ export class ArcTool implements Tool {
   name = 'arc' as const;
   private state: ArcState = 'idle';
   private center: Point2D | null = null;
-  private radius = 0;       // ustalony po fazie 'center'
-  private startAngle = 0;   // ustalony po fazie 'center'
+  private radius = 0; // ustalony po fazie 'center'
+  private startAngle = 0; // ustalony po fazie 'center'
   private cursor: Point2D = { x: 0, y: 0 };
-  private lockR: number | null = null;      // the typed radius ('center' phase)
-  private lockStart: number | null = null;  // the typed start angle, rad ('center' phase)
-  private lockEnd: number | null = null;    // the typed end angle, rad ('start' phase)
+  private lockR: number | null = null; // the typed radius ('center' phase)
+  private lockStart: number | null = null; // the typed start angle, rad ('center' phase)
+  private lockEnd: number | null = null; // the typed end angle, rad ('start' phase)
 
   /** The cursor's angle about the centre. */
   private cursorAngle(): number {
@@ -128,15 +128,29 @@ export class ArcTool implements Tool {
       return [
         {
           id: 'radius',
-          worldX: startPt.x, worldY: startPt.y, text: `${r.toFixed(2)}`,
-          offsetX: 0, offsetY: 18, variant: 'primary',
-          editable: true, onEdit: (v: number) => { this.lockR = v; },
+          worldX: startPt.x,
+          worldY: startPt.y,
+          text: `${r.toFixed(2)}`,
+          offsetX: 0,
+          offsetY: 18,
+          variant: 'primary',
+          editable: true,
+          onEdit: (v: number) => {
+            this.lockR = v;
+          },
         },
         {
           id: 'startAngle',
-          worldX: startPt.x, worldY: startPt.y, text: `${toDegNorm(this.effStart()).toFixed(2)} °`,
-          offsetX: 74, offsetY: -30, variant: 'secondary',
-          editable: true, onEdit: (deg: number) => { this.lockStart = (deg * Math.PI) / 180; },
+          worldX: startPt.x,
+          worldY: startPt.y,
+          text: `${toDegNorm(this.effStart()).toFixed(2)} °`,
+          offsetX: 74,
+          offsetY: -30,
+          variant: 'secondary',
+          editable: true,
+          onEdit: (deg: number) => {
+            this.lockStart = (deg * Math.PI) / 180;
+          },
         },
       ];
     }
@@ -147,9 +161,16 @@ export class ArcTool implements Tool {
       return [
         {
           id: 'endAngle',
-          worldX: endPt.x, worldY: endPt.y, text: `${toDegNorm(ea).toFixed(2)} °`,
-          offsetX: 40, offsetY: -8, variant: 'primary',
-          editable: true, onEdit: (deg: number) => { this.lockEnd = (deg * Math.PI) / 180; },
+          worldX: endPt.x,
+          worldY: endPt.y,
+          text: `${toDegNorm(ea).toFixed(2)} °`,
+          offsetX: 40,
+          offsetY: -8,
+          variant: 'primary',
+          editable: true,
+          onEdit: (deg: number) => {
+            this.lockEnd = (deg * Math.PI) / 180;
+          },
         },
       ];
     }
@@ -188,11 +209,18 @@ export class ArcTool implements Tool {
     if (!this.center) return;
     ctx.project.addEntity({
       type: 'arc',
-      cx: this.center.x, cy: this.center.y,
-      radius: this.radius, startAngle: this.startAngle, endAngle,
+      cx: this.center.x,
+      cy: this.center.y,
+      radius: this.radius,
+      startAngle: this.startAngle,
+      endAngle,
       layerId: ctx.project.layerSystem.getActiveId(),
-      color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-      visible: true, locked: false, extrudeHeight: 0,
+      color: 'bylayer',
+      lineType: 'bylayer',
+      lineWidth: 'bylayer',
+      visible: true,
+      locked: false,
+      extrudeHeight: 0,
     });
     this.reset();
   }
@@ -200,7 +228,10 @@ export class ArcTool implements Tool {
   /** Enter / ✓ — commits the current phase (center → start), or finishes the arc (start). */
   commitDraft(ctx: ToolContext): boolean {
     if (this.state === 'center') return this.confirmCenter();
-    if (this.state === 'start' && this.center) { this.commitArc(this.effEnd(), ctx); return true; }
+    if (this.state === 'start' && this.center) {
+      this.commitArc(this.effEnd(), ctx);
+      return true;
+    }
     return false;
   }
 

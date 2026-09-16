@@ -18,3 +18,12 @@ export * from './SmartDisplayModel';
 export * from './AuthTypes';
 export * from './AppSessionModel';
 export * from './DashModel';
+
+// ── User interface ───────────────────────────────────────────────────────────
+//
+// The serialisable description of a toolbar, a menu and a menu bar. The live
+// objects built from these are in `coreobject/ui`.
+export * from './ui/toolbar';
+export * from './ui/menubar';
+export * from './ui/panel';
+export * from './ui/tabbar';

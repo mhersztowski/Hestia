@@ -3,7 +3,10 @@ import { generateCpp } from './cppCodegen.js';
 import { generatePython } from './pyCodegen.js';
 import { generateTs } from './tsCodegen.js';
 
-export interface GeneratedFile { file: string; content: string }
+export interface GeneratedFile {
+  file: string;
+  content: string;
+}
 
 /** Generate source-code skeletons from a model for the given target language. */
 export function generateCode(model: CodeModel, language: Language): GeneratedFile[] {

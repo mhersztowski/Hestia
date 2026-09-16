@@ -20,7 +20,10 @@
  * jest z kodu sprzed tygodnia, nie da się zobaczyć bez takiego porównania.
  */
 import {
-  readSectionLines, splitFrontMatter, withFrontMatter, writeSectionLines,
+  readSectionLines,
+  splitFrontMatter,
+  withFrontMatter,
+  writeSectionLines,
   type DiagramDocument,
 } from '@hestia/ui-devtools/diagrams';
 
@@ -43,8 +46,13 @@ export function readCodeSource(code: string): CodeSource | undefined {
   const dir = lines.map((l) => /^\s+dir:\s*(.+?)\s*$/.exec(l)?.[1]).find(Boolean);
   if (!dir) return undefined;
 
-  const raw = lines.map((l) => /^\s+files:\s*\[(.*)\]\s*$/.exec(l)?.[1]).find((v) => v !== undefined);
-  const files = (raw ?? '').split(',').map((f) => f.trim()).filter(Boolean);
+  const raw = lines
+    .map((l) => /^\s+files:\s*\[(.*)\]\s*$/.exec(l)?.[1])
+    .find((v) => v !== undefined);
+  const files = (raw ?? '')
+    .split(',')
+    .map((f) => f.trim())
+    .filter(Boolean);
 
   return { dir, files };
 }
@@ -100,7 +108,9 @@ export function describeDiff(before: DiagramDocument, after: DiagramDocument): s
 
     const roznica = po.length - przed.length;
     if (roznica > 0) {
-      out.push(`${id}: ${roznica} ${odmien(roznica, 'składowa więcej', 'składowe więcej', 'składowych więcej')}`);
+      out.push(
+        `${id}: ${roznica} ${odmien(roznica, 'składowa więcej', 'składowe więcej', 'składowych więcej')}`
+      );
     } else if (roznica < 0) {
       const n = -roznica;
       out.push(`${id}: ${n} ${odmien(n, 'składowa mniej', 'składowe mniej', 'składowych mniej')}`);
@@ -111,14 +121,16 @@ export function describeDiff(before: DiagramDocument, after: DiagramDocument): s
 
   // Relacje porównujemy zbiorczo: pojedyncza zmieniona krawędź w diagramie
   // z kodu prawie zawsze znaczy zmianę typu pola, o której mówi już linia wyżej.
-  const klucz = (e: { source: string; target: string; relation?: string }) => `${e.source}>${e.target}:${e.relation ?? ''}`;
+  const klucz = (e: { source: string; target: string; relation?: string }) =>
+    `${e.source}>${e.target}:${e.relation ?? ''}`;
   const relacjePrzed = new Set(before.edges.map(klucz));
   const relacjePo = new Set(after.edges.map(klucz));
   const dodane = [...relacjePo].filter((r) => !relacjePrzed.has(r)).length;
   const usuniete = [...relacjePrzed].filter((r) => !relacjePo.has(r)).length;
 
   if (dodane > 0) out.push(`dodano ${dodane} ${odmien(dodane, 'relację', 'relacje', 'relacji')}`);
-  if (usuniete > 0) out.push(`usunięto ${usuniete} ${odmien(usuniete, 'relację', 'relacje', 'relacji')}`);
+  if (usuniete > 0)
+    out.push(`usunięto ${usuniete} ${odmien(usuniete, 'relację', 'relacje', 'relacji')}`);
 
   return out;
 }

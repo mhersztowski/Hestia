@@ -75,9 +75,15 @@ export function panByPixels(v: Viewport, size: Size, dxPixels: number, dyPixels:
   return { xMin: v.xMin + dx, xMax: v.xMax + dx, yMin: v.yMin + dy, yMax: v.yMax + dy };
 }
 
-function clampSpan(min: number, max: number, fallbackMin: number, fallbackMax: number): [number, number] {
+function clampSpan(
+  min: number,
+  max: number,
+  fallbackMin: number,
+  fallbackMax: number
+): [number, number] {
   const span = max - min;
-  if (!Number.isFinite(span) || span < MIN_SPAN || span > MAX_SPAN) return [fallbackMin, fallbackMax];
+  if (!Number.isFinite(span) || span < MIN_SPAN || span > MAX_SPAN)
+    return [fallbackMin, fallbackMax];
   return [min, max];
 }
 
@@ -96,7 +102,7 @@ export function zoomAt(
   size: Size,
   factor: number,
   anchor: Point,
-  axes: { x: boolean; y: boolean } = { x: true, y: true },
+  axes: { x: boolean; y: boolean } = { x: true, y: true }
 ): Viewport {
   const world = screenToWorld(v, size, anchor);
 
@@ -106,12 +112,14 @@ export function zoomAt(
   const [xMin, xMax] = clampSpan(
     world.x + (v.xMin - world.x) * scaleX,
     world.x + (v.xMax - world.x) * scaleX,
-    v.xMin, v.xMax,
+    v.xMin,
+    v.xMax
   );
   const [yMin, yMax] = clampSpan(
     world.y + (v.yMin - world.y) * scaleY,
     world.y + (v.yMax - world.y) * scaleY,
-    v.yMin, v.yMax,
+    v.yMin,
+    v.yMax
   );
 
   return { xMin, xMax, yMin, yMax };

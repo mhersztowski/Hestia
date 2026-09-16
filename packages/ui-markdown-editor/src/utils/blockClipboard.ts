@@ -15,7 +15,10 @@ import { htmlToMarkdown } from './markdownConverter';
 
 let store: { html: string; markdown: string } | null = null;
 
-export function serializeBlocks(editor: Editor, nodes: PmNode[]): { html: string; markdown: string } {
+export function serializeBlocks(
+  editor: Editor,
+  nodes: PmNode[]
+): { html: string; markdown: string } {
   const serializer = DOMSerializer.fromSchema(editor.schema);
   const tmp = document.createElement('div');
   tmp.appendChild(serializer.serializeFragment(Fragment.fromArray(nodes)));
@@ -32,14 +35,18 @@ export async function copyBlocks(editor: Editor, nodes: PmNode[]): Promise<void>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const CI = (window as any).ClipboardItem;
     if (navigator.clipboard?.write && CI) {
-      await navigator.clipboard.write([new CI({
-        'text/html': new Blob([html], { type: 'text/html' }),
-        'text/plain': new Blob([markdown], { type: 'text/plain' }),
-      })]);
+      await navigator.clipboard.write([
+        new CI({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([markdown], { type: 'text/plain' }),
+        }),
+      ]);
     } else if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(markdown);
     }
-  } catch { /* system clipboard unavailable (e.g. Android/HTTP) — in-app copy still works */ }
+  } catch {
+    /* system clipboard unavailable (e.g. Android/HTTP) — in-app copy still works */
+  }
 }
 
 export function hasBlockClipboard(): boolean {
@@ -53,17 +60,21 @@ export function hasBlockClipboard(): boolean {
  */
 export async function readBlocksForPaste(): Promise<string | null> {
   if (store) return store.html || store.markdown;
-  let html = '', text = '';
+  let html = '',
+    text = '';
   try {
     const clip = navigator.clipboard;
     if (clip?.read) {
       for (const item of await clip.read()) {
         if (item.types.includes('text/html')) html = await (await item.getType('text/html')).text();
-        if (item.types.includes('text/plain')) text = await (await item.getType('text/plain')).text();
+        if (item.types.includes('text/plain'))
+          text = await (await item.getType('text/plain')).text();
       }
     } else if (clip?.readText) {
       text = await clip.readText();
     }
-  } catch { /* system clipboard unavailable */ }
+  } catch {
+    /* system clipboard unavailable */
+  }
   return html || text || null;
 }

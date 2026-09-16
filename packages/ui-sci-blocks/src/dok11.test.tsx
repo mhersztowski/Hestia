@@ -4,19 +4,32 @@ import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
-const pliki = ['1-1-wielkosci.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = ['1-1-wielkosci.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, '1-1-wielkosci.md');
+  const cel = resolveReference(
+    id,
+    { anchors: index.anchors, formulaHome: index.formulaHome },
+    '1-1-wielkosci.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['1-1-wielkosci.md']} path="1-1-wielkosci.md" resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(
+    <ReaderView
+      markdown={bodies['1-1-wielkosci.md']}
+      path="1-1-wielkosci.md"
+      resolveRef={resolveRef}
+    />
+  );
 
 describe('1-1 w czytniku', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
@@ -31,14 +44,19 @@ describe('1-1 w czytniku', () => {
   });
 
   it('cztery nowe hasła, w osobnej sekcji słownika', () => {
-    for (const id of ['rh1-poj-wielkosci-fizyczne', 'rh1-poj-wielkosci-podstawowe',
-      'rh1-poj-wielkosci-pochodne', 'rh1-poj-wzorzec']) {
+    for (const id of [
+      'rh1-poj-wielkosci-fizyczne',
+      'rh1-poj-wielkosci-podstawowe',
+      'rh1-poj-wielkosci-pochodne',
+      'rh1-poj-wzorzec',
+    ]) {
       expect(index.anchors.get(id)?.kind, id).toBe('term');
     }
     expect(bodies['Slownik.md']).toContain('## Rozdział 1. Pomiar');
     // Rozdział 1 stoi przed 15, tak jak w książce.
-    expect(bodies['Slownik.md'].indexOf('## Rozdział 1. Pomiar'))
-      .toBeLessThan(bodies['Slownik.md'].indexOf('## Rozdział 15. Drgania'));
+    expect(bodies['Slownik.md'].indexOf('## Rozdział 1. Pomiar')).toBeLessThan(
+      bodies['Slownik.md'].indexOf('## Rozdział 15. Drgania')
+    );
   });
 
   it('odsyłacze do dwóch pojęć i do dwóch podrozdziałów', () => {

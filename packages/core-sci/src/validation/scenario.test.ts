@@ -9,14 +9,17 @@ import { describe, it, expect } from 'vitest';
 import { parseFormulaBlock } from '../formula/parseFormula';
 import { exportScenario } from './scenario';
 
-const WAHADLO = parseFormulaBlock('wahadlo-ode', [
-  '@ode',
-  '@state theta, omega',
-  '@d theta = \\omega',
-  '@d omega = -\\frac{g}{L}\\sin(\\theta)',
-  '@init theta = \\theta_0, omega = 0',
-  '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s',
-].join('\n'));
+const WAHADLO = parseFormulaBlock(
+  'wahadlo-ode',
+  [
+    '@ode',
+    '@state theta, omega',
+    '@d theta = \\omega',
+    '@d omega = -\\frac{g}{L}\\sin(\\theta)',
+    '@init theta = \\theta_0, omega = 0',
+    '@vars g: m/s^2, L: m, theta_0: rad, theta: rad, omega: rad/s',
+  ].join('\n')
+);
 
 const PARAMETRY = { g: 9.81, L: 1.2, theta_0: 0.3 };
 
@@ -57,13 +60,18 @@ describe('exportScenario', () => {
       // dθ/dt = ω — najprostsza zależność, którą da się sprawdzić wprost.
       expect(punkt.derivatives.theta).toBeCloseTo(punkt.state.omega, 12);
       // dω/dt = -(g/L)·sin(θ)
-      expect(punkt.derivatives.omega)
-        .toBeCloseTo(-(PARAMETRY.g / PARAMETRY.L) * Math.sin(punkt.state.theta), 12);
+      expect(punkt.derivatives.omega).toBeCloseTo(
+        -(PARAMETRY.g / PARAMETRY.L) * Math.sin(punkt.state.theta),
+        12
+      );
     }
   });
 
   it('blok, który nie jest układem ODE, jest odrzucany', () => {
-    const wzor = parseFormulaBlock('okres', 'T = 2\\pi\\sqrt{\\frac{L}{g}}\n@vars T: s, L: m, g: m/s^2');
+    const wzor = parseFormulaBlock(
+      'okres',
+      'T = 2\\pi\\sqrt{\\frac{L}{g}}\n@vars T: s, L: m, g: m/s^2'
+    );
     expect(exportScenario(wzor, { parameters: PARAMETRY }).issues.join(' ')).toMatch(/ODE/);
   });
 

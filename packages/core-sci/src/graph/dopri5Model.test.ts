@@ -12,15 +12,23 @@ import { buildGraph } from './formulaGraph';
 import { compileGraph, defaultValues } from './compileGraph';
 import { Trajectory } from '../numeric/trajectory';
 
-const model = (extra: string[]) => compileGraph(buildGraph([parseFormulaBlock('osc', [
-  '@ode',
-  '@state x, v',
-  '@d x = v',
-  '@d v = -x',
-  '@init x = 1, v = 0',
-  '@vars x: m, v: m/s',
-  ...extra,
-].join('\n'))]));
+const model = (extra: string[]) =>
+  compileGraph(
+    buildGraph([
+      parseFormulaBlock(
+        'osc',
+        [
+          '@ode',
+          '@state x, v',
+          '@d x = v',
+          '@d v = -x',
+          '@init x = 1, v = 0',
+          '@vars x: m, v: m/s',
+          ...extra,
+        ].join('\n')
+      ),
+    ])
+  );
 
 describe('wybór metody adaptacyjnej', () => {
   it('liczy oscylator dokładnie, choć podany krok jest zgrubny', () => {
@@ -60,9 +68,12 @@ describe('wybór metody adaptacyjnej', () => {
   });
 
   it('zaostrzenie @tol zmniejsza błąd', () => {
-    const błąd = (tol: string[]) => Math.abs(
-      model(['@solver dopri5', ...tol]).run({}, [0, 30], 0.1).trajectory!.value('x', 30) - Math.cos(30),
-    );
+    const błąd = (tol: string[]) =>
+      Math.abs(
+        model(['@solver dopri5', ...tol])
+          .run({}, [0, 30], 0.1)
+          .trajectory!.value('x', 30) - Math.cos(30)
+      );
 
     expect(błąd(['@tol 1e-10'])).toBeLessThan(błąd(['@tol 1e-4']) / 50);
   });
@@ -81,21 +92,29 @@ describe('wybór metody adaptacyjnej', () => {
     const t = (traj.samples[0].t + traj.samples[1].t) / 2;
     const dokładna = Math.cos(t);
 
-    expect(Math.abs(traj.value('x', t) - dokładna))
-      .toBeLessThan(Math.abs(cięciwa.value('x', t) - dokładna) / 20);
+    expect(Math.abs(traj.value('x', t) - dokładna)).toBeLessThan(
+      Math.abs(cięciwa.value('x', t) - dokładna) / 20
+    );
   });
 });
 
 describe('gdy adaptacja nie wystarcza', () => {
   it('melduje sztywność zamiast wywracać cały dokument', () => {
-    const sztywny = compileGraph(buildGraph([parseFormulaBlock('sztywny', [
-      '@ode',
-      '@state y',
-      '@d y = -k \\cdot y',
-      '@init y = 1',
-      '@vars y: 1, k: 1/s',
-      '@solver dopri5',
-    ].join('\n'))]));
+    const sztywny = compileGraph(
+      buildGraph([
+        parseFormulaBlock(
+          'sztywny',
+          [
+            '@ode',
+            '@state y',
+            '@d y = -k \\cdot y',
+            '@init y = 1',
+            '@vars y: 1, k: 1/s',
+            '@solver dopri5',
+          ].join('\n')
+        ),
+      ])
+    );
 
     const wynik = sztywny.run({ ...defaultValues(sztywny), k: 1e7 }, [0, 100], 0.1);
 
@@ -107,15 +126,23 @@ describe('gdy adaptacja nie wystarcza', () => {
 });
 
 describe('zdarzenia przy adaptacyjnym kroku', () => {
-  const spadek = (extra: string[]) => compileGraph(buildGraph([parseFormulaBlock('spadek', [
-    '@ode',
-    '@state y, v',
-    '@d y = v',
-    '@d v = -g',
-    '@init y = 5, v = 0',
-    '@vars y: m, v: m/s, g: m/s^2',
-    ...extra,
-  ].join('\n'))]));
+  const spadek = (extra: string[]) =>
+    compileGraph(
+      buildGraph([
+        parseFormulaBlock(
+          'spadek',
+          [
+            '@ode',
+            '@state y, v',
+            '@d y = v',
+            '@d v = -g',
+            '@init y = 5, v = 0',
+            '@vars y: m, v: m/s, g: m/s^2',
+            ...extra,
+          ].join('\n')
+        ),
+      ])
+    );
 
   const ZIEMIA = ['@when y < 0'];
 
@@ -129,7 +156,9 @@ describe('zdarzenia przy adaptacyjnym kroku', () => {
   });
 
   it('nie ostrzega już o przybliżonej chwili, bo jej nie przybliża', () => {
-    expect(spadek([...ZIEMIA, '@stop', '@solver dopri5']).issues.join(' ')).not.toMatch(/przybliżon/i);
+    expect(spadek([...ZIEMIA, '@stop', '@solver dopri5']).issues.join(' ')).not.toMatch(
+      /przybliżon/i
+    );
   });
 
   it('wykonuje odbicie w chwili zdarzenia, więc wysokość zgadza się z e²h', () => {

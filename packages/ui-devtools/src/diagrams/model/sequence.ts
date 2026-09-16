@@ -97,8 +97,12 @@ export interface SequenceRaw {
 }
 
 export type SequenceStep =
-  | SequenceMessage | SequenceActivation | SequenceNote | SequenceBlock
-  | SequenceLifecycle | SequenceRaw;
+  | SequenceMessage
+  | SequenceActivation
+  | SequenceNote
+  | SequenceBlock
+  | SequenceLifecycle
+  | SequenceRaw;
 
 /** Uczestnik przebiegu — kolejność wynika z pozycji w tablicy. */
 export interface SequenceParticipant {
@@ -160,7 +164,10 @@ export function stepsAt(script: SequenceScript, path: StepPath): SequenceStep[] 
 /** Krok pod wskazaną ścieżką. */
 export function stepAt(script: SequenceScript, path: StepPath): SequenceStep | undefined {
   if (!path.length) return undefined;
-  const parent = stepsAt(script, path.slice(0, -1).length % 2 === 0 ? path.slice(0, -1) : path.slice(0, -1));
+  const parent = stepsAt(
+    script,
+    path.slice(0, -1).length % 2 === 0 ? path.slice(0, -1) : path.slice(0, -1)
+  );
   return parent?.[path[path.length - 1]];
 }
 
@@ -174,7 +181,10 @@ export function participantsInSteps(steps: SequenceStep[]): string[] {
   const seen = new Set<string>();
   const walk = (list: SequenceStep[]) => {
     for (const step of list) {
-      if (step.kind === 'message') { seen.add(step.from); seen.add(step.to); }
+      if (step.kind === 'message') {
+        seen.add(step.from);
+        seen.add(step.to);
+      }
       if (step.kind === 'activate' || step.kind === 'deactivate') seen.add(step.participant);
       if (step.kind === 'create' || step.kind === 'destroy') seen.add(step.participant);
       if (step.kind === 'note') for (const t of step.targets) seen.add(t);

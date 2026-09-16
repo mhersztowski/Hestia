@@ -62,13 +62,11 @@ describe('stan złożony to jeden byt', () => {
   });
 
   it('kolejność deklaracji nie ma znaczenia — grupa może wystąpić przed przejściem', () => {
-    const doc = mermaidFormat.parse([
-      'stateDiagram-v2',
-      '  state Praca {',
-      '    [*] --> Krok',
-      '  }',
-      '  [*] --> Praca',
-    ].join('\n')).document;
+    const doc = mermaidFormat.parse(
+      ['stateDiagram-v2', '  state Praca {', '    [*] --> Krok', '  }', '  [*] --> Praca'].join(
+        '\n'
+      )
+    ).document;
     expect(doc.nodes.some((n) => n.id === 'Praca')).toBe(false);
     expect(doc.groups.map((g) => g.id)).toEqual(['Praca']);
     expect(doc.edges.some((e) => e.target === 'Praca')).toBe(true);
@@ -95,7 +93,13 @@ describe('cykle nie rozdmuchują warstw', () => {
   });
 
   it('prosty cykl dwóch węzłów daje warstwy 0 i 1', () => {
-    const ranks = computeRanks(['A', 'B'], [{ source: 'A', target: 'B' }, { source: 'B', target: 'A' }]);
+    const ranks = computeRanks(
+      ['A', 'B'],
+      [
+        { source: 'A', target: 'B' },
+        { source: 'B', target: 'A' },
+      ]
+    );
     expect([ranks.get('A'), ranks.get('B')]).toEqual([0, 1]);
   });
 
@@ -117,14 +121,15 @@ describe('cykle nie rozdmuchują warstw', () => {
     const error = doc.nodes.find((n) => n.id === 'Error')!.position!;
     const running = doc.groups.find((g) => g.id === 'Running')!.position!;
 
-    expect(Math.abs(error.y - running.y)).toBeLessThan(60);   // ta sama warstwa
+    expect(Math.abs(error.y - running.y)).toBeLessThan(60); // ta sama warstwa
     expect(Math.abs(error.x - running.x)).toBeGreaterThan(100); // ale nie na sobie
   });
 
   it('kolejne warstwy idą w dół, bez zapadania się na siebie', () => {
     const doc = autoLayout(parsed());
-    const y = (id: string) => doc.nodes.find((n) => n.id === id)?.position!.y
-      ?? doc.groups.find((g) => g.id === id)!.position!.y;
+    const y = (id: string) =>
+      doc.nodes.find((n) => n.id === id)?.position!.y ??
+      doc.groups.find((g) => g.id === id)!.position!.y;
     expect(y('Boot')).toBeLessThan(y('Config'));
     expect(y('Config')).toBeLessThan(y('Connecting'));
     expect(y('Connecting')).toBeLessThan(y('Running'));

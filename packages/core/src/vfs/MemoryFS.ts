@@ -110,11 +110,7 @@ export class MemoryFS implements FileSystemProvider {
     if (node.type === FileType.Directory) {
       const children = await this.readDirectory(p);
       if (children.length > 0 && !options?.recursive) {
-        throw new VfsError(
-          'FileNotADirectory' as any,
-          `Directory not empty: ${p}`,
-          p,
-        );
+        throw new VfsError('FileNotADirectory' as any, `Directory not empty: ${p}`, p);
       }
       if (options?.recursive) {
         this.deleteRecursive(p);
@@ -167,7 +163,7 @@ export class MemoryFS implements FileSystemProvider {
       this.nodes.set(np, node);
       events.push(
         { type: FileChangeType.Deleted, path: op },
-        { type: FileChangeType.Created, path: np },
+        { type: FileChangeType.Created, path: np }
       );
     }
 

@@ -61,7 +61,13 @@ describe('liczebność relacji', () => {
   });
 
   it('każdy zapis liczebności wraca taki sam', () => {
-    for (const line of ['A |o--o| B : x', 'A ||--|| B : x', 'A }o--o{ B : x', 'A }|--|{ B : x', 'A ||..o{ B : x']) {
+    for (const line of [
+      'A |o--o| B : x',
+      'A ||--|| B : x',
+      'A }o--o{ B : x',
+      'A }|--|{ B : x',
+      'A ||..o{ B : x',
+    ]) {
       expect(roundTrip(`erDiagram\n  ${line}`), line).toContain(line);
     }
   });
@@ -111,7 +117,12 @@ describe('atrybuty encji', () => {
 
   it('wszystko wraca przy zapisie', () => {
     const out = roundTrip(SOURCE);
-    for (const line of ['string nazwa', 'string numer PK', 'string email UK "unikalny"', 'string firmaId FK']) {
+    for (const line of [
+      'string nazwa',
+      'string numer PK',
+      'string email UK "unikalny"',
+      'string firmaId FK',
+    ]) {
       expect(out).toContain(line);
     }
   });
@@ -157,8 +168,11 @@ describe('zachowanie treści', () => {
   });
 
   it('nie gubi żadnej encji', () => {
-    expect(parse(SOURCE).nodes.map((n) => n.id).sort())
-      .toEqual(['ADRES', 'KLIENT', 'POZYCJA', 'ZAMOWIENIE']);
+    expect(
+      parse(SOURCE)
+        .nodes.map((n) => n.id)
+        .sort()
+    ).toEqual(['ADRES', 'KLIENT', 'POZYCJA', 'ZAMOWIENIE']);
   });
 
   it('nie gubi żadnej relacji', () => {

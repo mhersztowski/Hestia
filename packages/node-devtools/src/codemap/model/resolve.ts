@@ -7,10 +7,38 @@ export function extractTypeNames(typeStr: string | undefined): string[] {
   // Tokens that look like identifiers; ignore primitives/keywords.
   const tokens = typeStr.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
   const drop = new Set([
-    'void', 'int', 'float', 'double', 'bool', 'char', 'string', 'str', 'number',
-    'boolean', 'any', 'unknown', 'object', 'List', 'Array', 'Map', 'Set', 'Dict',
-    'Optional', 'Promise', 'shared_ptr', 'unique_ptr', 'vector', 'const', 'static',
-    'std', 'self', 'None', 'true', 'false', 'null', 'undefined',
+    'void',
+    'int',
+    'float',
+    'double',
+    'bool',
+    'char',
+    'string',
+    'str',
+    'number',
+    'boolean',
+    'any',
+    'unknown',
+    'object',
+    'List',
+    'Array',
+    'Map',
+    'Set',
+    'Dict',
+    'Optional',
+    'Promise',
+    'shared_ptr',
+    'unique_ptr',
+    'vector',
+    'const',
+    'static',
+    'std',
+    'self',
+    'None',
+    'true',
+    'false',
+    'null',
+    'undefined',
   ]);
   return [...new Set(tokens.filter((t) => !drop.has(t)))];
 }
@@ -47,7 +75,8 @@ export function resolveRelations(symbols: CodeSymbol[]): CodeRelation[] {
       for (const tn of extractTypeNames(m.type)) {
         const t = byName.get(tn);
         // Don't duplicate an inheritance edge as an association.
-        if (t && !s.extends.includes(tn) && !s.implements.includes(tn)) add(s.id, t.id, 'association');
+        if (t && !s.extends.includes(tn) && !s.implements.includes(tn))
+          add(s.id, t.id, 'association');
       }
     }
   }

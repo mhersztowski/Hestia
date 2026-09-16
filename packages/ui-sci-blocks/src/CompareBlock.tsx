@@ -12,8 +12,11 @@
 import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import {
-  buildGraph, compileGraph, compareRuns,
-  type ComparisonRun, type FormulaBlock,
+  buildGraph,
+  compileGraph,
+  compareRuns,
+  type ComparisonRun,
+  type FormulaBlock,
 } from '@hestia/core-sci';
 import { PlotCanvas, type PlotSeries } from './PlotCanvas';
 import { downloadCsv, seriesToCsv } from './eksport';
@@ -35,11 +38,21 @@ interface CompareSpec {
   runs?: Array<{ label?: string } & Record<string, unknown>>;
 }
 
-const box: CSSProperties = { border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff', padding: 10 };
+const box: CSSProperties = {
+  border: '1px solid #e2e8f0',
+  borderRadius: 6,
+  background: '#fff',
+  padding: 10,
+};
 const label: CSSProperties = { fontSize: 11, color: '#64748b' };
 const btn: CSSProperties = {
-  fontSize: 11, padding: '2px 8px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#334155',
+  fontSize: 11,
+  padding: '2px 8px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#334155',
 };
 
 /** Kolejne barwy krzywych — te same, co w kalkulatorze wykresów. */
@@ -55,7 +68,12 @@ export function CompareBlock({ code, formulas, bare, blockId }: CompareBlockProp
     }
 
     if (!formulas.length) {
-      return { series: {}, issues: ['Nie ma wzorów w tym dokumencie — blok porównania wskazuje na fizykę stojącą wyżej.'] };
+      return {
+        series: {},
+        issues: [
+          'Nie ma wzorów w tym dokumencie — blok porównania wskazuje na fizykę stojącą wyżej.',
+        ],
+      };
     }
     if (!spec.runs?.length) {
       return { series: {}, issues: ['Brak przebiegów do porównania — dopisz listę „runs".'] };
@@ -89,10 +107,26 @@ export function CompareBlock({ code, formulas, bare, blockId }: CompareBlockProp
   }));
 
   return (
-    <div style={bare ? { display: 'flex', flexDirection: 'column', gap: 8 } : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div
+      style={
+        bare
+          ? { display: 'flex', flexDirection: 'column', gap: 8 }
+          : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }
+      }
+    >
       {issues.length > 0 && (
-        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', borderRadius: 4, padding: '6px 8px' }}>
-          {issues.map((issue, index) => <div key={index}>{issue}</div>)}
+        <div
+          style={{
+            fontSize: 11,
+            color: '#b91c1c',
+            background: '#fef2f2',
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
+          {issues.map((issue, index) => (
+            <div key={index}>{issue}</div>
+          ))}
         </div>
       )}
 

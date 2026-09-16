@@ -49,7 +49,13 @@ export const LAW_FENCE = /```law:([A-Za-z0-9_-]+)\n([\s\S]*?)```/g;
 /** Czyta pozycję katalogu praw. Format jak w `term` i `callout`. */
 export function parseLawBlock(id: string, code: string): LawBlock {
   const block: LawBlock = {
-    id, title: '', formulas: [], aka: [], awaiting: true, issues: [], unknown: [],
+    id,
+    title: '',
+    formulas: [],
+    aka: [],
+    awaiting: true,
+    issues: [],
+    unknown: [],
   };
 
   // Treść prawa bywa dłuższa niż wiersz pliku — dokumenty są zawijane na 80
@@ -81,7 +87,12 @@ export function parseLawBlock(id: string, code: string): LawBlock {
         ostatnia = 'statement';
         break;
       case 'formula':
-        block.formulas.push(...reszta.split(',').map((s) => s.trim()).filter(Boolean));
+        block.formulas.push(
+          ...reszta
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        );
         break;
       case 'term':
         block.term = reszta;
@@ -96,7 +107,12 @@ export function parseLawBlock(id: string, code: string): LawBlock {
         block.source = reszta;
         break;
       case 'aka':
-        block.aka.push(...reszta.split(',').map((s) => s.trim()).filter(Boolean));
+        block.aka.push(
+          ...reszta
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        );
         break;
       default:
         block.unknown.push(linia);

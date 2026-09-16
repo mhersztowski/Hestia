@@ -1,6 +1,11 @@
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
-import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewContent, NodeViewProps } from '@tiptap/react';
+import {
+  ReactNodeViewRenderer,
+  NodeViewWrapper,
+  NodeViewContent,
+  NodeViewProps,
+} from '@tiptap/react';
 import React, { useEffect, useRef, useState, useCallback, useSyncExternalStore } from 'react';
 import hljs from 'highlight.js';
 import Editor from 'react-simple-code-editor';
@@ -102,21 +107,41 @@ function highlightCode(code: string, lang: string): string {
     if (lang && hljs.getLanguage(lang)) {
       return hljs.highlight(code, { language: lang, ignoreIllegals: true }).value;
     }
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
   return escapeHtml(code);
 }
 
 const bar: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
-  padding: '4px 8px', fontSize: 12, borderBottom: '1px solid rgba(0,0,0,0.1)',
-  background: 'rgba(0,0,0,0.03)', userSelect: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  flexWrap: 'wrap',
+  padding: '4px 8px',
+  fontSize: 12,
+  borderBottom: '1px solid rgba(0,0,0,0.1)',
+  background: 'rgba(0,0,0,0.03)',
+  userSelect: 'none',
 };
-const sel: React.CSSProperties = { fontSize: 12, padding: '2px 4px', borderRadius: 4, cursor: 'pointer' };
+const sel: React.CSSProperties = {
+  fontSize: 12,
+  padding: '2px 4px',
+  borderRadius: 4,
+  cursor: 'pointer',
+};
 const MONO = "'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace";
 // `white-space: pre` + `tab-size` → zachowuje wcięcia; `overflow: auto` → poziomy scroll.
 const preStyle: React.CSSProperties = {
-  margin: 0, padding: '10px 12px', overflow: 'auto', fontSize: 13, lineHeight: 1.5,
-  whiteSpace: 'pre', tabSize: 2, MozTabSize: 2, fontFamily: MONO,
+  margin: 0,
+  padding: '10px 12px',
+  overflow: 'auto',
+  fontSize: 13,
+  lineHeight: 1.5,
+  whiteSpace: 'pre',
+  tabSize: 2,
+  MozTabSize: 2,
+  fontFamily: MONO,
 } as React.CSSProperties;
 
 const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor, getPos }) => {
@@ -143,32 +168,39 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
    * początkowego powstaje przy bloku `field`, ale jego miejscem jest `formula`.
    * Bez tego rysunek musiałby żyć obok równania i mogłyby się rozejść.
    */
-  const replaceOtherBlock = useCallback((language: string, next: string) => {
-    if (!editor) return;
+  const replaceOtherBlock = useCallback(
+    (language: string, next: string) => {
+      if (!editor) return;
 
-    let pozycja: number | undefined;
-    let wezel: ProseMirrorNode | undefined;
-    editor.state.doc.descendants((child, pos) => {
-      if (child.type.name === 'codeBlock' && (child.attrs.language || '') === language) {
-        pozycja = pos;
-        wezel = child;
-        return false;
-      }
-      return true;
-    });
-    if (pozycja === undefined || !wezel) return;
+      let pozycja: number | undefined;
+      let wezel: ProseMirrorNode | undefined;
+      editor.state.doc.descendants((child, pos) => {
+        if (child.type.name === 'codeBlock' && (child.attrs.language || '') === language) {
+          pozycja = pos;
+          wezel = child;
+          return false;
+        }
+        return true;
+      });
+      if (pozycja === undefined || !wezel) return;
 
-    editor.chain().focus().command(({ tr }) => {
-      // Zamiana samej treści węzła; atrybuty (język, identyfikator) zostają,
-      // bo zmieniamy warunek początkowy, a nie rodzaj bloku.
-      tr.replaceWith(
-        pozycja! + 1,
-        pozycja! + wezel!.nodeSize - 1,
-        next ? editor.schema.text(next) : [],
-      );
-      return true;
-    }).run();
-  }, [editor]);
+      editor
+        .chain()
+        .focus()
+        .command(({ tr }) => {
+          // Zamiana samej treści węzła; atrybuty (język, identyfikator) zostają,
+          // bo zmieniamy warunek początkowy, a nie rodzaj bloku.
+          tr.replaceWith(
+            pozycja! + 1,
+            pozycja! + wezel!.nodeSize - 1,
+            next ? editor.schema.text(next) : []
+          );
+          return true;
+        })
+        .run();
+    },
+    [editor]
+  );
 
   const collectCodeBlocks = useCallback(() => {
     const blocks: Array<{ language: string; code: string }> = [];
@@ -197,18 +229,31 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
 
   // Wczytanie pliku przy loadzie / zmianie ścieżki.
   useEffect(() => {
-    if (!externalSrc) { setExtCode(''); setExtState('idle'); return; }
+    if (!externalSrc) {
+      setExtCode('');
+      setExtState('idle');
+      return;
+    }
     let alive = true;
-    setExtState('loading'); setExtErr('');
+    setExtState('loading');
+    setExtErr('');
     if (!readFile) return;
     Promise.resolve(readFile(externalSrc))
       .then((res: unknown) => {
         if (!alive) return;
         const c = typeof res === 'string' ? res : ((res as { content?: string })?.content ?? '');
-        setExtCode(c); setExtState('idle');
+        setExtCode(c);
+        setExtState('idle');
       })
-      .catch((e: unknown) => { if (alive) { setExtErr(e instanceof Error ? e.message : String(e)); setExtState('error'); } });
-    return () => { alive = false; };
+      .catch((e: unknown) => {
+        if (alive) {
+          setExtErr(e instanceof Error ? e.message : String(e));
+          setExtState('error');
+        }
+      });
+    return () => {
+      alive = false;
+    };
   }, [externalSrc, readFile]);
 
   // Zapis pliku zewnętrznego przy autosave dokumentu md (jeśli były zmiany).
@@ -217,13 +262,18 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
     const onSave = () => {
       if (!dirtyRef.current || !writeFile) return;
       dirtyRef.current = false;
-      Promise.resolve(writeFile(externalSrc, extCodeRef.current)).catch(() => { /* best effort */ });
+      Promise.resolve(writeFile(externalSrc, extCodeRef.current)).catch(() => {
+        /* best effort */
+      });
     };
     window.addEventListener(MD_AUTOSAVE_EVENT, onSave);
     return () => window.removeEventListener(MD_AUTOSAVE_EVENT, onSave);
   }, [externalSrc, writeFile]);
 
-  const beginEdit = useCallback(() => { setDraft(extCode); setEditing(true); }, [extCode]);
+  const beginEdit = useCallback(() => {
+    setDraft(extCode);
+    setEditing(true);
+  }, [extCode]);
   const commitEdit = useCallback(() => {
     setEditing(false);
     if (draft !== extCode) {
@@ -231,7 +281,13 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
       dirtyRef.current = true;
       if (!writeFile) return;
       // Zapis natychmiastowy + i tak zapisze się ponownie przy autosave md.
-      Promise.resolve(writeFile(externalSrc, draft)).then(() => { dirtyRef.current = false; }).catch(() => { /* zapisze przy autosave */ });
+      Promise.resolve(writeFile(externalSrc, draft))
+        .then(() => {
+          dirtyRef.current = false;
+        })
+        .catch(() => {
+          /* zapisze przy autosave */
+        });
     }
   }, [draft, extCode, externalSrc, writeFile]);
 
@@ -242,9 +298,12 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
    * czystym tekstem i musi nim zostać — `insertContent` rozbiłby wielolinijkowy
    * diagram na osobne akapity.
    */
-  const zapiszTresc = useCallback((next: string) => {
-    replaceBlockText(editor, typeof getPos === 'function' ? getPos() : null, node, next);
-  }, [editor, getPos, node]);
+  const zapiszTresc = useCallback(
+    (next: string) => {
+      replaceBlockText(editor, typeof getPos === 'function' ? getPos() : null, node, next);
+    },
+    [editor, getPos, node]
+  );
 
   const isExternal = !!externalSrc;
   const displayCode = isExternal ? extCode : node.textContent;
@@ -252,7 +311,13 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
   return (
     <NodeViewWrapper
       className="md-editor-code-block-wrap"
-      style={{ position: 'relative', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 6, overflow: 'hidden', margin: '0.5rem 0' }}
+      style={{
+        position: 'relative',
+        border: '1px solid rgba(0,0,0,0.12)',
+        borderRadius: 6,
+        overflow: 'hidden',
+        margin: '0.5rem 0',
+      }}
     >
       <div style={bar} contentEditable={false}>
         <span style={{ fontFamily: 'monospace', opacity: 0.6 }}>{'</>'}</span>
@@ -265,23 +330,32 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
             // jest poprawnym infostringiem i widok by się nie pojawił.
             updateAttributes({
               language: named
-                ? (named.needsId ? `${named.prefix}:${blockId || draftId()}` : named.prefix)
+                ? named.needsId
+                  ? `${named.prefix}:${blockId || draftId()}`
+                  : named.prefix
                 : wybrane || null,
             });
           }}
           style={sel}
           title="Typ bloku: język do podświetlania albo blok z własnym widokiem"
         >
-          {LANGS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+          {LANGS.map((l) => (
+            <option key={l.value} value={l.value}>
+              {l.label}
+            </option>
+          ))}
           {NAMED_BLOCKS.map((b) => (
-            <option key={b.prefix} value={b.prefix}>{b.label}</option>
+            <option key={b.prefix} value={b.prefix}>
+              {b.label}
+            </option>
           ))}
           {/* Typ spoza listy (np. `haskell` z cudzego pliku) pokazujemy wprost,
               żeby select nie twierdził, że blok jest zwykłym tekstem. */}
-          {selectedType && !LANGS.some((l) => l.value === selectedType)
-            && !NAMED_BLOCKS.some((b) => b.prefix === selectedType) && (
-            <option value={selectedType}>{selectedType}</option>
-          )}
+          {selectedType &&
+            !LANGS.some((l) => l.value === selectedType) &&
+            !NAMED_BLOCKS.some((b) => b.prefix === selectedType) && (
+              <option value={selectedType}>{selectedType}</option>
+            )}
         </select>
 
         {/* Nazwa bloku — osobne pole, bo to parametr tego wzoru, a nie rodzaj
@@ -305,19 +379,46 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
 
         {isExternal && (
           <>
-            <span title={externalSrc} style={{ fontFamily: 'monospace', opacity: 0.75, maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span
+              title={externalSrc}
+              style={{
+                fontFamily: 'monospace',
+                opacity: 0.75,
+                maxWidth: 240,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               📄 {externalSrc}
             </span>
-            <button type="button" style={sel} onClick={editing ? commitEdit : beginEdit} title="Edytuj zawartość (zapis pod autosave md)">
+            <button
+              type="button"
+              style={sel}
+              onClick={editing ? commitEdit : beginEdit}
+              title="Edytuj zawartość (zapis pod autosave md)"
+            >
               {editing ? '💾 Zapisz' : '✏️ Edytuj'}
             </button>
           </>
         )}
-        <button type="button" style={sel} onClick={() => setPickerOpen(true)} title="Wybierz zewnętrzny plik (osadzenie jego treści)">
+        <button
+          type="button"
+          style={sel}
+          onClick={() => setPickerOpen(true)}
+          title="Wybierz zewnętrzny plik (osadzenie jego treści)"
+        >
           🔗 plik
         </button>
         {isExternal && (
-          <button type="button" style={sel} onClick={() => { updateAttributes({ externalSrc: null }); }} title="Odłącz plik (blok wraca do trybu edytowalnego)">
+          <button
+            type="button"
+            style={sel}
+            onClick={() => {
+              updateAttributes({ externalSrc: null });
+            }}
+            title="Odłącz plik (blok wraca do trybu edytowalnego)"
+          >
             ✖
           </button>
         )}
@@ -334,21 +435,37 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
           onBlockChange={replaceOtherBlock}
           onLanguageChange={(next) => updateAttributes({ language: next })}
           workerFactory={modelWorkerFactory ?? undefined}
-          onChange={isExternal
-            ? (next) => { setExtCode(next); dirtyRef.current = true; }
-            : (next) => zapiszTresc(next)}
+          onChange={
+            isExternal
+              ? (next) => {
+                  setExtCode(next);
+                  dirtyRef.current = true;
+                }
+              : (next) => zapiszTresc(next)
+          }
         >
-          {() => (
+          {() =>
             isExternal ? (
-              <pre className={`hljs language-${language}`} style={preStyle} contentEditable={false} onDoubleClick={beginEdit}>
-                <code className={`hljs language-${language}`} dangerouslySetInnerHTML={{ __html: highlightCode(displayCode, language) }} />
+              <pre
+                className={`hljs language-${language}`}
+                style={preStyle}
+                contentEditable={false}
+                onDoubleClick={beginEdit}
+              >
+                <code
+                  className={`hljs language-${language}`}
+                  dangerouslySetInnerHTML={{ __html: highlightCode(displayCode, language) }}
+                />
               </pre>
             ) : (
               <pre className="md-editor-code-block" style={preStyle}>
-                <NodeViewContent as={'code' as unknown as 'div'} className={`hljs language-${language}`} />
+                <NodeViewContent
+                  as={'code' as unknown as 'div'}
+                  className={`hljs language-${language}`}
+                />
               </pre>
             )
-          )}
+          }
         </blockRenderer.Component>
       ) : isExternal ? (
         editing ? (
@@ -369,13 +486,22 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
             />
           </div>
         ) : (
-          <pre className={`hljs language-${language}`} style={preStyle} contentEditable={false} onDoubleClick={beginEdit} title="Kliknij dwukrotnie, aby edytować">
+          <pre
+            className={`hljs language-${language}`}
+            style={preStyle}
+            contentEditable={false}
+            onDoubleClick={beginEdit}
+            title="Kliknij dwukrotnie, aby edytować"
+          >
             <code
               className={`hljs language-${language}`}
               dangerouslySetInnerHTML={{
-                __html: extState === 'loading' ? '⏳ Ładowanie pliku…'
-                  : extState === 'error' ? `⚠️ Błąd: ${escapeHtml(extErr)}`
-                  : highlightCode(displayCode, language),
+                __html:
+                  extState === 'loading'
+                    ? '⏳ Ładowanie pliku…'
+                    : extState === 'error'
+                      ? `⚠️ Błąd: ${escapeHtml(extErr)}`
+                      : highlightCode(displayCode, language),
               }}
             />
           </pre>
@@ -385,7 +511,10 @@ const CodeBlockView: React.FC<NodeViewProps> = ({ node, updateAttributes, editor
         // nie jest możliwe nad edytowalną treścią, więc treść jest edytowalna, a klasy hljs/language
         // pozwalają motywowi z MdEditor.css kolorować dekoracje lowlight.
         <pre className="md-editor-code-block" style={preStyle}>
-          <NodeViewContent as={'code' as unknown as 'div'} className={`hljs language-${language}`} />
+          <NodeViewContent
+            as={'code' as unknown as 'div'}
+            className={`hljs language-${language}`}
+          />
         </pre>
       )}
 

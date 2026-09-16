@@ -14,10 +14,10 @@ import { Signal } from './Signal';
  */
 export class ListModel<T> extends CoreObject {
   readonly rowsInserted = new Signal<[index: number, count: number]>();
-  readonly rowsRemoved  = new Signal<[index: number, count: number]>();
-  readonly rowsMoved    = new Signal<[from: number, to: number, count: number]>();
-  readonly dataChanged  = new Signal<[index: number, item: T]>();
-  readonly modelReset   = new Signal();
+  readonly rowsRemoved = new Signal<[index: number, count: number]>();
+  readonly rowsMoved = new Signal<[from: number, to: number, count: number]>();
+  readonly dataChanged = new Signal<[index: number, item: T]>();
+  readonly modelReset = new Signal();
 
   #items: T[];
 

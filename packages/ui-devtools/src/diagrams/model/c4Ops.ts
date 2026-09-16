@@ -16,22 +16,32 @@ import type { C4BoundaryInfo, C4NodeInfo } from './c4';
 const DEFAULT_INFO: C4NodeInfo = { kind: 'system', variant: 'plain', external: false };
 
 /** Zmienia opis elementu; brakujące pola biorą wartości domyślne. */
-export function setC4Info(doc: DiagramDocument, nodeId: string, patch: Partial<C4NodeInfo>): DiagramDocument {
+export function setC4Info(
+  doc: DiagramDocument,
+  nodeId: string,
+  patch: Partial<C4NodeInfo>
+): DiagramDocument {
   return {
     ...doc,
-    nodes: doc.nodes.map((node) => (node.id === nodeId
-      ? { ...node, c4: { ...DEFAULT_INFO, ...node.c4, ...patch } }
-      : node)),
+    nodes: doc.nodes.map((node) =>
+      node.id === nodeId ? { ...node, c4: { ...DEFAULT_INFO, ...node.c4, ...patch } } : node
+    ),
   };
 }
 
 /** Zmienia opis granicy. */
-export function setC4Boundary(doc: DiagramDocument, groupId: string, patch: Partial<C4BoundaryInfo>): DiagramDocument {
+export function setC4Boundary(
+  doc: DiagramDocument,
+  groupId: string,
+  patch: Partial<C4BoundaryInfo>
+): DiagramDocument {
   return {
     ...doc,
-    groups: doc.groups.map((group) => (group.id === groupId
-      ? { ...group, c4: { kind: 'generic' as const, ...group.c4, ...patch } }
-      : group)),
+    groups: doc.groups.map((group) =>
+      group.id === groupId
+        ? { ...group, c4: { kind: 'generic' as const, ...group.c4, ...patch } }
+        : group
+    ),
   };
 }
 
@@ -39,7 +49,7 @@ export function setC4Boundary(doc: DiagramDocument, groupId: string, patch: Part
 export function setC4Rel(
   doc: DiagramDocument,
   edgeId: string,
-  patch: { technology?: string; bidirectional?: boolean; suffix?: string },
+  patch: { technology?: string; bidirectional?: boolean; suffix?: string }
 ): DiagramDocument {
   return {
     ...doc,
@@ -50,7 +60,11 @@ export function setC4Rel(
       // muszą mówić to samo.
       const meta = c4.bidirectional
         ? { ...edge.meta, startArrow: 'arrow' }
-        : (() => { const rest = { ...edge.meta }; delete rest.startArrow; return rest; })();
+        : (() => {
+            const rest = { ...edge.meta };
+            delete rest.startArrow;
+            return rest;
+          })();
       return { ...edge, c4, meta: Object.keys(meta).length ? meta : undefined };
     }),
   };

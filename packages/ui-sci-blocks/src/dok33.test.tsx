@@ -5,19 +5,22 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-3-predkosc-srednia.md';
-const pliki = [DOK, '3-2-kinematyka.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-2-kinematyka.md', 'Slownik.md'].map((p) => ({
+  path: p,
+  markdown: readDocument(p),
+}));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 
 describe('3-3 w czytniku', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
@@ -53,8 +56,12 @@ describe('3-3 w czytniku', () => {
 
   it('sześć nowych haseł, każde z odsyłaczem z tego dokumentu', () => {
     const nowe = [
-      'rh1-poj-predkosc-punktu', 'rh1-poj-wektor-polozenia', 'rh1-poj-promien-wodzacy',
-      'rh1-poj-wektor-przemieszczenia', 'rh1-poj-predkosc-srednia', 'rh1-poj-predkosc-stala',
+      'rh1-poj-predkosc-punktu',
+      'rh1-poj-wektor-polozenia',
+      'rh1-poj-promien-wodzacy',
+      'rh1-poj-wektor-przemieszczenia',
+      'rh1-poj-predkosc-srednia',
+      'rh1-poj-predkosc-stala',
     ];
     for (const id of nowe) {
       expect(index.anchors.get(id)?.kind, id).toBe('term');

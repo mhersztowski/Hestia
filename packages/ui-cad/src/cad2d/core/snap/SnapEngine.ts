@@ -98,29 +98,51 @@ function dist(a: Point2D, b: Point2D): number {
 
 function getEndpoints(e: Entity): Point2D[] {
   switch (e.type) {
-    case 'line': return [{ x: e.x1, y: e.y1 }, { x: e.x2, y: e.y2 }];
-    case 'polyline': return e.points.length > 0 ? [e.points[0], e.points[e.points.length - 1]] : [];
-    case 'freehand': return e.points.length > 0 ? [e.points[0], e.points[e.points.length - 1]] : [];
-    case 'rect': return [{ x: e.x, y: e.y }, { x: e.x + e.width, y: e.y }, { x: e.x + e.width, y: e.y + e.height }, { x: e.x, y: e.y + e.height }];
-    case 'arc': return [
-      { x: e.cx + e.radius * Math.cos(e.startAngle), y: e.cy + e.radius * Math.sin(e.startAngle) },
-      { x: e.cx + e.radius * Math.cos(e.endAngle), y: e.cy + e.radius * Math.sin(e.endAngle) },
-    ];
-    default: return [];
+    case 'line':
+      return [
+        { x: e.x1, y: e.y1 },
+        { x: e.x2, y: e.y2 },
+      ];
+    case 'polyline':
+      return e.points.length > 0 ? [e.points[0], e.points[e.points.length - 1]] : [];
+    case 'freehand':
+      return e.points.length > 0 ? [e.points[0], e.points[e.points.length - 1]] : [];
+    case 'rect':
+      return [
+        { x: e.x, y: e.y },
+        { x: e.x + e.width, y: e.y },
+        { x: e.x + e.width, y: e.y + e.height },
+        { x: e.x, y: e.y + e.height },
+      ];
+    case 'arc':
+      return [
+        {
+          x: e.cx + e.radius * Math.cos(e.startAngle),
+          y: e.cy + e.radius * Math.sin(e.startAngle),
+        },
+        { x: e.cx + e.radius * Math.cos(e.endAngle), y: e.cy + e.radius * Math.sin(e.endAngle) },
+      ];
+    default:
+      return [];
   }
 }
 
 function getMidpoints(e: Entity): Point2D[] {
   switch (e.type) {
-    case 'line': return [{ x: (e.x1 + e.x2) / 2, y: (e.y1 + e.y2) / 2 }];
+    case 'line':
+      return [{ x: (e.x1 + e.x2) / 2, y: (e.y1 + e.y2) / 2 }];
     case 'polyline': {
       const mids: Point2D[] = [];
       for (let i = 0; i < e.points.length - 1; i++) {
-        mids.push({ x: (e.points[i].x + e.points[i + 1].x) / 2, y: (e.points[i].y + e.points[i + 1].y) / 2 });
+        mids.push({
+          x: (e.points[i].x + e.points[i + 1].x) / 2,
+          y: (e.points[i].y + e.points[i + 1].y) / 2,
+        });
       }
       return mids;
     }
-    default: return [];
+    default:
+      return [];
   }
 }
 
@@ -134,11 +156,27 @@ function getIntersections(a: Entity, b: Entity): Point2D[] {
       pts.push({ x: r.x, y: r.y });
     }
   } else if (a.type === 'line' && b.type === 'circle') {
-    for (const hit of lineSegmentCircleIntersections(a.x1, a.y1, a.x2, a.y2, b.cx, b.cy, b.radius)) {
+    for (const hit of lineSegmentCircleIntersections(
+      a.x1,
+      a.y1,
+      a.x2,
+      a.y2,
+      b.cx,
+      b.cy,
+      b.radius
+    )) {
       pts.push(hit.point);
     }
   } else if (a.type === 'circle' && b.type === 'line') {
-    for (const hit of lineSegmentCircleIntersections(b.x1, b.y1, b.x2, b.y2, a.cx, a.cy, a.radius)) {
+    for (const hit of lineSegmentCircleIntersections(
+      b.x1,
+      b.y1,
+      b.x2,
+      b.y2,
+      a.cx,
+      a.cy,
+      a.radius
+    )) {
       pts.push(hit.point);
     }
   }
@@ -148,9 +186,13 @@ function getIntersections(a: Entity, b: Entity): Point2D[] {
 
 function getCenter(e: Entity): Point2D | null {
   switch (e.type) {
-    case 'circle': return { x: e.cx, y: e.cy };
-    case 'arc': return { x: e.cx, y: e.cy };
-    case 'rect': return { x: e.x + e.width / 2, y: e.y + e.height / 2 };
-    default: return null;
+    case 'circle':
+      return { x: e.cx, y: e.cy };
+    case 'arc':
+      return { x: e.cx, y: e.cy };
+    case 'rect':
+      return { x: e.x + e.width / 2, y: e.y + e.height / 2 };
+    default:
+      return null;
   }
 }

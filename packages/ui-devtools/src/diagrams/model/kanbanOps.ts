@@ -9,7 +9,10 @@
 import type { DiagramDocument } from './diagram';
 import { emptyKanban, type KanbanBoard, type KanbanCard, type KanbanColumn } from './kanban';
 
-function withBoard(doc: DiagramDocument, change: (board: KanbanBoard) => KanbanBoard): DiagramDocument {
+function withBoard(
+  doc: DiagramDocument,
+  change: (board: KanbanBoard) => KanbanBoard
+): DiagramDocument {
   return { ...doc, kanban: change(doc.kanban ?? emptyKanban()) };
 }
 
@@ -21,16 +24,30 @@ function freeLabel(taken: Iterable<string>, base: string): string {
   return name;
 }
 
-export function addColumn(doc: DiagramDocument, label = 'Nowa kolumna', after?: number): DiagramDocument {
+export function addColumn(
+  doc: DiagramDocument,
+  label = 'Nowa kolumna',
+  after?: number
+): DiagramDocument {
   return withBoard(doc, (board) => {
-    const column: KanbanColumn = { label: freeLabel(board.columns.map((c) => c.label), label), cards: [] };
+    const column: KanbanColumn = {
+      label: freeLabel(
+        board.columns.map((c) => c.label),
+        label
+      ),
+      cards: [],
+    };
     const columns = [...board.columns];
     columns.splice(after === undefined ? columns.length : after + 1, 0, column);
     return { ...board, columns };
   });
 }
 
-export function updateColumn(doc: DiagramDocument, index: number, patch: Partial<KanbanColumn>): DiagramDocument {
+export function updateColumn(
+  doc: DiagramDocument,
+  index: number,
+  patch: Partial<KanbanColumn>
+): DiagramDocument {
   return withBoard(doc, (board) => ({
     ...board,
     columns: board.columns.map((column, i) => (i === index ? { ...column, ...patch } : column)),
@@ -38,12 +55,22 @@ export function updateColumn(doc: DiagramDocument, index: number, patch: Partial
 }
 
 export function removeColumn(doc: DiagramDocument, index: number): DiagramDocument {
-  return withBoard(doc, (board) => ({ ...board, columns: board.columns.filter((_, i) => i !== index) }));
+  return withBoard(doc, (board) => ({
+    ...board,
+    columns: board.columns.filter((_, i) => i !== index),
+  }));
 }
 
 export function moveColumn(doc: DiagramDocument, from: number, to: number): DiagramDocument {
   return withBoard(doc, (board) => {
-    if (from < 0 || from >= board.columns.length || to < 0 || to >= board.columns.length || from === to) return board;
+    if (
+      from < 0 ||
+      from >= board.columns.length ||
+      to < 0 ||
+      to >= board.columns.length ||
+      from === to
+    )
+      return board;
     const columns = [...board.columns];
     const [moved] = columns.splice(from, 1);
     columns.splice(to, 0, moved);
@@ -56,13 +83,18 @@ export function addCard(
   doc: DiagramDocument,
   columnIndex: number,
   label = 'Nowe zadanie',
-  after?: number,
+  after?: number
 ): DiagramDocument {
   return withBoard(doc, (board) => ({
     ...board,
     columns: board.columns.map((column, i) => {
       if (i !== columnIndex) return column;
-      const card: KanbanCard = { label: freeLabel(column.cards.map((c) => c.label), label) };
+      const card: KanbanCard = {
+        label: freeLabel(
+          column.cards.map((c) => c.label),
+          label
+        ),
+      };
       const cards = [...column.cards];
       cards.splice(after === undefined ? cards.length : after + 1, 0, card);
       return { ...column, cards };
@@ -74,32 +106,42 @@ export function updateCard(
   doc: DiagramDocument,
   columnIndex: number,
   cardIndex: number,
-  patch: Partial<KanbanCard>,
+  patch: Partial<KanbanCard>
 ): DiagramDocument {
   return withBoard(doc, (board) => ({
     ...board,
-    columns: board.columns.map((column, i) => (i !== columnIndex ? column : {
-      ...column,
-      cards: column.cards.map((card, j) => {
-        if (j !== cardIndex) return card;
-        const next = { ...card, ...patch };
-        // Puste pole znaczy „bez wartości", nie „wartość pusta" — inaczej do
-        // zapisu trafiłoby `assigned: ''`.
-        for (const key of ['assigned', 'ticket', 'priority'] as const) {
-          if (next[key] === '' || next[key] === undefined) delete next[key];
-        }
-        return next;
-      }),
-    })),
+    columns: board.columns.map((column, i) =>
+      i !== columnIndex
+        ? column
+        : {
+            ...column,
+            cards: column.cards.map((card, j) => {
+              if (j !== cardIndex) return card;
+              const next = { ...card, ...patch };
+              // Puste pole znaczy „bez wartości", nie „wartość pusta" — inaczej do
+              // zapisu trafiłoby `assigned: ''`.
+              for (const key of ['assigned', 'ticket', 'priority'] as const) {
+                if (next[key] === '' || next[key] === undefined) delete next[key];
+              }
+              return next;
+            }),
+          }
+    ),
   }));
 }
 
-export function removeCard(doc: DiagramDocument, columnIndex: number, cardIndex: number): DiagramDocument {
+export function removeCard(
+  doc: DiagramDocument,
+  columnIndex: number,
+  cardIndex: number
+): DiagramDocument {
   return withBoard(doc, (board) => ({
     ...board,
-    columns: board.columns.map((column, i) => (i !== columnIndex
-      ? column
-      : { ...column, cards: column.cards.filter((_, j) => j !== cardIndex) })),
+    columns: board.columns.map((column, i) =>
+      i !== columnIndex
+        ? column
+        : { ...column, cards: column.cards.filter((_, j) => j !== cardIndex) }
+    ),
   }));
 }
 
@@ -108,13 +150,20 @@ export function moveCard(
   doc: DiagramDocument,
   columnIndex: number,
   from: number,
-  to: number,
+  to: number
 ): DiagramDocument {
   return withBoard(doc, (board) => ({
     ...board,
     columns: board.columns.map((column, i) => {
       if (i !== columnIndex) return column;
-      if (from < 0 || from >= column.cards.length || to < 0 || to >= column.cards.length || from === to) return column;
+      if (
+        from < 0 ||
+        from >= column.cards.length ||
+        to < 0 ||
+        to >= column.cards.length ||
+        from === to
+      )
+        return column;
       const cards = [...column.cards];
       const [moved] = cards.splice(from, 1);
       cards.splice(to, 0, moved);
@@ -134,7 +183,7 @@ export function moveCardToColumn(
   fromColumn: number,
   cardIndex: number,
   toColumn: number,
-  toIndex?: number,
+  toIndex?: number
 ): DiagramDocument {
   return withBoard(doc, (board) => {
     const source = board.columns[fromColumn];
@@ -144,7 +193,8 @@ export function moveCardToColumn(
     return {
       ...board,
       columns: board.columns.map((column, i) => {
-        if (i === fromColumn) return { ...column, cards: column.cards.filter((_, j) => j !== cardIndex) };
+        if (i === fromColumn)
+          return { ...column, cards: column.cards.filter((_, j) => j !== cardIndex) };
         if (i === toColumn) {
           const cards = [...column.cards];
           cards.splice(toIndex === undefined ? cards.length : toIndex, 0, card);

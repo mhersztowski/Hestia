@@ -194,7 +194,11 @@ for (const pole of POLA) {
   const cel = join(FIXTURES, `${pole.formula}.json`);
 
   try {
-    const { stdout } = await uruchom(python, [join(here, 'solve_field_reference.py'), TYMCZASOWE, cel]);
+    const { stdout } = await uruchom(python, [
+      join(here, 'solve_field_reference.py'),
+      TYMCZASOWE,
+      cel,
+    ]);
     process.stdout.write(stdout);
   } catch (error) {
     console.error(`${pole.formula}: ${error.stderr || error.message}`);

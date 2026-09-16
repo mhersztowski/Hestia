@@ -15,9 +15,24 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Alert, Autocomplete, Box, Button, Chip, Dialog, DialogActions, DialogContent,
-  DialogTitle, IconButton, MenuItem, Paper, Stack, Tab, Tabs,
-  TextField, Tooltip, Typography,
+  Alert,
+  Autocomplete,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  MenuItem,
+  Paper,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Tooltip,
+  Typography,
 } from '@mui/material';
 import EventIcon from '@mui/icons-material/Event';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -28,8 +43,13 @@ import { useEditorFiles, useEditorSession } from './capabilities';
 import EventTemplateManager from './EventTemplateManager';
 import type { EventTemplate, ResolvedEvent } from './eventTemplates';
 import {
-  applyTemplate, dateToInputValue, inputValueToDate, loadTemplates,
-  makeTemplateId, offsetLabel, parseDateFromPath,
+  applyTemplate,
+  dateToInputValue,
+  inputValueToDate,
+  loadTemplates,
+  makeTemplateId,
+  offsetLabel,
+  parseDateFromPath,
 } from './eventTemplates';
 import { useTaskOptions, type TaskOption } from './useTaskOptions';
 
@@ -90,7 +110,12 @@ function defaultStart(): string {
 }
 
 const EventDialog: React.FC<EventDialogProps> = ({
-  open, onClose, onInsert, onInsertMany, initial, filePath,
+  open,
+  onClose,
+  onInsert,
+  onInsertMany,
+  initial,
+  filePath,
 }) => {
   const { tasks, projectName } = useTaskOptions(open);
   const userName = useEditorSession()?.userName ?? '';
@@ -121,13 +146,16 @@ const EventDialog: React.FC<EventDialogProps> = ({
   }, [open, filePath]);
 
   const refreshTemplates = async () => {
-    if (!userName) { setTemplates([]); return; }
+    if (!userName) {
+      setTemplates([]);
+      return;
+    }
     setTemplatesLoading(true);
     try {
       const list = await loadTemplates(files);
       setTemplates(list);
       // Auto-select the first template if nothing's chosen yet.
-      setSelectedTemplateId(prev => prev || list[0]?.id || '');
+      setSelectedTemplateId((prev) => prev || list[0]?.id || '');
     } catch (err) {
       console.warn('[EventDialog] template load failed:', err);
     } finally {
@@ -185,7 +213,7 @@ const EventDialog: React.FC<EventDialogProps> = ({
   }, [task]);
 
   const handleInsert = () => {
-    const projName = task ? projectName(task.projectId) ?? task.projectName ?? '' : '';
+    const projName = task ? (projectName(task.projectId) ?? task.projectName ?? '') : '';
     // Legacy markdown blockquote — kept for backward compatibility / hosts
     // that prefer the plain-text version of an event.
     const dateLine = end
@@ -218,7 +246,7 @@ const EventDialog: React.FC<EventDialogProps> = ({
   // applied against the picked base date. Memoised because applyTemplate
   // does a small loop per render and EventDialog rerenders on every keystroke
   // in the single-event tab too.
-  const selectedTemplate = templates.find(t => t.id === selectedTemplateId) ?? null;
+  const selectedTemplate = templates.find((t) => t.id === selectedTemplateId) ?? null;
   const resolvedEvents: ResolvedEvent[] = useMemo(() => {
     if (!selectedTemplate) return [];
     const baseDate = inputValueToDate(baseDateInput) ?? new Date();
@@ -273,7 +301,6 @@ const EventDialog: React.FC<EventDialogProps> = ({
    *  want to "save this for next time". */
   const handleSaveAsTemplate = () => {
     if (!name && !description) {
-      // eslint-disable-next-line no-alert
       alert('Wypełnij najpierw nazwę lub opis eventu.');
       return;
     }
@@ -283,8 +310,10 @@ const EventDialog: React.FC<EventDialogProps> = ({
     // from the start string.
     const startDate = start ? new Date(start) : new Date(baseDate);
     const dayMs = 24 * 60 * 60 * 1000;
-    const startMidnight = new Date(startDate); startMidnight.setHours(0, 0, 0, 0);
-    const baseMidnight = new Date(baseDate);   baseMidnight.setHours(0, 0, 0, 0);
+    const startMidnight = new Date(startDate);
+    startMidnight.setHours(0, 0, 0, 0);
+    const baseMidnight = new Date(baseDate);
+    baseMidnight.setHours(0, 0, 0, 0);
     const dayOffset = Math.round((startMidnight.getTime() - baseMidnight.getTime()) / dayMs);
     const pad = (n: number) => String(n).padStart(2, '0');
     const time = `${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`;
@@ -293,21 +322,23 @@ const EventDialog: React.FC<EventDialogProps> = ({
       const endDate = new Date(end);
       durationMinutes = Math.max(0, Math.round((endDate.getTime() - startDate.getTime()) / 60000));
     }
-    const seedProjName = task ? projectName(task.projectId) ?? task.projectName ?? '' : '';
+    const seedProjName = task ? (projectName(task.projectId) ?? task.projectName ?? '') : '';
     const seed: EventTemplate = {
       id: makeTemplateId(),
       name: name || 'Nowy szablon',
       description: '',
-      items: [{
-        name: name || '(bez nazwy)',
-        dayOffset,
-        time,
-        durationMinutes,
-        description,
-        taskId: task?.id,
-        taskName: task?.name,
-        projectName: seedProjName,
-      }],
+      items: [
+        {
+          name: name || '(bez nazwy)',
+          dayOffset,
+          time,
+          durationMinutes,
+          description,
+          taskId: task?.id,
+          taskName: task?.name,
+          projectName: seedProjName,
+        },
+      ],
     };
     setManagerSeed(seed);
     setManagerOpen(true);
@@ -340,7 +371,11 @@ const EventDialog: React.FC<EventDialogProps> = ({
                 `…/yyyy/mm/dd.md`, otherwise today. Manual override always
                 possible because users sometimes work on tomorrow's schedule
                 from today's note. */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1}
+              alignItems={{ sm: 'center' }}
+            >
               <TextField
                 label="Bazowa data"
                 type="date"
@@ -349,9 +384,11 @@ const EventDialog: React.FC<EventDialogProps> = ({
                 size="small"
                 sx={{ width: { xs: '100%', sm: 200 } }}
                 slotProps={{ inputLabel: { shrink: true } }}
-                helperText={parseDateFromPath(filePath)
-                  ? 'Auto z nazwy pliku'
-                  : 'Plik nie ma daty w nazwie — domyślnie dziś'}
+                helperText={
+                  parseDateFromPath(filePath)
+                    ? 'Auto z nazwy pliku'
+                    : 'Plik nie ma daty w nazwie — domyślnie dziś'
+                }
               />
               <Box sx={{ flex: 1 }} />
               <Tooltip title="Odśwież listę szablonów">
@@ -362,7 +399,10 @@ const EventDialog: React.FC<EventDialogProps> = ({
               <Button
                 size="small"
                 startIcon={<SettingsIcon />}
-                onClick={() => { setManagerSeed(undefined); setManagerOpen(true); }}
+                onClick={() => {
+                  setManagerSeed(undefined);
+                  setManagerOpen(true);
+                }}
               >
                 Zarządzaj
               </Button>
@@ -376,11 +416,15 @@ const EventDialog: React.FC<EventDialogProps> = ({
               onChange={(e) => setSelectedTemplateId(e.target.value)}
               size="small"
               disabled={templates.length === 0}
-              helperText={templates.length === 0
-                ? (templatesLoading ? 'Ładowanie…' : 'Brak szablonów — utwórz przez Zarządzaj')
-                : `${selectedTemplate?.items.length ?? 0} eventów`}
+              helperText={
+                templates.length === 0
+                  ? templatesLoading
+                    ? 'Ładowanie…'
+                    : 'Brak szablonów — utwórz przez Zarządzaj'
+                  : `${selectedTemplate?.items.length ?? 0} eventów`
+              }
             >
-              {templates.map(t => (
+              {templates.map((t) => (
                 <MenuItem key={t.id} value={t.id}>
                   {t.name} ({t.items.length})
                 </MenuItem>
@@ -398,7 +442,8 @@ const EventDialog: React.FC<EventDialogProps> = ({
             {selectedTemplate && resolvedEvents.length > 0 && (
               <Paper variant="outlined" sx={{ p: 1.5, maxHeight: 280, overflow: 'auto' }}>
                 <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
-                  Podgląd ({resolvedEvents.length} {resolvedEvents.length === 1 ? 'event' : 'eventów'})
+                  Podgląd ({resolvedEvents.length}{' '}
+                  {resolvedEvents.length === 1 ? 'event' : 'eventów'})
                 </Typography>
                 <Stack spacing={0.75}>
                   {resolvedEvents.map((ev, i) => {
@@ -416,15 +461,27 @@ const EventDialog: React.FC<EventDialogProps> = ({
                             {ev.name || '(bez nazwy)'}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            📅 {fmtDate(ev.start)}{ev.end && ` — ${fmtDate(ev.end)}`}
+                            📅 {fmtDate(ev.start)}
+                            {ev.end && ` — ${fmtDate(ev.end)}`}
                           </Typography>
                           {ev.taskName && (
-                            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                              🔗 {ev.taskName}{ev.projectName && ` (${ev.projectName})`}
+                            <Typography
+                              variant="caption"
+                              sx={{ display: 'block', color: 'text.secondary' }}
+                            >
+                              🔗 {ev.taskName}
+                              {ev.projectName && ` (${ev.projectName})`}
                             </Typography>
                           )}
                           {ev.description && (
-                            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', whiteSpace: 'pre-wrap' }}>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                display: 'block',
+                                color: 'text.secondary',
+                                whiteSpace: 'pre-wrap',
+                              }}
+                            >
                               {ev.description}
                             </Typography>
                           )}
@@ -437,84 +494,99 @@ const EventDialog: React.FC<EventDialogProps> = ({
             )}
           </Stack>
         ) : (
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          {/* Task picker — freeSolo so the user can still build an event
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {/* Task picker — freeSolo so the user can still build an event
               without referencing a task, or when DataSource is empty
               (no tasks yet / MQTT load failed). */}
-          <Autocomplete
-            options={tasks}
-            value={task}
-            onChange={(_, v) => setTask(v)}
-            getOptionLabel={(o) => o.name}
-            isOptionEqualToValue={(o, v) => o.id === v.id}
-            renderInput={(params) => (
-              <TextField {...params} label="Zadanie z PIM/Projects"
-                helperText={tasks.length === 0
-                  ? 'Brak zadań w DataSource — możesz pominąć i wpisać event ręcznie'
-                  : `${tasks.length} dostępnych zadań`}
-              />
-            )}
-            renderOption={(props, option) => {
-              const projName = projectName(option.projectId);
-              return (
-                <Box component="li" {...props}>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" noWrap>{option.name}</Typography>
-                    {projName && (
-                      <Typography variant="caption" color="text.secondary" noWrap>
-                        {projName}
+            <Autocomplete
+              options={tasks}
+              value={task}
+              onChange={(_, v) => setTask(v)}
+              getOptionLabel={(o) => o.name}
+              isOptionEqualToValue={(o, v) => o.id === v.id}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Zadanie z PIM/Projects"
+                  helperText={
+                    tasks.length === 0
+                      ? 'Brak zadań w DataSource — możesz pominąć i wpisać event ręcznie'
+                      : `${tasks.length} dostępnych zadań`
+                  }
+                />
+              )}
+              renderOption={(props, option) => {
+                const projName = projectName(option.projectId);
+                return (
+                  <Box component="li" {...props}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="body2" noWrap>
+                        {option.name}
                       </Typography>
-                    )}
+                      {projName && (
+                        <Typography variant="caption" color="text.secondary" noWrap>
+                          {projName}
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-              );
-            }}
-          />
-
-          <TextField
-            label="Nazwa eventu"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fullWidth
-            placeholder={task?.name || 'np. Spotkanie z zespołem'}
-          />
-
-          <Stack direction="row" spacing={1}>
-            <TextField
-              label="Start"
-              type="datetime-local"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              fullWidth
-              slotProps={{ inputLabel: { shrink: true } }}
+                );
+              }}
             />
+
             <TextField
-              label="Koniec (opcjonalnie)"
-              type="datetime-local"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
+              label="Nazwa eventu"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               fullWidth
-              slotProps={{ inputLabel: { shrink: true } }}
+              placeholder={task?.name || 'np. Spotkanie z zespołem'}
             />
+
+            <Stack direction="row" spacing={1}>
+              <TextField
+                label="Start"
+                type="datetime-local"
+                value={start}
+                onChange={(e) => setStart(e.target.value)}
+                fullWidth
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+              <TextField
+                label="Koniec (opcjonalnie)"
+                type="datetime-local"
+                value={end}
+                onChange={(e) => setEnd(e.target.value)}
+                fullWidth
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+            </Stack>
+
+            <TextField
+              label="Opis (opcjonalnie)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              multiline
+              rows={3}
+            />
+
+            {/* Preview */}
+            <Alert
+              severity="info"
+              icon={<EventIcon />}
+              sx={{ '& .MuiAlert-message': { width: '100%' } }}
+            >
+              <Typography variant="caption" component="div" sx={{ mb: 0.5, fontWeight: 600 }}>
+                Podgląd
+              </Typography>
+              <Box
+                component="pre"
+                sx={{ m: 0, fontFamily: 'monospace', fontSize: 11, whiteSpace: 'pre-wrap' }}
+              >
+                {`> 📅 **${end ? `${fmtDate(start)} — ${fmtDate(end)}` : fmtDate(start)}** · ${name || '(bez nazwy)'}${task ? `\n> 🔗 Zadanie: **${task.name}**${projectName(task.projectId) ? ` (${projectName(task.projectId)})` : ''}` : ''}${description.trim() ? `\n> ${description.trim().split('\n').join('\n> ')}` : ''}`}
+              </Box>
+            </Alert>
           </Stack>
-
-          <TextField
-            label="Opis (opcjonalnie)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            fullWidth multiline rows={3}
-          />
-
-          {/* Preview */}
-          <Alert severity="info" icon={<EventIcon />} sx={{ '& .MuiAlert-message': { width: '100%' } }}>
-            <Typography variant="caption" component="div" sx={{ mb: 0.5, fontWeight: 600 }}>
-              Podgląd
-            </Typography>
-            <Box component="pre" sx={{ m: 0, fontFamily: 'monospace', fontSize: 11, whiteSpace: 'pre-wrap' }}>
-{`> 📅 **${end ? `${fmtDate(start)} — ${fmtDate(end)}` : fmtDate(start)}** · ${name || '(bez nazwy)'}${task ? `\n> 🔗 Zadanie: **${task.name}**${projectName(task.projectId) ? ` (${projectName(task.projectId)})` : ''}` : ''}${description.trim() ? `\n> ${description.trim().split('\n').join('\n> ')}` : ''}`}
-            </Box>
-          </Alert>
-        </Stack>
         )}
       </DialogContent>
       <DialogActions sx={{ flexWrap: 'wrap', gap: 0.5 }}>
@@ -560,7 +632,10 @@ const EventDialog: React.FC<EventDialogProps> = ({
           the "Save as template" path mount this. */}
       <EventTemplateManager
         open={managerOpen}
-        onClose={() => { setManagerOpen(false); setManagerSeed(undefined); }}
+        onClose={() => {
+          setManagerOpen(false);
+          setManagerSeed(undefined);
+        }}
         userName={userName}
         seedTemplate={managerSeed}
         onSaved={(list) => {

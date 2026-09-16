@@ -48,12 +48,20 @@ describe('podział dokumentu', () => {
 
   it('rozpoznaje wszystkie rodzaje bloków', () => {
     expect(segments.map((s) => s.kind)).toEqual([
-      'text', 'formula', 'text', 'sim', 'exercise', 'code', 'text',
+      'text',
+      'formula',
+      'text',
+      'sim',
+      'exercise',
+      'code',
+      'text',
     ]);
   });
 
   it('zachowuje kolejność z pliku', () => {
-    const teksty = segments.filter((s) => s.kind === 'text').map((s) => (s as { content: string }).content);
+    const teksty = segments
+      .filter((s) => s.kind === 'text')
+      .map((s) => (s as { content: string }).content);
     expect(teksty[0]).toContain('Nagłówek');
     expect(teksty[1]).toContain('między');
     expect(teksty[2]).toContain('Koniec');
@@ -89,13 +97,17 @@ describe('prawdziwe dokumenty', () => {
       // Żaden blok sci nie może wylądować jako surowy kod — to znaczyłoby, że
       // czytelnik zobaczy listing zamiast symulacji.
       const nierozpoznane = segments.filter(
-        (s) => s.kind === 'code' && /^(formula|sim|simscript|exercise)/.test((s as { language: string }).language),
+        (s) =>
+          s.kind === 'code' &&
+          /^(formula|sim|simscript|exercise)/.test((s as { language: string }).language)
       );
       expect(nierozpoznane).toEqual([]);
       // Dokument z blokami musi się na nie rozpaść. Dokument bez bloków —
       // Pytania rozdziału to sam tekst — zostaje jednym segmentem i to jest
       // stan poprawny, więc warunku nie stawiamy wszystkim po równo.
-      const maBloki = /^ {0,3}```(formula|sim|simscript|exercise|figure|table|term):/m.test(read(name));
+      const maBloki = /^ {0,3}```(formula|sim|simscript|exercise|figure|table|term):/m.test(
+        read(name)
+      );
       expect(segments.length).toBeGreaterThan(maBloki ? 2 : 0);
     });
 
@@ -117,15 +129,17 @@ describe('artefakty edytora', () => {
   it('znaczniki bloków nie trafiają do treści', () => {
     // MdEditor dokłada `<!-- bid:… -->` przy każdym zapisie. W trybie czytania
     // wyglądały jak zrzut z bazy danych między akapitami.
-    const segments = splitDocument([
-      '<!-- bid:71f5ddf2-d3a0-4af2-ae86-7fc77f7c6e91 -->',
-      '',
-      '# Orbita',
-      '',
-      '<!-- bid:7c973d37-fa02-4607-85b0-69bb690d77ef -->',
-      '',
-      'Planeta krąży po elipsie.',
-    ].join('\n'));
+    const segments = splitDocument(
+      [
+        '<!-- bid:71f5ddf2-d3a0-4af2-ae86-7fc77f7c6e91 -->',
+        '',
+        '# Orbita',
+        '',
+        '<!-- bid:7c973d37-fa02-4607-85b0-69bb690d77ef -->',
+        '',
+        'Planeta krąży po elipsie.',
+      ].join('\n')
+    );
 
     const tekst = segments.map((s) => (s.kind === 'text' ? s.content : '')).join('');
     expect(tekst).not.toContain('bid:');

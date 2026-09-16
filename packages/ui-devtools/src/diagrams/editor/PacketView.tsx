@@ -75,10 +75,19 @@ export function PacketView({ spec, selected, onSelect }: PacketViewProps) {
             )}
             {/* Znak ciągłości na granicy wiersza. */}
             {segment.continues && (
-              <text x={segment.x + segment.width - 6} y={segment.y + segment.height - 5} fontSize={10} fill="#94a3b8">›</text>
+              <text
+                x={segment.x + segment.width - 6}
+                y={segment.y + segment.height - 5}
+                fontSize={10}
+                fill="#94a3b8"
+              >
+                ›
+              </text>
             )}
             <text x={segment.x + 3} y={segment.y + 11} fontSize={8} fill="#94a3b8">
-              {segment.fromBit === segment.toBit ? segment.fromBit : `${segment.fromBit}–${segment.toBit}`}
+              {segment.fromBit === segment.toBit
+                ? segment.fromBit
+                : `${segment.fromBit}–${segment.toBit}`}
             </text>
           </g>
         );

@@ -13,7 +13,10 @@
 import type { ClassMember, DiagramDocument, MemberVisibility } from './diagram';
 
 const SIGN: Record<MemberVisibility, string> = {
-  public: '+', private: '-', protected: '#', package: '~',
+  public: '+',
+  private: '-',
+  protected: '#',
+  package: '~',
 };
 
 /**
@@ -48,13 +51,13 @@ export function emptyMember(kind: ClassMember['kind'], name: string): ClassMembe
 function mapMembers(
   doc: DiagramDocument,
   classId: string,
-  change: (members: ClassMember[]) => ClassMember[],
+  change: (members: ClassMember[]) => ClassMember[]
 ): DiagramDocument {
   return {
     ...doc,
-    nodes: doc.nodes.map((node) => (
+    nodes: doc.nodes.map((node) =>
       node.id === classId ? { ...node, members: change(node.members ?? []) } : node
-    )),
+    ),
   };
 }
 
@@ -64,7 +67,11 @@ function mapMembers(
  * Nazwa musi być wolna w obrębie klasy: dwa pola o tej samej nazwie to błąd,
  * którego nie widać na diagramie, a który myli przy czytaniu kodu.
  */
-export function addMember(doc: DiagramDocument, classId: string, kind: ClassMember['kind']): DiagramDocument {
+export function addMember(
+  doc: DiagramDocument,
+  classId: string,
+  kind: ClassMember['kind']
+): DiagramDocument {
   const node = doc.nodes.find((n) => n.id === classId);
   if (!node) return doc;
   const taken = new Set((node.members ?? []).map((m) => m.name));
@@ -79,20 +86,26 @@ export function updateMember(
   doc: DiagramDocument,
   classId: string,
   index: number,
-  patch: Partial<Omit<ClassMember, 'raw'>>,
+  patch: Partial<Omit<ClassMember, 'raw'>>
 ): DiagramDocument {
-  return mapMembers(doc, classId, (members) => members.map((member, i) => {
-    if (i !== index) return member;
-    const next = { ...member, ...patch };
-    // Modyfikatory wykluczają się nawzajem — w UML nie ma składowej naraz
-    // statycznej i abstrakcyjnej, a w Mermaidzie oba to ten sam znak na końcu.
-    if (patch.isStatic) next.isAbstract = false;
-    if (patch.isAbstract) next.isStatic = false;
-    return withRaw(next);
-  }));
+  return mapMembers(doc, classId, (members) =>
+    members.map((member, i) => {
+      if (i !== index) return member;
+      const next = { ...member, ...patch };
+      // Modyfikatory wykluczają się nawzajem — w UML nie ma składowej naraz
+      // statycznej i abstrakcyjnej, a w Mermaidzie oba to ten sam znak na końcu.
+      if (patch.isStatic) next.isAbstract = false;
+      if (patch.isAbstract) next.isStatic = false;
+      return withRaw(next);
+    })
+  );
 }
 
-export function removeMember(doc: DiagramDocument, classId: string, index: number): DiagramDocument {
+export function removeMember(
+  doc: DiagramDocument,
+  classId: string,
+  index: number
+): DiagramDocument {
   return mapMembers(doc, classId, (members) => members.filter((_, i) => i !== index));
 }
 
@@ -102,9 +115,15 @@ export function removeMember(doc: DiagramDocument, classId: string, index: numbe
  * Kolejność jest częścią specyfikacji — w klasie czyta się ją z góry na dół,
  * a zapis Mermaida oddaje ją dosłownie.
  */
-export function moveMember(doc: DiagramDocument, classId: string, from: number, to: number): DiagramDocument {
+export function moveMember(
+  doc: DiagramDocument,
+  classId: string,
+  from: number,
+  to: number
+): DiagramDocument {
   return mapMembers(doc, classId, (members) => {
-    if (from < 0 || from >= members.length || to < 0 || to >= members.length || from === to) return members;
+    if (from < 0 || from >= members.length || to < 0 || to >= members.length || from === to)
+      return members;
     const next = [...members];
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
@@ -113,7 +132,11 @@ export function moveMember(doc: DiagramDocument, classId: string, from: number, 
 }
 
 /** Adnotacja klasy (`<<interface>>`); pusty tekst ją zdejmuje. */
-export function setStereotype(doc: DiagramDocument, classId: string, stereotype: string): DiagramDocument {
+export function setStereotype(
+  doc: DiagramDocument,
+  classId: string,
+  stereotype: string
+): DiagramDocument {
   const clean = stereotype.trim();
   return {
     ...doc,

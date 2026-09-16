@@ -15,17 +15,17 @@
 export type ConsoleLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
 
 export interface ConsoleLine {
-    level: ConsoleLevel;
-    text: string;
+  level: ConsoleLevel;
+  text: string;
 }
 
 type TimerId = ReturnType<typeof setTimeout>;
 
 /** Everything one run holds, so that stopping it can let go of all of it. */
 export interface ScriptSession {
-    stopped: boolean;
-    /** Timer handles, for clearing on stop. */
-    timers: TimerId[];
+  stopped: boolean;
+  /** Timer handles, for clearing on stop. */
+  timers: TimerId[];
 }
 
 export const MAX_CONSOLE_LINES = 500;
@@ -37,14 +37,14 @@ export const MAX_CONSOLE_LINES = 500;
  * makes of it — and an error is the argument a reader most needs to read.
  */
 export function formatConsoleArg(value: unknown): string {
-    if (typeof value === 'string') return value;
-    if (value instanceof Error) return `${value.name}: ${value.message}`;
-    try {
-        return JSON.stringify(value, null, 2) ?? String(value);
-    } catch {
-        // Circular, or something that refuses to be serialised.
-        return String(value);
-    }
+  if (typeof value === 'string') return value;
+  if (value instanceof Error) return `${value.name}: ${value.message}`;
+  try {
+    return JSON.stringify(value, null, 2) ?? String(value);
+  } catch {
+    // Circular, or something that refuses to be serialised.
+    return String(value);
+  }
 }
 
 /**
@@ -56,21 +56,23 @@ export function formatConsoleArg(value: unknown): string {
  * more legible failure than one that points at line 1.
  */
 export function stripImports(source: string): string {
-    return source
-        // `import … from '…'`, including multi-line brace lists
-        .replace(/^\s*import\s+[\s\S]*?\s+from\s*['"][^'"]+['"]\s*;?\s*$/gm, '')
-        // `import '…'` for its side effects
-        .replace(/^\s*import\s+['"][^'"]+['"]\s*;?\s*$/gm, '');
+  return (
+    source
+      // `import … from '…'`, including multi-line brace lists
+      .replace(/^\s*import\s+[\s\S]*?\s+from\s*['"][^'"]+['"]\s*;?\s*$/gm, '')
+      // `import '…'` for its side effects
+      .replace(/^\s*import\s+['"][^'"]+['"]\s*;?\s*$/gm, '')
+  );
 }
 
 export interface RunOptions {
-    /** Called for every line the script printed. */
-    onLine(line: ConsoleLine): void;
+  /** Called for every line the script printed. */
+  onLine(line: ConsoleLine): void;
 }
 
 export interface RunResult {
-    /** True when timers are still pending — the session stays alive until Stop. */
-    stillRunning: boolean;
+  /** True when timers are still pending — the session stays alive until Stop. */
+  stillRunning: boolean;
 }
 
 /**
@@ -80,57 +82,63 @@ export interface RunResult {
  * has a compiler — the editor — before it gets here.
  */
 export async function runScript(
-    source: string, session: ScriptSession, { onLine }: RunOptions,
+  source: string,
+  session: ScriptSession,
+  { onLine }: RunOptions
 ): Promise<RunResult> {
-    const push = (level: ConsoleLevel, args: unknown[]) => {
-        if (session.stopped) return;
-        onLine({ level, text: args.map(formatConsoleArg).join(' ') });
+  const push = (level: ConsoleLevel, args: unknown[]) => {
+    if (session.stopped) return;
+    onLine({ level, text: args.map(formatConsoleArg).join(' ') });
+  };
+
+  const sandboxConsole = {
+    log: (...a: unknown[]) => push('log', a),
+    info: (...a: unknown[]) => push('info', a),
+    warn: (...a: unknown[]) => push('warn', a),
+    error: (...a: unknown[]) => push('error', a),
+    debug: (...a: unknown[]) => push('debug', a),
+  };
+
+  // Every timer the script starts is remembered, so Stop can clear it.
+  const wrapTimer =
+    (original: (handler: () => void, timeout?: number) => TimerId) =>
+    (handler: () => void, timeout?: number) => {
+      const id = original(handler, timeout);
+      session.timers.push(id);
+      return id;
     };
 
-    const sandboxConsole = {
-        log: (...a: unknown[]) => push('log', a),
-        info: (...a: unknown[]) => push('info', a),
-        warn: (...a: unknown[]) => push('warn', a),
-        error: (...a: unknown[]) => push('error', a),
-        debug: (...a: unknown[]) => push('debug', a),
-    };
+  const fn = new Function(
+    'console',
+    'setTimeout',
+    'setInterval',
+    'clearTimeout',
+    'clearInterval',
+    `"use strict";\nreturn (async () => {\n${stripImports(source)}\n})();`
+  );
 
-    // Every timer the script starts is remembered, so Stop can clear it.
-    const wrapTimer = (original: (handler: () => void, timeout?: number) => TimerId) =>
-        (handler: () => void, timeout?: number) => {
-            const id = original(handler, timeout);
-            session.timers.push(id);
-            return id;
-        };
+  await fn(
+    sandboxConsole,
+    wrapTimer((handler, timeout) => globalThis.setTimeout(handler, timeout)),
+    wrapTimer((handler, timeout) => globalThis.setInterval(handler, timeout)),
+    (id: TimerId) => globalThis.clearTimeout(id),
+    (id: TimerId) => globalThis.clearInterval(id)
+  );
 
-    // eslint-disable-next-line no-new-func
-    const fn = new Function(
-        'console', 'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval',
-        `"use strict";\nreturn (async () => {\n${stripImports(source)}\n})();`,
-    );
-
-    await fn(
-        sandboxConsole,
-        wrapTimer((handler, timeout) => globalThis.setTimeout(handler, timeout)),
-        wrapTimer((handler, timeout) => globalThis.setInterval(handler, timeout)),
-        (id: TimerId) => globalThis.clearTimeout(id),
-        (id: TimerId) => globalThis.clearInterval(id),
-    );
-
-    return { stillRunning: !session.stopped && session.timers.length > 0 };
+  return { stillRunning: !session.stopped && session.timers.length > 0 };
 }
 
 /** Clears what a session left behind. Safe to call on a session already stopped. */
 export function stopScript(session: ScriptSession): void {
-    session.stopped = true;
-    for (const id of session.timers) {
-        globalThis.clearTimeout(id);
-        globalThis.clearInterval(id);
-    }
-    session.timers = [];
+  session.stopped = true;
+  for (const id of session.timers) {
+    globalThis.clearTimeout(id);
+    globalThis.clearInterval(id);
+  }
+  session.timers = [];
 }
 
 /** Whether running this file makes any sense. */
 export function isRunnableScript(name: string): boolean {
-    return /\.(js|mjs|cjs|ts)$/i.test(name);
+  return /\.(js|mjs|cjs|ts)$/i.test(name);
 }

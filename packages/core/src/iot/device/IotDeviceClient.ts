@@ -63,18 +63,17 @@ export class IotDeviceClient {
    * entry appears only once it is accepted in the panel, so connecting to the
    * broker is not enough to get onto the list.
    */
-  requestRegistration(info: {
-    label?: string;
-    kind?: 'firmware' | 'desktop' | 'mobile' | 'web' | 'service';
-    sn?: string;
-    description?: string;
-    version?: string;
-    address?: string;
-  } = {}): void {
-    this.options.publishFn(
-      `${this.options.topicPrefix}/register-request`,
-      JSON.stringify(info),
-    );
+  requestRegistration(
+    info: {
+      label?: string;
+      kind?: 'firmware' | 'desktop' | 'mobile' | 'web' | 'service';
+      sn?: string;
+      description?: string;
+      version?: string;
+      address?: string;
+    } = {}
+  ): void {
+    this.options.publishFn(`${this.options.topicPrefix}/register-request`, JSON.stringify(info));
   }
 
   /** Register a device-side extension (e.g. IotDeviceVfsExtension). */

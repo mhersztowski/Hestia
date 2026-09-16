@@ -40,7 +40,7 @@ export class Logger extends CoreObject {
   constructor(
     public readonly category: string,
     parent?: CoreObject,
-    options: { minLevel?: LogLevel } = {},
+    options: { minLevel?: LogLevel } = {}
   ) {
     super(parent, `Logger:${category}`);
     this.#minLevel = options.minLevel ?? 'debug';
@@ -100,10 +100,18 @@ export class Logger extends CoreObject {
       Logger.#root.logged.connect((rec) => {
         const prefix = `[${rec.category}]`;
         switch (rec.level) {
-          case 'debug': console.debug(prefix, rec.message, rec.data ?? ''); break;
-          case 'info':  console.info(prefix, rec.message, rec.data ?? ''); break;
-          case 'warn':  console.warn(prefix, rec.message, rec.data ?? ''); break;
-          case 'error': console.error(prefix, rec.message, rec.data ?? ''); break;
+          case 'debug':
+            console.debug(prefix, rec.message, rec.data ?? '');
+            break;
+          case 'info':
+            console.info(prefix, rec.message, rec.data ?? '');
+            break;
+          case 'warn':
+            console.warn(prefix, rec.message, rec.data ?? '');
+            break;
+          case 'error':
+            console.error(prefix, rec.message, rec.data ?? '');
+            break;
         }
       });
     }

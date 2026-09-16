@@ -225,9 +225,19 @@ declare const BODIES: Record<string, { mass: number; radius: number; color: stri
  * przed przypadkowym sięgnięciem po przeglądarkę z modelu fizycznego.
  */
 const SHADOWED = [
-  'window', 'document', 'globalThis', 'self', 'fetch', 'XMLHttpRequest',
-  'localStorage', 'sessionStorage', 'indexedDB', 'WebSocket', 'importScripts',
-  'process', 'require',
+  'window',
+  'document',
+  'globalThis',
+  'self',
+  'fetch',
+  'XMLHttpRequest',
+  'localStorage',
+  'sessionStorage',
+  'indexedDB',
+  'WebSocket',
+  'importScripts',
+  'process',
+  'require',
 ];
 // `eval` i `arguments` świadomie poza listą: w trybie strict nie wolno ich użyć
 // jako nazw parametrów, więc próba zasłonięcia wywala każdy skrypt na starcie.
@@ -310,7 +320,8 @@ export function defaultScriptApi(): ScriptApi {
 
 export function runScript(code: string, api: Partial<ScriptApi> = {}): ScriptResult {
   const stripped = stripTypes(code);
-  if (stripped.error || stripped.js === undefined) return { issues: [stripped.error ?? 'Nie umiem odczytać skryptu.'] };
+  if (stripped.error || stripped.js === undefined)
+    return { issues: [stripped.error ?? 'Nie umiem odczytać skryptu.'] };
 
   const full: ScriptApi = { ...defaultScriptApi(), ...api };
 
@@ -326,14 +337,19 @@ export function runScript(code: string, api: Partial<ScriptApi> = {}): ScriptRes
 
     if (!result || typeof result !== 'object') {
       return {
-        issues: ['Skrypt nie zwrócił modelu. Zakończ go `return defineModel({...})` albo przypisz do `model`.'],
+        issues: [
+          'Skrypt nie zwrócił modelu. Zakończ go `return defineModel({...})` albo przypisz do `model`.',
+        ],
         compiled: stripped.js,
       };
     }
 
     const model = result as PhenomenonModel;
     if (!Array.isArray(model.parameters) || typeof model.run !== 'function') {
-      return { issues: ['Zwrócona wartość nie jest modelem — użyj `defineModel({...})`.'], compiled: stripped.js };
+      return {
+        issues: ['Zwrócona wartość nie jest modelem — użyj `defineModel({...})`.'],
+        compiled: stripped.js,
+      };
     }
 
     return { model, issues: model.issues ?? [], compiled: stripped.js };

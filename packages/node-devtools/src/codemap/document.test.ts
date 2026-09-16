@@ -6,13 +6,25 @@
 import { describe, it, expect } from 'vitest';
 import { buildModel } from './parsers/index.js';
 import {
-  CODEMAP_EXTENSION, branchLog, checkoutBranch, codemapFromDiagrams, commitCodemap, createBranch,
-  createCodemap, hasUncommittedChanges, headCommit, parseCodemap, restoreCommit, stringifyCodemap,
+  CODEMAP_EXTENSION,
+  branchLog,
+  checkoutBranch,
+  codemapFromDiagrams,
+  commitCodemap,
+  createBranch,
+  createCodemap,
+  hasUncommittedChanges,
+  headCommit,
+  parseCodemap,
+  restoreCommit,
+  stringifyCodemap,
 } from './document.js';
 import type { UmlDiagram } from './uml/umlTypes.js';
 
 async function sample() {
-  const model = await buildModel([{ file: 'src/a.ts', content: 'export class A { run(): void {} }' }]);
+  const model = await buildModel([
+    { file: 'src/a.ts', content: 'export class A { run(): void {} }' },
+  ]);
   return createCodemap(model, 'Sample', 'src');
 }
 
@@ -38,25 +50,36 @@ describe('codemap document', () => {
 
   it('drops outputs that are not strings, and adds no field when there are none', async () => {
     const codemap = await sample();
-    expect(parseCodemap(JSON.stringify({ ...codemap, outputs: ['a.d.ts', 42, null] })).outputs).toEqual(['a.d.ts']);
+    expect(
+      parseCodemap(JSON.stringify({ ...codemap, outputs: ['a.d.ts', 42, null] })).outputs
+    ).toEqual(['a.d.ts']);
     expect('outputs' in parseCodemap(JSON.stringify(codemap))).toBe(false);
   });
 
   it('refuses other files, including the old single-diagram uml-scene', () => {
-    expect(() => parseCodemap('{"type":"git-repo","version":1,"url":"x"}')).toThrow('expected type "codemap"');
-    expect(() => parseCodemap('{"type":"uml-scene","nodes":[],"edges":[]}')).toThrow('expected type "codemap"');
+    expect(() => parseCodemap('{"type":"git-repo","version":1,"url":"x"}')).toThrow(
+      'expected type "codemap"'
+    );
+    expect(() => parseCodemap('{"type":"uml-scene","nodes":[],"edges":[]}')).toThrow(
+      'expected type "codemap"'
+    );
     expect(() => parseCodemap('[]')).toThrow('not a JSON object');
   });
 
   it('refuses a codemap whose history has no tip for the current branch', async () => {
     const codemap = await sample();
     const broken = { ...codemap, history: { ...codemap.history, head: 'nowhere' } };
-    expect(() => parseCodemap(JSON.stringify(broken))).toThrow('invalid "name", "diagrams" or "history"');
+    expect(() => parseCodemap(JSON.stringify(broken))).toThrow(
+      'invalid "name", "diagrams" or "history"'
+    );
   });
 });
 
 const diagram = (name: string): UmlDiagram => ({ id: `d_${name}`, name, nodes: [], edges: [] });
-const rename = (c: ReturnType<typeof codemapFromDiagrams>, name: string) => ({ ...c, diagrams: [diagram(name)] });
+const rename = (c: ReturnType<typeof codemapFromDiagrams>, name: string) => ({
+  ...c,
+  diagrams: [diagram(name)],
+});
 
 describe('codemap history', () => {
   it('starts with one commit on main that records the initial diagrams', () => {

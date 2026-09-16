@@ -19,32 +19,35 @@ import { HttpError, type HttpServer } from '@hestia/node-core';
 import { PlatformClient, type UserIdentity } from './platform';
 
 /** The token from the `Authorization` header; the platform decides whether it is any good. */
-async function identify(platform: PlatformClient, header: string | undefined): Promise<UserIdentity> {
-    const token = header?.replace(/^Bearer\s+/i, '').trim();
-    if (!token) throw new HttpError(401, 'No token — sign in to the platform');
-    const user = await platform.whoIs(token);
-    if (!user) throw new HttpError(401, 'The token is invalid or has expired');
-    return user;
+async function identify(
+  platform: PlatformClient,
+  header: string | undefined
+): Promise<UserIdentity> {
+  const token = header?.replace(/^Bearer\s+/i, '').trim();
+  if (!token) throw new HttpError(401, 'No token — sign in to the platform');
+  const user = await platform.whoIs(token);
+  if (!user) throw new HttpError(401, 'The token is invalid or has expired');
+  return user;
 }
 
 export function registerApi(server: HttpServer, platform: PlatformClient): void {
-    server.get('/api/health', async () => {
-        const info = await platform.info().catch(() => null);
-        return {
-            ok: true,
-            // The platform's address reaches the browser from here. Were the page
-            // to guess it, changing a port would break it in a way
-            // indistinguishable from a network outage.
-            platform: info ? { ...info, available: true } : { available: false },
-        };
-    });
+  server.get('/api/health', async () => {
+    const info = await platform.info().catch(() => null);
+    return {
+      ok: true,
+      // The platform's address reaches the browser from here. Were the page
+      // to guess it, changing a port would break it in a way
+      // indistinguishable from a network outage.
+      platform: info ? { ...info, available: true } : { available: false },
+    };
+  });
 
-    // Who am I, as this application sees it. The page has the same answer from
-    // the platform; this route is what tells the two apart when signing in works
-    // but the CAD server cannot reach the platform at all.
-    server.get('/api/me', async (ctx) => ({
-        user: await identify(platform, ctx.req.headers.authorization),
-    }));
+  // Who am I, as this application sees it. The page has the same answer from
+  // the platform; this route is what tells the two apart when signing in works
+  // but the CAD server cannot reach the platform at all.
+  server.get('/api/me', async (ctx) => ({
+    user: await identify(platform, ctx.req.headers.authorization),
+  }));
 }
 
 /**
@@ -53,23 +56,25 @@ export function registerApi(server: HttpServer, platform: PlatformClient): void 
  * the real owner of each request.
  */
 export function registerForwarding(server: HttpServer, platformUrl: string): void {
-    server.prefix('/platform', async (ctx) => {
-        const target = new URL(ctx.params.rest || '/', platformUrl);
-        target.search = ctx.query.toString();
+  server.prefix('/platform', async (ctx) => {
+    const target = new URL(ctx.params.rest || '/', platformUrl);
+    target.search = ctx.query.toString();
 
-        const response = await fetch(target, {
-            method: ctx.req.method,
-            headers: {
-                ...(ctx.req.headers.authorization ? { Authorization: ctx.req.headers.authorization } : {}),
-                ...(ctx.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-            },
-            body: ctx.body === undefined ? undefined : JSON.stringify(ctx.body),
-        });
-
-        const text = await response.text();
-        // The status has to pass through unchanged: a 401 from the platform must
-        // stay a 401, or the page cannot tell a wrong password from an outage.
-        ctx.res.writeHead(response.status, { 'Content-Type': response.headers.get('content-type') ?? 'application/json' });
-        ctx.res.end(text);
+    const response = await fetch(target, {
+      method: ctx.req.method,
+      headers: {
+        ...(ctx.req.headers.authorization ? { Authorization: ctx.req.headers.authorization } : {}),
+        ...(ctx.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: ctx.body === undefined ? undefined : JSON.stringify(ctx.body),
     });
+
+    const text = await response.text();
+    // The status has to pass through unchanged: a 401 from the platform must
+    // stay a 401, or the page cannot tell a wrong password from an outage.
+    ctx.res.writeHead(response.status, {
+      'Content-Type': response.headers.get('content-type') ?? 'application/json',
+    });
+    ctx.res.end(text);
+  });
 }

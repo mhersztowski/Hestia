@@ -14,7 +14,8 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // Static `import … from` / `export … from`, and dynamic `import('…')`.
-const IMPORT = /^\s*(?:import|export)\s[^;]*?from\s+['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/gm;
+const IMPORT =
+  /^\s*(?:import|export)\s[^;]*?from\s+['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/gm;
 
 function reachable(entry: string): { files: Set<string>; external: Set<string> } {
   const files = new Set<string>();
@@ -24,7 +25,8 @@ function reachable(entry: string): { files: Set<string>; external: Set<string> }
     files.add(file);
     for (const [, fromSpec, dynamicSpec] of readFileSync(file, 'utf8').matchAll(IMPORT)) {
       const spec = fromSpec ?? dynamicSpec;
-      if (spec.startsWith('.')) visit(path.resolve(path.dirname(file), spec.replace(/\.js$/, '.ts')));
+      if (spec.startsWith('.'))
+        visit(path.resolve(path.dirname(file), spec.replace(/\.js$/, '.ts')));
       else external.add(spec);
     }
   };
@@ -41,6 +43,13 @@ describe('@hestia/node-devtools/format', () => {
   it('does not reach the parsers, the service or git', () => {
     const { files } = reachable(path.join(here, 'format.ts'));
     const rel = [...files].map((f) => path.relative(here, f).split(path.sep).join('/'));
-    expect(rel.some((f) => f.startsWith('codemap/parsers/') || f.startsWith('git/') || f.endsWith('CodemapService.ts'))).toBe(false);
+    expect(
+      rel.some(
+        (f) =>
+          f.startsWith('codemap/parsers/') ||
+          f.startsWith('git/') ||
+          f.endsWith('CodemapService.ts')
+      )
+    ).toBe(false);
   });
 });

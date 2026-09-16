@@ -112,7 +112,9 @@ async function fetchText(url: string): Promise<string | null> {
  * Returns libPath as 'file:///node_modules/...' so TypeScript can resolve
  * bare module imports from models with 'file://' URIs (walks up to root).
  */
-async function fetchPackageTypesFromCdn(pkg: string): Promise<{ libPath: string; content: string } | null> {
+async function fetchPackageTypesFromCdn(
+  pkg: string
+): Promise<{ libPath: string; content: string } | null> {
   const slug = toAtTypesSlug(pkg);
 
   // 1. @types/<slug>/index.d.ts
@@ -143,7 +145,9 @@ async function fetchPackageTypesFromCdn(pkg: string): Promise<{ libPath: string;
           };
         }
       }
-    } catch { /* bad json */ }
+    } catch {
+      /* bad json */
+    }
   }
 
   // 3. package/index.d.ts
@@ -189,7 +193,7 @@ export interface TypeScriptPluginOptions {
 
 export function createTypeScriptPlugin(
   provider: FileSystemProvider,
-  options: TypeScriptPluginOptions = {},
+  options: TypeScriptPluginOptions = {}
 ): IPlugin {
   return {
     manifest: {
@@ -218,7 +222,10 @@ export function createTypeScriptPlugin(
         // Plik `.js` obsługuje osobny zestaw ustawień. Bez tego samego
         // rozwiązywania modułów import z `node_modules` kończy się w nim
         // typem `any` — mimo że w sąsiednim `.ts` działa.
-        monaco.languages.typescript.javascriptDefaults.setCompilerOptions({ ...options, checkJs: false });
+        monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+          ...options,
+          checkJs: false,
+        });
       } catch (err) {
         console.warn('[TSPlugin] setCompilerOptions failed:', err);
       }
@@ -233,10 +240,12 @@ export function createTypeScriptPlugin(
           // our model registry rather than the worker's own resolver.
           diagnosticCodesToIgnore: [2307, 2792, 7016, 2691],
         });
-      } catch { /* older Monaco — ignore */ }
+      } catch {
+        /* older Monaco — ignore */
+      }
 
       // ── State ────────────────────────────────────────────────────────────────
-      const resolvedPkgs = new Set<string>();   // packages already resolved (VFS or CDN)
+      const resolvedPkgs = new Set<string>(); // packages already resolved (VFS or CDN)
       const processedFiles = new Set<string>(); // VFS files already processed (VFS paths)
       let cdnHits = 0;
       let cdnMisses = 0;
@@ -506,8 +515,10 @@ export function createTypeScriptPlugin(
         if (dtsFlushTimer) clearTimeout(dtsFlushTimer);
         dtsFlushTimer = setTimeout(() => {
           dtsFlushTimer = null;
-          const libs = Array.from(dtsLibStore.entries())
-            .map(([filePath, content]) => ({ content, filePath }));
+          const libs = Array.from(dtsLibStore.entries()).map(([filePath, content]) => ({
+            content,
+            filePath,
+          }));
           monaco.languages.typescript.typescriptDefaults.setExtraLibs(libs);
           console.log(`[TSPlugin] setExtraLibs: ${libs.length} type definition files`);
         }, 200);
@@ -538,7 +549,8 @@ export function createTypeScriptPlugin(
       // Deklaracje dostarczone przez aplikację (np. pełne @types/three w cad-app)
       // — jeden magazyn, jeden wsad, jeden restart workera.
       if (options.preloadDts) {
-        void options.preloadDts()
+        void options
+          .preloadDts()
           .then((files) => {
             const entries = Object.entries(files);
             for (const [path, content] of entries) registerDtsLib(path, content);
@@ -592,7 +604,9 @@ export function createTypeScriptPlugin(
           try {
             await provider.stat(candidate);
             return candidate;
-          } catch { /* not found, go up */ }
+          } catch {
+            /* not found, go up */
+          }
         }
         return null;
       }
@@ -621,7 +635,7 @@ export function createTypeScriptPlugin(
               const content = await readVfs(fullPath);
               if (content) registerDtsLib(uri, content);
             }
-          }),
+          })
         );
       }
 
@@ -656,16 +670,22 @@ export function createTypeScriptPlugin(
                   (typeof m.types === 'string' ? m.types : null) ??
                   (typeof m.typings === 'string' ? m.typings : null) ??
                   (m.import && typeof (m.import as Record<string, string>).types === 'string'
-                    ? (m.import as Record<string, string>).types : null) ??
+                    ? (m.import as Record<string, string>).types
+                    : null) ??
                   (m.require && typeof (m.require as Record<string, string>).types === 'string'
-                    ? (m.require as Record<string, string>).types : null);
+                    ? (m.require as Record<string, string>).types
+                    : null);
               }
             }
-          } catch { /* bad json */ }
+          } catch {
+            /* bad json */
+          }
 
           // Verify there's a reachable .d.ts entry in this package directory.
           const normalized = typesFile
-            ? (typesFile.startsWith('./') ? typesFile.slice(2) : typesFile)
+            ? typesFile.startsWith('./')
+              ? typesFile.slice(2)
+              : typesFile
             : 'index.d.ts';
           const entryPath = `${pkgDir}/${normalized}`;
           const hasEntry =
@@ -723,7 +743,7 @@ export function createTypeScriptPlugin(
           if (currentFileDir) {
             const fileLocalPath = result.libPath.replace(
               'file:///node_modules/',
-              `file://${currentFileDir}/node_modules/`,
+              `file://${currentFileDir}/node_modules/`
             );
             if (fileLocalPath !== result.libPath) {
               registerLib(fileLocalPath, result.content);
@@ -737,18 +757,21 @@ export function createTypeScriptPlugin(
           const modName = ambientModuleName(pkg);
           if (modName) {
             const safeKey = modName.replace(/[/@]/g, '-');
-            registerLib(`file:///ambient-${safeKey}.d.ts`, wrapAsAmbientModule(modName, result.content));
+            registerLib(
+              `file:///ambient-${safeKey}.d.ts`,
+              wrapAsAmbientModule(modName, result.content)
+            );
           }
 
           // Recursively resolve package-level imports and /// <reference types="..." />
           const pkgImports = [
-            ...extractSpecifiers(result.content).filter(s => !s.startsWith('.')),
+            ...extractSpecifiers(result.content).filter((s) => !s.startsWith('.')),
             ...extractTypeReferences(result.content),
           ];
           await Promise.allSettled(
             pkgImports
-              .filter(s => !s.startsWith('node:') && !s.startsWith('bun:'))
-              .map(s => resolvePackage(pkgNameFrom(s), nodeModulesDir)),
+              .filter((s) => !s.startsWith('node:') && !s.startsWith('bun:'))
+              .map((s) => resolvePackage(pkgNameFrom(s), nodeModulesDir))
           );
         } else {
           cdnMisses++;
@@ -760,7 +783,11 @@ export function createTypeScriptPlugin(
        * Uses 'file://' URI so paths match those TypeScript resolves from editing models.
        * Skips files already open as Monaco models (they're already in the TS service).
        */
-      async function addVfsFile(vfsPath: string, nodeModulesDir: string | null, visited: Set<string>): Promise<void> {
+      async function addVfsFile(
+        vfsPath: string,
+        nodeModulesDir: string | null,
+        visited: Set<string>
+      ): Promise<void> {
         if (visited.has(vfsPath) || processedFiles.has(vfsPath)) return;
         visited.add(vfsPath);
 
@@ -794,7 +821,9 @@ export function createTypeScriptPlugin(
           const raw = localStorage.getItem('minis_current_user');
           const token = raw ? (JSON.parse(raw) as { token?: string }).token : undefined;
           return token ? { Authorization: `Bearer ${token}` } : {};
-        } catch { return {}; }
+        } catch {
+          return {};
+        }
       };
       const fetchMycastleSrc = async (repoRel: string): Promise<string | null> => {
         try {
@@ -802,7 +831,9 @@ export function createTypeScriptPlugin(
           u.searchParams.set('path', repoRel);
           const r = await fetch(u.pathname + u.search, { headers: mcAuthHeaders() });
           return r.ok ? await r.text() : null;
-        } catch { return null; }
+        } catch {
+          return null;
+        }
       };
       const joinRepo = (dir: string, spec: string): string => {
         const out: string[] = [];
@@ -820,7 +851,14 @@ export function createTypeScriptPlugin(
         const hasExt = /\.(d\.ts|ts|tsx|js|jsx|mts|cts|json)$/i.test(repoRel);
         const candidates = hasExt
           ? [repoRel]
-          : [`${repoRel}.ts`, `${repoRel}.tsx`, `${repoRel}/index.ts`, `${repoRel}/index.tsx`, `${repoRel}.d.ts`, `${repoRel}.js`];
+          : [
+              `${repoRel}.ts`,
+              `${repoRel}.tsx`,
+              `${repoRel}/index.ts`,
+              `${repoRel}/index.tsx`,
+              `${repoRel}.d.ts`,
+              `${repoRel}.js`,
+            ];
         for (const c of candidates) {
           const content = await fetchMycastleSrc(c);
           if (content === null) continue;
@@ -828,10 +866,13 @@ export function createTypeScriptPlugin(
           if (c.endsWith('.d.ts')) registerDtsLib(modelUri, content);
           else registerLib(modelUri, content);
           const dir = c.split('/').slice(0, -1).join('/');
-          await Promise.allSettled(extractSpecifiers(content).map(async (spec) => {
-            if (spec.startsWith('.')) await resolveMycastleFile(joinRepo(dir, spec), visited);
-            else if (spec.startsWith('mycastle/')) await resolveMycastleFile(spec.slice('mycastle/'.length), visited);
-          }));
+          await Promise.allSettled(
+            extractSpecifiers(content).map(async (spec) => {
+              if (spec.startsWith('.')) await resolveMycastleFile(joinRepo(dir, spec), visited);
+              else if (spec.startsWith('mycastle/'))
+                await resolveMycastleFile(spec.slice('mycastle/'.length), visited);
+            })
+          );
           return;
         }
       }
@@ -841,37 +882,45 @@ export function createTypeScriptPlugin(
         currentVfsPath: string,
         code: string,
         nodeModulesDir: string | null,
-        visited = new Set<string>(),
+        visited = new Set<string>()
       ): Promise<void> {
         const specifiers = extractSpecifiers(code);
 
-        await Promise.allSettled(specifiers.map(async (spec) => {
-          if (spec.startsWith('.')) {
-            // Relative import — load from VFS
-            const resolved = resolvePath(currentVfsPath, spec);
-            const candidates = [
-              `${resolved}.ts`, `${resolved}.tsx`,
-              `${resolved}/index.ts`, `${resolved}/index.tsx`,
-              `${resolved}.d.ts`, resolved,
-            ];
-            for (const c of candidates) {
-              if (!processedFiles.has(c) && (await readVfs(c)) !== null) {
-                await addVfsFile(c, nodeModulesDir, visited);
-                break;
+        await Promise.allSettled(
+          specifiers.map(async (spec) => {
+            if (spec.startsWith('.')) {
+              // Relative import — load from VFS
+              const resolved = resolvePath(currentVfsPath, spec);
+              const candidates = [
+                `${resolved}.ts`,
+                `${resolved}.tsx`,
+                `${resolved}/index.ts`,
+                `${resolved}/index.tsx`,
+                `${resolved}.d.ts`,
+                resolved,
+              ];
+              for (const c of candidates) {
+                if (!processedFiles.has(c) && (await readVfs(c)) !== null) {
+                  await addVfsFile(c, nodeModulesDir, visited);
+                  break;
+                }
               }
+            } else if (spec === 'mycastle' || spec.startsWith('mycastle/')) {
+              // MyCastle monorepo source (fetched from the backend).
+              await resolveMycastleFile(spec.replace(/^mycastle\/?/, ''), visited);
+            } else if (!spec.startsWith('node:') && !spec.startsWith('bun:')) {
+              // npm package
+              await resolvePackage(pkgNameFrom(spec), nodeModulesDir);
             }
-          } else if (spec === 'mycastle' || spec.startsWith('mycastle/')) {
-            // MyCastle monorepo source (fetched from the backend).
-            await resolveMycastleFile(spec.replace(/^mycastle\/?/, ''), visited);
-          } else if (!spec.startsWith('node:') && !spec.startsWith('bun:')) {
-            // npm package
-            await resolvePackage(pkgNameFrom(spec), nodeModulesDir);
-          }
-        }));
+          })
+        );
       }
 
       /** Load types for all deps listed in the nearest package.json. */
-      async function loadAllPackageJsonDeps(fileDir: string, nodeModulesDir: string | null): Promise<void> {
+      async function loadAllPackageJsonDeps(
+        fileDir: string,
+        nodeModulesDir: string | null
+      ): Promise<void> {
         const parts = fileDir.split('/').filter(Boolean);
         for (let i = parts.length; i >= 0; i--) {
           const pkgPath = (i === 0 ? '' : '/' + parts.slice(0, i).join('/')) + '/package.json';
@@ -883,8 +932,10 @@ export function createTypeScriptPlugin(
               devDependencies?: Record<string, string>;
             };
             const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
-            await Promise.allSettled(deps.map(dep => resolvePackage(dep, nodeModulesDir)));
-          } catch { /* bad json */ }
+            await Promise.allSettled(deps.map((dep) => resolvePackage(dep, nodeModulesDir)));
+          } catch {
+            /* bad json */
+          }
           break;
         }
       }
@@ -912,7 +963,7 @@ export function createTypeScriptPlugin(
         if (nodeTypesState !== 'brak') return;
         nodeTypesState = 'ładowanie';
         try {
-          if (nodeModulesDir && await loadPkgTypesFromVfs('node', nodeModulesDir)) {
+          if (nodeModulesDir && (await loadPkgTypesFromVfs('node', nodeModulesDir))) {
             console.log('[TSPlugin] typy Node z node_modules projektu');
             nodeTypesState = 'gotowe';
             return;
@@ -954,7 +1005,7 @@ export function createTypeScriptPlugin(
 
           for (const ref of extractReferencePaths(content)) {
             const target = resolveReference(vfsPath, ref);
-            if (!target.startsWith(BASE)) continue;   // paczka nie sięga poza siebie
+            if (!target.startsWith(BASE)) continue; // paczka nie sięga poza siebie
             const targetRel = target.slice(BASE.length + 1);
             if (!pobrane.has(target)) doPobrania.push(targetRel);
           }
@@ -971,10 +1022,13 @@ export function createTypeScriptPlugin(
         // Track the current file's directory so resolvePackage can plant CDN types
         // right next to the file (file-adjacent node_modules strategy).
         currentFileDir = fileDir;
-        const modelLang = monaco.editor.getModel(monaco.Uri.parse(modelUri))?.getLanguageId() ?? 'no-model';
+        const modelLang =
+          monaco.editor.getModel(monaco.Uri.parse(modelUri))?.getLanguageId() ?? 'no-model';
         console.log(`[TSPlugin] handleFile start: ${vfsPath} | lang=${modelLang}`);
         const nodeModulesDir = await findNodeModulesDir(fileDir);
-        console.log(`[TSPlugin] nodeModulesDir: ${nodeModulesDir ?? 'none (CDN fallback)'} | fileDir: ${fileDir}`);
+        console.log(
+          `[TSPlugin] nodeModulesDir: ${nodeModulesDir ?? 'none (CDN fallback)'} | fileDir: ${fileDir}`
+        );
 
         await resolveImports(vfsPath, code, nodeModulesDir);
         await loadAllPackageJsonDeps(fileDir, nodeModulesDir);
@@ -990,7 +1044,9 @@ export function createTypeScriptPlugin(
         // Source files (.ts/.tsx) are registered as individual Monaco models so the TS
         // worker can follow relative imports between project files without restarting.
 
-        console.log(`[TSPlugin] handleFile done: ${vfsPath} | pkgs: ${resolvedPkgs.size} | CDN hits: ${cdnHits} misses: ${cdnMisses} | dts: ${dtsLibStore.size} | models: ${createdLibModels.size}`);
+        console.log(
+          `[TSPlugin] handleFile done: ${vfsPath} | pkgs: ${resolvedPkgs.size} | CDN hits: ${cdnHits} misses: ${cdnMisses} | dts: ${dtsLibStore.size} | models: ${createdLibModels.size}`
+        );
 
         // ── Diagnostic probe (fire-and-forget, does not block completions) ────
         void (async () => {
@@ -998,20 +1054,29 @@ export function createTypeScriptPlugin(
             const getWorker = await monaco.languages.typescript.getTypeScriptWorker();
             const proxy = await Promise.race([
               getWorker(monaco.Uri.parse(modelUri)),
-              new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('timeout')), 5000)
+              ),
             ]);
             const diags = await proxy.getSemanticDiagnostics(modelUri);
             if (diags.length === 0) {
               console.log(`[TSPlugin:diag] ✓ NO ERRORS for ${vfsPath}`);
             } else {
-              console.log(`[TSPlugin:diag] ✗ ${diags.length} errors in ${vfsPath}:`,
-                diags.map(d => ({
+              console.log(
+                `[TSPlugin:diag] ✗ ${diags.length} errors in ${vfsPath}:`,
+                diags.map((d) => ({
                   code: d.code,
-                  msg: typeof d.messageText === 'string' ? d.messageText : (d.messageText as { messageText: string }).messageText,
-                })));
+                  msg:
+                    typeof d.messageText === 'string'
+                      ? d.messageText
+                      : (d.messageText as { messageText: string }).messageText,
+                }))
+              );
             }
           } catch (e) {
-            console.log(`[TSPlugin:diag] probe failed (${(e as Error).message}) — worker still initializing`);
+            console.log(
+              `[TSPlugin:diag] probe failed (${(e as Error).message}) — worker still initializing`
+            );
           }
         })();
       }
@@ -1023,7 +1088,10 @@ export function createTypeScriptPlugin(
       monaco.editor.onDidCreateModel((model) => {
         const uri = model.uri.toString();
         const lower = uri.toLowerCase();
-        if ((lower.endsWith('.js') || lower.endsWith('.jsx')) && model.getLanguageId() === 'javascript') {
+        if (
+          (lower.endsWith('.js') || lower.endsWith('.jsx')) &&
+          model.getLanguageId() === 'javascript'
+        ) {
           monaco.editor.setModelLanguage(model, 'typescript');
           console.log(`[TSPlugin] onDidCreateModel: switched ${uri} → typescript`);
         }
@@ -1036,7 +1104,9 @@ export function createTypeScriptPlugin(
       let currentUri = '';
       let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-      api.editor.onDidChangeModel((uri) => { currentUri = uri; });
+      api.editor.onDidChangeModel((uri) => {
+        currentUri = uri;
+      });
 
       api.editor.onDidChangeContent((text) => {
         if (!currentUri) return;

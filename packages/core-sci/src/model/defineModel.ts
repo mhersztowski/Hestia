@@ -15,7 +15,12 @@
  * Autor podaje minimum (parametry i funkcję liczącą); resztę kontraktu —
  * obserwable, pary pochodnych, listę uwag — uzupełniamy stąd.
  */
-import type { ObservableDef, ParamSchema, PhenomenonModel, PhenomenonResult } from '../graph/compileGraph';
+import type {
+  ObservableDef,
+  ParamSchema,
+  PhenomenonModel,
+  PhenomenonResult,
+} from '../graph/compileGraph';
 import { measureInvariant } from '../numeric/invariants';
 import type { State } from '../numeric/trajectory';
 
@@ -36,7 +41,11 @@ export interface ManualModelSpec {
    * uzupełniamy niżej. Wymaganie pełnej struktury zmuszałoby każdy skrypt do
    * dopisywania pustych obiektów dla rzeczy, których jego model nie ma.
    */
-  run: (values: Record<string, number>, tSpan: [number, number], dt: number) => Partial<PhenomenonResult>;
+  run: (
+    values: Record<string, number>,
+    tSpan: [number, number],
+    dt: number
+  ) => Partial<PhenomenonResult>;
   /**
    * Wielkości, które mają pozostać stałe — odpowiednik `@invariant` z dokumentu.
    *
@@ -87,7 +96,8 @@ function fillParameter(parameter: Partial<ParamSchema> & { name: string }): Para
 export function defineModel(spec: ManualModelSpec): PhenomenonModel {
   const issues: string[] = [];
 
-  if (!spec.parameters.length) issues.push('Model nie ma żadnego parametru — nie będzie czym sterować.');
+  if (!spec.parameters.length)
+    issues.push('Model nie ma żadnego parametru — nie będzie czym sterować.');
   if (!spec.observables.length) issues.push('Model nie ma żadnej wielkości do pokazania.');
 
   const parameters = spec.parameters.map(fillParameter);
@@ -102,14 +112,20 @@ export function defineModel(spec: ManualModelSpec): PhenomenonModel {
   const duplicates = observables
     .map((o) => o.name)
     .filter((name, index, all) => all.indexOf(name) !== index);
-  if (duplicates.length) issues.push(`Powtórzone wielkości: ${[...new Set(duplicates)].join(', ')}.`);
+  if (duplicates.length)
+    issues.push(`Powtórzone wielkości: ${[...new Set(duplicates)].join(', ')}.`);
 
   if (spec.invariants?.length && spec.dynamic === false) {
-    issues.push('Model deklaruje niezmiennik, ale nie liczy trajektorii — nie ma na czym go zmierzyć.');
+    issues.push(
+      'Model deklaruje niezmiennik, ale nie liczy trajektorii — nie ma na czym go zmierzyć.'
+    );
   }
 
   for (const [position, velocity] of spec.derivativePairs ?? []) {
-    if (!observables.some((o) => o.name === position) || !observables.some((o) => o.name === velocity)) {
+    if (
+      !observables.some((o) => o.name === position) ||
+      !observables.some((o) => o.name === velocity)
+    ) {
       issues.push(`Para pochodnych (${position}, ${velocity}) wskazuje wielkość spoza modelu.`);
     }
   }
@@ -121,18 +137,19 @@ export function defineModel(spec: ManualModelSpec): PhenomenonModel {
     derivativePairs: spec.derivativePairs ?? [],
     issues,
     run(values, tSpan = [0, 10], dt = 0.005) {
-      const complete = { ...Object.fromEntries(parameters.map((p) => [p.name, p.value])), ...values };
+      const complete = {
+        ...Object.fromEntries(parameters.map((p) => [p.name, p.value])),
+        ...values,
+      };
       const result = spec.run(complete, tSpan, dt);
 
       // Pomiar robimy tutaj, a nie zostawiamy autorowi: dzięki temu raport
       // z modelu ręcznego i z grafu wzorów powstaje tą samą drogą i da się je
       // zestawić obok siebie.
       const measured = result.trajectory
-        ? (spec.invariants ?? []).map(({ name, of }) => measureInvariant(
-          result.trajectory!,
-          (state, t) => of(state, t, complete),
-          { name },
-        ))
+        ? (spec.invariants ?? []).map(({ name, of }) =>
+            measureInvariant(result.trajectory!, (state, t) => of(state, t, complete), { name })
+          )
         : [];
 
       /**

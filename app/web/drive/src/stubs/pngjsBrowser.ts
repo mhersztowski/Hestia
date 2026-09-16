@@ -9,7 +9,9 @@
  */
 export const PNG = {
   sync: {
-    write: () => { throw new Error('pngjs PNG export is not supported (stubbed for djvu.js)'); },
+    write: () => {
+      throw new Error('pngjs PNG export is not supported (stubbed for djvu.js)');
+    },
   },
 };
 export default { PNG };

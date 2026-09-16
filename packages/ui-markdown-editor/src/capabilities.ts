@@ -23,24 +23,24 @@ import type { ReactNode } from 'react';
 import type { DirectoryTree, FileData, PersonNode, ProjectNode, TaskNode } from '@hestia/core';
 
 export interface EditorFiles {
-    /** Reads a file. The path is relative to the host's root, `/` between segments. */
-    readFile(path: string): Promise<FileData>;
-    /** Writes a file, creating it if it is not there. */
-    writeFile(path: string, content: string): Promise<FileData>;
-    /** The tree under `path`; the root when `path` is absent. */
-    listDirectory(path?: string): Promise<DirectoryTree>;
+  /** Reads a file. The path is relative to the host's root, `/` between segments. */
+  readFile(path: string): Promise<FileData>;
+  /** Writes a file, creating it if it is not there. */
+  writeFile(path: string, content: string): Promise<FileData>;
+  /** The tree under `path`; the root when `path` is absent. */
+  listDirectory(path?: string): Promise<DirectoryTree>;
 }
 
 const EditorFilesContext = createContext<EditorFiles | null>(null);
 
 export interface EditorFilesProviderProps {
-    /** `null` is a legitimate value: the host has no file store, so the blocks that need one do not appear. */
-    files: EditorFiles | null;
-    children: ReactNode;
+  /** `null` is a legitimate value: the host has no file store, so the blocks that need one do not appear. */
+  files: EditorFiles | null;
+  children: ReactNode;
 }
 
 export function EditorFilesProvider({ files, children }: EditorFilesProviderProps) {
-    return createElement(EditorFilesContext.Provider, { value: files }, children);
+  return createElement(EditorFilesContext.Provider, { value: files }, children);
 }
 
 /**
@@ -51,7 +51,7 @@ export function EditorFilesProvider({ files, children }: EditorFilesProviderProp
  * drive that was never connected.
  */
 export function useEditorFiles(): EditorFiles | null {
-    return useContext(EditorFilesContext);
+  return useContext(EditorFilesContext);
 }
 
 /**
@@ -66,27 +66,27 @@ export function useEditorFiles(): EditorFiles | null {
  * do not offer what they cannot address.
  */
 export interface EditorSession {
-    /** The signed-in user's name, or `null` when nobody is. */
-    userName: string | null;
-    /** A bearer token for the host's API, or `null` when it needs none. */
-    token: string | null;
-    /** Only one block asks, and only to show an extra entry. */
-    isAdmin?: boolean;
+  /** The signed-in user's name, or `null` when nobody is. */
+  userName: string | null;
+  /** A bearer token for the host's API, or `null` when it needs none. */
+  token: string | null;
+  /** Only one block asks, and only to show an extra entry. */
+  isAdmin?: boolean;
 }
 
 const EditorSessionContext = createContext<EditorSession | null>(null);
 
 export interface EditorSessionProviderProps {
-    session: EditorSession | null;
-    children: ReactNode;
+  session: EditorSession | null;
+  children: ReactNode;
 }
 
 export function EditorSessionProvider({ session, children }: EditorSessionProviderProps) {
-    return createElement(EditorSessionContext.Provider, { value: session }, children);
+  return createElement(EditorSessionContext.Provider, { value: session }, children);
 }
 
 export function useEditorSession(): EditorSession | null {
-    return useContext(EditorSessionContext);
+  return useContext(EditorSessionContext);
 }
 
 /**
@@ -97,24 +97,24 @@ export function useEditorSession(): EditorSession | null {
  * why there is no default implementation returning an empty list.
  */
 export interface SpellMatch {
-    /** Byte offset into the checked text where the issue starts. */
-    offset: number;
-    /** Number of bytes the issue spans. */
-    length: number;
-    /** Human-readable explanation (long form). */
-    message: string;
-    /** Short label, e.g. "Spelling mistake". */
-    shortMessage?: string;
-    /** Suggested replacements, ordered by confidence (best first). */
-    replacements: string[];
-    /** Issue category — 'TYPOS' / 'GRAMMAR' / 'STYLE' / 'PUNCTUATION' / … */
-    category: string;
-    /** Internal rule id (useful for "ignore this rule" UX). */
-    ruleId: string;
+  /** Byte offset into the checked text where the issue starts. */
+  offset: number;
+  /** Number of bytes the issue spans. */
+  length: number;
+  /** Human-readable explanation (long form). */
+  message: string;
+  /** Short label, e.g. "Spelling mistake". */
+  shortMessage?: string;
+  /** Suggested replacements, ordered by confidence (best first). */
+  replacements: string[];
+  /** Issue category — 'TYPOS' / 'GRAMMAR' / 'STYLE' / 'PUNCTUATION' / … */
+  category: string;
+  /** Internal rule id (useful for "ignore this rule" UX). */
+  ruleId: string;
 }
 
 export interface EditorSpellChecker {
-    checkSpelling(text: string, language: string): Promise<SpellMatch[]>;
+  checkSpelling(text: string, language: string): Promise<SpellMatch[]>;
 }
 
 /**
@@ -125,16 +125,16 @@ export interface EditorSpellChecker {
  * the host's, and in MyCastle it meant walking the drive.
  */
 export interface ResolvedKnowledgeRef {
-    /** The target block's body — the tooltip is built from it. */
-    code?: string;
-    kind?: string;
-    /** The document's path in the base, relative to `knowledge/`. */
-    path: string;
-    documentTitle?: string;
+  /** The target block's body — the tooltip is built from it. */
+  code?: string;
+  kind?: string;
+  /** The document's path in the base, relative to `knowledge/`. */
+  path: string;
+  documentTitle?: string;
 }
 
 export interface KnowledgeRefs {
-    resolve(id: string): Promise<ResolvedKnowledgeRef | undefined>;
+  resolve(id: string): Promise<ResolvedKnowledgeRef | undefined>;
 }
 
 /**
@@ -145,19 +145,30 @@ export interface KnowledgeRefs {
  * or where the code is checked out.
  */
 export interface UmlCodeSync {
-    syncUmlFromCode<P = unknown>(
-        userName: string, dir: string, project?: P, name?: string, files?: string[],
-    ): Promise<{
-        project: P;
-        changes: Array<{ kind: string; target: string; symbol?: string; member?: string; from?: string; to?: string }>;
-        summary: string;
-        committed: boolean;
+  syncUmlFromCode<P = unknown>(
+    userName: string,
+    dir: string,
+    project?: P,
+    name?: string,
+    files?: string[]
+  ): Promise<{
+    project: P;
+    changes: Array<{
+      kind: string;
+      target: string;
+      symbol?: string;
+      member?: string;
+      from?: string;
+      to?: string;
     }>;
-    generateCodeFromUml<D = unknown>(
-        userName: string,
-        diagram: D,
-        language?: 'typescript' | 'javascript' | 'python' | 'c' | 'cpp',
-    ): Promise<{ files: Array<{ file: string; content: string }> }>;
+    summary: string;
+    committed: boolean;
+  }>;
+  generateCodeFromUml<D = unknown>(
+    userName: string,
+    diagram: D,
+    language?: 'typescript' | 'javascript' | 'python' | 'c' | 'cpp'
+  ): Promise<{ files: Array<{ file: string; content: string }> }>;
 }
 
 /**
@@ -168,45 +179,45 @@ export interface UmlCodeSync {
  * not have to name four nulls.
  */
 export interface EditorServices {
-    spellChecker?: EditorSpellChecker | null;
-    knowledgeRefs?: KnowledgeRefs | null;
-    umlCodeSync?: UmlCodeSync | null;
-    /** See `ModelWorkerFactory`, declared below. */
-    modelWorkerFactory?: ModelWorkerFactory | null;
-    /** See `EditorForms`, declared below. */
-    forms?: EditorForms | null;
-    /**
-     * The Plugin Script reference, as Markdown, for the help dialog. MyCastle
-     * bundled `docs/MDScript.md` with Vite's `?raw`; a package cannot reach out
-     * of itself for a repository file, so the host passes the text.
-     */
-    mdScriptDocs?: string | null;
-    /** See `EditorCommandBus`, declared below. */
-    commandBus?: EditorCommandBus | null;
-    /** See `EditorScriptTemplates`, declared below. */
-    scriptTemplates?: EditorScriptTemplates | null;
-    /** See `EditorScriptHost`, declared below. */
-    scriptHost?: EditorScriptHost | null;
-    /**
-     * See `EditorScriptRunner`, declared below. Absent means a Plugin Script
-     * block shows its code and does not run it.
-     */
-    scriptRunner?: EditorScriptRunner | null;
+  spellChecker?: EditorSpellChecker | null;
+  knowledgeRefs?: KnowledgeRefs | null;
+  umlCodeSync?: UmlCodeSync | null;
+  /** See `ModelWorkerFactory`, declared below. */
+  modelWorkerFactory?: ModelWorkerFactory | null;
+  /** See `EditorForms`, declared below. */
+  forms?: EditorForms | null;
+  /**
+   * The Plugin Script reference, as Markdown, for the help dialog. MyCastle
+   * bundled `docs/MDScript.md` with Vite's `?raw`; a package cannot reach out
+   * of itself for a repository file, so the host passes the text.
+   */
+  mdScriptDocs?: string | null;
+  /** See `EditorCommandBus`, declared below. */
+  commandBus?: EditorCommandBus | null;
+  /** See `EditorScriptTemplates`, declared below. */
+  scriptTemplates?: EditorScriptTemplates | null;
+  /** See `EditorScriptHost`, declared below. */
+  scriptHost?: EditorScriptHost | null;
+  /**
+   * See `EditorScriptRunner`, declared below. Absent means a Plugin Script
+   * block shows its code and does not run it.
+   */
+  scriptRunner?: EditorScriptRunner | null;
 }
 
 const EditorServicesContext = createContext<EditorServices>({});
 
 export interface EditorServicesProviderProps {
-    services: EditorServices;
-    children: ReactNode;
+  services: EditorServices;
+  children: ReactNode;
 }
 
 export function EditorServicesProvider({ services, children }: EditorServicesProviderProps) {
-    return createElement(EditorServicesContext.Provider, { value: services }, children);
+  return createElement(EditorServicesContext.Provider, { value: services }, children);
 }
 
 export function useEditorServices(): EditorServices {
-    return useContext(EditorServicesContext);
+  return useContext(EditorServicesContext);
 }
 
 /**
@@ -223,52 +234,52 @@ export function useEditorServices(): EditorServices {
  * an editor's file picker.
  */
 export interface EditorFile {
-    getName(): string;
-    /** Path relative to the tree's root, `/` between segments. */
-    getPath(): string;
-    /** Extension without the dot, lower case. */
-    getExt(): string;
+  getName(): string;
+  /** Path relative to the tree's root, `/` between segments. */
+  getPath(): string;
+  /** Extension without the dot, lower case. */
+  getExt(): string;
 }
 
 export interface EditorDir {
-    getName(): string;
-    getPath(): string;
-    getDirs(): EditorDir[];
-    getFiles(): EditorFile[];
-    /** Walks down by segments; `undefined` when the path is not there. */
-    getSubDir(path: string[]): EditorDir | undefined;
+  getName(): string;
+  getPath(): string;
+  getDirs(): EditorDir[];
+  getFiles(): EditorFile[];
+  /** Walks down by segments; `undefined` when the path is not there. */
+  getSubDir(path: string[]): EditorDir | undefined;
 }
 
 export interface EditorFileTree {
-    /** `null` until the tree is loaded, and when the host has none. */
-    rootDir: EditorDir | null;
-    /**
-     * Whether the tree has finished loading. Distinct from `rootDir === null`:
-     * a picker showing "nothing here" while a load is still running is wrong in
-     * a way the user reads as an empty folder.
-     */
-    isLoaded: boolean;
-    /**
-     * What a file path is resolved against for `<img src>` and `<video src>`.
-     * No trailing slash. In MyCastle this was `getHttpUrl()`, read once at
-     * module load — which is exactly why it could not live in a package.
-     */
-    baseUrl: string;
+  /** `null` until the tree is loaded, and when the host has none. */
+  rootDir: EditorDir | null;
+  /**
+   * Whether the tree has finished loading. Distinct from `rootDir === null`:
+   * a picker showing "nothing here" while a load is still running is wrong in
+   * a way the user reads as an empty folder.
+   */
+  isLoaded: boolean;
+  /**
+   * What a file path is resolved against for `<img src>` and `<video src>`.
+   * No trailing slash. In MyCastle this was `getHttpUrl()`, read once at
+   * module load — which is exactly why it could not live in a package.
+   */
+  baseUrl: string;
 }
 
 const EditorFileTreeContext = createContext<EditorFileTree | null>(null);
 
 export interface EditorFileTreeProviderProps {
-    tree: EditorFileTree | null;
-    children: ReactNode;
+  tree: EditorFileTree | null;
+  children: ReactNode;
 }
 
 export function EditorFileTreeProvider({ tree, children }: EditorFileTreeProviderProps) {
-    return createElement(EditorFileTreeContext.Provider, { value: tree }, children);
+  return createElement(EditorFileTreeContext.Provider, { value: tree }, children);
 }
 
 export function useEditorFileTree(): EditorFileTree | null {
-    return useContext(EditorFileTreeContext);
+  return useContext(EditorFileTreeContext);
 }
 
 /**
@@ -290,39 +301,39 @@ export function useEditorFileTree(): EditorFileTree | null {
  * which is why it was mistaken for a file concern for so long.
  */
 export interface EditorProjectData {
-    projects: ProjectNode[];
-    tasks: TaskNode[];
-    persons: PersonNode[];
+  projects: ProjectNode[];
+  tasks: TaskNode[];
+  persons: PersonNode[];
 
-    getTaskById(id: string): TaskNode | undefined;
-    getPersonById(id: string): PersonNode | undefined;
-    /** Searches the whole project tree, not only the top level. */
-    findProjectByIdDeep(id: string): ProjectNode | undefined;
-    getTasksByProjectId(projectId: string): TaskNode[];
-    /** Tasks belonging to no project. */
-    getUnassignedTasks(): TaskNode[];
-    findPersons(filter: string): PersonNode[];
+  getTaskById(id: string): TaskNode | undefined;
+  getPersonById(id: string): PersonNode | undefined;
+  /** Searches the whole project tree, not only the top level. */
+  findProjectByIdDeep(id: string): ProjectNode | undefined;
+  getTasksByProjectId(projectId: string): TaskNode[];
+  /** Tasks belonging to no project. */
+  getUnassignedTasks(): TaskNode[];
+  findPersons(filter: string): PersonNode[];
 
-    /**
-     * Whether the store has finished loading. Same reason as in
-     * `EditorFileTree`: "nothing found" during a load reads as "nothing there".
-     */
-    isLoaded: boolean;
+  /**
+   * Whether the store has finished loading. Same reason as in
+   * `EditorFileTree`: "nothing found" during a load reads as "nothing there".
+   */
+  isLoaded: boolean;
 }
 
 const EditorProjectDataContext = createContext<EditorProjectData | null>(null);
 
 export interface EditorProjectDataProviderProps {
-    data: EditorProjectData | null;
-    children: ReactNode;
+  data: EditorProjectData | null;
+  children: ReactNode;
 }
 
 export function EditorProjectDataProvider({ data, children }: EditorProjectDataProviderProps) {
-    return createElement(EditorProjectDataContext.Provider, { value: data }, children);
+  return createElement(EditorProjectDataContext.Provider, { value: data }, children);
 }
 
 export function useEditorProjectData(): EditorProjectData | null {
-    return useContext(EditorProjectDataContext);
+  return useContext(EditorProjectDataContext);
 }
 
 /**
@@ -348,25 +359,25 @@ export type UIForm = unknown;
 
 /** What the picker lists: enough to choose a form, nothing more. */
 export interface UIFormSummary {
-    id: string;
-    name: string;
-    description?: string;
+  id: string;
+  name: string;
+  description?: string;
 }
 
 export interface EditorForms {
-    /** Whether the form list has been loaded. */
-    loaded: boolean;
-    loadForms(): Promise<UIFormSummary[]>;
-    /**
-     * The form itself, ready to render — not a node to convert. MyCastle
-     * returned a node here and the caller called `toModel()` on it; that is the
-     * host's half of the work, and doing it there keeps `UIForm` opaque.
-     */
-    getFormById(id: string): UIForm | null;
-    /** A form written into the document rather than stored by id. */
-    parseInlineForm(data: string): UIForm | null;
-    /** Draws a form. The editor supplies no markup of its own. */
-    render(form: UIForm, mode: 'view' | 'edit'): ReactNode;
+  /** Whether the form list has been loaded. */
+  loaded: boolean;
+  loadForms(): Promise<UIFormSummary[]>;
+  /**
+   * The form itself, ready to render — not a node to convert. MyCastle
+   * returned a node here and the caller called `toModel()` on it; that is the
+   * host's half of the work, and doing it there keeps `UIForm` opaque.
+   */
+  getFormById(id: string): UIForm | null;
+  /** A form written into the document rather than stored by id. */
+  parseInlineForm(data: string): UIForm | null;
+  /** Draws a form. The editor supplies no markup of its own. */
+  render(form: UIForm, mode: 'view' | 'edit'): ReactNode;
 }
 
 /**
@@ -380,8 +391,8 @@ export interface EditorForms {
  * Absent means nothing outside can drive the editor — which is the normal case.
  */
 export interface EditorCommandBus {
-    /** Subscribes; the returned function unsubscribes. */
-    on(event: string, handler: (payload: { type: string }) => void): () => void;
+  /** Subscribes; the returned function unsubscribes. */
+  on(event: string, handler: (payload: { type: string }) => void): () => void;
 }
 
 /**
@@ -393,17 +404,17 @@ export interface EditorCommandBus {
  * whether a plugin system exists at all, stays the host's business.
  */
 export interface ScriptTemplate {
-    /** Where it came from; shown so the user can tell templates apart. */
-    source: string;
-    label: string;
-    description?: string;
-    code: string;
-    mode?: string;
+  /** Where it came from; shown so the user can tell templates apart. */
+  source: string;
+  label: string;
+  description?: string;
+  code: string;
+  mode?: string;
 }
 
 export interface EditorScriptTemplates {
-    /** Called each time the menu is built, not cached — the set can change. */
-    list(): ScriptTemplate[];
+  /** Called each time the menu is built, not cached — the set can change. */
+  list(): ScriptTemplate[];
 }
 
 /**
@@ -420,35 +431,37 @@ export interface EditorScriptTemplates {
  * text is never lost; only the running of it is missing.
  */
 export interface EditorScriptScene {
-    /** The scene object the script produced; opaque to the editor. */
-    scene: unknown;
-    path: string;
+  /** The scene object the script produced; opaque to the editor. */
+  scene: unknown;
+  path: string;
 }
 
 export interface EditorScriptHost {
-    /**
-     * Configures a Monaco instance for scripts — defaults plus the type
-     * declarations. `monaco` is `unknown` because this package does not depend
-     * on Monaco's types and only passes the instance through.
-     */
-    configureMonaco?(monaco: unknown): void;
-    /**
-     * Installs the scene bridge for the length of one run, and removes it after.
-     * `null` takes it down. Two blocks on a page have panels of their own, and
-     * a scene from one must not land in the other's output.
-     */
-    setSceneHost?(host: {
-        readFile(path: string): Promise<string | null>;
-        writeFile(path: string, content: string): Promise<void>;
-        present(scene: unknown, info: { path: string }): void;
-    } | null): void;
-    /** Draws a scene the script presented. */
-    renderScene?(scene: EditorScriptScene, height: string): ReactNode;
-    /**
-     * Changes whenever the host's set of plugins does. The block re-reads its
-     * environment when it moves; what a plugin is stays the host's business.
-     */
-    pluginsVersion?: number;
+  /**
+   * Configures a Monaco instance for scripts — defaults plus the type
+   * declarations. `monaco` is `unknown` because this package does not depend
+   * on Monaco's types and only passes the instance through.
+   */
+  configureMonaco?(monaco: unknown): void;
+  /**
+   * Installs the scene bridge for the length of one run, and removes it after.
+   * `null` takes it down. Two blocks on a page have panels of their own, and
+   * a scene from one must not land in the other's output.
+   */
+  setSceneHost?(
+    host: {
+      readFile(path: string): Promise<string | null>;
+      writeFile(path: string, content: string): Promise<void>;
+      present(scene: unknown, info: { path: string }): void;
+    } | null
+  ): void;
+  /** Draws a scene the script presented. */
+  renderScene?(scene: EditorScriptScene, height: string): ReactNode;
+  /**
+   * Changes whenever the host's set of plugins does. The block re-reads its
+   * environment when it moves; what a plugin is stays the host's business.
+   */
+  pluginsVersion?: number;
 }
 
 /**
@@ -470,16 +483,16 @@ export interface EditorScriptHost {
 
 /** What a script prints while it runs. The editor collects and shows these. */
 export interface ScriptDisplayItem {
-    type: 'text' | 'table' | 'list' | 'json';
-    data: unknown;
+  type: 'text' | 'table' | 'list' | 'json';
+  data: unknown;
 }
 
 /** The handle a running script prints through. */
 export interface ScriptDisplayApi {
-    text(str: string): void;
-    table(data: Record<string, unknown>[] | unknown[][]): void;
-    list(items: unknown[]): void;
-    json(obj: unknown): void;
+  text(str: string): void;
+  table(data: Record<string, unknown>[] | unknown[][]): void;
+  list(items: unknown[]): void;
+  json(obj: unknown): void;
 }
 
 /** Opaque: the editor builds it, hands it back and never reads it. */
@@ -488,21 +501,21 @@ export type ScriptContext = unknown;
 export type ScriptOutput = unknown;
 
 export interface EditorScriptRunner {
-    /** The environment a run starts in: who is running it, and the document's `env` values. */
-    buildContext(
-        session: { currentUser: string | null; token: string | null; isAdmin: boolean },
-        env: { get(name: string): unknown; all(): Record<string, unknown> },
-    ): ScriptContext;
+  /** The environment a run starts in: who is running it, and the document's `env` values. */
+  buildContext(
+    session: { currentUser: string | null; token: string | null; isAdmin: boolean },
+    env: { get(name: string): unknown; all(): Record<string, unknown> }
+  ): ScriptContext;
 
-    execute(code: string, context: ScriptContext, display: ScriptDisplayApi): Promise<ScriptOutput>;
+  execute(code: string, context: ScriptContext, display: ScriptDisplayApi): Promise<ScriptOutput>;
 
-    /**
-     * Whether the result keeps changing after the run — MyCastle asked
-     * `result instanceof ReactiveValue`. A class cannot cross this boundary, so
-     * the runtime answers the question instead of exporting the type.
-     */
-    isLive(result: ScriptOutput): boolean;
+  /**
+   * Whether the result keeps changing after the run — MyCastle asked
+   * `result instanceof ReactiveValue`. A class cannot cross this boundary, so
+   * the runtime answers the question instead of exporting the type.
+   */
+  isLive(result: ScriptOutput): boolean;
 
-    /** Draws what the script returned. */
-    renderOutput(output: ScriptOutput): ReactNode;
+  /** Draws what the script returned. */
+  renderOutput(output: ScriptOutput): ReactNode;
 }

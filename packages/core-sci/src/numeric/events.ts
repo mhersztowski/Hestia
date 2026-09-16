@@ -53,7 +53,11 @@ export interface EventHit {
  * odbiciu leży dokładnie na progu i bez tej reguły każde odbicie meldowałoby
  * się powtórnie w następnym kroku, w nieskończoność.
  */
-export function crossesZero(before: number, after: number, direction: CrossingDirection = 'any'): boolean {
+export function crossesZero(
+  before: number,
+  after: number,
+  direction: CrossingDirection = 'any'
+): boolean {
   if (before === 0) return false;
   if (before > 0 && after <= 0) return direction !== 'up';
   if (before < 0 && after >= 0) return direction !== 'down';
@@ -75,7 +79,7 @@ export function findEventTime(
   ta: number,
   tb: number,
   tolerance = 1e-12,
-  maxIterations = 60,
+  maxIterations = 60
 ): number | undefined {
   let a = ta;
   let b = tb;

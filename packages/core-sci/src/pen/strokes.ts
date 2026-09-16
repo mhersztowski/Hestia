@@ -47,9 +47,7 @@ function krotko(value: number): string {
 
 /** Zapis do jednej linii dyrektywy `@strokes`. */
 export function serializeStrokes(strokes: Stroke[]): string {
-  return strokes
-    .map((s) => [s.x, s.y, s.radius, s.amplitude].map(krotko).join(','))
-    .join(' ');
+  return strokes.map((s) => [s.x, s.y, s.radius, s.amplitude].map(krotko).join(',')).join(' ');
 }
 
 /**
@@ -78,19 +76,22 @@ export function parseStrokes(text: string): Stroke[] {
 export function compileStrokes(strokes: Stroke[]): string {
   if (!strokes.length) return '0';
 
-  const wybrane = strokes.length <= MAX_POCIAGNIEC
-    ? strokes
-    // Zostawiamy najmocniejsze, bo to one niosą kształt rysunku; słabe
-    // pociągnięcia (lekki dotyk) i tak giną w sumie.
-    : [...strokes]
-      .sort((a, b) => Math.abs(b.amplitude) - Math.abs(a.amplitude))
-      .slice(0, MAX_POCIAGNIEC);
+  const wybrane =
+    strokes.length <= MAX_POCIAGNIEC
+      ? strokes
+      : // Zostawiamy najmocniejsze, bo to one niosą kształt rysunku; słabe
+        // pociągnięcia (lekki dotyk) i tak giną w sumie.
+        [...strokes]
+          .sort((a, b) => Math.abs(b.amplitude) - Math.abs(a.amplitude))
+          .slice(0, MAX_POCIAGNIEC);
 
   return wybrane
     .map((s) => {
       const szerokosc = Math.max(s.radius, 1e-4) ** 2;
-      return `${krotko(s.amplitude)} \\cdot \\exp(-((x - ${krotko(s.x)})^2 `
-        + `+ (y - ${krotko(s.y)})^2) / ${krotko(szerokosc)})`;
+      return (
+        `${krotko(s.amplitude)} \\cdot \\exp(-((x - ${krotko(s.x)})^2 ` +
+        `+ (y - ${krotko(s.y)})^2) / ${krotko(szerokosc)})`
+      );
     })
     .join(' + ');
 }

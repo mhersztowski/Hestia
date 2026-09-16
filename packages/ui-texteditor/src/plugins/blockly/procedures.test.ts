@@ -15,24 +15,33 @@ import { generatorFor } from './generators';
 function workspaceWithProcedure(): Blockly.Workspace {
   const ws = new Blockly.Workspace();
   ws.createVariable('a');
-  Blockly.serialization.workspaces.load({
-    blocks: {
-      languageVersion: 0,
-      blocks: [
-        {
-          type: 'procedures_defreturn', id: 'def', x: 0, y: 0,
-          fields: { NAME: 'podwoj' },
-          extraState: { params: [{ name: 'a' }] },
-          inputs: { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 2 } } } },
-        },
-        {
-          type: 'procedures_callnoreturn', id: 'call', x: 0, y: 300,
-          extraState: { name: 'podwoj', params: ['a'] },
-          inputs: { ARG0: { block: { type: 'math_number', id: 'm', fields: { NUM: 21 } } } },
-        },
-      ],
+  Blockly.serialization.workspaces.load(
+    {
+      blocks: {
+        languageVersion: 0,
+        blocks: [
+          {
+            type: 'procedures_defreturn',
+            id: 'def',
+            x: 0,
+            y: 0,
+            fields: { NAME: 'podwoj' },
+            extraState: { params: [{ name: 'a' }] },
+            inputs: { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 2 } } } },
+          },
+          {
+            type: 'procedures_callnoreturn',
+            id: 'call',
+            x: 0,
+            y: 300,
+            extraState: { name: 'podwoj', params: ['a'] },
+            inputs: { ARG0: { block: { type: 'math_number', id: 'm', fields: { NUM: 21 } } } },
+          },
+        ],
+      },
     },
-  }, ws);
+    ws
+  );
   return ws;
 }
 
@@ -52,38 +61,52 @@ describe('funkcje w każdym dialekcie', () => {
 describe('wcześniejsze wyjście z funkcji (C++)', () => {
   const build = (defType: string) => {
     const ws = new Blockly.Workspace();
-    Blockly.serialization.workspaces.load({
-      blocks: {
-        languageVersion: 0,
-        blocks: [{
-          type: defType, id: 'd', fields: { NAME: 'f' },
-          inputs: {
-            STACK: { block: {
-              type: 'procedures_ifreturn', id: 'r',
+    Blockly.serialization.workspaces.load(
+      {
+        blocks: {
+          languageVersion: 0,
+          blocks: [
+            {
+              type: defType,
+              id: 'd',
+              fields: { NAME: 'f' },
               inputs: {
-                CONDITION: { block: { type: 'logic_boolean', id: 'b', fields: { BOOL: 'TRUE' } } },
-                VALUE: { block: { type: 'math_number', id: 'v', fields: { NUM: 7 } } },
+                STACK: {
+                  block: {
+                    type: 'procedures_ifreturn',
+                    id: 'r',
+                    inputs: {
+                      CONDITION: {
+                        block: { type: 'logic_boolean', id: 'b', fields: { BOOL: 'TRUE' } },
+                      },
+                      VALUE: { block: { type: 'math_number', id: 'v', fields: { NUM: 7 } } },
+                    },
+                  },
+                },
+                ...(defType === 'procedures_defreturn'
+                  ? { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 0 } } } }
+                  : {}),
               },
-            } },
-            ...(defType === 'procedures_defreturn'
-              ? { RETURN: { block: { type: 'math_number', id: 'n', fields: { NUM: 0 } } } }
-              : {}),
-          },
-        }],
+            },
+          ],
+        },
       },
-    }, ws);
+      ws
+    );
     return ws;
   };
 
   it('funkcja bez wyniku wraca bez wartości', async () => {
     const { createCppGenerator } = await import('./cppGenerator');
-    expect(createCppGenerator().workspaceToCode(build('procedures_defnoreturn')))
-      .toMatch(/if \(true\) \{\s*return;/);
+    expect(createCppGenerator().workspaceToCode(build('procedures_defnoreturn'))).toMatch(
+      /if \(true\) \{\s*return;/
+    );
   });
 
   it('funkcja z wynikiem wraca z wartością', async () => {
     const { createCppGenerator } = await import('./cppGenerator');
-    expect(createCppGenerator().workspaceToCode(build('procedures_defreturn')))
-      .toMatch(/if \(true\) \{\s*return 7;/);
+    expect(createCppGenerator().workspaceToCode(build('procedures_defreturn'))).toMatch(
+      /if \(true\) \{\s*return 7;/
+    );
   });
 });

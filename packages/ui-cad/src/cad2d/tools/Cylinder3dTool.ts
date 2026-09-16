@@ -40,7 +40,10 @@ export class Cylinder3dTool implements Tool {
 
   private _commit(edge: Point2D, ctx: ToolContext): void {
     const r = Math.sqrt((edge.x - this.center!.x) ** 2 + (edge.y - this.center!.y) ** 2);
-    if (r < 0.1) { this.reset(); return; }
+    if (r < 0.1) {
+      this.reset();
+      return;
+    }
     const layer = ctx.project.layerSystem.getActive();
     ctx.project.addEntity({
       type: 'cylinder3d',

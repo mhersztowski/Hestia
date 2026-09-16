@@ -1,16 +1,42 @@
 export type SketchPlane = 'XY' | 'XZ' | 'YZ' | 'face';
-export type FeatureType = 'sketch' | 'extrude' | 'pocket' | 'hole' | 'groove' | 'loft_cut' | 'sweep_cut' | 'mirror' | 'revolve' | 'shell' | 'loft' | 'sweep' | 'helix' | 'fillet' | 'chamfer' | 'linear_pattern' | 'polar_pattern' | 'datum_point' | 'datum_line' | 'datum_plane' | 'datum_cs';
+export type FeatureType =
+  | 'sketch'
+  | 'extrude'
+  | 'pocket'
+  | 'hole'
+  | 'groove'
+  | 'loft_cut'
+  | 'sweep_cut'
+  | 'mirror'
+  | 'revolve'
+  | 'shell'
+  | 'loft'
+  | 'sweep'
+  | 'helix'
+  | 'fillet'
+  | 'chamfer'
+  | 'linear_pattern'
+  | 'polar_pattern'
+  | 'datum_point'
+  | 'datum_line'
+  | 'datum_plane'
+  | 'datum_cs';
 /** Datum types — they build no solid, only geometry to work against. */
-export const DATUM_TYPES: ReadonlySet<FeatureType> = new Set<FeatureType>(['datum_point', 'datum_line', 'datum_plane', 'datum_cs']);
+export const DATUM_TYPES: ReadonlySet<FeatureType> = new Set<FeatureType>([
+  'datum_point',
+  'datum_line',
+  'datum_plane',
+  'datum_cs',
+]);
 export type Vec3 = [number, number, number];
-export type HoleDepthType  = 'dimension' | 'through_all';
+export type HoleDepthType = 'dimension' | 'through_all';
 export type HoleDrillPoint = 'flat' | 'angled';
 export type HoleCounterType = 'none' | 'countersink' | 'counterbore';
-export type SweepCornerStyle     = 'transformed' | 'round' | 'right_angle';
+export type SweepCornerStyle = 'transformed' | 'round' | 'right_angle';
 export type HelixMode = 'pitch_height' | 'pitch_turns' | 'turns_height';
 export type HelixAxis = 'sketch_vertical' | 'sketch_horizontal' | 'X' | 'Y' | 'Z';
 export type SweepOrientationMode = 'standard' | 'fixed' | 'frenet';
-export type SweepTransformMode   = 'constant' | 'inscribed';
+export type SweepTransformMode = 'constant' | 'inscribed';
 export type ExtrudeType = 'dimension' | 'symmetric' | 'through_all';
 export type ExtrudeDirection = 'normal' | 'X' | 'Y' | 'Z';
 export type RevolveType = 'dimension' | 'symmetric' | 'through_all';
@@ -19,7 +45,8 @@ export type RevolveAxis = 'sketch_vertical' | 'sketch_horizontal' | 'X' | 'Y' | 
 /** FreeCAD-style Revolution Type: Angle / To last / To first / Up to face / Two angles */
 export type RevolveTypeExt = 'angle' | 'to_last' | 'to_first' | 'up_to_face' | 'two_angles';
 /** FreeCAD-style axis: the base X/Y/Z, or a selected reference (a datum line, or a datum CS's Z axis) */
-export type RevolveAxisExt = 'X' | 'Y' | 'Z' | 'datum_reference' | 'sketch_vertical' | 'sketch_horizontal';
+export type RevolveAxisExt =
+  'X' | 'Y' | 'Z' | 'datum_reference' | 'sketch_vertical' | 'sketch_horizontal';
 
 interface BaseFeature {
   id: string;
@@ -36,8 +63,8 @@ interface BaseFeature {
  * or pocket it sits on changes (its height, say).
  */
 export interface FaceRef {
-  hintNormal: Vec3;   // world normal face w momencie tworzenia sketcha
-  hintPoint: Vec3;    // world centroid face w momencie tworzenia sketcha
+  hintNormal: Vec3; // world normal face w momencie tworzenia sketcha
+  hintPoint: Vec3; // world centroid face w momencie tworzenia sketcha
 }
 
 export interface SketchFeature extends BaseFeature {
@@ -46,7 +73,7 @@ export interface SketchFeature extends BaseFeature {
   offset: number;
   planeMatrix?: number[];
   faceRef?: FaceRef;
-  projectData: string | null;   // serialized Project.toJSON()
+  projectData: string | null; // serialized Project.toJSON()
   /** 2D geometric constraints (FreeCAD-style — coincident, horizontal, parallel, etc.).
    *  Solver (sketchConstraints.solveConstraints) runs on sketch entities przed
    *  generowaniem geometry OCC. */
@@ -59,10 +86,10 @@ export interface ExtrudeFeature extends BaseFeature {
   entityIds: string[];
   extrudeType: ExtrudeType;
   height: number;
-  symmetric: boolean;     // "symmetric to plane" — only applies when extrudeType='dimension'
+  symmetric: boolean; // "symmetric to plane" — only applies when extrudeType='dimension'
   reversed: boolean;
   direction: ExtrudeDirection;
-  taper: number;          // draft angle in degrees; 0 = no taper
+  taper: number; // draft angle in degrees; 0 = no taper
 }
 
 export interface PocketFeature extends BaseFeature {
@@ -82,12 +109,12 @@ export type MirrorPlaneMode = 'XY' | 'XZ' | 'YZ' | 'datum_plane';
 
 export interface MirrorFeature extends BaseFeature {
   type: 'mirror';
-  plane: 'XY' | 'XZ' | 'YZ';                   // legacy — plane preset gdy planeMode = XY/XZ/YZ
-  planeMode?: MirrorPlaneMode;                 // rozszerzenie: XY/XZ/YZ preset lub 'datum_plane' → planeId
-  datumPlaneId?: string;                       // ID DatumPlaneFeature (gdy planeMode='datum_plane')
-  mode?: MirrorMode;                           // 'content' — mirror akumulacji (dotychczasowe), 'tool_shapes' — tylko wybrane feature (featureIds)
-  featureIds?: string[];                       // for mode='tool_shapes' — which features to mirror
-  autoRefresh?: boolean;                       // "Recompute on change" (true by default)
+  plane: 'XY' | 'XZ' | 'YZ'; // legacy — plane preset gdy planeMode = XY/XZ/YZ
+  planeMode?: MirrorPlaneMode; // rozszerzenie: XY/XZ/YZ preset lub 'datum_plane' → planeId
+  datumPlaneId?: string; // ID DatumPlaneFeature (gdy planeMode='datum_plane')
+  mode?: MirrorMode; // 'content' — mirror akumulacji (dotychczasowe), 'tool_shapes' — tylko wybrane feature (featureIds)
+  featureIds?: string[]; // for mode='tool_shapes' — which features to mirror
+  autoRefresh?: boolean; // "Recompute on change" (true by default)
 }
 
 export interface RevolveFeature extends BaseFeature {
@@ -119,16 +146,17 @@ export type ChamferType = 'equal' | 'two_distances';
 /** Pattern mode — 'content' transforms what has been built so far (as Mirror does), 'tool_shapes' replicates the chosen features. */
 export type PatternMode = 'content' | 'tool_shapes';
 /** Pattern direction — an axis in the sketch (H/V), in the world (X/Y/Z), or the sketch normal (for Polar). */
-export type PatternDirection = 'sketch_horizontal' | 'sketch_vertical' | 'sketch_normal' | 'X' | 'Y' | 'Z';
+export type PatternDirection =
+  'sketch_horizontal' | 'sketch_vertical' | 'sketch_normal' | 'X' | 'Y' | 'Z';
 
 export interface LinearPatternFeature extends BaseFeature {
   type: 'linear_pattern';
   mode: PatternMode;
-  featureIds: string[];   // dla mode='tool_shapes'
+  featureIds: string[]; // dla mode='tool_shapes'
   direction: PatternDirection;
   reversed: boolean;
-  length: number;          // the whole length (mm), from the first copy to the last
-  occurrences: number;     // how many copies (>= 2, the original included)
+  length: number; // the whole length (mm), from the first copy to the last
+  occurrences: number; // how many copies (>= 2, the original included)
   // A second direction, for a 2D grid
   direction2Enabled: boolean;
   direction2?: PatternDirection;
@@ -141,10 +169,10 @@ export interface PolarPatternFeature extends BaseFeature {
   type: 'polar_pattern';
   mode: PatternMode;
   featureIds: string[];
-  axis: PatternDirection;  // the axis to turn about (sketch_normal, X, Y, Z)
+  axis: PatternDirection; // the axis to turn about (sketch_normal, X, Y, Z)
   reversed: boolean;
-  angle: number;           // the whole angle (deg) — 360° for a full turn
-  occurrences: number;     // how many copies, the original included
+  angle: number; // the whole angle (deg) — 360° for a full turn
+  occurrences: number; // how many copies, the original included
   autoRefresh: boolean;
 }
 
@@ -153,17 +181,17 @@ export interface FilletFeature extends BaseFeature {
   radius: number;
   useAllEdges: boolean;
   /** The edges to round, when useAllEdges is false. The counterpart of Shell.facesToRemove. */
-  edges?: FaceRef[];    // reuse FaceRef bo edge hint = midpoint + tangent direction
+  edges?: FaceRef[]; // reuse FaceRef bo edge hint = midpoint + tangent direction
   autoRefresh?: boolean;
 }
 
 export interface ChamferFeature extends BaseFeature {
   type: 'chamfer';
   size: number;
-  size2?: number;       // dla type='two_distances'
+  size2?: number; // dla type='two_distances'
   chamferType: ChamferType;
   useAllEdges: boolean;
-  edges?: FaceRef[];    // edge hints
+  edges?: FaceRef[]; // edge hints
   autoRefresh?: boolean;
 }
 
@@ -200,8 +228,8 @@ export interface LoftFeature extends BaseFeature {
 
 export interface SweepFeature extends BaseFeature {
   type: 'sweep';
-  profileSketchId: string | null;  // cross-section profile sketch
-  pathSketchId: string | null;     // path sketch (line/arc/polyline entities form the spine)
+  profileSketchId: string | null; // cross-section profile sketch
+  pathSketchId: string | null; // path sketch (line/arc/polyline entities form the spine)
   cornerStyle: SweepCornerStyle;
   orientationMode: SweepOrientationMode;
   transformMode: SweepTransformMode;
@@ -216,7 +244,7 @@ export interface HelixFeature extends BaseFeature {
   height: number;
   turns: number;
   radius: number;
-  taper: number;       // taper half-angle in degrees; 0 = cylinder
+  taper: number; // taper half-angle in degrees; 0 = cylinder
   leftHanded: boolean;
   reversed: boolean;
 }
@@ -229,15 +257,15 @@ export interface HoleFeature extends BaseFeature {
   depth: number;
   reversed: boolean;
   tapered: boolean;
-  taperAngle: number;          // full included angle of taper cone (degrees)
+  taperAngle: number; // full included angle of taper cone (degrees)
 
   drillPoint: HoleDrillPoint;
-  drillPointAngle: number;     // included angle of drill tip (default 118°)
+  drillPointAngle: number; // included angle of drill tip (default 118°)
 
   counterType: HoleCounterType;
-  counterDiameter: number;     // CS / CB outer diameter
-  counterDepth: number;        // CB axial depth (0 for CS)
-  counterAngle: number;        // CS included angle (default 90°)
+  counterDiameter: number; // CS / CB outer diameter
+  counterDepth: number; // CB axial depth (0 for CS)
+  counterAngle: number; // CS included angle (default 90°)
 }
 
 export interface GrooveFeature extends BaseFeature {
@@ -276,24 +304,45 @@ export interface DatumPointFeature extends BaseFeature {
 }
 export interface DatumLineFeature extends BaseFeature {
   type: 'datum_line';
-  position: Vec3;            // the starting point
-  direction: Vec3;          // kierunek (zostanie znormalizowany przy renderze)
+  position: Vec3; // the starting point
+  direction: Vec3; // kierunek (zostanie znormalizowany przy renderze)
   length: number;
 }
 export interface DatumPlaneFeature extends BaseFeature {
   type: 'datum_plane';
   position: Vec3;
-  normal: Vec3;             // the plane's normal
-  size: number;            // bok kwadratu wizualizacji
+  normal: Vec3; // the plane's normal
+  size: number; // bok kwadratu wizualizacji
 }
 export interface DatumCsFeature extends BaseFeature {
   type: 'datum_cs';
   position: Vec3;
-  rotation: Vec3;          // Euler w stopniach (XYZ)
-  size: number;            // the length of an axis
+  rotation: Vec3; // Euler w stopniach (XYZ)
+  size: number; // the length of an axis
 }
 
-export type Feature = SketchFeature | ExtrudeFeature | PocketFeature | HoleFeature | GrooveFeature | LoftCutFeature | SweepCutFeature | MirrorFeature | RevolveFeature | ShellFeature | LoftFeature | SweepFeature | HelixFeature | FilletFeature | ChamferFeature | LinearPatternFeature | PolarPatternFeature | DatumPointFeature | DatumLineFeature | DatumPlaneFeature | DatumCsFeature;
+export type Feature =
+  | SketchFeature
+  | ExtrudeFeature
+  | PocketFeature
+  | HoleFeature
+  | GrooveFeature
+  | LoftCutFeature
+  | SweepCutFeature
+  | MirrorFeature
+  | RevolveFeature
+  | ShellFeature
+  | LoftFeature
+  | SweepFeature
+  | HelixFeature
+  | FilletFeature
+  | ChamferFeature
+  | LinearPatternFeature
+  | PolarPatternFeature
+  | DatumPointFeature
+  | DatumLineFeature
+  | DatumPlaneFeature
+  | DatumCsFeature;
 
 export interface FeatureTree {
   version: 1;
@@ -304,17 +353,39 @@ export function makeId(): string {
   return crypto.randomUUID();
 }
 
-export function defaultSketch(plane: SketchPlane = 'XY', offset = 0, planeMatrix?: number[], faceRef?: FaceRef): SketchFeature {
-  const label = plane === 'face' ? 'Sketch (face)'
-    : offset !== 0 ? `Sketch (${plane}+${offset})`
-    : `Sketch (${plane})`;
-  return { id: makeId(), type: 'sketch', name: label, enabled: true, plane, offset, planeMatrix, faceRef, projectData: null };
+export function defaultSketch(
+  plane: SketchPlane = 'XY',
+  offset = 0,
+  planeMatrix?: number[],
+  faceRef?: FaceRef
+): SketchFeature {
+  const label =
+    plane === 'face'
+      ? 'Sketch (face)'
+      : offset !== 0
+        ? `Sketch (${plane}+${offset})`
+        : `Sketch (${plane})`;
+  return {
+    id: makeId(),
+    type: 'sketch',
+    name: label,
+    enabled: true,
+    plane,
+    offset,
+    planeMatrix,
+    faceRef,
+    projectData: null,
+  };
 }
 
 export function defaultExtrude(sketchId: string | null, entityIds: string[]): ExtrudeFeature {
   return {
-    id: makeId(), type: 'extrude', name: 'Extrude', enabled: true,
-    sketchId, entityIds,
+    id: makeId(),
+    type: 'extrude',
+    name: 'Extrude',
+    enabled: true,
+    sketchId,
+    entityIds,
     extrudeType: 'dimension',
     height: 50,
     symmetric: false,
@@ -325,13 +396,25 @@ export function defaultExtrude(sketchId: string | null, entityIds: string[]): Ex
 }
 
 export function defaultLoftCut(): LoftCutFeature {
-  return { id: makeId(), type: 'loft_cut', name: 'Loft Cut', enabled: true, sections: [], ruled: false, closed: false };
+  return {
+    id: makeId(),
+    type: 'loft_cut',
+    name: 'Loft Cut',
+    enabled: true,
+    sections: [],
+    ruled: false,
+    closed: false,
+  };
 }
 
 export function defaultGroove(sketchId: string | null, entityIds: string[]): GrooveFeature {
   return {
-    id: makeId(), type: 'groove', name: 'Groove', enabled: true,
-    sketchId, entityIds,
+    id: makeId(),
+    type: 'groove',
+    name: 'Groove',
+    enabled: true,
+    sketchId,
+    entityIds,
     revolveType: 'dimension',
     axis: 'sketch_vertical',
     angle: 360,
@@ -343,7 +426,10 @@ export function defaultGroove(sketchId: string | null, entityIds: string[]): Gro
 
 export function defaultHole(sketchId: string | null): HoleFeature {
   return {
-    id: makeId(), type: 'hole', name: 'Hole', enabled: true,
+    id: makeId(),
+    type: 'hole',
+    name: 'Hole',
+    enabled: true,
     sketchId,
     diameter: 6,
     depthType: 'dimension',
@@ -368,8 +454,12 @@ export function defaultPocket(sketchId: string | null, entityIds: string[]): Poc
   // and for a sketch on a face that is hard to see at all — the hole either
   // disappears into the solid or sticks out beyond it.
   return {
-    id: makeId(), type: 'pocket', name: 'Pocket', enabled: true,
-    sketchId, entityIds,
+    id: makeId(),
+    type: 'pocket',
+    name: 'Pocket',
+    enabled: true,
+    sketchId,
+    entityIds,
     extrudeType: 'dimension',
     height: 50,
     symmetric: true,
@@ -395,8 +485,12 @@ export function defaultMirror(): MirrorFeature {
 
 export function defaultRevolve(sketchId: string | null, entityIds: string[]): RevolveFeature {
   return {
-    id: makeId(), type: 'revolve', name: 'Revolve', enabled: true,
-    sketchId, entityIds,
+    id: makeId(),
+    type: 'revolve',
+    name: 'Revolve',
+    enabled: true,
+    sketchId,
+    entityIds,
     revolveType: 'dimension',
     axis: 'sketch_vertical',
     angle: 360,
@@ -412,7 +506,11 @@ export function defaultRevolve(sketchId: string | null, entityIds: string[]): Re
 
 export function defaultShell(): ShellFeature {
   return {
-    id: makeId(), type: 'shell', name: 'Shell', enabled: true, thickness: 5,
+    id: makeId(),
+    type: 'shell',
+    name: 'Shell',
+    enabled: true,
+    thickness: 5,
     facesToRemove: [],
     mode: 'skin',
     joinType: 'arc',
@@ -424,7 +522,10 @@ export function defaultShell(): ShellFeature {
 
 export function defaultSweep(): SweepFeature {
   return {
-    id: makeId(), type: 'sweep', name: 'Sweep', enabled: true,
+    id: makeId(),
+    type: 'sweep',
+    name: 'Sweep',
+    enabled: true,
     profileSketchId: null,
     pathSketchId: null,
     cornerStyle: 'transformed',
@@ -435,7 +536,10 @@ export function defaultSweep(): SweepFeature {
 
 export function defaultSweepCut(): SweepCutFeature {
   return {
-    id: makeId(), type: 'sweep_cut', name: 'Sweep Cut', enabled: true,
+    id: makeId(),
+    type: 'sweep_cut',
+    name: 'Sweep Cut',
+    enabled: true,
     profileSketchId: null,
     pathSketchId: null,
     cornerStyle: 'transformed',
@@ -445,12 +549,23 @@ export function defaultSweepCut(): SweepCutFeature {
 }
 
 export function defaultLoft(): LoftFeature {
-  return { id: makeId(), type: 'loft', name: 'Loft', enabled: true, sections: [], ruled: false, closed: false };
+  return {
+    id: makeId(),
+    type: 'loft',
+    name: 'Loft',
+    enabled: true,
+    sections: [],
+    ruled: false,
+    closed: false,
+  };
 }
 
 export function defaultHelix(): HelixFeature {
   return {
-    id: makeId(), type: 'helix', name: 'Helix', enabled: true,
+    id: makeId(),
+    type: 'helix',
+    name: 'Helix',
+    enabled: true,
     profileSketchId: null,
     axis: 'Y',
     mode: 'pitch_height',
@@ -466,7 +581,10 @@ export function defaultHelix(): HelixFeature {
 
 export function defaultFillet(): FilletFeature {
   return {
-    id: makeId(), type: 'fillet', name: 'Fillet', enabled: true,
+    id: makeId(),
+    type: 'fillet',
+    name: 'Fillet',
+    enabled: true,
     radius: 2,
     useAllEdges: true,
     edges: [],
@@ -476,7 +594,10 @@ export function defaultFillet(): FilletFeature {
 
 export function defaultLinearPattern(): LinearPatternFeature {
   return {
-    id: makeId(), type: 'linear_pattern', name: 'LinearPattern', enabled: true,
+    id: makeId(),
+    type: 'linear_pattern',
+    name: 'LinearPattern',
+    enabled: true,
     mode: 'tool_shapes',
     featureIds: [],
     direction: 'sketch_horizontal',
@@ -493,7 +614,10 @@ export function defaultLinearPattern(): LinearPatternFeature {
 
 export function defaultPolarPattern(): PolarPatternFeature {
   return {
-    id: makeId(), type: 'polar_pattern', name: 'PolarPattern', enabled: true,
+    id: makeId(),
+    type: 'polar_pattern',
+    name: 'PolarPattern',
+    enabled: true,
     mode: 'tool_shapes',
     featureIds: [],
     axis: 'sketch_normal',
@@ -506,7 +630,10 @@ export function defaultPolarPattern(): PolarPatternFeature {
 
 export function defaultChamfer(): ChamferFeature {
   return {
-    id: makeId(), type: 'chamfer', name: 'Chamfer', enabled: true,
+    id: makeId(),
+    type: 'chamfer',
+    name: 'Chamfer',
+    enabled: true,
     size: 1,
     size2: 1,
     chamferType: 'equal',
@@ -519,14 +646,50 @@ export function defaultChamfer(): ChamferFeature {
 export function defaultDatumPoint(position: Vec3 = [0, 0, 0]): DatumPointFeature {
   return { id: makeId(), type: 'datum_point', name: 'Punkt odniesienia', enabled: true, position };
 }
-export function defaultDatumLine(position: Vec3 = [0, 0, 0], direction: Vec3 = [1, 0, 0], length = 100): DatumLineFeature {
-  return { id: makeId(), type: 'datum_line', name: 'Linia odniesienia', enabled: true, position, direction, length };
+export function defaultDatumLine(
+  position: Vec3 = [0, 0, 0],
+  direction: Vec3 = [1, 0, 0],
+  length = 100
+): DatumLineFeature {
+  return {
+    id: makeId(),
+    type: 'datum_line',
+    name: 'Linia odniesienia',
+    enabled: true,
+    position,
+    direction,
+    length,
+  };
 }
-export function defaultDatumPlane(position: Vec3 = [0, 0, 0], normal: Vec3 = [0, 0, 1], size = 100): DatumPlaneFeature {
-  return { id: makeId(), type: 'datum_plane', name: 'Datum plane', enabled: true, position, normal, size };
+export function defaultDatumPlane(
+  position: Vec3 = [0, 0, 0],
+  normal: Vec3 = [0, 0, 1],
+  size = 100
+): DatumPlaneFeature {
+  return {
+    id: makeId(),
+    type: 'datum_plane',
+    name: 'Datum plane',
+    enabled: true,
+    position,
+    normal,
+    size,
+  };
 }
-export function defaultDatumCs(position: Vec3 = [0, 0, 0], rotation: Vec3 = [0, 0, 0], size = 60): DatumCsFeature {
-  return { id: makeId(), type: 'datum_cs', name: 'Coordinate system', enabled: true, position, rotation, size };
+export function defaultDatumCs(
+  position: Vec3 = [0, 0, 0],
+  rotation: Vec3 = [0, 0, 0],
+  size = 60
+): DatumCsFeature {
+  return {
+    id: makeId(),
+    type: 'datum_cs',
+    name: 'Coordinate system',
+    enabled: true,
+    position,
+    rotation,
+    size,
+  };
 }
 
 export const EMPTY_TREE: FeatureTree = { version: 1, features: [] };

@@ -10,7 +10,13 @@
  */
 import type { CSSProperties } from 'react';
 import { MarkerType, type Edge, type EdgeMarker, type Node } from '@xyflow/react';
-import type { ClassMember, DiagramDocument, DiagramEdge, DiagramNode, EntityAttribute } from '../model/diagram';
+import type {
+  ClassMember,
+  DiagramDocument,
+  DiagramEdge,
+  DiagramNode,
+  EntityAttribute,
+} from '../model/diagram';
 import { estimateNodeSize } from '../model/nodeSize';
 import { assignEdgeAnchors } from '../model/edgeAnchors';
 import type { C4NodeInfo } from '../model/c4';
@@ -77,7 +83,10 @@ function sizeStyle(node: DiagramNode): CSSProperties {
   return { width, minHeight: height, display: 'flex' };
 }
 
-export function toFlowNodes(doc: DiagramDocument, options: FlowBuildOptions = {}): Node<FlowNodeData>[] {
+export function toFlowNodes(
+  doc: DiagramDocument,
+  options: FlowBuildOptions = {}
+): Node<FlowNodeData>[] {
   const groupIds = new Set(doc.groups.map((g) => g.id));
 
   const groupNodes: Node<FlowNodeData>[] = doc.groups.map((group) => ({
@@ -85,8 +94,11 @@ export function toFlowNodes(doc: DiagramDocument, options: FlowBuildOptions = {}
     type: 'diagramGroup',
     position: group.position ?? { x: 0, y: 0 },
     data: {
-      label: group.label, shape: 'rectangle', fallback: group.id,
-      onRename: options.onRenameGroup, editable: options.editable !== false,
+      label: group.label,
+      shape: 'rectangle',
+      fallback: group.id,
+      onRename: options.onRenameGroup,
+      editable: options.editable !== false,
     },
     // Rozmiar musi trafić do `style`: React Flow nie wylicza go z dzieci, a bez
     // niego ramka ma zerową wysokość i `fitView` liczy obszar z samych dzieci.
@@ -101,15 +113,22 @@ export function toFlowNodes(doc: DiagramDocument, options: FlowBuildOptions = {}
     // Klasa ma własny widok: nagłówek + sekcje pól i metod. Rozpoznajemy ją po
     // obecności ciała, nie po rodzaju dokumentu — dzięki temu ten sam widok
     // zadziała, gdy inny format też przyniesie składowe.
-    type: DOT_SHAPES.has(node.shape) ? 'diagramPseudo'
-      : node.c4 ? 'diagramC4'
-        : node.attributes ? 'diagramEntity'
-          : node.members ? 'diagramClass'
+    type: DOT_SHAPES.has(node.shape)
+      ? 'diagramPseudo'
+      : node.c4
+        ? 'diagramC4'
+        : node.attributes
+          ? 'diagramEntity'
+          : node.members
+            ? 'diagramClass'
             : 'diagramNode',
     position: node.position ?? { x: 0, y: 0 },
     data: {
-      label: node.label, shape: node.shape, fallback: node.id,
-      onRename: options.onRenameNode, editable: options.editable !== false,
+      label: node.label,
+      shape: node.shape,
+      fallback: node.id,
+      onRename: options.onRenameNode,
+      editable: options.editable !== false,
       ...(node.members ? { members: node.members } : {}),
       ...(node.stereotype ? { stereotype: node.stereotype } : {}),
       ...(node.attributes ? { attributes: node.attributes } : {}),
@@ -143,7 +162,10 @@ function endMarker(arrow: DiagramEdge['arrow']): EdgeMarker | string | undefined
   return markerFor(arrow);
 }
 
-export function toFlowEdges(doc: DiagramDocument, options: FlowBuildOptions = {}): Edge<FlowEdgeData>[] {
+export function toFlowEdges(
+  doc: DiagramDocument,
+  options: FlowBuildOptions = {}
+): Edge<FlowEdgeData>[] {
   // Przejścia tam i z powrotem (`Idle --> Praca` i `Praca --> Idle`) biegną tą
   // samą trasą, więc ich opisy lądowały jeden na drugim i robiły się
   // nieczytelne. Numerujemy je w obrębie pary, żeby widok mógł je rozsunąć.
@@ -211,7 +233,10 @@ export function toFlowEdges(doc: DiagramDocument, options: FlowBuildOptions = {}
  * jawne operacje na modelu, żeby widok nigdy nie nadpisał danych, których nie
  * reprezentuje.
  */
-export function applyFlowPositions(doc: DiagramDocument, nodes: Node<FlowNodeData>[]): DiagramDocument {
+export function applyFlowPositions(
+  doc: DiagramDocument,
+  nodes: Node<FlowNodeData>[]
+): DiagramDocument {
   const positions = new Map(nodes.map((n) => [n.id, n.position]));
   return {
     ...doc,

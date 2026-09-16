@@ -43,14 +43,70 @@ export interface KeplerElements {
  * tysięcy kilometrów i dla rysunku orbit nie ma znaczenia.
  */
 export const KEPLER_J2000: Record<string, KeplerElements> = {
-  Mercury: { a: [0.38709927, 0.00000037], e: [0.20563593, 0.00001906], I: [7.00497902, -0.00594749], L: [252.25032350, 149472.67411175], wbar: [77.45779628, 0.16047689], node: [48.33076593, -0.12534081] },
-  Venus: { a: [0.72333566, 0.00000390], e: [0.00677672, -0.00004107], I: [3.39467605, -0.00078890], L: [181.97909950, 58517.81538729], wbar: [131.60246718, 0.00268329], node: [76.67984255, -0.27769418] },
-  Earth: { a: [1.00000261, 0.00000562], e: [0.01671123, -0.00004392], I: [-0.00001531, -0.01294668], L: [100.46457166, 35999.37244981], wbar: [102.93768193, 0.32327364], node: [0, 0] },
-  Mars: { a: [1.52371034, 0.00001847], e: [0.09339410, 0.00007882], I: [1.84969142, -0.00813131], L: [-4.55343205, 19140.30268499], wbar: [-23.94362959, 0.44441088], node: [49.55953891, -0.29257343] },
-  Jupiter: { a: [5.20288700, -0.00011607], e: [0.04838624, -0.00013253], I: [1.30439695, -0.00183714], L: [34.39644051, 3034.74612775], wbar: [14.72847983, 0.21252668], node: [100.47390909, 0.20469106] },
-  Saturn: { a: [9.53667594, -0.00125060], e: [0.05386179, -0.00050991], I: [2.48599187, 0.00193609], L: [49.95424423, 1222.49362201], wbar: [92.59887831, -0.41897216], node: [113.66242448, -0.28867794] },
-  Uranus: { a: [19.18916464, -0.00196176], e: [0.04725744, -0.00004397], I: [0.77263783, -0.00242939], L: [313.23810451, 428.48202785], wbar: [170.95427630, 0.40805281], node: [74.01692503, 0.04240589] },
-  Neptune: { a: [30.06992276, 0.00026291], e: [0.00859048, 0.00005105], I: [1.77004347, 0.00035372], L: [-55.12002969, 218.45945325], wbar: [44.96476227, -0.32241464], node: [131.78422574, -0.00508664] },
+  Mercury: {
+    a: [0.38709927, 0.00000037],
+    e: [0.20563593, 0.00001906],
+    I: [7.00497902, -0.00594749],
+    L: [252.2503235, 149472.67411175],
+    wbar: [77.45779628, 0.16047689],
+    node: [48.33076593, -0.12534081],
+  },
+  Venus: {
+    a: [0.72333566, 0.0000039],
+    e: [0.00677672, -0.00004107],
+    I: [3.39467605, -0.0007889],
+    L: [181.9790995, 58517.81538729],
+    wbar: [131.60246718, 0.00268329],
+    node: [76.67984255, -0.27769418],
+  },
+  Earth: {
+    a: [1.00000261, 0.00000562],
+    e: [0.01671123, -0.00004392],
+    I: [-0.00001531, -0.01294668],
+    L: [100.46457166, 35999.37244981],
+    wbar: [102.93768193, 0.32327364],
+    node: [0, 0],
+  },
+  Mars: {
+    a: [1.52371034, 0.00001847],
+    e: [0.0933941, 0.00007882],
+    I: [1.84969142, -0.00813131],
+    L: [-4.55343205, 19140.30268499],
+    wbar: [-23.94362959, 0.44441088],
+    node: [49.55953891, -0.29257343],
+  },
+  Jupiter: {
+    a: [5.202887, -0.00011607],
+    e: [0.04838624, -0.00013253],
+    I: [1.30439695, -0.00183714],
+    L: [34.39644051, 3034.74612775],
+    wbar: [14.72847983, 0.21252668],
+    node: [100.47390909, 0.20469106],
+  },
+  Saturn: {
+    a: [9.53667594, -0.0012506],
+    e: [0.05386179, -0.00050991],
+    I: [2.48599187, 0.00193609],
+    L: [49.95424423, 1222.49362201],
+    wbar: [92.59887831, -0.41897216],
+    node: [113.66242448, -0.28867794],
+  },
+  Uranus: {
+    a: [19.18916464, -0.00196176],
+    e: [0.04725744, -0.00004397],
+    I: [0.77263783, -0.00242939],
+    L: [313.23810451, 428.48202785],
+    wbar: [170.9542763, 0.40805281],
+    node: [74.01692503, 0.04240589],
+  },
+  Neptune: {
+    a: [30.06992276, 0.00026291],
+    e: [0.00859048, 0.00005105],
+    I: [1.77004347, 0.00035372],
+    L: [-55.12002969, 218.45945325],
+    wbar: [44.96476227, -0.32241464],
+    node: [131.78422574, -0.00508664],
+  },
 };
 
 export interface BodyData {
@@ -66,15 +122,77 @@ export interface BodyData {
 }
 
 export const BODIES: Record<string, BodyData> = {
-  Sun: { mass: 1.98892e30, radius: 6.9634e8, rotationPeriod: 25.05 * 86400, axialTilt: 7.25, color: '#fff5dc' },
-  Mercury: { mass: 3.3011e23, radius: 2.4397e6, rotationPeriod: 58.646 * 86400, axialTilt: 0.034, albedo: 0.088, color: '#8c8680' },
-  Venus: { mass: 4.8675e24, radius: 6.0518e6, rotationPeriod: -243.025 * 86400, axialTilt: 177.36, albedo: 0.76, color: '#e8cda2' },
-  Earth: { mass: 5.97237e24, radius: 6.378137e6, rotationPeriod: 0.99726968 * 86400, axialTilt: 23.4393, albedo: 0.306, color: '#2e6fd6' },
-  Mars: { mass: 6.4171e23, radius: 3.3962e6, rotationPeriod: 1.02595676 * 86400, axialTilt: 25.19, albedo: 0.25, color: '#c1440e' },
-  Jupiter: { mass: 1.8982e27, radius: 7.1492e7, rotationPeriod: 0.41354 * 86400, axialTilt: 3.13, albedo: 0.503, color: '#d8ca9d' },
-  Saturn: { mass: 5.6834e26, radius: 6.0268e7, rotationPeriod: 0.44401 * 86400, axialTilt: 26.73, albedo: 0.342, color: '#e3dab0' },
-  Uranus: { mass: 8.6810e25, radius: 2.5559e7, rotationPeriod: -0.71833 * 86400, axialTilt: 97.77, albedo: 0.300, color: '#b5e3e3' },
-  Neptune: { mass: 1.02413e26, radius: 2.4764e7, rotationPeriod: 0.67125 * 86400, axialTilt: 28.32, albedo: 0.290, color: '#3f54ba' },
+  Sun: {
+    mass: 1.98892e30,
+    radius: 6.9634e8,
+    rotationPeriod: 25.05 * 86400,
+    axialTilt: 7.25,
+    color: '#fff5dc',
+  },
+  Mercury: {
+    mass: 3.3011e23,
+    radius: 2.4397e6,
+    rotationPeriod: 58.646 * 86400,
+    axialTilt: 0.034,
+    albedo: 0.088,
+    color: '#8c8680',
+  },
+  Venus: {
+    mass: 4.8675e24,
+    radius: 6.0518e6,
+    rotationPeriod: -243.025 * 86400,
+    axialTilt: 177.36,
+    albedo: 0.76,
+    color: '#e8cda2',
+  },
+  Earth: {
+    mass: 5.97237e24,
+    radius: 6.378137e6,
+    rotationPeriod: 0.99726968 * 86400,
+    axialTilt: 23.4393,
+    albedo: 0.306,
+    color: '#2e6fd6',
+  },
+  Mars: {
+    mass: 6.4171e23,
+    radius: 3.3962e6,
+    rotationPeriod: 1.02595676 * 86400,
+    axialTilt: 25.19,
+    albedo: 0.25,
+    color: '#c1440e',
+  },
+  Jupiter: {
+    mass: 1.8982e27,
+    radius: 7.1492e7,
+    rotationPeriod: 0.41354 * 86400,
+    axialTilt: 3.13,
+    albedo: 0.503,
+    color: '#d8ca9d',
+  },
+  Saturn: {
+    mass: 5.6834e26,
+    radius: 6.0268e7,
+    rotationPeriod: 0.44401 * 86400,
+    axialTilt: 26.73,
+    albedo: 0.342,
+    color: '#e3dab0',
+  },
+  Uranus: {
+    mass: 8.681e25,
+    radius: 2.5559e7,
+    rotationPeriod: -0.71833 * 86400,
+    axialTilt: 97.77,
+    albedo: 0.3,
+    color: '#b5e3e3',
+  },
+  Neptune: {
+    mass: 1.02413e26,
+    radius: 2.4764e7,
+    rotationPeriod: 0.67125 * 86400,
+    axialTilt: 28.32,
+    albedo: 0.29,
+    color: '#3f54ba',
+  },
 };
 
 /** Data juliańska z daty kalendarzowej albo znacznika czasu. */
@@ -137,7 +255,7 @@ export interface HeliocentricPosition {
 export function heliocentric(
   planet: string,
   date: Date | number,
-  units: 'AU' | 'm' = 'AU',
+  units: 'AU' | 'm' = 'AU'
 ): HeliocentricPosition | undefined {
   const elements = KEPLER_J2000[planet];
   if (!elements) return undefined;
@@ -165,8 +283,10 @@ export function heliocentric(
   const cosN = Math.cos(node);
   const sinN = Math.sin(node);
 
-  const x = (cosO * cosN - sinO * sinN * cosI) * xOrbit + (-sinO * cosN - cosO * sinN * cosI) * yOrbit;
-  const y = (cosO * sinN + sinO * cosN * cosI) * xOrbit + (-sinO * sinN + cosO * cosN * cosI) * yOrbit;
+  const x =
+    (cosO * cosN - sinO * sinN * cosI) * xOrbit + (-sinO * cosN - cosO * sinN * cosI) * yOrbit;
+  const y =
+    (cosO * sinN + sinO * cosN * cosI) * xOrbit + (-sinO * sinN + cosO * cosN * cosI) * yOrbit;
   const z = sinO * sinI * xOrbit + cosO * sinI * yOrbit;
 
   const scale = units === 'm' ? AU : 1;

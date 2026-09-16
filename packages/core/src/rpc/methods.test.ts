@@ -33,7 +33,9 @@ describe('rpc methods', () => {
     it('output requires pong=true literal, timestamp and version', () => {
       const ok = rpcMethods.ping.output.safeParse({ pong: true, timestamp: 1, version: '1' });
       expect(ok.success).toBe(true);
-      expect(rpcMethods.ping.output.safeParse({ pong: false, timestamp: 1, version: '1' }).success).toBe(false);
+      expect(
+        rpcMethods.ping.output.safeParse({ pong: false, timestamp: 1, version: '1' }).success
+      ).toBe(false);
       expect(rpcMethods.ping.output.safeParse({ pong: true, version: '1' }).success).toBe(false);
     });
   });
@@ -48,12 +50,12 @@ describe('rpc methods', () => {
       expect(
         rpcMethods.getDeviceStatuses.output.safeParse({
           items: [{ deviceId: 'd', status: 'ONLINE', lastSeenAt: 1 }],
-        }).success,
+        }).success
       ).toBe(true);
       expect(
         rpcMethods.getDeviceStatuses.output.safeParse({
           items: [{ deviceId: 'd', status: 'BOGUS', lastSeenAt: 1 }],
-        }).success,
+        }).success
       ).toBe(false);
     });
 
@@ -65,7 +67,11 @@ describe('rpc methods', () => {
   describe('sendCommand', () => {
     it('requires userName, deviceName and commandName', () => {
       expect(
-        rpcMethods.sendCommand.input.safeParse({ userName: 'a', deviceName: 'd', commandName: 'on' }).success,
+        rpcMethods.sendCommand.input.safeParse({
+          userName: 'a',
+          deviceName: 'd',
+          commandName: 'on',
+        }).success
       ).toBe(true);
       expect(rpcMethods.sendCommand.input.safeParse({ userName: 'a' }).success).toBe(false);
     });

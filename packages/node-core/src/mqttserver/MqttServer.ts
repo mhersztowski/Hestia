@@ -32,7 +32,11 @@ const TOPICS = {
 };
 
 export type MqttMessageHandler = (topic: string, payload: string) => void;
-export type MqttAuthenticateFn = (clientId: string, username: string, password: string) => boolean | Promise<boolean>;
+export type MqttAuthenticateFn = (
+  clientId: string,
+  username: string,
+  password: string
+) => boolean | Promise<boolean>;
 
 export class MqttServer {
   private aedes: AedesServer;
@@ -302,13 +306,11 @@ export class MqttServer {
       client: AedesClient,
       username: string | undefined,
       password: Buffer | undefined,
-      callback: (error: Error | null, authenticated: boolean | null) => void,
+      callback: (error: Error | null, authenticated: boolean | null) => void
     ) => {
       const result = fn(client.id, username ?? '', password?.toString() ?? '');
       if (result instanceof Promise) {
-        result
-          .then((ok) => callback(null, ok))
-          .catch(() => callback(null, false));
+        result.then((ok) => callback(null, ok)).catch(() => callback(null, false));
       } else {
         callback(null, result);
       }

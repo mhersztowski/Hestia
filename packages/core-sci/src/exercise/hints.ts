@@ -34,7 +34,7 @@ export function buildHints(
   graph: FormulaGraph,
   answer: string,
   result?: PhenomenonResult,
-  handWritten: string[] = [],
+  handWritten: string[] = []
 ): Hint[] {
   if (handWritten.length) return handWritten.map((text, index) => ({ level: index + 1, text }));
 
@@ -47,9 +47,12 @@ export function buildHints(
 
   hints.push({
     level: 1,
-    text: `Szukanej wielkości dostarcza wzór „${target.formulaId}"`
-      + (node?.block.expression ? `: ${node.block.targetLatex ?? node.block.target} = ${node.block.expression}` : '')
-      + (target.assumptions.length ? ` (przy założeniu: ${target.assumptions.join(', ')})` : ''),
+    text:
+      `Szukanej wielkości dostarcza wzór „${target.formulaId}"` +
+      (node?.block.expression
+        ? `: ${node.block.targetLatex ?? node.block.target} = ${node.block.expression}`
+        : '') +
+      (target.assumptions.length ? ` (przy założeniu: ${target.assumptions.join(', ')})` : ''),
   });
 
   if (target.dependsOn.length) {

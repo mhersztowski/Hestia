@@ -12,15 +12,19 @@ import { compileGraph, defaultValues } from './compileGraph';
 const modelOf = (...defs: Array<[string, string]>) =>
   compileGraph(buildGraph(defs.map(([id, body]) => parseFormulaBlock(id, body))));
 
-const FALL = (extra: string[]) => modelOf(['fall', [
-  '@ode',
-  '@state y, v_y',
-  '@d y = v_y',
-  '@d v_y = -g',
-  '@init y = h_0, v_y = 0',
-  '@vars g: m/s^2, y: m, v_y: m/s, h_0: m',
-  ...extra,
-].join('\n')]);
+const FALL = (extra: string[]) =>
+  modelOf([
+    'fall',
+    [
+      '@ode',
+      '@state y, v_y',
+      '@d y = v_y',
+      '@d v_y = -g',
+      '@init y = h_0, v_y = 0',
+      '@vars g: m/s^2, y: m, v_y: m/s, h_0: m',
+      ...extra,
+    ].join('\n'),
+  ]);
 
 describe('zdarzenie kończące symulację', () => {
   it('zatrzymuje całkowanie na progu', () => {
@@ -41,16 +45,19 @@ describe('zdarzenie kończące symulację', () => {
 
 describe('zdarzenie zmieniające stan', () => {
   it('odbicie z zachowaniem energii zawraca ciało na tę samą wysokość', () => {
-    const model = modelOf(['bounce', [
-      '@ode',
-      '@state y, v_y',
-      '@d y = v_y',
-      '@d v_y = -g',
-      '@init y = h_0, v_y = 0',
-      '@when y < 0',
-      '@then v_y = -v_y, y = 0',
-      '@vars g: m/s^2, y: m, v_y: m/s, h_0: m',
-    ].join('\n')]);
+    const model = modelOf([
+      'bounce',
+      [
+        '@ode',
+        '@state y, v_y',
+        '@d y = v_y',
+        '@d v_y = -g',
+        '@init y = h_0, v_y = 0',
+        '@when y < 0',
+        '@then v_y = -v_y, y = 0',
+        '@vars g: m/s^2, y: m, v_y: m/s, h_0: m',
+      ].join('\n'),
+    ]);
 
     const result = model.run({ ...defaultValues(model), g: 10, h_0: 5 }, [0, 3], 0.0002);
     const wysokosci = result.series.y.map(([, y]) => y);
@@ -61,16 +68,19 @@ describe('zdarzenie zmieniające stan', () => {
   });
 
   it('odbicie z tłumieniem obniża kolejne odbicia', () => {
-    const model = modelOf(['bounce', [
-      '@ode',
-      '@state y, v_y',
-      '@d y = v_y',
-      '@d v_y = -g',
-      '@init y = h_0, v_y = 0',
-      '@when y < 0',
-      '@then v_y = -k \\cdot v_y, y = 0',
-      '@vars g: m/s^2, y: m, v_y: m/s, h_0: m, k: 1',
-    ].join('\n')]);
+    const model = modelOf([
+      'bounce',
+      [
+        '@ode',
+        '@state y, v_y',
+        '@d y = v_y',
+        '@d v_y = -g',
+        '@init y = h_0, v_y = 0',
+        '@when y < 0',
+        '@then v_y = -k \\cdot v_y, y = 0',
+        '@vars g: m/s^2, y: m, v_y: m/s, h_0: m, k: 1',
+      ].join('\n'),
+    ]);
 
     const result = model.run({ ...defaultValues(model), g: 10, h_0: 5, k: 0.7 }, [0, 6], 0.0005);
     const y = result.series.y.map(([, value]) => value);
@@ -89,26 +99,36 @@ describe('zdarzenie źle zapisane', () => {
   });
 
   it('zdarzenie bez skutku jest zgłaszane przy parsowaniu', () => {
-    const block = parseFormulaBlock('x', ['@ode', '@state y', '@d y = 1', '@when y < 0'].join('\n'));
+    const block = parseFormulaBlock(
+      'x',
+      ['@ode', '@state y', '@d y = 1', '@when y < 0'].join('\n')
+    );
     expect(block.issues.some((i) => /nic nie robi/.test(i.message))).toBe(true);
   });
 
   it('zdarzenie zmieniające coś spoza stanu jest zgłaszane', () => {
-    const block = parseFormulaBlock('x', ['@ode', '@state y', '@d y = 1', '@when y < 0', '@then g = 0'].join('\n'));
+    const block = parseFormulaBlock(
+      'x',
+      ['@ode', '@state y', '@d y = 1', '@when y < 0', '@then g = 0'].join('\n')
+    );
     expect(block.issues.some((i) => i.message.includes('g'))).toBe(true);
   });
 });
 
 describe('wybór metody całkowania', () => {
-  const OSCILLATOR = (solver: string[]) => modelOf(['osc', [
-    '@ode',
-    '@state x, v',
-    '@d x = v',
-    '@d v = -\\omega_0^2 \\cdot x',
-    '@init x = 1, v = 0',
-    '@vars x: m, v: m/s, omega_0: s^-1',
-    ...solver,
-  ].join('\n')]);
+  const OSCILLATOR = (solver: string[]) =>
+    modelOf([
+      'osc',
+      [
+        '@ode',
+        '@state x, v',
+        '@d x = v',
+        '@d v = -\\omega_0^2 \\cdot x',
+        '@init x = 1, v = 0',
+        '@vars x: m, v: m/s, omega_0: s^-1',
+        ...solver,
+      ].join('\n'),
+    ]);
 
   it('Verlet trzyma energię w bardzo długiej symulacji', () => {
     const model = OSCILLATOR(['@solver verlet']);
@@ -123,10 +143,17 @@ describe('wybór metody całkowania', () => {
   });
 
   it('Verlet przy stanie bez par mówi wprost, że nie może i wraca do RK4', () => {
-    const model = modelOf(['decay', [
-      '@ode', '@state n', '@d n = -\\lambda \\cdot n', '@init n = 1',
-      '@vars n: 1, lambda: s^-1', '@solver verlet',
-    ].join('\n')]);
+    const model = modelOf([
+      'decay',
+      [
+        '@ode',
+        '@state n',
+        '@d n = -\\lambda \\cdot n',
+        '@init n = 1',
+        '@vars n: 1, lambda: s^-1',
+        '@solver verlet',
+      ].join('\n'),
+    ]);
 
     expect(model.issues.join(' ')).toMatch(/Verlet wymaga/);
     // Mimo uwagi model liczy dalej — rozpad wykładniczy z RK4.
@@ -139,7 +166,10 @@ describe('wybór metody całkowania', () => {
   });
 
   it('metoda przeżywa zapis bloku', () => {
-    const block = parseFormulaBlock('x', ['@ode', '@state x, v', '@d x = v', '@d v = 0', '@solver verlet'].join('\n'));
+    const block = parseFormulaBlock(
+      'x',
+      ['@ode', '@state x, v', '@d x = v', '@d v = 0', '@solver verlet'].join('\n')
+    );
     expect(block.solver).toBe('verlet');
   });
 });

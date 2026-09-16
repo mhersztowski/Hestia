@@ -9,8 +9,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import {
-  compilePde, formatIn, parseFormulaBlock, parseStrokes, serializeStrokes,
-  type PdeResult, type Stroke,
+  compilePde,
+  formatIn,
+  parseFormulaBlock,
+  parseStrokes,
+  serializeStrokes,
+  type PdeResult,
+  type Stroke,
 } from '@hestia/core-sci';
 import { StrokeCanvas } from './StrokeCanvas';
 import { HeatmapCanvas } from './HeatmapCanvas';
@@ -35,13 +40,21 @@ export interface FieldBlockProps {
 }
 
 const box: CSSProperties = {
-  border: '1px solid #e2e8f0', borderLeft: '4px solid #0ea5e9',
-  borderRadius: 6, background: '#fff', padding: 10,
+  border: '1px solid #e2e8f0',
+  borderLeft: '4px solid #0ea5e9',
+  borderRadius: 6,
+  background: '#fff',
+  padding: 10,
 };
 const label: CSSProperties = { fontSize: 11, color: '#64748b' };
 const btn: CSSProperties = {
-  fontSize: 12, padding: '3px 10px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#334155',
+  fontSize: 12,
+  padding: '3px 10px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#334155',
 };
 
 /**
@@ -54,9 +67,9 @@ function zapiszRysunek(code: string, strokes: Stroke[]): string {
   const linia = `@strokes ${serializeStrokes(strokes)}`.trimEnd();
   return /^@strokes\b.*$/m.test(code)
     ? code.replace(/^@strokes\b.*$/m, linia)
-    // Nowa dyrektywa ląduje tuż po `@init`, żeby warunki początkowe trzymały
-    // się razem; bez `@init` — na końcu bloku.
-    : /^@init\b.*$/m.test(code)
+    : // Nowa dyrektywa ląduje tuż po `@init`, żeby warunki początkowe trzymały
+      // się razem; bez `@init` — na końcu bloku.
+      /^@init\b.*$/m.test(code)
       ? code.replace(/^(@init\b.*)$/m, `$1\n${linia}`)
       : `${code.trimEnd()}\n${linia}\n`;
 }
@@ -67,15 +80,12 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
   const [rysunek, setRysunek] = useState<Stroke[] | undefined>(undefined);
   const [tryb, setTryb] = useState<'oglad' | 'rysowanie'>('oglad');
 
-  const zrodlo = useMemo(
-    () => (rysunek ? zapiszRysunek(code, rysunek) : code),
-    [code, rysunek],
-  );
+  const zrodlo = useMemo(() => (rysunek ? zapiszRysunek(code, rysunek) : code), [code, rysunek]);
   const model = useMemo(() => compilePde(parseFormulaBlock(id, zrodlo)), [id, zrodlo]);
 
   const pociagniecia = useMemo(
     () => rysunek ?? parseStrokes(/^@strokes\b(.*)$/m.exec(code)?.[1] ?? ''),
-    [rysunek, code],
+    [rysunek, code]
   );
 
   const [values, setValues] = useState<Record<string, number>>(() => ({
@@ -92,10 +102,12 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
   // przesuwanie klatki nie może uruchamiać symulacji od nowa.
   const wynik: PdeResult = useMemo(
     () => model.run(values, [0, duration], liczbaKlatek),
-    [model, values, duration, liczbaKlatek],
+    [model, values, duration, liczbaKlatek]
   );
 
-  useEffect(() => { setKlatka(0); }, [wynik]);
+  useEffect(() => {
+    setKlatka(0);
+  }, [wynik]);
 
   useEffect(() => {
     if (!gra) return undefined;
@@ -110,9 +122,13 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
   const plotnoRef = useRef<HTMLCanvasElement | null>(null);
 
   return (
-    <div style={bare
-      ? { display: 'flex', flexDirection: 'column', gap: 8 }
-      : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div
+      style={
+        bare
+          ? { display: 'flex', flexDirection: 'column', gap: 8 }
+          : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }
+      }
+    >
       {!bare && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: '#0ea5e9' }}>pole</span>
@@ -124,8 +140,18 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
       )}
 
       {model.issues.length > 0 && (
-        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', borderRadius: 4, padding: '6px 8px' }}>
-          {model.issues.map((issue, index) => <div key={index}>{issue}</div>)}
+        <div
+          style={{
+            fontSize: 11,
+            color: '#b91c1c',
+            background: '#fef2f2',
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
+          {model.issues.map((issue, index) => (
+            <div key={index}>{issue}</div>
+          ))}
         </div>
       )}
 
@@ -134,7 +160,9 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
           wypychało go na pasek przycisków. */}
       <div style={{ position: 'relative', width: 320 }}>
         <HeatmapCanvas
-          onCanvas={(el) => { plotnoRef.current = el; }}
+          onCanvas={(el) => {
+            plotnoRef.current = el;
+          }}
           data={biezaca.data}
           nx={model.nx}
           ny={model.ny}
@@ -164,8 +192,15 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
         <button
           type="button"
-          style={tryb === 'rysowanie' ? { ...btn, background: '#e0f2fe', borderColor: '#0ea5e9', color: '#075985' } : btn}
-          onClick={() => { setTryb((t) => (t === 'rysowanie' ? 'oglad' : 'rysowanie')); setGra(false); }}
+          style={
+            tryb === 'rysowanie'
+              ? { ...btn, background: '#e0f2fe', borderColor: '#0ea5e9', color: '#075985' }
+              : btn
+          }
+          onClick={() => {
+            setTryb((t) => (t === 'rysowanie' ? 'oglad' : 'rysowanie'));
+            setGra(false);
+          }}
           title="Rysuj warunek początkowy. Piórem: nacisk steruje wysokością, gumka rysuje dołek."
         >
           ✎ rysuj
@@ -175,7 +210,10 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
             <button
               type="button"
               style={btn}
-              onClick={() => { setRysunek([]); setKlatka(0); }}
+              onClick={() => {
+                setRysunek([]);
+                setKlatka(0);
+              }}
               title="Czyści rysunek; pole zostaje puste"
             >
               ⌫ wyczyść
@@ -184,7 +222,10 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
               <button
                 type="button"
                 style={{ ...btn, borderColor: '#0ea5e9', color: '#075985' }}
-                onClick={() => { onFormulaChange(zapiszRysunek(code, rysunek)); setRysunek(undefined); }}
+                onClick={() => {
+                  onFormulaChange(zapiszRysunek(code, rysunek));
+                  setRysunek(undefined);
+                }}
                 title="Zapisuje pociągnięcia we wzorze pola"
               >
                 ↳ zapisz w dokumencie
@@ -195,7 +236,14 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
         <button type="button" style={btn} onClick={() => setGra((g) => !g)}>
           {gra ? '❚❚ pauza' : '▶ start'}
         </button>
-        <button type="button" style={btn} onClick={() => { setGra(false); setKlatka(0); }}>
+        <button
+          type="button"
+          style={btn}
+          onClick={() => {
+            setGra(false);
+            setKlatka(0);
+          }}
+        >
           ⟲ reset
         </button>
         <input
@@ -203,7 +251,10 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
           min={0}
           max={wynik.frames.length - 1}
           value={Math.min(klatka, wynik.frames.length - 1)}
-          onChange={(e) => { setGra(false); setKlatka(Number(e.target.value)); }}
+          onChange={(e) => {
+            setGra(false);
+            setKlatka(Number(e.target.value));
+          }}
           style={{ flex: 1, minWidth: 120 }}
         />
         <span style={{ ...label, fontVariantNumeric: 'tabular-nums' }}>
@@ -219,7 +270,10 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
         <button
           type="button"
           style={btn}
-          onClick={() => { if (plotnoRef.current) downloadCanvasPng(plotnoRef.current, `${id}-t${biezaca.t.toFixed(2)}`); }}
+          onClick={() => {
+            if (plotnoRef.current)
+              downloadCanvasPng(plotnoRef.current, `${id}-t${biezaca.t.toFixed(2)}`);
+          }}
           title="Pobierz bieżącą klatkę jako obraz PNG"
         >
           PNG
@@ -236,9 +290,13 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
 
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         {model.parameters.map((parameter) => (
-          <label key={parameter.name} style={{ ...label, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <label
+            key={parameter.name}
+            style={{ ...label, display: 'flex', flexDirection: 'column', gap: 2 }}
+          >
             <span>
-              {parameter.name} = <strong style={{ color: '#0f172a' }}>
+              {parameter.name} ={' '}
+              <strong style={{ color: '#0f172a' }}>
                 {parameter.unit && parameter.unit !== '1'
                   ? formatIn(values[parameter.name] ?? parameter.value, parameter.unit, 3)
                   : Number((values[parameter.name] ?? parameter.value).toPrecision(3))}
@@ -250,7 +308,9 @@ export function FieldBlock({ id, code, setup, bare, onFormulaChange }: FieldBloc
               max={parameter.max}
               step={parameter.step}
               value={values[parameter.name] ?? parameter.value}
-              onChange={(e) => setValues((v) => ({ ...v, [parameter.name]: Number(e.target.value) }))}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, [parameter.name]: Number(e.target.value) }))
+              }
             />
           </label>
         ))}

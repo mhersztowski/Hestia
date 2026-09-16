@@ -12,12 +12,14 @@ import { ReferenceLink } from './ReferenceLink';
 import { Math as MathView } from './Math';
 import type { ReferenceKind } from '@hestia/core-sci';
 
-export type ResolveRef = (id: string) => {
-  code?: string;
-  kind?: ReferenceKind;
-  documentTitle?: string;
-  sameDocument: boolean;
-} | undefined;
+export type ResolveRef = (id: string) =>
+  | {
+      code?: string;
+      kind?: ReferenceKind;
+      documentTitle?: string;
+      sameDocument: boolean;
+    }
+  | undefined;
 
 /**
  * Czy `src` obrazka wolno wpuścić do dokumentu.
@@ -43,8 +45,12 @@ function bezpieczneZrodlo(src: string): boolean {
 
 export function inline(
   source: string,
-  resolve?: (id: string) => { code?: string; kind?: ReferenceKind; documentTitle?: string; sameDocument: boolean } | undefined,
-  onNavigate?: (id: string) => void,
+  resolve?: (
+    id: string
+  ) =>
+    | { code?: string; kind?: ReferenceKind; documentTitle?: string; sameDocument: boolean }
+    | undefined,
+  onNavigate?: (id: string) => void
 ): ReactNode[] {
   const out: ReactNode[] = [];
   // Obrazek idzie pierwszy, bo jego `![alt](src)` zawiera nawiasy kwadratowe —
@@ -64,7 +70,8 @@ export function inline(
   // dokumenty bazy są zawijane na 80 kolumn, więc dłuższe `$…$` i tak przez to
   // łamanie przechodzi. Pusty wiersz zostaje granicą: bez tego samotny dolar
   // („5 $ za sztukę") połykałby tekst aż do następnego dolara w dokumencie.
-  const pattern = /(\\[\\*_`[\]$~])|(!\[[^\]]*\]\([^)\s]+\)|\$\$[^$]+\$\$|\$[^$\s](?:[^$\n]|\n(?!\s*\n))*\$|\(\([A-Za-z][A-Za-z0-9_-]*(?:\|[^)]+)?\)\)|`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g;
+  const pattern =
+    /(\\[\\*_`[\]$~])|(!\[[^\]]*\]\([^)\s]+\)|\$\$[^$]+\$\$|\$[^$\s](?:[^$\n]|\n(?!\s*\n))*\$|\(\([A-Za-z][A-Za-z0-9_-]*(?:\|[^)]+)?\)\)|`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g;
   let last = 0;
   let key = 0;
 
@@ -88,11 +95,11 @@ export function inline(
       }
       out.push(
         <img
-          key={key += 1}
+          key={(key += 1)}
           src={obrazek[2].trim()}
           alt={obrazek[1]}
           style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '10px auto' }}
-        />,
+        />
       );
       continue;
     }
@@ -103,7 +110,7 @@ export function inline(
       const blokowy = token.startsWith('$$');
       // Złamanie wiersza w źródle jest zawijaniem pliku, nie treścią wzoru.
       const latex = (blokowy ? token.slice(2, -2) : token.slice(1, -1)).replace(/\s*\n\s*/g, ' ');
-      out.push(<MathView key={key += 1} latex={latex} block={blokowy} />);
+      out.push(<MathView key={(key += 1)} latex={latex} block={blokowy} />);
       continue;
     }
 
@@ -113,18 +120,21 @@ export function inline(
       const label = podpis?.replace(/\s+/g, ' ').trim();
       out.push(
         <ReferenceLink
-          key={key += 1}
+          key={(key += 1)}
           id={id}
           label={label}
           target={resolve?.(id)}
           onNavigate={onNavigate}
-        />,
+        />
       );
     } else if (token.startsWith('`')) {
       out.push(
-        <code key={key += 1} style={{ background: '#f1f5f9', borderRadius: 3, padding: '1px 4px', fontSize: '0.9em' }}>
+        <code
+          key={(key += 1)}
+          style={{ background: '#f1f5f9', borderRadius: 3, padding: '1px 4px', fontSize: '0.9em' }}
+        >
           {token.slice(1, -1)}
-        </code>,
+        </code>
       );
     } else if (token.startsWith('**')) {
       // Zawartość wyróżnienia idzie przez ten sam renderer: w podręczniku
@@ -132,9 +142,9 @@ export function inline(
       // („*Jeżeli stała $b$ jest mała*"), a surowa treść zostawiała dolary.
       // Rekurencja kończy się od razu, bo wzorzec wyróżnienia nie dopuszcza
       // gwiazdek w środku.
-      out.push(<strong key={key += 1}>{inline(token.slice(2, -2), resolve, onNavigate)}</strong>);
+      out.push(<strong key={(key += 1)}>{inline(token.slice(2, -2), resolve, onNavigate)}</strong>);
     } else {
-      out.push(<em key={key += 1}>{inline(token.slice(1, -1), resolve, onNavigate)}</em>);
+      out.push(<em key={(key += 1)}>{inline(token.slice(1, -1), resolve, onNavigate)}</em>);
     }
   }
 

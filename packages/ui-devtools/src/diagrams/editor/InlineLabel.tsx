@@ -33,7 +33,14 @@ export interface InlineLabelProps {
 }
 
 export function InlineLabel({
-  value, placeholder, placeholderIsValue = false, allowEmpty = false, onCommit, editable = true, style, inputStyle,
+  value,
+  placeholder,
+  placeholderIsValue = false,
+  allowEmpty = false,
+  onCommit,
+  editable = true,
+  style,
+  inputStyle,
 }: InlineLabelProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -42,7 +49,9 @@ export function InlineLabel({
   const pressedAt = useRef<{ x: number; y: number } | null>(null);
 
   const startValue = initialEditValue(value, placeholder ?? '', placeholderIsValue);
-  useEffect(() => { if (!editing) setDraft(startValue); }, [startValue, editing]);
+  useEffect(() => {
+    if (!editing) setDraft(startValue);
+  }, [startValue, editing]);
   useEffect(() => {
     if (!editing) return;
     const input = inputRef.current;
@@ -67,17 +76,24 @@ export function InlineLabel({
       <span
         style={{ cursor: editable ? 'text' : 'default', ...style }}
         title={editable ? 'Kliknij, aby edytować' : undefined}
-        onPointerDown={(e) => { pressedAt.current = { x: e.clientX, y: e.clientY }; }}
+        onPointerDown={(e) => {
+          pressedAt.current = { x: e.clientX, y: e.clientY };
+        }}
         onPointerUp={(e) => {
           if (!editable) return;
           const from = pressedAt.current;
           pressedAt.current = null;
-          if (from && Math.hypot(e.clientX - from.x, e.clientY - from.y) > DRAG_TOLERANCE_PX) return;
+          if (from && Math.hypot(e.clientX - from.x, e.clientY - from.y) > DRAG_TOLERANCE_PX)
+            return;
           e.stopPropagation();
           setEditing(true);
         }}
         // Dwuklik zostaje jako druga droga — nawyk z innych edytorów.
-        onDoubleClick={(e) => { if (!editable) return; e.stopPropagation(); setEditing(true); }}
+        onDoubleClick={(e) => {
+          if (!editable) return;
+          e.stopPropagation();
+          setEditing(true);
+        }}
       >
         {value || placeholder || ''}
       </span>
@@ -97,7 +113,10 @@ export function InlineLabel({
         e.preventDefault();
         e.stopPropagation();
         if (action === 'commit') commit();
-        else { setDraft(startValue); setEditing(false); }
+        else {
+          setDraft(startValue);
+          setEditing(false);
+        }
       }}
       // Zdarzenia myszy zatrzymujemy, żeby klik w polu nie zaznaczał węzła
       // ani nie zaczynał przeciągania płótna.
@@ -105,10 +124,17 @@ export function InlineLabel({
       onClick={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
       style={{
-        font: 'inherit', color: 'inherit', textAlign: 'inherit',
-        width: '100%', minWidth: 40, boxSizing: 'border-box',
-        border: '1px solid #2563eb', borderRadius: 3, padding: '1px 4px',
-        background: '#fff', outline: 'none',
+        font: 'inherit',
+        color: 'inherit',
+        textAlign: 'inherit',
+        width: '100%',
+        minWidth: 40,
+        boxSizing: 'border-box',
+        border: '1px solid #2563eb',
+        borderRadius: 3,
+        padding: '1px 4px',
+        background: '#fff',
+        outline: 'none',
         ...inputStyle,
       }}
     />

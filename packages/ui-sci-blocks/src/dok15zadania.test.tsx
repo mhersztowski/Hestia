@@ -5,24 +5,38 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const rozdzial = [
-  '15-1-ruch-harmoniczny.md', '15-2-oscylator.md', '15-3-ruch-prosty.md', '15-4-energia.md',
-  '15-5-zastosowania.md', '15-6-okrag.md', '15-7-skladanie.md', '15-8-dwa-ciala.md',
-  '15-9-tlumiony.md', '15-10-rezonans.md', '15-Pytania.md', '15-Zadania.md',
+  '15-1-ruch-harmoniczny.md',
+  '15-2-oscylator.md',
+  '15-3-ruch-prosty.md',
+  '15-4-energia.md',
+  '15-5-zastosowania.md',
+  '15-6-okrag.md',
+  '15-7-skladanie.md',
+  '15-8-dwa-ciala.md',
+  '15-9-tlumiony.md',
+  '15-10-rezonans.md',
+  '15-Pytania.md',
+  '15-Zadania.md',
 ];
-const pliki = [...rozdzial, 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [...rozdzial, 'Slownik.md'].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, '15-Zadania.md');
+  const cel = resolveReference(
+    id,
+    { anchors: index.anchors, formulaHome: index.formulaHome },
+    '15-Zadania.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['15-Zadania.md']} path="15-Zadania.md" resolveRef={resolveRef} />,
-);
-const dokument = () => index.documents.find((d) => d.path === '15-Zadania.md');
+const widok = () =>
+  render(
+    <ReaderView markdown={bodies['15-Zadania.md']} path="15-Zadania.md" resolveRef={resolveRef} />
+  );
 
 describe('Zadania rozdziału 15', () => {
   it('baza spójna', () => expect(index.issues).toEqual([]));
@@ -64,10 +78,16 @@ describe('Zadania rozdziału 15', () => {
   it('siedem nagłówków grup, pierwszy to Paragraf 15-3', () => {
     const { container } = widok();
     const naglowki = [...container.querySelectorAll('div')]
-      .map((d) => d.textContent ?? '').filter((t) => t.startsWith('Paragraf 15-'));
+      .map((d) => d.textContent ?? '')
+      .filter((t) => t.startsWith('Paragraf 15-'));
     expect(naglowki).toEqual([
-      'Paragraf 15-3', 'Paragraf 15-4', 'Paragraf 15-5',
-      'Paragraf 15-7', 'Paragraf 15-8', 'Paragraf 15-9', 'Paragraf 15-10',
+      'Paragraf 15-3',
+      'Paragraf 15-4',
+      'Paragraf 15-5',
+      'Paragraf 15-7',
+      'Paragraf 15-8',
+      'Paragraf 15-9',
+      'Paragraf 15-10',
     ]);
   });
 
@@ -84,13 +104,22 @@ describe('Zadania rozdziału 15', () => {
   });
 
   it('zadania spinają się z wykładem — odsyłacze w obie strony', () => {
-    for (const id of ['rh1-15-eq8', 'rh1-15-eq17', 'rh1-15-eq18', 'rh1-15-eq19',
-      'rh1-15-eq30', 'rh1-15-eq33', 'rh1-15-eq41', 'rh1-15-rys9', 'rh1-15-rys12',
-      'rh1-15-rys17', 'rh1-15-rys18']) {
+    for (const id of [
+      'rh1-15-eq8',
+      'rh1-15-eq17',
+      'rh1-15-eq18',
+      'rh1-15-eq19',
+      'rh1-15-eq30',
+      'rh1-15-eq33',
+      'rh1-15-eq41',
+      'rh1-15-rys9',
+      'rh1-15-rys12',
+      'rh1-15-rys17',
+      'rh1-15-rys18',
+    ]) {
       expect(index.anchors.has(id), id).toBe(true);
     }
   });
-
 
   it('nic nie zostaje surowym zapisem', () => {
     const { container } = widok();

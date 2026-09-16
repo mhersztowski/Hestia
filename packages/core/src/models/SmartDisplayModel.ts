@@ -1,4 +1,5 @@
-export type SmartDisplayViewType = 'clock' | 'text' | 'metric' | 'image' | 'random-image' | 'weather';
+export type SmartDisplayViewType =
+  'clock' | 'text' | 'metric' | 'image' | 'random-image' | 'weather';
 
 export interface SmartDisplayView {
   id: string;

@@ -24,11 +24,22 @@ export interface EntitySpecPanelProps {
 const KEYS: EntityKey[] = ['PK', 'FK', 'UK'];
 
 const input: CSSProperties = {
-  fontSize: 11, padding: '2px 4px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', minWidth: 0, width: '100%',
+  fontSize: 11,
+  padding: '2px 4px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  minWidth: 0,
+  width: '100%',
   boxSizing: 'border-box',
 };
-const iconBtn: CSSProperties = { ...input, cursor: 'pointer', padding: '2px 5px', lineHeight: 1.1, width: 'auto' };
+const iconBtn: CSSProperties = {
+  ...input,
+  cursor: 'pointer',
+  padding: '2px 5px',
+  lineHeight: 1.1,
+  width: 'auto',
+};
 const keyBtn = (active: boolean): CSSProperties => ({
   ...iconBtn,
   padding: '2px 4px',
@@ -39,7 +50,15 @@ const keyBtn = (active: boolean): CSSProperties => ({
   borderColor: active ? '#2563eb' : '#cbd5e1',
 });
 
-function AttributeRow({ attribute, index, count, onUpdate, onToggleKey, onRemove, onMove }: {
+function AttributeRow({
+  attribute,
+  index,
+  count,
+  onUpdate,
+  onToggleKey,
+  onRemove,
+  onMove,
+}: {
   attribute: EntityAttribute;
   index: number;
   count: number;
@@ -53,17 +72,35 @@ function AttributeRow({ attribute, index, count, onUpdate, onToggleKey, onRemove
   if (!attribute.name) {
     return (
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        <code style={{ flex: 1, fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <code
+          style={{
+            flex: 1,
+            fontSize: 11,
+            color: '#475569',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
           {attribute.raw}
         </code>
         <span style={{ fontSize: 10, color: '#94a3b8' }}>zapis spoza modelu</span>
-        <button type="button" style={iconBtn} title="Usuń atrybut" onClick={() => onRemove(index)}>×</button>
+        <button type="button" style={iconBtn} title="Usuń atrybut" onClick={() => onRemove(index)}>
+          ×
+        </button>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(50px, 0.8fr) minmax(60px, 1fr) auto auto auto minmax(60px, 1fr) 24px 24px 24px', gap: 3, alignItems: 'center' }}>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns:
+          'minmax(50px, 0.8fr) minmax(60px, 1fr) auto auto auto minmax(60px, 1fr) 24px 24px 24px',
+        gap: 3,
+        alignItems: 'center',
+      }}
+    >
       <input
         style={input}
         value={attribute.type ?? ''}
@@ -97,15 +134,39 @@ function AttributeRow({ attribute, index, count, onUpdate, onToggleKey, onRemove
         title="Opis pokazywany obok atrybutu"
         onChange={(e) => onUpdate(index, { comment: e.target.value })}
       />
-      <button type="button" style={iconBtn} title="W górę" disabled={index === 0} onClick={() => onMove(index, index - 1)}>↑</button>
-      <button type="button" style={iconBtn} title="W dół" disabled={index === count - 1} onClick={() => onMove(index, index + 1)}>↓</button>
-      <button type="button" style={iconBtn} title="Usuń atrybut" onClick={() => onRemove(index)}>×</button>
+      <button
+        type="button"
+        style={iconBtn}
+        title="W górę"
+        disabled={index === 0}
+        onClick={() => onMove(index, index - 1)}
+      >
+        ↑
+      </button>
+      <button
+        type="button"
+        style={iconBtn}
+        title="W dół"
+        disabled={index === count - 1}
+        onClick={() => onMove(index, index + 1)}
+      >
+        ↓
+      </button>
+      <button type="button" style={iconBtn} title="Usuń atrybut" onClick={() => onRemove(index)}>
+        ×
+      </button>
     </div>
   );
 }
 
 export function EntitySpecPanel({
-  node, onAdd, onUpdate, onToggleKey, onRemove, onMove, onClose,
+  node,
+  onAdd,
+  onUpdate,
+  onToggleKey,
+  onRemove,
+  onMove,
+  onClose,
 }: EntitySpecPanelProps) {
   const attributes = node.attributes ?? [];
 
@@ -113,15 +174,27 @@ export function EntitySpecPanel({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <strong style={{ fontSize: 12 }}>{node.label || node.id}</strong>
-        <button type="button" style={iconBtn} onClick={onAdd}>+ atrybut</button>
+        <button type="button" style={iconBtn} onClick={onAdd}>
+          + atrybut
+        </button>
         <span style={{ flex: 1 }} />
-        <button type="button" style={iconBtn} title="Zamknij panel" onClick={onClose}>×</button>
+        <button type="button" style={iconBtn} title="Zamknij panel" onClick={onClose}>
+          ×
+        </button>
       </div>
 
       {attributes.length === 0 ? (
         <div style={{ fontSize: 11, color: '#94a3b8' }}>Encja bez atrybutów — dodaj pierwszy.</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxHeight: 210, overflowY: 'auto' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+            maxHeight: 210,
+            overflowY: 'auto',
+          }}
+        >
           {attributes.map((attribute, i) => (
             <AttributeRow
               key={i}

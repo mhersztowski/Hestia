@@ -24,9 +24,24 @@ export const CONSTANTS: Record<string, PhysicalConstant> = {
   e: { symbol: 'e', name: 'ładunek elementarny', value: 1.602_176_634e-19, unit: 'C' },
   m_e: { symbol: 'm_e', name: 'masa elektronu', value: 9.109_383_7015e-31, unit: 'kg' },
   m_p: { symbol: 'm_p', name: 'masa protonu', value: 1.672_621_923_69e-27, unit: 'kg' },
-  epsilon_0: { symbol: 'ε₀', name: 'przenikalność elektryczna próżni', value: 8.854_187_8128e-12, unit: 'F/m' },
-  mu_0: { symbol: 'μ₀', name: 'przenikalność magnetyczna próżni', value: 1.256_637_062_12e-6, unit: 'N/A^2' },
-  sigma: { symbol: 'σ', name: 'stała Stefana-Boltzmanna', value: 5.670_374_419e-8, unit: 'W/(m^2 K^4)' },
+  epsilon_0: {
+    symbol: 'ε₀',
+    name: 'przenikalność elektryczna próżni',
+    value: 8.854_187_8128e-12,
+    unit: 'F/m',
+  },
+  mu_0: {
+    symbol: 'μ₀',
+    name: 'przenikalność magnetyczna próżni',
+    value: 1.256_637_062_12e-6,
+    unit: 'N/A^2',
+  },
+  sigma: {
+    symbol: 'σ',
+    name: 'stała Stefana-Boltzmanna',
+    value: 5.670_374_419e-8,
+    unit: 'W/(m^2 K^4)',
+  },
   // Nie jest stałą fundamentalną, tylko przyjętą wartością normalną — ale w
   // dydaktyce mechaniki pojawia się częściej niż wszystkie powyższe razem.
   g_n: { symbol: 'g', name: 'przyspieszenie ziemskie (normalne)', value: 9.806_65, unit: 'm/s^2' },

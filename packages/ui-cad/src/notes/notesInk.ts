@@ -28,17 +28,17 @@ const INK_ON_DARK = '#ffffff';
  * on the application's default background.
  */
 export function isLightColor(hex: string): boolean {
-    const h = hex.replace('#', '');
-    if (h.length !== 6) return false;
-    const r = parseInt(h.slice(0, 2), 16);
-    const g = parseInt(h.slice(2, 4), 16);
-    const b = parseInt(h.slice(4, 6), 16);
-    return (r * 299 + g * 587 + b * 114) / 1000 > 140;
+  const h = hex.replace('#', '');
+  if (h.length !== 6) return false;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 140;
 }
 
 /** A pen colour legible on the given background. */
 export function defaultInkFor(bgColor: string): string {
-    return isLightColor(bgColor) ? INK_ON_LIGHT : INK_ON_DARK;
+  return isLightColor(bgColor) ? INK_ON_LIGHT : INK_ON_DARK;
 }
 
 /**
@@ -50,6 +50,6 @@ export function defaultInkFor(bgColor: string): string {
  * the stroke would be impossible to see.
  */
 export function needsInkSwitch(ink: string, bgColor: string): boolean {
-    if (ink === TRANSPARENT) return false;
-    return isLightColor(ink) === isLightColor(bgColor);
+  if (ink === TRANSPARENT) return false;
+  return isLightColor(ink) === isLightColor(bgColor);
 }

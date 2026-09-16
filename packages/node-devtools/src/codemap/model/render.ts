@@ -17,7 +17,15 @@ export function renderMember(m: Omit<CodeMember, 'id' | 'text'>): string {
  * Parse a UML member line back into structured form (best-effort) — used when
  * reconstructing a model from a hand-edited UML diagram for code generation.
  */
-export function parseMemberText(text: string): { visibility: Visibility; isStatic: boolean; isAsync: boolean; name: string; type?: string; params?: CodeParam[]; kind: 'field' | 'method' } {
+export function parseMemberText(text: string): {
+  visibility: Visibility;
+  isStatic: boolean;
+  isAsync: boolean;
+  name: string;
+  type?: string;
+  params?: CodeParam[];
+  kind: 'field' | 'method';
+} {
   let s = text.trim();
   let visibility: Visibility = 'public';
   const sig = s[0];
@@ -27,9 +35,15 @@ export function parseMemberText(text: string): { visibility: Visibility; isStati
   else if (sig === '~') visibility = 'package';
   if ('+-#~'.includes(sig)) s = s.slice(1).trim();
   let isStatic = false;
-  if (s.startsWith('static ')) { isStatic = true; s = s.slice(7).trim(); }
+  if (s.startsWith('static ')) {
+    isStatic = true;
+    s = s.slice(7).trim();
+  }
   let isAsync = false;
-  if (s.startsWith('async ')) { isAsync = true; s = s.slice(6).trim(); }
+  if (s.startsWith('async ')) {
+    isAsync = true;
+    s = s.slice(6).trim();
+  }
 
   const paren = s.indexOf('(');
   if (paren >= 0) {
@@ -38,10 +52,14 @@ export function parseMemberText(text: string): { visibility: Visibility; isStati
     const inner = close > paren ? s.slice(paren + 1, close) : '';
     const after = close >= 0 ? s.slice(close + 1).trim() : '';
     const type = after.startsWith(':') ? after.slice(1).trim() : undefined;
-    const params: CodeParam[] = inner.split(',').map((p) => p.trim()).filter(Boolean).map((p) => {
-      const c = p.indexOf(':');
-      return c >= 0 ? { name: p.slice(0, c).trim(), type: p.slice(c + 1).trim() } : { name: p };
-    });
+    const params: CodeParam[] = inner
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p) => {
+        const c = p.indexOf(':');
+        return c >= 0 ? { name: p.slice(0, c).trim(), type: p.slice(c + 1).trim() } : { name: p };
+      });
     return { visibility, isStatic, isAsync, name, type, params, kind: 'method' };
   }
   const colon = s.indexOf(':');

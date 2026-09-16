@@ -26,7 +26,9 @@ const edgeOf = (doc: DiagramDocument) => doc.edges[0];
 
 describe('styl linii i zakończenia', () => {
   it('zmienia styl linii', () => {
-    expect(edgeOf(setEdgeStyle(withEdge(), 'A__B', { lineStyle: 'dotted' })).lineStyle).toBe('dotted');
+    expect(edgeOf(setEdgeStyle(withEdge(), 'A__B', { lineStyle: 'dotted' })).lineStyle).toBe(
+      'dotted'
+    );
   });
 
   it('zmienia zakończenie u celu', () => {
@@ -34,7 +36,9 @@ describe('styl linii i zakończenia', () => {
   });
 
   it('dodaje zakończenie u źródła', () => {
-    expect(edgeOf(setEdgeStyle(withEdge(), 'A__B', { startArrow: 'arrow' })).meta?.startArrow).toBe('arrow');
+    expect(edgeOf(setEdgeStyle(withEdge(), 'A__B', { startArrow: 'arrow' })).meta?.startArrow).toBe(
+      'arrow'
+    );
   });
 
   it('zdejmuje zakończenie u źródła bez zostawiania śmieci w `meta`', () => {
@@ -46,7 +50,9 @@ describe('styl linii i zakończenia', () => {
   it('ustawia i zdejmuje link niewidzialny', () => {
     const invisible = setEdgeStyle(withEdge(), 'A__B', { invisible: true });
     expect(edgeOf(invisible).meta?.invisible).toBe('true');
-    expect(edgeOf(setEdgeStyle(invisible, 'A__B', { invisible: false })).meta?.invisible).toBeUndefined();
+    expect(
+      edgeOf(setEdgeStyle(invisible, 'A__B', { invisible: false })).meta?.invisible
+    ).toBeUndefined();
   });
 
   it('puste `meta` znika zamiast zostawać pustym obiektem', () => {

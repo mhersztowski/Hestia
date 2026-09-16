@@ -29,8 +29,12 @@ export class ShoppingListNode extends NodeBase<ShoppingListModel> {
     this.items = model.items || [];
   }
 
-  static fromModel(model: ShoppingListModel): ShoppingListNode { return new ShoppingListNode(model); }
-  static fromModels(models: ShoppingListModel[]): ShoppingListNode[] { return models.map(m => new ShoppingListNode(m)); }
+  static fromModel(model: ShoppingListModel): ShoppingListNode {
+    return new ShoppingListNode(model);
+  }
+  static fromModels(models: ShoppingListModel[]): ShoppingListNode[] {
+    return models.map((m) => new ShoppingListNode(m));
+  }
 
   // Display
   getDisplayName(): string {
@@ -52,23 +56,23 @@ export class ShoppingListNode extends NodeBase<ShoppingListModel> {
 
   // Item queries
   getCheckedItems(): ShoppingItemModel[] {
-    return this.items.filter(i => i.checked);
+    return this.items.filter((i) => i.checked);
   }
 
   getUncheckedItems(): ShoppingItemModel[] {
-    return this.items.filter(i => !i.checked);
+    return this.items.filter((i) => !i.checked);
   }
 
   getItemById(id: string): ShoppingItemModel | undefined {
-    return this.items.find(i => i.id === id);
+    return this.items.find((i) => i.id === id);
   }
 
   getItemsByCategory(category: string): ShoppingItemModel[] {
-    return this.items.filter(i => i.category === category);
+    return this.items.filter((i) => i.category === category);
   }
 
   getItemsByPerson(personId: string): ShoppingItemModel[] {
-    return this.items.filter(i => i.assignedPersonId === personId);
+    return this.items.filter((i) => i.assignedPersonId === personId);
   }
 
   getCategories(): string[] {
@@ -106,7 +110,7 @@ export class ShoppingListNode extends NodeBase<ShoppingListModel> {
 
   getActualTotal(): number {
     return this.items
-      .filter(i => i.checked)
+      .filter((i) => i.checked)
       .reduce((sum, i) => sum + (i.actualPrice || i.estimatedPrice || 0), 0);
   }
 
@@ -148,7 +152,7 @@ export class ShoppingListNode extends NodeBase<ShoppingListModel> {
       this.name.toLowerCase().includes(lowerQuery) ||
       (this.store?.toLowerCase().includes(lowerQuery) ?? false) ||
       (this.description?.toLowerCase().includes(lowerQuery) ?? false) ||
-      this.items.some(i => i.name.toLowerCase().includes(lowerQuery))
+      this.items.some((i) => i.name.toLowerCase().includes(lowerQuery))
     );
   }
 

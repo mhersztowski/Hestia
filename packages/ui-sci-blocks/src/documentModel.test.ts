@@ -15,7 +15,11 @@ const SIM_BODY = /```sim:pendulum\n([\s\S]*?)```/.exec(DOCUMENT)![1];
 describe('dokument o wahadle', () => {
   it('ma trzy wzory: układ ODE, okres i energię', () => {
     const formulas = scanFormulas(DOCUMENT);
-    expect(formulas.map((f) => f.id)).toEqual(['pendulum-ode', 'pendulum-period', 'pendulum-energy']);
+    expect(formulas.map((f) => f.id)).toEqual([
+      'pendulum-ode',
+      'pendulum-period',
+      'pendulum-energy',
+    ]);
     expect(formulas[0].kind).toBe('ode');
   });
 
@@ -140,7 +144,10 @@ describe('model dla workera', () => {
    */
   const DWA_ZJAWISKA = [
     '```formula:a-ode',
-    '@ode', '@state x, v', '@d x = v', '@d v = -\\frac{k}{m} \\cdot x',
+    '@ode',
+    '@state x, v',
+    '@d x = v',
+    '@d v = -\\frac{k}{m} \\cdot x',
     '@init x = A, v = 0',
     '@vars x: m, v: m/s, k: N/m, m: kg, A: m',
     '```',

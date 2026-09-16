@@ -35,7 +35,13 @@ describe('ściąga z dostępnych funkcji', () => {
     fireEvent.click(screen.getByText(/kod/));
     const treść = screen.getByTestId('script-api').textContent ?? '';
 
-    for (const nazwa of ['dopri5', 'rosenbrock', 'buildModel', 'measureInvariant', 'findEventTime']) {
+    for (const nazwa of [
+      'dopri5',
+      'rosenbrock',
+      'buildModel',
+      'measureInvariant',
+      'findEventTime',
+    ]) {
       expect(treść, `brak ${nazwa}`).toContain(nazwa);
     }
   });

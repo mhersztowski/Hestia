@@ -32,7 +32,8 @@ const TOOL_HINTS: Record<ToolName, string> = {
   rotate: 'Select first · Click center · Drag or type angle in cmdline · Enter/click to confirm',
   offset: 'Click entity · Move cursor to set distance & side · Click to commit · Esc to cancel',
   trim: 'Click boundary entity · Click part to remove · Enter=done · Esc to cancel',
-  fillet: 'Click first line · Click second line · Type radius before clicking (0=sharp) · Esc to cancel',
+  fillet:
+    'Click first line · Click second line · Type radius before clicking (0=sharp) · Esc to cancel',
   dimension: 'Click point 1 · Click point 2 · Click offset position · chains automatically',
   box3d: 'Click corner A · Click corner B to place box · Esc to cancel',
   cylinder3d: 'Click center · Click edge for radius · Esc to cancel',
@@ -58,17 +59,26 @@ function GridInput({ project }: { project: Project }) {
       <input
         ref={inputRef}
         value={draft}
-        onChange={e => setDraft(e.target.value)}
+        onChange={(e) => setDraft(e.target.value)}
         onBlur={() => commit(draft)}
-        onKeyDown={e => {
-          if (e.key === 'Enter') { e.preventDefault(); commit(draft); }
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            commit(draft);
+          }
           if (e.key === 'Escape') setEditing(false);
           e.stopPropagation();
         }}
         style={{
-          width: 40, fontSize: 11, fontFamily: 'monospace',
-          background: 'rgba(79,195,247,0.12)', border: '1px solid #4fc3f7',
-          color: '#4fc3f7', outline: 'none', padding: '0 3px', borderRadius: 2,
+          width: 40,
+          fontSize: 11,
+          fontFamily: 'monospace',
+          background: 'rgba(79,195,247,0.12)',
+          border: '1px solid #4fc3f7',
+          color: '#4fc3f7',
+          outline: 'none',
+          padding: '0 3px',
+          borderRadius: 2,
         }}
         autoFocus
       />
@@ -78,9 +88,13 @@ function GridInput({ project }: { project: Project }) {
   return (
     <Typography
       variant="caption"
-      onClick={() => { setDraft(String(project.settings.gridSize)); setEditing(true); }}
+      onClick={() => {
+        setDraft(String(project.settings.gridSize));
+        setEditing(true);
+      }}
       sx={{
-        color: 'text.secondary', cursor: 'pointer',
+        color: 'text.secondary',
+        cursor: 'pointer',
         '&:hover span': { color: 'primary.main', textDecoration: 'underline' },
       }}
     >
@@ -95,15 +109,32 @@ export function StatusBar({ project, activeTool, viewMode }: Props) {
   const activeLayer = project.layerSystem.getActive();
 
   return (
-    <Box sx={{
-      height: 24, display: 'flex', alignItems: 'center', px: 1.5, gap: 2,
-      bgcolor: '#2d2d30', borderTop: '1px solid rgba(255,255,255,0.08)',
-    }}>
+    <Box
+      sx={{
+        height: 24,
+        display: 'flex',
+        alignItems: 'center',
+        px: 1.5,
+        gap: 2,
+        bgcolor: '#2d2d30',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
       <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
         {activeTool.toUpperCase()}
       </Typography>
       {viewMode === '3d' && (
-        <Chip label="3D" size="small" sx={{ height: 16, fontSize: 9, bgcolor: 'rgba(79,195,247,0.2)', color: 'primary.main', '& .MuiChip-label': { px: 0.75 } }} />
+        <Chip
+          label="3D"
+          size="small"
+          sx={{
+            height: 16,
+            fontSize: 9,
+            bgcolor: 'rgba(79,195,247,0.2)',
+            color: 'primary.main',
+            '& .MuiChip-label': { px: 0.75 },
+          }}
+        />
       )}
       <Typography variant="caption" sx={{ color: 'text.secondary', flex: 1 }}>
         {TOOL_HINTS[activeTool]}

@@ -4,7 +4,7 @@ import type { ProjectAction, ProjectDeps } from './types';
 export abstract class Project {
   constructor(
     protected readonly context: VfsProjectContext,
-    protected readonly deps: ProjectDeps,
+    protected readonly deps: ProjectDeps
   ) {}
 
   /** Short label for the project type (e.g. "Arduino", "MicroPython") */
@@ -24,7 +24,7 @@ export abstract class Project {
     actionId: string,
     selectedPath: string | null,
     onOutput: (line: string) => void,
-    signal: AbortSignal,
+    signal: AbortSignal
   ): Promise<{ success: boolean; error?: string }>;
 
   get projectContext(): VfsProjectContext {
@@ -36,7 +36,7 @@ export abstract class Project {
   protected async apiPost<T = Record<string, unknown>>(
     path: string,
     body: unknown,
-    signal: AbortSignal,
+    signal: AbortSignal
   ): Promise<T> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (this.deps.authToken) headers['Authorization'] = `Bearer ${this.deps.authToken}`;
@@ -83,7 +83,7 @@ export abstract class Project {
     path: string,
     params: Record<string, string>,
     onOutput: (line: string) => void,
-    signal: AbortSignal,
+    signal: AbortSignal
   ): Promise<TDone> {
     const headers: Record<string, string> = { Accept: 'text/event-stream' };
     if (this.deps.authToken) headers['Authorization'] = `Bearer ${this.deps.authToken}`;
@@ -104,7 +104,6 @@ export abstract class Project {
     let buf = '';
     let eventType = '';
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;

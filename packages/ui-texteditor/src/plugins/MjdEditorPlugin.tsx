@@ -33,7 +33,9 @@ function useActiveMjdUri(): string {
   useEffect(() => {
     const fn = () => setUri(_activeMjdUri);
     _mjdListeners.add(fn);
-    return () => { _mjdListeners.delete(fn); };
+    return () => {
+      _mjdListeners.delete(fn);
+    };
   }, []);
   return uri;
 }
@@ -43,7 +45,9 @@ function useActiveDataUri(): string {
   useEffect(() => {
     const fn = () => setUri(_activeDataUri);
     _dataListeners.add(fn);
-    return () => { _dataListeners.delete(fn); };
+    return () => {
+      _dataListeners.delete(fn);
+    };
   }, []);
   return uri;
 }
@@ -71,7 +75,15 @@ function MjdDefPanel({ provider }: { provider: FileSystemProvider }) {
 
   if (!uri) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', bgcolor: '#1e1e1e' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          bgcolor: '#1e1e1e',
+        }}
+      >
         <Typography sx={{ color: '#888', fontSize: 13 }}>
           No .mjd file is active. Open a .mjd file first.
         </Typography>
@@ -91,7 +103,15 @@ function MjdDataPanel({ provider }: { provider: FileSystemProvider }) {
 
   if (!dataUri) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', bgcolor: '#1e1e1e' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          bgcolor: '#1e1e1e',
+        }}
+      >
         <Typography sx={{ color: '#888', fontSize: 13 }}>
           No .mjd.json file is active. Open a .mjd.json file first.
         </Typography>
@@ -132,17 +152,31 @@ export function createMjdEditorPlugin(provider: FileSystemProvider) {
         if (uri.startsWith('virtual://')) return;
         if (isMjdUri(uri)) {
           setActiveMjdUri(uri);
-          api.openEditorTab({ uri: DEF_TAB_URI, title: 'MJD Def Editor', component: MjdDefPanelBound, toSide: false });
+          api.openEditorTab({
+            uri: DEF_TAB_URI,
+            title: 'MJD Def Editor',
+            component: MjdDefPanelBound,
+            toSide: false,
+          });
         } else if (isMjdDataUri(uri)) {
           setActiveDataUri(uri);
-          api.openEditorTab({ uri: DATA_TAB_URI, title: 'MJD Data Editor', component: MjdDataPanelBound, toSide: false });
+          api.openEditorTab({
+            uri: DATA_TAB_URI,
+            title: 'MJD Data Editor',
+            component: MjdDataPanelBound,
+            toSide: false,
+          });
         }
       }
 
       api.editor.onDidOpenDocument((uri) => handleUri(uri));
-      api.editor.onDidChangeModel((uri) => { if (uri) handleUri(uri); });
+      api.editor.onDidChangeModel((uri) => {
+        if (uri) handleUri(uri);
+      });
 
-      _vfsUnsub = globalEventBus.on<{ path: string }>('system:vfs:fileSelected', ({ path }) => handleUri(path));
+      _vfsUnsub = globalEventBus.on<{ path: string }>('system:vfs:fileSelected', ({ path }) =>
+        handleUri(path)
+      );
 
       api.ui.commandpalette.register({
         command: `${api.pluginId}:openDef`,
@@ -156,10 +190,20 @@ export function createMjdEditorPlugin(provider: FileSystemProvider) {
       });
 
       api.commands.register('openDef', () => {
-        api.openEditorTab({ uri: DEF_TAB_URI, title: 'MJD Def Editor', component: MjdDefPanelBound, toSide: false });
+        api.openEditorTab({
+          uri: DEF_TAB_URI,
+          title: 'MJD Def Editor',
+          component: MjdDefPanelBound,
+          toSide: false,
+        });
       });
       api.commands.register('openData', () => {
-        api.openEditorTab({ uri: DATA_TAB_URI, title: 'MJD Data Editor', component: MjdDataPanelBound, toSide: false });
+        api.openEditorTab({
+          uri: DATA_TAB_URI,
+          title: 'MJD Data Editor',
+          component: MjdDataPanelBound,
+          toSide: false,
+        });
       });
 
       api.logger.info('MJD Editor plugin activated');
@@ -172,6 +216,6 @@ export function createMjdEditorPlugin(provider: FileSystemProvider) {
       _activeDataUri = '';
       _mjdListeners.forEach((fn) => fn());
       _dataListeners.forEach((fn) => fn());
-    },
+    }
   );
 }

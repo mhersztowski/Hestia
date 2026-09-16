@@ -59,11 +59,11 @@ export async function loadTemplates(files: EditorFiles | null): Promise<EventTem
   if (!files) return [];
   try {
     const file = await files.readFile(TEMPLATES_PATH);
-    const data = file?.content ? JSON.parse(file.content) as EventTemplatesFile : null;
+    const data = file?.content ? (JSON.parse(file.content) as EventTemplatesFile) : null;
     if (!data || !Array.isArray(data.templates)) return [];
     // Defensive: drop malformed entries instead of throwing — older files
     // might be missing fields if we evolve the shape later.
-    return data.templates.filter(t => t && t.id && Array.isArray(t.items));
+    return data.templates.filter((t) => t && t.id && Array.isArray(t.items));
   } catch (err) {
     console.warn('[eventTemplates] load failed:', err);
     return [];
@@ -72,7 +72,7 @@ export async function loadTemplates(files: EditorFiles | null): Promise<EventTem
 
 export async function saveTemplates(
   files: EditorFiles | null,
-  templates: EventTemplate[],
+  templates: EventTemplate[]
 ): Promise<void> {
   if (!files) return;
   await files.writeFile(TEMPLATES_PATH, JSON.stringify({ templates }, null, 2));
@@ -130,8 +130,10 @@ export function inputValueToDate(value: string): Date | null {
 /** Date + `HH:mm` time → datetime-local string `YYYY-MM-DDTHH:mm`. */
 function formatLocalDateTime(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-    + `T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  );
 }
 
 export interface ResolvedEvent {
@@ -155,17 +157,14 @@ export interface ResolvedEvent {
  * caller renders this in the editor it's still useful because the day shows up
  * in the date label.
  */
-export function applyTemplate(
-  template: EventTemplate,
-  baseDate: Date,
-): ResolvedEvent[] {
-  return template.items.map(item => {
+export function applyTemplate(template: EventTemplate, baseDate: Date): ResolvedEvent[] {
+  return template.items.map((item) => {
     const d = new Date(baseDate);
     d.setDate(d.getDate() + (item.dayOffset || 0));
     let start = '';
     let end = '';
     if (item.time) {
-      const [hh, mm] = item.time.split(':').map(x => parseInt(x, 10));
+      const [hh, mm] = item.time.split(':').map((x) => parseInt(x, 10));
       if (!isNaN(hh) && !isNaN(mm)) {
         d.setHours(hh, mm, 0, 0);
         start = formatLocalDateTime(d);

@@ -20,7 +20,10 @@ const STROKE_SELECTED = '#2563eb';
 
 /** Znak widoczności w notacji UML — czytelny bez legendy. */
 const SIGN: Record<MemberVisibility, string> = {
-  public: '+', private: '−', protected: '#', package: '~',
+  public: '+',
+  private: '−',
+  protected: '#',
+  package: '~',
 };
 
 function memberText(member: ClassMember): string {
@@ -78,7 +81,13 @@ export function ClassNodeView({ id, data, selected }: NodeProps<Node<FlowNodeDat
     >
       <NodeAnchors />
 
-      <div style={{ padding: '4px 8px', textAlign: 'center', borderBottom: members.length ? divider : undefined }}>
+      <div
+        style={{
+          padding: '4px 8px',
+          textAlign: 'center',
+          borderBottom: members.length ? divider : undefined,
+        }}
+      >
         {data.stereotype && (
           <div style={{ fontSize: 10, color: '#64748b' }}>«{data.stereotype}»</div>
         )}
@@ -97,15 +106,18 @@ export function ClassNodeView({ id, data, selected }: NodeProps<Node<FlowNodeDat
       {/* Pola i metody w osobnych sekcjach — tak czyta się diagram klas. */}
       {fields.length > 0 && (
         <div style={{ padding: '3px 0', borderBottom: methods.length ? divider : undefined }}>
-          {fields.map((m, i) => <MemberRow key={`f${i}`} member={m} />)}
+          {fields.map((m, i) => (
+            <MemberRow key={`f${i}`} member={m} />
+          ))}
         </div>
       )}
       {methods.length > 0 && (
         <div style={{ padding: '3px 0' }}>
-          {methods.map((m, i) => <MemberRow key={`m${i}`} member={m} />)}
+          {methods.map((m, i) => (
+            <MemberRow key={`m${i}`} member={m} />
+          ))}
         </div>
       )}
-
     </div>
   );
 }

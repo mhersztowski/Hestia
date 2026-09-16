@@ -14,8 +14,12 @@ export class MinisModuleDefNode extends NodeBase<MinisModuleDefModel> {
     this.isProgrammable = model.isProgrammable;
   }
 
-  static fromModel(model: MinisModuleDefModel): MinisModuleDefNode { return new MinisModuleDefNode(model); }
-  static fromModels(models: MinisModuleDefModel[]): MinisModuleDefNode[] { return models.map(m => new MinisModuleDefNode(m)); }
+  static fromModel(model: MinisModuleDefModel): MinisModuleDefNode {
+    return new MinisModuleDefNode(model);
+  }
+  static fromModels(models: MinisModuleDefModel[]): MinisModuleDefNode[] {
+    return models.map((m) => new MinisModuleDefNode(m));
+  }
 
   getDisplayName(): string {
     return this.name;

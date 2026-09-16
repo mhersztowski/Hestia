@@ -12,9 +12,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import {
-  alignment, compileLinAlg, compileLinAlg3, det, detM3, eigen, eigenM3,
-  interpolate, interpolateM3, parseFormulaBlock,
-  type Vector2, type Vector3,
+  alignment,
+  compileLinAlg,
+  compileLinAlg3,
+  det,
+  detM3,
+  eigen,
+  eigenM3,
+  interpolate,
+  interpolateM3,
+  parseFormulaBlock,
+  type Vector2,
+  type Vector3,
 } from '@hestia/core-sci';
 import { LinAlgStage } from './LinAlgStage';
 import { LinAlgStage3D } from './LinAlgStage3D';
@@ -26,19 +35,31 @@ export interface LinAlgBlockProps {
   code: string;
   /** Nastawy z bloku `linalg` — co pokazać obok sceny. */
   setup?: {
-    eigen?: boolean; extent?: number; unitSquare?: boolean;
-    drag?: boolean; snap?: boolean; kernel?: boolean;
+    eigen?: boolean;
+    extent?: number;
+    unitSquare?: boolean;
+    drag?: boolean;
+    snap?: boolean;
+    kernel?: boolean;
   };
 }
 
 const box: CSSProperties = {
-  border: '1px solid #e2e8f0', borderLeft: '4px solid #a855f7',
-  borderRadius: 6, background: '#fff', padding: 10,
+  border: '1px solid #e2e8f0',
+  borderLeft: '4px solid #a855f7',
+  borderRadius: 6,
+  background: '#fff',
+  padding: 10,
 };
 const label: CSSProperties = { fontSize: 11, color: '#64748b' };
 const btn: CSSProperties = {
-  fontSize: 12, padding: '3px 10px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#334155',
+  fontSize: 12,
+  padding: '3px 10px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#334155',
 };
 
 /** Kolory wektorów — stała paleta, żeby ten sam wektor miał ten sam kolor. */
@@ -98,8 +119,14 @@ function Scena2D({ id, code, setup, bare }: LinAlgBlockProps) {
       // widać, że przekształcenie da się odwrócić (albo że nie da).
       setT((poprzednie) => {
         const nastepne = poprzednie + 0.02 * kierunekRef.current;
-        if (nastepne >= 1) { kierunekRef.current = -1; return 1; }
-        if (nastepne <= 0) { kierunekRef.current = 1; return 0; }
+        if (nastepne >= 1) {
+          kierunekRef.current = -1;
+          return 1;
+        }
+        if (nastepne <= 0) {
+          kierunekRef.current = 1;
+          return 0;
+        }
         return nastepne;
       });
     }, 40);
@@ -135,9 +162,13 @@ function Scena2D({ id, code, setup, bare }: LinAlgBlockProps) {
   const issues = [...model.issues, ...wynik.issues];
 
   return (
-    <div style={bare
-      ? { display: 'flex', flexDirection: 'column', gap: 8 }
-      : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div
+      style={
+        bare
+          ? { display: 'flex', flexDirection: 'column', gap: 8 }
+          : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }
+      }
+    >
       {!bare && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: '#a855f7' }}>algebra</span>
@@ -146,8 +177,18 @@ function Scena2D({ id, code, setup, bare }: LinAlgBlockProps) {
       )}
 
       {issues.length > 0 && (
-        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', borderRadius: 4, padding: '6px 8px' }}>
-          {issues.map((issue, index) => <div key={index}>{issue}</div>)}
+        <div
+          style={{
+            fontSize: 11,
+            color: '#b91c1c',
+            background: '#fef2f2',
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
+          {issues.map((issue, index) => (
+            <div key={index}>{issue}</div>
+          ))}
         </div>
       )}
 
@@ -162,9 +203,11 @@ function Scena2D({ id, code, setup, bare }: LinAlgBlockProps) {
         // i przesuwanie ich byłoby przesuwaniem odpowiedzi, nie pytania.
         draggable={model.vectors.map((v) => v.name)}
         snapEigen={setup?.snap}
-        onDrag={setup?.drag
-          ? (name, value) => setPrzeciagniete((p) => ({ ...p, [name]: value }))
-          : undefined}
+        onDrag={
+          setup?.drag
+            ? (name, value) => setPrzeciagniete((p) => ({ ...p, [name]: value }))
+            : undefined
+        }
       />
 
       {setup?.drag && (
@@ -175,17 +218,30 @@ function Scena2D({ id, code, setup, bare }: LinAlgBlockProps) {
               <span>Zgodność z kierunkiem własnym:</span>
               {/* Pasek zamiast liczby: chodzi o wyczucie „ciepło–zimno" przy
                   szukaniu kierunku, a nie o odczytanie cosinusa. */}
-              <span style={{
-                display: 'inline-block', width: 80, height: 6, borderRadius: 3,
-                background: '#e2e8f0', position: 'relative', overflow: 'hidden',
-              }}>
-                <span style={{
-                  position: 'absolute', inset: 0, width: `${Math.round(zgodnosc * 100)}%`,
-                  background: zgodnosc > 0.999 ? '#16a34a' : '#a855f7',
-                }} />
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 80,
+                  height: 6,
+                  borderRadius: 3,
+                  background: '#e2e8f0',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: `${Math.round(zgodnosc * 100)}%`,
+                    background: zgodnosc > 0.999 ? '#16a34a' : '#a855f7',
+                  }}
+                />
               </span>
               <strong style={{ color: zgodnosc > 0.999 ? '#16a34a' : '#7c3aed' }}>
-                {zgodnosc > 0.999 ? 'trafione — to kierunek własny' : `${Math.round(zgodnosc * 100)}%`}
+                {zgodnosc > 0.999
+                  ? 'trafione — to kierunek własny'
+                  : `${Math.round(zgodnosc * 100)}%`}
               </strong>
             </>
           )}
@@ -208,11 +264,18 @@ function Scena2D({ id, code, setup, bare }: LinAlgBlockProps) {
             max={1}
             step={0.01}
             value={t}
-            onChange={(e) => { setGra(false); setT(Number(e.target.value)); }}
+            onChange={(e) => {
+              setGra(false);
+              setT(Number(e.target.value));
+            }}
             style={{ flex: 1, minWidth: 120 }}
           />
           <span style={{ ...label, fontVariantNumeric: 'tabular-nums' }}>
-            {t === 0 ? 'identyczność' : t === 1 ? 'pełne przekształcenie' : `${Math.round(t * 100)}%`}
+            {t === 0
+              ? 'identyczność'
+              : t === 1
+                ? 'pełne przekształcenie'
+                : `${Math.round(t * 100)}%`}
           </span>
         </div>
       )}
@@ -221,7 +284,12 @@ function Scena2D({ id, code, setup, bare }: LinAlgBlockProps) {
         {wyznacznik !== undefined && (
           <span>
             <span style={label}>det = </span>
-            <strong style={{ color: wyznacznik < 0 ? '#b91c1c' : '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+            <strong
+              style={{
+                color: wyznacznik < 0 ? '#b91c1c' : '#0f172a',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
               {Number(wyznacznik.toPrecision(4))}
             </strong>
             {/* Sens wyznacznika słowami: to jest to, co widać na kwadracie. */}
@@ -251,7 +319,10 @@ function Scena2D({ id, code, setup, bare }: LinAlgBlockProps) {
         {wektory.map((w) => (
           <span key={w.name} style={{ fontSize: 12 }}>
             <span style={{ color: w.color, fontWeight: 600 }}>{w.name}</span>
-            <span style={label}> = [{w.value.map((x) => Number(x.toPrecision(3))).join(', ')}]</span>
+            <span style={label}>
+              {' '}
+              = [{w.value.map((x) => Number(x.toPrecision(3))).join(', ')}]
+            </span>
           </span>
         ))}
       </div>
@@ -268,8 +339,16 @@ function Scena2D({ id, code, setup, bare }: LinAlgBlockProps) {
  * ciągiem warunków, w których nie widać już żadnej z dwóch scen.
  */
 function Scena3D({
-  id, blok, setup, bare,
-}: { id: string; blok: ReturnType<typeof parseFormulaBlock>; setup?: LinAlgBlockProps['setup']; bare?: boolean }) {
+  id,
+  blok,
+  setup,
+  bare,
+}: {
+  id: string;
+  blok: ReturnType<typeof parseFormulaBlock>;
+  setup?: LinAlgBlockProps['setup'];
+  bare?: boolean;
+}) {
   const model = useMemo(() => compileLinAlg3(blok), [blok]);
   const [t, setT] = useState(1);
   const [gra, setGra] = useState(false);
@@ -288,8 +367,14 @@ function Scena3D({
     const timer = window.setInterval(() => {
       setT((poprzednie) => {
         const nastepne = poprzednie + 0.02 * kierunekRef.current;
-        if (nastepne >= 1) { kierunekRef.current = -1; return 1; }
-        if (nastepne <= 0) { kierunekRef.current = 1; return 0; }
+        if (nastepne >= 1) {
+          kierunekRef.current = -1;
+          return 1;
+        }
+        if (nastepne <= 0) {
+          kierunekRef.current = 1;
+          return 0;
+        }
         return nastepne;
       });
     }, 40);
@@ -307,9 +392,13 @@ function Scena3D({
   const issues = [...model.issues, ...wynik.issues];
 
   return (
-    <div style={bare
-      ? { display: 'flex', flexDirection: 'column', gap: 8 }
-      : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div
+      style={
+        bare
+          ? { display: 'flex', flexDirection: 'column', gap: 8 }
+          : { ...box, display: 'flex', flexDirection: 'column', gap: 8 }
+      }
+    >
       {!bare && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: '#a855f7' }}>algebra 3D</span>
@@ -318,8 +407,18 @@ function Scena3D({
       )}
 
       {issues.length > 0 && (
-        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', borderRadius: 4, padding: '6px 8px' }}>
-          {issues.map((issue, index) => <div key={index}>{issue}</div>)}
+        <div
+          style={{
+            fontSize: 11,
+            color: '#b91c1c',
+            background: '#fef2f2',
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
+          {issues.map((issue, index) => (
+            <div key={index}>{issue}</div>
+          ))}
         </div>
       )}
 
@@ -343,11 +442,18 @@ function Scena3D({
             max={1}
             step={0.01}
             value={t}
-            onChange={(e) => { setGra(false); setT(Number(e.target.value)); }}
+            onChange={(e) => {
+              setGra(false);
+              setT(Number(e.target.value));
+            }}
             style={{ flex: 1, minWidth: 120 }}
           />
           <span style={{ ...label, fontVariantNumeric: 'tabular-nums' }}>
-            {t === 0 ? 'identyczność' : t === 1 ? 'pełne przekształcenie' : `${Math.round(t * 100)}%`}
+            {t === 0
+              ? 'identyczność'
+              : t === 1
+                ? 'pełne przekształcenie'
+                : `${Math.round(t * 100)}%`}
           </span>
         </div>
       )}
@@ -356,7 +462,12 @@ function Scena3D({
         {wyznacznik !== undefined && (
           <span>
             <span style={label}>det = </span>
-            <strong style={{ color: wyznacznik < 0 ? '#b91c1c' : '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+            <strong
+              style={{
+                color: wyznacznik < 0 ? '#b91c1c' : '#0f172a',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
               {Number(wyznacznik.toPrecision(4))}
             </strong>
             <span style={label}>
@@ -384,7 +495,10 @@ function Scena3D({
         {wektory.map((w) => (
           <span key={w.name} style={{ fontSize: 12 }}>
             <span style={{ color: w.color, fontWeight: 600 }}>{w.name}</span>
-            <span style={label}> = [{w.value.map((x) => Number(x.toPrecision(3))).join(', ')}]</span>
+            <span style={label}>
+              {' '}
+              = [{w.value.map((x) => Number(x.toPrecision(3))).join(', ')}]
+            </span>
           </span>
         ))}
       </div>

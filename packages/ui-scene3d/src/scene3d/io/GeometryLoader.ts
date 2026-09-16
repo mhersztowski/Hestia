@@ -144,7 +144,7 @@ export function parseGLTFBuffer(buffer: ArrayBuffer): Promise<BufferGeometryData
         }
         resolve(extractBufferData(geometry));
       },
-      (error) => reject(error),
+      (error) => reject(error)
     );
   });
 }

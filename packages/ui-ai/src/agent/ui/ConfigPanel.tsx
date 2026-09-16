@@ -33,14 +33,18 @@ export function loadAgentConfig(defaults?: Partial<AgentConfig>): AgentConfig {
       }
       return merged;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return { ...DEFAULT_AGENT_CONFIG, ...defaults };
 }
 
 export function saveAgentConfig(config: AgentConfig): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 interface ConfigPanelProps {
@@ -49,8 +53,16 @@ interface ConfigPanelProps {
 }
 
 const ExpandIcon = ({ expanded }: { expanded: boolean }) => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"
-    style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="currentColor"
+    style={{
+      transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+      transition: 'transform 0.15s',
+    }}
+  >
     <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" />
   </svg>
 );
@@ -69,39 +81,58 @@ export function ConfigPanel({ config, onChange }: ConfigPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const activeProvider = config.providers[config.providerType];
 
-  const update = useCallback((patch: Partial<AgentConfig>) => {
-    const next = { ...config, ...patch };
-    onChange(next);
-    saveAgentConfig(next);
-  }, [config, onChange]);
+  const update = useCallback(
+    (patch: Partial<AgentConfig>) => {
+      const next = { ...config, ...patch };
+      onChange(next);
+      saveAgentConfig(next);
+    },
+    [config, onChange]
+  );
 
-  const updateProvider = useCallback((field: string, value: string) => {
-    const next = {
-      ...config,
-      providers: {
-        ...config.providers,
-        [config.providerType]: {
-          ...config.providers[config.providerType],
-          [field]: value,
+  const updateProvider = useCallback(
+    (field: string, value: string) => {
+      const next = {
+        ...config,
+        providers: {
+          ...config.providers,
+          [config.providerType]: {
+            ...config.providers[config.providerType],
+            [field]: value,
+          },
         },
-      },
-    };
-    onChange(next);
-    saveAgentConfig(next);
-  }, [config, onChange]);
+      };
+      onChange(next);
+      saveAgentConfig(next);
+    },
+    [config, onChange]
+  );
 
   return (
     <Box sx={{ borderBottom: '1px solid #3c3c3c' }}>
       <Box
-        onClick={() => setExpanded(e => !e)}
+        onClick={() => setExpanded((e) => !e)}
         sx={{
-          display: 'flex', alignItems: 'center', gap: 0.5,
-          px: 1, py: 0.5, cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          px: 1,
+          py: 0.5,
+          cursor: 'pointer',
           '&:hover': { bgcolor: '#2a2d2e' },
         }}
       >
         <ExpandIcon expanded={expanded} />
-        <Typography sx={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, color: '#bbb', flexGrow: 1 }}>
+        <Typography
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: 0.8,
+            color: '#bbb',
+            flexGrow: 1,
+          }}
+        >
           Configuration
         </Typography>
         <Typography sx={{ fontSize: 10, color: '#888' }}>
@@ -176,7 +207,13 @@ export function ConfigPanel({ config, onChange }: ConfigPanelProps) {
                 onChange(next);
                 saveAgentConfig(next);
               }}
-              sx={{ color: '#888', fontSize: 11, borderRadius: 0.5, px: 1, '&:hover': { bgcolor: '#3c3c3c' } }}
+              sx={{
+                color: '#888',
+                fontSize: 11,
+                borderRadius: 0.5,
+                px: 1,
+                '&:hover': { bgcolor: '#3c3c3c' },
+              }}
             >
               <Typography sx={{ fontSize: 11 }}>Reset</Typography>
             </IconButton>

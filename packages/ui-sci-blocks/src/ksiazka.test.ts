@@ -39,7 +39,8 @@ describe.runIf(hasKnowledge('marcin'))('baza wiedzy w całości', () => {
   // Rusztowanie ma wszystkie 183 podrozdziały, więc tekst może odsyłać w przód
   // od pierwszego dnia — 3-6 korzysta z tego dwa razy.
   it('odsyłacz do nieprzeniesionego paragrafu trafia w stub', () => {
-    const skad = 'book/Resnick-Halliday-Fizyka-tom-1/03-ruch-jednowymiarowy/03-06-przyspieszenie.md';
+    const skad =
+      'book/Resnick-Halliday-Fizyka-tom-1/03-ruch-jednowymiarowy/03-06-przyspieszenie.md';
     for (const id of ['rh1-sec-3-8', 'rh1-sec-4-4']) {
       const c = cel(id, skad);
       expect(c.found, id).toBe(true);

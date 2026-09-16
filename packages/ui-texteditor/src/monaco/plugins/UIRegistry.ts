@@ -180,7 +180,11 @@ export function usePlugins(getPlugins: () => readonly IPluginInfo[]): readonly I
     const u2 = globalEventBus.on('plugin:deactivated', refresh);
     const u3 = globalEventBus.on('plugin:registered', refresh);
     refresh();
-    return () => { u1(); u2(); u3(); };
+    return () => {
+      u1();
+      u2();
+      u3();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

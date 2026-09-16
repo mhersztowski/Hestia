@@ -30,7 +30,9 @@ describe('tablica w czytniku', () => {
 
   it('treść komórek zostaje nietknięta', () => {
     const { container } = render(<TableBlock id="t1" code={kod} />);
-    const wiersze = [...container.querySelectorAll('tbody tr')].map((r) => [...r.querySelectorAll('td')].map((c) => c.textContent));
+    const wiersze = [...container.querySelectorAll('tbody tr')].map((r) =>
+      [...r.querySelectorAll('td')].map((c) => c.textContent)
+    );
     expect(wiersze).toEqual([
       ['0° = 0,00000 rad', '0,00000', '0,00'],
       ['2° = 0,03491 rad', '0,03490', '0,03'],

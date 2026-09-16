@@ -2,27 +2,47 @@ import { Project } from './Project';
 import type { ProjectAction, ProjectDeps } from './types';
 import type { VfsProjectContext } from '../types';
 
-interface BuildResult { success: boolean; output?: string }
+interface BuildResult {
+  success: boolean;
+  output?: string;
+}
 
 export class PygameProject extends Project {
-  constructor(context: VfsProjectContext, deps: ProjectDeps) { super(context, deps); }
+  constructor(context: VfsProjectContext, deps: ProjectDeps) {
+    super(context, deps);
+  }
 
-  getTypeLabel() { return 'Pygame'; }
+  getTypeLabel() {
+    return 'Pygame';
+  }
 
   getActions(): ProjectAction[] {
     return [
-      { id: 'build-web',  label: 'Build Web',  description: 'Build for browser via pygbag', hasOutput: true, shortcut: 'F7' },
-      { id: 'run-local',  label: 'Run Local',  description: 'Run sketch locally',           hasOutput: false },
+      {
+        id: 'build-web',
+        label: 'Build Web',
+        description: 'Build for browser via pygbag',
+        hasOutput: true,
+        shortcut: 'F7',
+      },
+      { id: 'run-local', label: 'Run Local', description: 'Run sketch locally', hasOutput: false },
     ];
   }
 
-  async execute(actionId: string, selectedPath: string | null, onOutput: (l: string) => void, signal: AbortSignal) {
+  async execute(
+    actionId: string,
+    selectedPath: string | null,
+    onOutput: (l: string) => void,
+    signal: AbortSignal
+  ) {
     const base = `/users/${encodeURIComponent(this.deps.userName)}/project-pygame/${encodeURIComponent(this.context.id)}`;
 
     if (actionId === 'build-web') {
       const sketchName = this.deriveSketchName(selectedPath);
       if (!sketchName) {
-        onOutput('Error: select a file inside the sketches/ directory to determine which sketch to build.');
+        onOutput(
+          'Error: select a file inside the sketches/ directory to determine which sketch to build.'
+        );
         return { success: false };
       }
       onOutput(`> Building ${sketchName} for web (pygbag) …`);
@@ -31,7 +51,7 @@ export class PygameProject extends Project {
       const result = await this.apiPost<BuildResult>(
         `${base}/sketches/${encodeURIComponent(sketchName)}/build`,
         { code: '' },
-        signal,
+        signal
       );
       if (result.output) for (const line of result.output.split('\n')) onOutput(line);
       return { success: result.success };

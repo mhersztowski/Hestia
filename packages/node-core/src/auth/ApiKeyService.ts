@@ -1,6 +1,11 @@
 import { createHash, randomBytes, randomUUID } from 'crypto';
 import type { FileSystem } from '../filesystem/FileSystem';
-import type { ApiKeyModel, AuthTokenPayload, ApiKeyCreateResponse, ApiKeyPublic } from '@hestia/core';
+import type {
+  ApiKeyModel,
+  AuthTokenPayload,
+  ApiKeyCreateResponse,
+  ApiKeyPublic,
+} from '@hestia/core';
 
 const API_KEY_PREFIX = 'minis_';
 const KEY_BYTE_LENGTH = 32;
@@ -43,7 +48,7 @@ export class ApiKeyService {
     const items = Array.from(this.keysByHash.values());
     await this.fileSystem.writeFile(
       this.filePath,
-      JSON.stringify({ type: 'api_keys', items }, null, 2),
+      JSON.stringify({ type: 'api_keys', items }, null, 2)
     );
   }
 
@@ -79,7 +84,7 @@ export class ApiKeyService {
     userId: string,
     isAdmin: boolean,
     roles: string[],
-    keyName: string,
+    keyName: string
   ): Promise<ApiKeyCreateResponse> {
     const rawKey = API_KEY_PREFIX + randomBytes(KEY_BYTE_LENGTH).toString('hex');
     const hash = ApiKeyService.hashKey(rawKey);

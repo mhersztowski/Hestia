@@ -60,7 +60,12 @@ describe('odczyt diagramu klas', () => {
 
   it('czyta klasy i interfejsy', () => {
     expect(document.kind).toBe('class');
-    expect(document.nodes.map((n) => n.id).sort()).toEqual(['Karmiciel', 'Miska', 'Pies', 'Zwierze']);
+    expect(document.nodes.map((n) => n.id).sort()).toEqual([
+      'Karmiciel',
+      'Miska',
+      'Pies',
+      'Zwierze',
+    ]);
   });
 
   it('czyta stereotypy z rodzaju deklaracji', () => {
@@ -78,11 +83,15 @@ describe('odczyt diagramu klas', () => {
   });
 
   it('czyta modyfikatory `{static}` i `{abstract}`', () => {
-    const metoda = document.nodes.find((n) => n.id === 'Zwierze')?.members?.find((m) => m.name === 'glos');
+    const metoda = document.nodes
+      .find((n) => n.id === 'Zwierze')
+      ?.members?.find((m) => m.name === 'glos');
     expect(metoda?.isAbstract).toBe(true);
     expect(metoda?.kind).toBe('method');
 
-    const licznik = document.nodes.find((n) => n.id === 'Pies')?.members?.find((m) => m.name === 'licznik');
+    const licznik = document.nodes
+      .find((n) => n.id === 'Pies')
+      ?.members?.find((m) => m.name === 'licznik');
     expect(licznik?.isStatic).toBe(true);
     expect(licznik?.visibility).toBe('private');
   });
@@ -106,7 +115,9 @@ describe('odczyt diagramu klas', () => {
   });
 
   it('czyta kompozycję i agregację', () => {
-    const { document: doc } = plantUmlFormat.parse('@startuml\nAuto *-- Silnik\nZespol o-- Osoba\n@enduml');
+    const { document: doc } = plantUmlFormat.parse(
+      '@startuml\nAuto *-- Silnik\nZespol o-- Osoba\n@enduml'
+    );
     expect(doc.edges[0].relation).toBe('composition');
     expect(doc.edges[1].relation).toBe('aggregation');
   });
@@ -135,7 +146,9 @@ describe('odczyt diagramu klas', () => {
 
   it('zachowuje nierozpoznane linie', () => {
     // `skinparam` i noty to rzeczy, których nie rysujemy, ale które muszą wrócić.
-    const { document: doc } = plantUmlFormat.parse('@startuml\nskinparam monochrome true\nclass A\n@enduml');
+    const { document: doc } = plantUmlFormat.parse(
+      '@startuml\nskinparam monochrome true\nclass A\n@enduml'
+    );
     expect(doc.unknown.some((u) => u.text.includes('skinparam'))).toBe(true);
   });
 });
@@ -145,7 +158,10 @@ describe('rodzaje diagramów, których nie obsługujemy', () => {
     ['sekwencji', '@startuml\nAlice -> Bob: pytanie\nBob --> Alice: odpowiedź\n@enduml'],
     ['czynności', '@startuml\nstart\n:krok pierwszy;\n:krok drugi;\nstop\n@enduml'],
     ['stanów', '@startuml\n[*] --> Praca\nPraca --> [*]\n@enduml'],
-    ['przypadków użycia', '@startuml\nactor Klient\nusecase "Złóż zamówienie" as UC1\nKlient --> UC1\n@enduml'],
+    [
+      'przypadków użycia',
+      '@startuml\nactor Klient\nusecase "Złóż zamówienie" as UC1\nKlient --> UC1\n@enduml',
+    ],
   ];
 
   for (const [nazwa, źródło] of PRZYPADKI) {
@@ -165,13 +181,19 @@ describe('rodzaje diagramów, których nie obsługujemy', () => {
 
 describe('zapis', () => {
   it('round-trip zachowuje klasy, składowe i relacje', () => {
-    const wrocil = plantUmlFormat.parse(plantUmlFormat.serialize(plantUmlFormat.parse(KLASY).document)).document;
+    const wrocil = plantUmlFormat.parse(
+      plantUmlFormat.serialize(plantUmlFormat.parse(KLASY).document)
+    ).document;
 
     expect(wrocil.nodes.map((n) => n.id).sort()).toEqual(['Karmiciel', 'Miska', 'Pies', 'Zwierze']);
     expect(wrocil.nodes.find((n) => n.id === 'Zwierze')?.stereotype).toBe('abstract');
     expect(wrocil.edges.find((e) => e.source === 'Zwierze')?.relation).toBe('inheritance');
-    expect(wrocil.nodes.find((n) => n.id === 'Pies')?.members?.map((m) => m.name).sort())
-      .toEqual(['glos', 'licznik']);
+    expect(
+      wrocil.nodes
+        .find((n) => n.id === 'Pies')
+        ?.members?.map((m) => m.name)
+        .sort()
+    ).toEqual(['glos', 'licznik']);
   });
 
   it('dwa zapisy pod rząd dają ten sam tekst', () => {
@@ -192,7 +214,9 @@ describe('zapis', () => {
   });
 
   it('nierozpoznane linie wracają do zapisu', () => {
-    const doc = plantUmlFormat.parse('@startuml\nskinparam monochrome true\nclass A\n@enduml').document;
+    const doc = plantUmlFormat.parse(
+      '@startuml\nskinparam monochrome true\nclass A\n@enduml'
+    ).document;
     expect(plantUmlFormat.serialize(doc)).toContain('skinparam monochrome true');
   });
 

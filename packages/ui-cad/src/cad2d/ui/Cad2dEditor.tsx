@@ -59,8 +59,16 @@ export interface Cad2dEditorProps {
 type RightTab = 'layers' | 'properties';
 
 export function Cad2dEditor({
-  project: projectProp, viewMode = '2d', activeTool: toolProp, onToolChange,
-  placementStamp, onCancelPlacement, toolbarStart, actionBarExtras, belowCanvas, hideSidePanel,
+  project: projectProp,
+  viewMode = '2d',
+  activeTool: toolProp,
+  onToolChange,
+  placementStamp,
+  onCancelPlacement,
+  toolbarStart,
+  actionBarExtras,
+  belowCanvas,
+  hideSidePanel,
 }: Cad2dEditorProps) {
   // A project of our own only when the host does not supply one; `useMemo` with
   // an empty dependency list, so a re-render does not throw the drawing away.
@@ -76,13 +84,16 @@ export function Cad2dEditor({
   const [injectedAngle, setInjectedAngle] = useState<number | null>(null);
   const lastPointRef = useRef<Point2D | null>(null);
 
-  const handleToolChange = useCallback((tool: ToolName) => {
-    setOwnTool(tool);
-    onToolChange?.(tool);
-    // Coordinates typed for the previous tool would otherwise start the new one.
-    setInjectedPoint(null);
-    setInjectedAngle(null);
-  }, [onToolChange]);
+  const handleToolChange = useCallback(
+    (tool: ToolName) => {
+      setOwnTool(tool);
+      onToolChange?.(tool);
+      // Coordinates typed for the previous tool would otherwise start the new one.
+      setInjectedPoint(null);
+      setInjectedAngle(null);
+    },
+    [onToolChange]
+  );
 
   const handleCoordinate = useCallback((point: Point2D) => {
     setInjectedPoint({ ...point });
@@ -95,20 +106,33 @@ export function Cad2dEditor({
     setInjectedAngle(degrees + Math.random() * 1e-10);
   }, []);
 
-  const handleLastPoint = useCallback((p: Point2D) => { lastPointRef.current = p; }, []);
+  const handleLastPoint = useCallback((p: Point2D) => {
+    lastPointRef.current = p;
+  }, []);
 
   // A newly drawn element becomes the selected one and the panel switches to
   // its properties: after drawing, what one wants is its dimensions.
-  useEffect(() => project.eventBus.on('entity:added', entity => {
-    project.selectionManager.clear();
-    project.selectionManager.select(entity.id);
-    project.eventBus.emit('selection:changed', project.selectionManager.getSelected());
-    setRightTab('properties');
-  }), [project]);
+  useEffect(
+    () =>
+      project.eventBus.on('entity:added', (entity) => {
+        project.selectionManager.clear();
+        project.selectionManager.select(entity.id);
+        project.eventBus.emit('selection:changed', project.selectionManager.getSelected());
+        setRightTab('properties');
+      }),
+    [project]
+  );
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <ActionBar activeTool={activeTool} onToolChange={handleToolChange} project={project} start={toolbarStart}>
+    <Box
+      sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
+    >
+      <ActionBar
+        activeTool={activeTool}
+        onToolChange={handleToolChange}
+        project={project}
+        start={toolbarStart}
+      >
         {actionBarExtras}
       </ActionBar>
 
@@ -131,25 +155,45 @@ export function Cad2dEditor({
         </Box>
 
         {!hideSidePanel && (
-          <Box sx={{
-            width: 200, display: 'flex', flexDirection: 'column',
-            bgcolor: 'background.paper', borderLeft: '1px solid', borderColor: 'divider',
-          }}>
+          <Box
+            sx={{
+              width: 200,
+              display: 'flex',
+              flexDirection: 'column',
+              bgcolor: 'background.paper',
+              borderLeft: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
             <Tabs
               value={rightTab}
               onChange={(_, v: RightTab) => setRightTab(v)}
               sx={{
-                minHeight: 32, borderBottom: '1px solid', borderColor: 'divider',
+                minHeight: 32,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
                 '& .MuiTab-root': { minHeight: 32, py: 0, fontSize: 11, minWidth: 0, flex: 1 },
               }}
             >
-              <Tab value="layers" label="Layers" icon={<LayersIcon sx={{ fontSize: 14 }} />} iconPosition="start" />
-              <Tab value="properties" label="Props" icon={<TuneIcon sx={{ fontSize: 14 }} />} iconPosition="start" />
+              <Tab
+                value="layers"
+                label="Layers"
+                icon={<LayersIcon sx={{ fontSize: 14 }} />}
+                iconPosition="start"
+              />
+              <Tab
+                value="properties"
+                label="Props"
+                icon={<TuneIcon sx={{ fontSize: 14 }} />}
+                iconPosition="start"
+              />
             </Tabs>
             <Box sx={{ flex: 1, overflow: 'auto' }}>
-              {rightTab === 'layers'
-                ? <LayerPanel project={project} version={version} />
-                : <PropertiesPanel project={project} version={version} />}
+              {rightTab === 'layers' ? (
+                <LayerPanel project={project} version={version} />
+              ) : (
+                <PropertiesPanel project={project} version={version} />
+              )}
             </Box>
           </Box>
         )}

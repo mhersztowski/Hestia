@@ -40,7 +40,10 @@ function unionParts(type: string): string[] {
     const c = t[i];
     if ('<([{'.includes(c)) depth++;
     else if ('>)]}'.includes(c)) depth--;
-    else if (c === '|' && depth === 0) { out.push(t.slice(start, i)); start = i + 1; }
+    else if (c === '|' && depth === 0) {
+      out.push(t.slice(start, i));
+      start = i + 1;
+    }
   }
   out.push(t.slice(start));
   return out.map((p) => p.trim()).filter(Boolean);
@@ -132,7 +135,7 @@ export function checkCallArgs(
   callee: string,
   paramNames: string[],
   paramTypes: Array<string | undefined>,
-  actualTypes: Array<string | undefined>,
+  actualTypes: Array<string | undefined>
 ): ArgIssue[] {
   const issues: ArgIssue[] = [];
   for (let i = 0; i < paramNames.length; i++) {
@@ -154,6 +157,9 @@ export function checkCallArgs(
 /** Jednolity tekst do chmurki ostrzeżenia na bloczku. */
 export function formatIssues(issues: ArgIssue[]): string {
   if (issues.length === 0) return '';
-  const head = issues.length === 1 ? 'Niezgodny typ argumentu:' : `Niezgodne typy argumentów (${issues.length}):`;
+  const head =
+    issues.length === 1
+      ? 'Niezgodny typ argumentu:'
+      : `Niezgodne typy argumentów (${issues.length}):`;
   return [head, ...issues.map((i) => `• ${i.message}`)].join('\n');
 }

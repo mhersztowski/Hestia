@@ -41,14 +41,20 @@ export class Box3dTool implements Tool {
     const b = corner;
     const width = Math.abs(b.x - a.x);
     const depth = Math.abs(b.y - a.y);
-    if (width < 0.1 || depth < 0.1) { this.reset(); return; }
+    if (width < 0.1 || depth < 0.1) {
+      this.reset();
+      return;
+    }
 
     const cx = (a.x + b.x) / 2;
     const cy = (a.y + b.y) / 2;
     const layer = ctx.project.layerSystem.getActive();
     ctx.project.addEntity({
       type: 'box3d',
-      cx, cy, width, depth,
+      cx,
+      cy,
+      width,
+      depth,
       height: DEFAULT_HEIGHT,
       layerId: layer.id,
       color: 'bylayer',

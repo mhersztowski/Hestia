@@ -11,7 +11,9 @@ import { CAD_EXT, readFileAt } from '../vfs';
 import { loadProjectFromText } from '../cad/buildSvg';
 import { cadProjectToSceneGraph } from '../cad/cadToScene';
 
-interface Props { vfsPath: string }
+interface Props {
+  vfsPath: string;
+}
 
 export function Cad3dViewerPage({ vfsPath }: Props) {
   const [sceneGraph, setSceneGraph] = useState<SceneGraph | null>(null);
@@ -33,27 +35,59 @@ export function Cad3dViewerPage({ vfsPath }: Props) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [vfsPath]);
 
   const label = vfsPath.split('/').pop() ?? vfsPath;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, bgcolor: '#1a1a1a', color: '#fff' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+        bgcolor: '#1a1a1a',
+        color: '#fff',
+      }}
+    >
       <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0 }}>
         {!sceneGraph && !error && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              gap: 2,
+            }}
+          >
             <CircularProgress size={32} />
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>Loading "{label}"…</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Loading "{label}"…
+            </Typography>
           </Box>
         )}
         {error && (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <Typography sx={{ color: 'error.main', fontSize: 14 }}>Failed to load: {error}</Typography>
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}
+          >
+            <Typography sx={{ color: 'error.main', fontSize: 14 }}>
+              Failed to load: {error}
+            </Typography>
           </Box>
         )}
         {sceneGraph && (
-          <SimpleViewer sceneGraph={sceneGraph} showGrid cameraPreset="cad" autoFit style={{ width: '100%', height: '100%' }} />
+          <SimpleViewer
+            sceneGraph={sceneGraph}
+            showGrid
+            cameraPreset="cad"
+            autoFit
+            style={{ width: '100%', height: '100%' }}
+          />
         )}
       </Box>
     </Box>

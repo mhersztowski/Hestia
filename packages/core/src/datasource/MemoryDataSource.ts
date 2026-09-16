@@ -57,7 +57,7 @@ export class MemoryDataSource implements IDataSource {
 
   findPersons(query: string): PersonNode[] {
     if (!query.trim()) return this.persons;
-    return this.persons.filter(p => p.matches(query));
+    return this.persons.filter((p) => p.matches(query));
   }
 
   // --- Tasks ---
@@ -72,15 +72,15 @@ export class MemoryDataSource implements IDataSource {
 
   findTasks(query: string): TaskNode[] {
     if (!query.trim()) return this.tasks;
-    return this.tasks.filter(t => t.matches(query));
+    return this.tasks.filter((t) => t.matches(query));
   }
 
   getTasksByProjectId(projectId: string): TaskNode[] {
-    return this.tasks.filter(t => t.projectId === projectId);
+    return this.tasks.filter((t) => t.projectId === projectId);
   }
 
   getUnassignedTasks(): TaskNode[] {
-    return this.tasks.filter(t => !t.projectId);
+    return this.tasks.filter((t) => !t.projectId);
   }
 
   // --- Projects ---
@@ -95,7 +95,7 @@ export class MemoryDataSource implements IDataSource {
 
   findProjects(query: string): ProjectNode[] {
     if (!query.trim()) return this.projects;
-    return this.projects.filter(p => p.matches(query));
+    return this.projects.filter((p) => p.matches(query));
   }
 
   findProjectByIdDeep(id: string): ProjectNode | undefined {
@@ -128,18 +128,20 @@ export class MemoryDataSource implements IDataSource {
 
   findShoppingLists(query: string): ShoppingListNode[] {
     if (!query.trim()) return this.shoppingLists;
-    return this.shoppingLists.filter(l => l.matches(query));
+    return this.shoppingLists.filter((l) => l.matches(query));
   }
 
   getActiveShoppingLists(): ShoppingListNode[] {
-    return this.shoppingLists.filter(l => l.isActive());
+    return this.shoppingLists.filter((l) => l.isActive());
   }
 
   getCompletedShoppingLists(): ShoppingListNode[] {
-    return this.shoppingLists.filter(l => l.isCompleted());
+    return this.shoppingLists.filter((l) => l.isCompleted());
   }
 
-  getShoppingItemsByPersonId(personId: string): { list: ShoppingListNode; item: ShoppingItemModel }[] {
+  getShoppingItemsByPersonId(
+    personId: string
+  ): { list: ShoppingListNode; item: ShoppingItemModel }[] {
     const results: { list: ShoppingListNode; item: ShoppingItemModel }[] = [];
     for (const list of this._shoppingLists.values()) {
       for (const item of list.getItemsByPerson(personId)) {
@@ -157,7 +159,7 @@ export class MemoryDataSource implements IDataSource {
 
   getEventsByDate(date: Date): EventNode[] {
     const dateStr = date.toISOString().split('T')[0];
-    return this._events.filter(e => {
+    return this._events.filter((e) => {
       const eventDate = e.getStartDate();
       return eventDate && eventDate.toISOString().split('T')[0] === dateStr;
     });
@@ -165,11 +167,11 @@ export class MemoryDataSource implements IDataSource {
 
   findEvents(query: string): EventNode[] {
     if (!query.trim()) return this._events;
-    return this._events.filter(e => e.matches(query));
+    return this._events.filter((e) => e.matches(query));
   }
 
   getEventsByTaskId(taskId: string): EventNode[] {
-    return this._events.filter(e => e.taskId === taskId);
+    return this._events.filter((e) => e.taskId === taskId);
   }
 
   getLastEventByTaskId(taskId: string): EventNode | undefined {
@@ -190,7 +192,7 @@ export class MemoryDataSource implements IDataSource {
 
   findMinisModuleDefs(query: string): MinisModuleDefNode[] {
     if (!query.trim()) return this.minisModuleDefs;
-    return this.minisModuleDefs.filter(n => n.matches(query));
+    return this.minisModuleDefs.filter((n) => n.matches(query));
   }
 
   // --- Minis Modules ---
@@ -205,7 +207,7 @@ export class MemoryDataSource implements IDataSource {
 
   findMinisModules(query: string): MinisModuleNode[] {
     if (!query.trim()) return this.minisModules;
-    return this.minisModules.filter(n => n.matches(query));
+    return this.minisModules.filter((n) => n.matches(query));
   }
 
   // --- Minis Device Defs ---
@@ -220,7 +222,7 @@ export class MemoryDataSource implements IDataSource {
 
   findMinisDeviceDefs(query: string): MinisDeviceDefNode[] {
     if (!query.trim()) return this.minisDeviceDefs;
-    return this.minisDeviceDefs.filter(n => n.matches(query));
+    return this.minisDeviceDefs.filter((n) => n.matches(query));
   }
 
   // --- Minis Devices ---
@@ -235,7 +237,7 @@ export class MemoryDataSource implements IDataSource {
 
   findMinisDevices(query: string): MinisDeviceNode[] {
     if (!query.trim()) return this.minisDevices;
-    return this.minisDevices.filter(n => n.matches(query));
+    return this.minisDevices.filter((n) => n.matches(query));
   }
 
   // --- Minis Project Defs ---
@@ -250,7 +252,7 @@ export class MemoryDataSource implements IDataSource {
 
   findMinisProjectDefs(query: string): MinisProjectDefNode[] {
     if (!query.trim()) return this.minisProjectDefs;
-    return this.minisProjectDefs.filter(n => n.matches(query));
+    return this.minisProjectDefs.filter((n) => n.matches(query));
   }
 
   // --- Minis Projects ---
@@ -265,7 +267,7 @@ export class MemoryDataSource implements IDataSource {
 
   findMinisProjects(query: string): MinisProjectNode[] {
     if (!query.trim()) return this.minisProjects;
-    return this.minisProjects.filter(n => n.matches(query));
+    return this.minisProjects.filter((n) => n.matches(query));
   }
 
   // --- Users ---
@@ -280,7 +282,7 @@ export class MemoryDataSource implements IDataSource {
 
   findUsers(query: string): UserNode[] {
     if (!query.trim()) return this.users;
-    return this.users.filter(u => u.matches(query));
+    return this.users.filter((u) => u.matches(query));
   }
 
   // --- Loading state ---

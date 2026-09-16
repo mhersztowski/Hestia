@@ -69,7 +69,7 @@ const DirTreeItem: React.FC<DirTreeItemProps> = ({
 
   // Count images in this directory
   const imageCount = useMemo(() => {
-    return dir.getFiles().filter(f => IMAGE_EXTENSIONS.includes(f.getExt().toLowerCase())).length;
+    return dir.getFiles().filter((f) => IMAGE_EXTENSIONS.includes(f.getExt().toLowerCase())).length;
   }, [dir]);
 
   // Check if matches filter
@@ -78,10 +78,16 @@ const DirTreeItem: React.FC<DirTreeItemProps> = ({
     const lowerFilter = filter.toLowerCase();
     if (dir.getName().toLowerCase().includes(lowerFilter)) return true;
     // Check if any image in this dir matches
-    if (dir.getFiles().some(f =>
-      IMAGE_EXTENSIONS.includes(f.getExt().toLowerCase()) &&
-      f.getName().toLowerCase().includes(lowerFilter)
-    )) return true;
+    if (
+      dir
+        .getFiles()
+        .some(
+          (f) =>
+            IMAGE_EXTENSIONS.includes(f.getExt().toLowerCase()) &&
+            f.getName().toLowerCase().includes(lowerFilter)
+        )
+    )
+      return true;
     return false;
   }, [dir, filter]);
 
@@ -112,10 +118,7 @@ const DirTreeItem: React.FC<DirTreeItemProps> = ({
             <FolderIcon color={isSelected ? 'primary' : 'action'} />
           )}
         </ListItemIcon>
-        <ListItemText
-          primary={dir.getName()}
-          primaryTypographyProps={{ noWrap: true }}
-        />
+        <ListItemText primary={dir.getName()} primaryTypographyProps={{ noWrap: true }} />
         {imageCount > 0 && (
           <Chip
             label={imageCount}
@@ -212,19 +215,17 @@ const ImagePickerDialog: React.FC<ImagePickerDialogProps> = ({
 
   const images = useMemo(() => {
     if (!currentDir) return [];
-    return currentDir.getFiles().filter(f =>
-      IMAGE_EXTENSIONS.includes(f.getExt().toLowerCase())
-    );
+    return currentDir.getFiles().filter((f) => IMAGE_EXTENSIONS.includes(f.getExt().toLowerCase()));
   }, [currentDir]);
 
   const filteredImages = useMemo(() => {
     if (!filter) return images;
     const lowerFilter = filter.toLowerCase();
-    return images.filter(img => img.getName().toLowerCase().includes(lowerFilter));
+    return images.filter((img) => img.getName().toLowerCase().includes(lowerFilter));
   }, [images, filter]);
 
   const handleToggleExpand = useCallback((path: string) => {
-    setExpandedPaths(prev => {
+    setExpandedPaths((prev) => {
       const next = new Set(prev);
       if (next.has(path)) {
         next.delete(path);
@@ -240,7 +241,7 @@ const ImagePickerDialog: React.FC<ImagePickerDialogProps> = ({
     setCurrentDirPath(path);
     setSelectedImagePath(null);
     // Auto-expand selected directory
-    setExpandedPaths(prev => {
+    setExpandedPaths((prev) => {
       const next = new Set(prev);
       next.add(path);
       return next;
@@ -274,7 +275,7 @@ const ImagePickerDialog: React.FC<ImagePickerDialogProps> = ({
   const handleSubdirClick = (dir: DirData) => {
     setCurrentDirPath(dir.getPath());
     setSelectedImagePath(null);
-    setExpandedPaths(prev => {
+    setExpandedPaths((prev) => {
       const next = new Set(prev);
       next.add(dir.getPath());
       return next;
@@ -292,7 +293,9 @@ const ImagePickerDialog: React.FC<ImagePickerDialogProps> = ({
   if (!isDataLoaded || !rootDir || !publicDir) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+        <DialogContent
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}
+        >
           {!publicDir && isDataLoaded ? (
             <Typography color="text.secondary">
               Folder data/public nie istnieje. Utwórz go aby przechowywać obrazki.
@@ -319,11 +322,7 @@ const ImagePickerDialog: React.FC<ImagePickerDialogProps> = ({
       </DialogTitle>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
-        <Tabs
-          value={viewMode}
-          onChange={(_, v) => setViewMode(v)}
-          sx={{ minHeight: 40 }}
-        >
+        <Tabs value={viewMode} onChange={(_, v) => setViewMode(v)} sx={{ minHeight: 40 }}>
           <Tab label="Przeglądaj" value="grid" sx={{ minHeight: 40 }} />
           <Tab label="Drzewo folderów" value="tree" sx={{ minHeight: 40 }} />
         </Tabs>
@@ -351,7 +350,17 @@ const ImagePickerDialog: React.FC<ImagePickerDialogProps> = ({
         {viewMode === 'grid' && (
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Breadcrumbs navigation */}
-            <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: 1, borderColor: 'divider' }}>
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                borderBottom: 1,
+                borderColor: 'divider',
+              }}
+            >
               <IconButton
                 size="small"
                 onClick={handleNavigateUp}
@@ -393,14 +402,18 @@ const ImagePickerDialog: React.FC<ImagePickerDialogProps> = ({
               {/* Subdirectories */}
               {currentDir && currentDir.getDirs().length > 0 && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 1, display: 'block' }}
+                  >
                     Foldery
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     {currentDir.getDirs().map((subdir) => {
-                      const imgCount = subdir.getFiles().filter(f =>
-                        IMAGE_EXTENSIONS.includes(f.getExt().toLowerCase())
-                      ).length;
+                      const imgCount = subdir
+                        .getFiles()
+                        .filter((f) => IMAGE_EXTENSIONS.includes(f.getExt().toLowerCase())).length;
                       return (
                         <Chip
                           key={subdir.getPath()}
@@ -419,7 +432,11 @@ const ImagePickerDialog: React.FC<ImagePickerDialogProps> = ({
               {/* Images grid */}
               {filteredImages.length > 0 ? (
                 <>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 1, display: 'block' }}
+                  >
                     Obrazki ({filteredImages.length})
                   </Typography>
                   <ImageList cols={4} gap={8}>
@@ -599,11 +616,7 @@ const ImagePickerDialog: React.FC<ImagePickerDialogProps> = ({
           </Typography>
         )}
         <Button onClick={onClose}>Anuluj</Button>
-        <Button
-          variant="contained"
-          onClick={handleConfirm}
-          disabled={!selectedImagePath}
-        >
+        <Button variant="contained" onClick={handleConfirm} disabled={!selectedImagePath}>
           Select
         </Button>
       </DialogActions>

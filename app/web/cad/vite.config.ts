@@ -10,7 +10,6 @@ config({ path: resolve(__dirname, '../../cad/.env') });
 
 const PORT_CAD = Number(process.env.CAD_PORT ?? 4994);
 const PORT_WEBA = Number(process.env.CAD_WEB_PORT ?? 4996);
-const PLATFORMA = process.env.HESTIA_PLATFORM_URL ?? 'http://localhost:4990';
 
 const ICONS_DIR = resolve(__dirname, '../../../packages/ui-cad/icons');
 
@@ -32,9 +31,15 @@ function freecadIcons(): Plugin {
       server.middlewares.use('/freecad-icons', (req, res, next) => {
         const name = (req.url ?? '').split('?')[0].replace(/^\/+/, '');
         // A name, not a path: everything else belongs to somebody else's files.
-        if (!/^[\w.-]+\.svg$/.test(name)) { next(); return; }
+        if (!/^[\w.-]+\.svg$/.test(name)) {
+          next();
+          return;
+        }
         const file = resolve(ICONS_DIR, name);
-        if (!existsSync(file)) { next(); return; }
+        if (!existsSync(file)) {
+          next();
+          return;
+        }
         res.setHeader('Content-Type', 'image/svg+xml');
         createReadStream(file).pipe(res);
       });

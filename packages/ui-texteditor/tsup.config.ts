@@ -11,11 +11,17 @@ export default defineConfig({
   // MUI because a second instance breaks hooks, and `monaco-editor` because two
   // copies register two sets of languages and workers and fight over them.
   external: [
-    'react', 'react-dom', 'react/jsx-runtime',
-    '@mui/material', /^@mui\/material\/.*/, /^@mui\/icons-material(\/.*)?$/,
+    'react',
+    'react-dom',
+    'react/jsx-runtime',
+    '@mui/material',
+    /^@mui\/material\/.*/,
+    /^@mui\/icons-material(\/.*)?$/,
     /^@mui\/x-tree-view(\/.*)?$/,
-    '@emotion/react', '@emotion/styled',
-    'monaco-editor', /^monaco-editor\/.*/,
+    '@emotion/react',
+    '@emotion/styled',
+    'monaco-editor',
+    /^monaco-editor\/.*/,
     /^@xterm\/.*/,
     '@hestia/core',
   ],

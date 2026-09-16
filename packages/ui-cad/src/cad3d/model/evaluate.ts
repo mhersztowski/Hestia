@@ -1,6 +1,19 @@
 import * as THREE from 'three';
 import { Project } from '../../cad2d/barrel';
-import type { ChamferFeature, DatumCsFeature, DatumLineFeature, DatumPlaneFeature, DatumPointFeature, ExtrudeFeature, FeatureTree, FilletFeature, HoleFeature, PocketFeature, RevolveFeature, SketchFeature } from './types';
+import type {
+  ChamferFeature,
+  DatumCsFeature,
+  DatumLineFeature,
+  DatumPlaneFeature,
+  DatumPointFeature,
+  ExtrudeFeature,
+  FeatureTree,
+  FilletFeature,
+  HoleFeature,
+  PocketFeature,
+  RevolveFeature,
+  SketchFeature,
+} from './types';
 import { evaluateFeatureTreeOcc } from '../occ/occEvaluate';
 import { preloadOcc } from '../occ/occLoader';
 
@@ -14,28 +27,42 @@ const SKETCH_COLOR = new THREE.Color('#1976d2');
 
 function loadSketchProject(sketch: SketchFeature): Project | null {
   if (!sketch.projectData) return null;
-  try { return Project.fromJSON(JSON.parse(sketch.projectData)); } catch { return null; }
+  try {
+    return Project.fromJSON(JSON.parse(sketch.projectData));
+  } catch {
+    return null;
+  }
 }
 
 function entityToLinePoints(entity: Record<string, unknown>): THREE.Vector3[][] {
   const type = entity['type'] as string;
   if (type === 'line') {
-    return [[
-      new THREE.Vector3(entity['x1'] as number, entity['y1'] as number, 0),
-      new THREE.Vector3(entity['x2'] as number, entity['y2'] as number, 0),
-    ]];
+    return [
+      [
+        new THREE.Vector3(entity['x1'] as number, entity['y1'] as number, 0),
+        new THREE.Vector3(entity['x2'] as number, entity['y2'] as number, 0),
+      ],
+    ];
   }
   if (type === 'rect') {
-    const x = entity['x'] as number, y = entity['y'] as number;
-    const w = entity['width'] as number, h = entity['height'] as number;
-    return [[
-      new THREE.Vector3(x, y, 0), new THREE.Vector3(x + w, y, 0),
-      new THREE.Vector3(x + w, y + h, 0), new THREE.Vector3(x, y + h, 0),
-      new THREE.Vector3(x, y, 0),
-    ]];
+    const x = entity['x'] as number,
+      y = entity['y'] as number;
+    const w = entity['width'] as number,
+      h = entity['height'] as number;
+    return [
+      [
+        new THREE.Vector3(x, y, 0),
+        new THREE.Vector3(x + w, y, 0),
+        new THREE.Vector3(x + w, y + h, 0),
+        new THREE.Vector3(x, y + h, 0),
+        new THREE.Vector3(x, y, 0),
+      ],
+    ];
   }
   if (type === 'circle') {
-    const cx = entity['cx'] as number, cy = entity['cy'] as number, r = entity['radius'] as number;
+    const cx = entity['cx'] as number,
+      cy = entity['cy'] as number,
+      r = entity['radius'] as number;
     const pts: THREE.Vector3[] = [];
     for (let i = 0; i <= 48; i++) {
       const a = (i / 48) * Math.PI * 2;
@@ -46,13 +73,16 @@ function entityToLinePoints(entity: Record<string, unknown>): THREE.Vector3[][] 
   if (type === 'polyline') {
     const ps = entity['points'] as Array<{ x: number; y: number }>;
     const closed = entity['closed'] as boolean;
-    const verts = ps.map(p => new THREE.Vector3(p.x, p.y, 0));
+    const verts = ps.map((p) => new THREE.Vector3(p.x, p.y, 0));
     if (closed && verts.length > 0) verts.push(verts[0].clone());
     return [verts];
   }
   if (type === 'arc') {
-    const cx = entity['cx'] as number, cy = entity['cy'] as number, r = entity['radius'] as number;
-    const a0 = entity['startAngle'] as number, a1 = entity['endAngle'] as number;
+    const cx = entity['cx'] as number,
+      cy = entity['cy'] as number,
+      r = entity['radius'] as number;
+    const a0 = entity['startAngle'] as number,
+      a1 = entity['endAngle'] as number;
     const pts: THREE.Vector3[] = [];
     for (let i = 0; i <= 32; i++) {
       const a = a0 + (a1 - a0) * (i / 32);
@@ -65,7 +95,7 @@ function entityToLinePoints(entity: Record<string, unknown>): THREE.Vector3[][] 
 
 function applyPlaneTransform(
   group: THREE.Group,
-  sketch: Pick<SketchFeature, 'plane' | 'offset' | 'planeMatrix'>,
+  sketch: Pick<SketchFeature, 'plane' | 'offset' | 'planeMatrix'>
 ): void {
   if (sketch.plane === 'face' && sketch.planeMatrix) {
     const mat = new THREE.Matrix4().fromArray(sketch.planeMatrix);
@@ -73,9 +103,17 @@ function applyPlaneTransform(
     return;
   }
   switch (sketch.plane) {
-    case 'XY': group.position.z = sketch.offset; break;
-    case 'XZ': group.rotation.x = Math.PI / 2; group.position.y = sketch.offset; break;
-    case 'YZ': group.rotation.y = Math.PI / 2; group.position.x = sketch.offset; break;
+    case 'XY':
+      group.position.z = sketch.offset;
+      break;
+    case 'XZ':
+      group.rotation.x = Math.PI / 2;
+      group.position.y = sketch.offset;
+      break;
+    case 'YZ':
+      group.rotation.y = Math.PI / 2;
+      group.position.x = sketch.offset;
+      break;
   }
 }
 
@@ -89,8 +127,15 @@ function applySketch(feature: SketchFeature): THREE.Object3D {
 
   const sketchProject = loadSketchProject(feature);
   if (sketchProject) {
-    const lineMat = new THREE.LineBasicMaterial({ color: SKETCH_COLOR, transparent: true, opacity: 0.7 });
-    const entities = (sketchProject as Project).entityRegistry.getAll() as unknown as Record<string, unknown>[];
+    const lineMat = new THREE.LineBasicMaterial({
+      color: SKETCH_COLOR,
+      transparent: true,
+      opacity: 0.7,
+    });
+    const entities = (sketchProject as Project).entityRegistry.getAll() as unknown as Record<
+      string,
+      unknown
+    >[];
     for (const entity of entities) {
       for (const pts of entityToLinePoints(entity)) {
         if (pts.length < 2) continue;
@@ -113,15 +158,18 @@ function buildDatumPoint(f: DatumPointFeature): THREE.Object3D {
   g.userData['featureId'] = f.id;
   const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(3, 16, 12),
-    new THREE.MeshBasicMaterial({ color: DATUM_COLOR }),
+    new THREE.MeshBasicMaterial({ color: DATUM_COLOR })
   );
   g.add(sphere);
   // A cross, so it reads in an orthographic view.
   const k = 8;
   const pts = [
-    new THREE.Vector3(-k, 0, 0), new THREE.Vector3(k, 0, 0),
-    new THREE.Vector3(0, -k, 0), new THREE.Vector3(0, k, 0),
-    new THREE.Vector3(0, 0, -k), new THREE.Vector3(0, 0, k),
+    new THREE.Vector3(-k, 0, 0),
+    new THREE.Vector3(k, 0, 0),
+    new THREE.Vector3(0, -k, 0),
+    new THREE.Vector3(0, k, 0),
+    new THREE.Vector3(0, 0, -k),
+    new THREE.Vector3(0, 0, k),
   ];
   const mat = new THREE.LineBasicMaterial({ color: DATUM_COLOR });
   for (let i = 0; i < pts.length; i += 2) {
@@ -143,7 +191,10 @@ function buildDatumLine(f: DatumLineFeature): THREE.Object3D {
   g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), mat));
   // The ends.
   for (const p of [a, b]) {
-    const s = new THREE.Mesh(new THREE.SphereGeometry(2, 10, 8), new THREE.MeshBasicMaterial({ color: DATUM_COLOR }));
+    const s = new THREE.Mesh(
+      new THREE.SphereGeometry(2, 10, 8),
+      new THREE.MeshBasicMaterial({ color: DATUM_COLOR })
+    );
     s.position.copy(p);
     g.add(s);
   }
@@ -155,18 +206,38 @@ function buildDatumPlane(f: DatumPlaneFeature): THREE.Object3D {
   g.userData['featureId'] = f.id;
   const s = Math.max(1, f.size);
   const planeGeo = new THREE.PlaneGeometry(s, s);
-  g.add(new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({
-    color: DATUM_COLOR, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false,
-  })));
+  g.add(
+    new THREE.Mesh(
+      planeGeo,
+      new THREE.MeshBasicMaterial({
+        color: DATUM_COLOR,
+        transparent: true,
+        opacity: 0.12,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      })
+    )
+  );
   // Obrys + normalna.
   const h = s / 2;
   const border = [
-    new THREE.Vector3(-h, -h, 0), new THREE.Vector3(h, -h, 0),
-    new THREE.Vector3(h, h, 0), new THREE.Vector3(-h, h, 0), new THREE.Vector3(-h, -h, 0),
+    new THREE.Vector3(-h, -h, 0),
+    new THREE.Vector3(h, -h, 0),
+    new THREE.Vector3(h, h, 0),
+    new THREE.Vector3(-h, h, 0),
+    new THREE.Vector3(-h, -h, 0),
   ];
   const mat = new THREE.LineBasicMaterial({ color: DATUM_COLOR, transparent: true, opacity: 0.8 });
   g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(border), mat));
-  g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, s * 0.25)]), mat));
+  g.add(
+    new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, s * 0.25),
+      ]),
+      mat
+    )
+  );
   // Orientation: a plane's normal is +Z by default; turn it to the one asked for.
   const n = new THREE.Vector3(...f.normal);
   if (n.lengthSq() === 0) n.set(0, 0, 1);
@@ -179,7 +250,10 @@ function buildDatumCs(f: DatumCsFeature): THREE.Object3D {
   const g = new THREE.Group();
   g.userData['featureId'] = f.id;
   g.add(new THREE.AxesHelper(Math.max(1, f.size)));
-  const o = new THREE.Mesh(new THREE.SphereGeometry(2, 10, 8), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
+  const o = new THREE.Mesh(
+    new THREE.SphereGeometry(2, 10, 8),
+    new THREE.MeshBasicMaterial({ color: '#ffffff' })
+  );
   g.add(o);
   const d2r = Math.PI / 180;
   g.rotation.set(f.rotation[0] * d2r, f.rotation[1] * d2r, f.rotation[2] * d2r);
@@ -217,9 +291,13 @@ export function buildSketchWireframes(tree: FeatureTree): THREE.Object3D {
  * The XY bounding box of a sketch's entities (2D): its centre and its size.
  * Handles rect, circle, polyline and line.
  */
-function entitiesBBoxXY(entities: Record<string, unknown>[]):
-  { cx: number; cy: number; sizeX: number; sizeY: number } | null {
-  let xMin = Infinity, yMin = Infinity, xMax = -Infinity, yMax = -Infinity;
+function entitiesBBoxXY(
+  entities: Record<string, unknown>[]
+): { cx: number; cy: number; sizeX: number; sizeY: number } | null {
+  let xMin = Infinity,
+    yMin = Infinity,
+    xMax = -Infinity,
+    yMax = -Infinity;
   const acc = (x: number, y: number) => {
     if (x < xMin) xMin = x;
     if (y < yMin) yMin = y;
@@ -229,12 +307,18 @@ function entitiesBBoxXY(entities: Record<string, unknown>[]):
   for (const e of entities) {
     const t = e['type'] as string;
     if (t === 'rect') {
-      const x = e['x'] as number, y = e['y'] as number;
-      const w = e['width'] as number, h = e['height'] as number;
-      acc(x, y); acc(x + w, y + h);
+      const x = e['x'] as number,
+        y = e['y'] as number;
+      const w = e['width'] as number,
+        h = e['height'] as number;
+      acc(x, y);
+      acc(x + w, y + h);
     } else if (t === 'circle') {
-      const cx = e['cx'] as number, cy = e['cy'] as number, r = e['radius'] as number;
-      acc(cx - r, cy - r); acc(cx + r, cy + r);
+      const cx = e['cx'] as number,
+        cy = e['cy'] as number,
+        r = e['radius'] as number;
+      acc(cx - r, cy - r);
+      acc(cx + r, cy + r);
     } else if (t === 'polyline') {
       const pts = (e['points'] as Array<{ x: number; y: number }>) ?? [];
       for (const p of pts) acc(p.x, p.y);
@@ -258,11 +342,10 @@ function entitiesBBoxXY(entities: Record<string, unknown>[]):
  */
 function buildFeaturePreview(
   feature: ExtrudeFeature | PocketFeature,
-  tree: FeatureTree,
+  tree: FeatureTree
 ): THREE.Object3D | null {
-  const sketch = tree.features.find(
-    f => f.id === feature.sketchId && f.type === 'sketch',
-  ) as SketchFeature | undefined;
+  const sketch = tree.features.find((f) => f.id === feature.sketchId && f.type === 'sketch') as
+    SketchFeature | undefined;
   if (!sketch || !sketch.projectData) return null;
 
   const proj = loadSketchProject(sketch);
@@ -277,9 +360,7 @@ function buildFeaturePreview(
   const color = isPocket ? 0xff2a2a : 0x2aa8ff;
 
   // The depth, through_all taken into account
-  const depth = feature.extrudeType === 'through_all'
-    ? 200
-    : Math.max(1, Math.abs(feature.height));
+  const depth = feature.extrudeType === 'through_all' ? 200 : Math.max(1, Math.abs(feature.height));
   const sign = feature.reversed ? -1 : 1;
 
   // The preview box is centred on the bounding box's centroid and shifted along
@@ -295,8 +376,11 @@ function buildFeaturePreview(
   const boxGeo = new THREE.BoxGeometry(bbox.sizeX, bbox.sizeY, depth);
   const edgesGeo = new THREE.EdgesGeometry(boxGeo);
   const edgesMat = new THREE.LineBasicMaterial({
-    color, transparent: true, opacity: 0.9,
-    depthTest: false, depthWrite: false,
+    color,
+    transparent: true,
+    opacity: 0.9,
+    depthTest: false,
+    depthWrite: false,
   });
   const edges = new THREE.LineSegments(edgesGeo, edgesMat);
   edges.position.set(bbox.cx, bbox.cy, centerZ);
@@ -311,17 +395,23 @@ function buildFeaturePreview(
   const dir = new THREE.Vector3(0, 0, arrowDirZ);
   const origin = new THREE.Vector3(bbox.cx, bbox.cy, 0);
   const arrow = new THREE.ArrowHelper(
-    dir, origin, arrowLen,
-    color, arrowLen * 0.25, arrowLen * 0.14,
+    dir,
+    origin,
+    arrowLen,
+    color,
+    arrowLen * 0.25,
+    arrowLen * 0.14
   );
-  arrow.traverse(obj => {
+  arrow.traverse((obj) => {
     if ((obj as THREE.Mesh).material) {
       const m = (obj as THREE.Mesh).material as THREE.Material;
-      m.depthTest = false; m.depthWrite = false;
+      m.depthTest = false;
+      m.depthWrite = false;
     }
     if ((obj as THREE.Line).material) {
       const m = (obj as THREE.Line).material as THREE.Material;
-      m.depthTest = false; m.depthWrite = false;
+      m.depthTest = false;
+      m.depthWrite = false;
     }
     obj.renderOrder = 999;
   });
@@ -338,19 +428,15 @@ function buildFeaturePreview(
  * sketch, with an arrow for the drilling direction. Red, as a pocket is
  * subtractive too.
  */
-function buildHolePreview(
-  feature: HoleFeature,
-  tree: FeatureTree,
-): THREE.Object3D | null {
-  const sketch = tree.features.find(
-    f => f.id === feature.sketchId && f.type === 'sketch',
-  ) as SketchFeature | undefined;
+function buildHolePreview(feature: HoleFeature, tree: FeatureTree): THREE.Object3D | null {
+  const sketch = tree.features.find((f) => f.id === feature.sketchId && f.type === 'sketch') as
+    SketchFeature | undefined;
   if (!sketch) return null;
 
   const proj = loadSketchProject(sketch);
   if (!proj) return null;
   const entities = proj.entityRegistry.getAll() as unknown as Record<string, unknown>[];
-  const circles = entities.filter(e => e['type'] === 'circle');
+  const circles = entities.filter((e) => e['type'] === 'circle');
   if (circles.length === 0) return null;
 
   const color = 0xff2a2a; // czerwony — Hole to cut
@@ -369,8 +455,11 @@ function buildHolePreview(
   group.userData['isPreview'] = true;
 
   const cylinderMat = new THREE.LineBasicMaterial({
-    color, transparent: true, opacity: 0.9,
-    depthTest: false, depthWrite: false,
+    color,
+    transparent: true,
+    opacity: 0.9,
+    depthTest: false,
+    depthWrite: false,
   });
 
   for (const c of circles) {
@@ -395,17 +484,23 @@ function buildHolePreview(
     const dirVec = new THREE.Vector3(0, 0, sign);
     const origin = new THREE.Vector3(cx, cy, 0);
     const arrow = new THREE.ArrowHelper(
-      dirVec, origin, arrowLen,
-      color, arrowLen * 0.25, arrowLen * 0.14,
+      dirVec,
+      origin,
+      arrowLen,
+      color,
+      arrowLen * 0.25,
+      arrowLen * 0.14
     );
-    arrow.traverse(obj => {
+    arrow.traverse((obj) => {
       if ((obj as THREE.Mesh).material) {
         const m = (obj as THREE.Mesh).material as THREE.Material;
-        m.depthTest = false; m.depthWrite = false;
+        m.depthTest = false;
+        m.depthWrite = false;
       }
       if ((obj as THREE.Line).material) {
         const m = (obj as THREE.Line).material as THREE.Material;
-        m.depthTest = false; m.depthWrite = false;
+        m.depthTest = false;
+        m.depthWrite = false;
       }
       obj.renderOrder = 999;
     });
@@ -427,11 +522,10 @@ function buildHolePreview(
  */
 function buildRevolveAxisPreview(
   feature: RevolveFeature,
-  tree: FeatureTree,
+  tree: FeatureTree
 ): THREE.Object3D | null {
-  const sketch = tree.features.find(
-    f => f.id === feature.sketchId && f.type === 'sketch',
-  ) as SketchFeature | undefined;
+  const sketch = tree.features.find((f) => f.id === feature.sketchId && f.type === 'sketch') as
+    SketchFeature | undefined;
   if (!sketch) return null;
 
   // The axis's direction in the sketch's own space (the same as evalRevolve's)
@@ -446,10 +540,11 @@ function buildRevolveAxisPreview(
   const isToLast = typeExt === 'to_last' || feature.revolveType === 'through_all';
   const angle1 = Math.max(1, Math.min(360, feature.angle));
   const angle2 = Math.max(0, Math.min(360, feature.angle2 ?? 0));
-  const totalDeg = isToLast ? 360 : (isTwoAngles ? Math.min(360, angle1 + angle2) : angle1);
-  const isSymmetric = feature.revolveType === 'symmetric' ||
+  const totalDeg = isToLast ? 360 : isTwoAngles ? Math.min(360, angle1 + angle2) : angle1;
+  const isSymmetric =
+    feature.revolveType === 'symmetric' ||
     (feature.revolveType === 'dimension' && feature.symmetric && !isTwoAngles);
-  const phiStartDeg = isTwoAngles ? -angle2 : (isSymmetric ? -totalDeg / 2 : 0);
+  const phiStartDeg = isTwoAngles ? -angle2 : isSymmetric ? -totalDeg / 2 : 0;
 
   const group = new THREE.Group();
   group.userData['isPreview'] = true;
@@ -459,29 +554,38 @@ function buildRevolveAxisPreview(
   const axisLen = 500;
   const linePoints = [
     new THREE.Vector3(-axisLen * axDir[0], -axisLen * axDir[1], -axisLen * axDir[2]),
-    new THREE.Vector3( axisLen * axDir[0],  axisLen * axDir[1],  axisLen * axDir[2]),
+    new THREE.Vector3(axisLen * axDir[0], axisLen * axDir[1], axisLen * axDir[2]),
   ];
   const axisLineGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
   const axisLineMat = new THREE.LineBasicMaterial({
-    color: axisColor, transparent: true, opacity: 0.9,
-    depthTest: false, depthWrite: false,
+    color: axisColor,
+    transparent: true,
+    opacity: 0.9,
+    depthTest: false,
+    depthWrite: false,
   });
   const axisLine = new THREE.Line(axisLineGeo, axisLineMat);
   axisLine.renderOrder = 999;
   group.add(axisLine);
 
   const axisArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(...axDir), new THREE.Vector3(0, 0, 0), 60,
-    axisColor, 15, 8,
+    new THREE.Vector3(...axDir),
+    new THREE.Vector3(0, 0, 0),
+    60,
+    axisColor,
+    15,
+    8
   );
-  axisArrow.traverse(obj => {
+  axisArrow.traverse((obj) => {
     if ((obj as THREE.Mesh).material) {
       const m = (obj as THREE.Mesh).material as THREE.Material;
-      m.depthTest = false; m.depthWrite = false;
+      m.depthTest = false;
+      m.depthWrite = false;
     }
     if ((obj as THREE.Line).material) {
       const m = (obj as THREE.Line).material as THREE.Material;
-      m.depthTest = false; m.depthWrite = false;
+      m.depthTest = false;
+      m.depthWrite = false;
     }
     obj.renderOrder = 999;
   });
@@ -520,12 +624,15 @@ function buildRevolveAxisPreview(
 
   // ── (a) The start and end profiles — the bounds of the range, drawn boldly ──
   const profileMat = new THREE.LineBasicMaterial({
-    color: profileColor, transparent: true, opacity: 0.9,
-    depthTest: false, depthWrite: false,
+    color: profileColor,
+    transparent: true,
+    opacity: 0.9,
+    depthTest: false,
+    depthWrite: false,
   });
   for (const phiRad of [phiStartRad, phiStartRad + totalRad]) {
     for (const pts of profilePolylines) {
-      const rotatedPts = pts.map(p => p.clone().applyAxisAngle(axisVec, phiRad));
+      const rotatedPts = pts.map((p) => p.clone().applyAxisAngle(axisVec, phiRad));
       const geo = new THREE.BufferGeometry().setFromPoints(rotatedPts);
       const line = new THREE.Line(geo, profileMat);
       line.renderOrder = 999;
@@ -536,14 +643,17 @@ function buildRevolveAxisPreview(
   // ── (b) A few copies in between, in lighter lines ──────────────────────────
   const intermediateCount = Math.max(0, Math.min(6, Math.round(totalDeg / 60) - 1));
   const midMat = new THREE.LineBasicMaterial({
-    color: profileColor, transparent: true, opacity: 0.35,
-    depthTest: false, depthWrite: false,
+    color: profileColor,
+    transparent: true,
+    opacity: 0.35,
+    depthTest: false,
+    depthWrite: false,
   });
   for (let i = 1; i <= intermediateCount; i++) {
     const t = i / (intermediateCount + 1);
     const phiRad = phiStartRad + t * totalRad;
     for (const pts of profilePolylines) {
-      const rotatedPts = pts.map(p => p.clone().applyAxisAngle(axisVec, phiRad));
+      const rotatedPts = pts.map((p) => p.clone().applyAxisAngle(axisVec, phiRad));
       const geo = new THREE.BufferGeometry().setFromPoints(rotatedPts);
       const line = new THREE.Line(geo, midMat);
       line.renderOrder = 999;
@@ -554,8 +664,11 @@ function buildRevolveAxisPreview(
   // ── (c) ARCS — the path each vertex of the profile takes about the axis ────
   // This is what shows the WHOLE range of angles, which nothing else here does.
   const arcMat = new THREE.LineBasicMaterial({
-    color: profileColor, transparent: true, opacity: 0.55,
-    depthTest: false, depthWrite: false,
+    color: profileColor,
+    transparent: true,
+    opacity: 0.55,
+    depthTest: false,
+    depthWrite: false,
   });
   const arcSteps = Math.max(12, Math.round(totalDeg / 5)); // how finely the arc is drawn
   for (const pts of profilePolylines) {
@@ -588,9 +701,7 @@ function buildRevolveAxisPreview(
  * the scene. The spheres sit at the midpoint hint of each edge rather than on
  * the real edges: the solid before the fillet need not have exactly the edges it had when they were picked.
  */
-function buildEdgeSelectionPreview(
-  feature: FilletFeature | ChamferFeature,
-): THREE.Object3D | null {
+function buildEdgeSelectionPreview(feature: FilletFeature | ChamferFeature): THREE.Object3D | null {
   const edges = feature.edges ?? [];
   if (edges.length === 0) return null;
 
@@ -599,8 +710,11 @@ function buildEdgeSelectionPreview(
 
   const color = 0xff8800; // orange — the colour of a chosen edge
   const highlightMat = new THREE.MeshBasicMaterial({
-    color, transparent: true, opacity: 0.9,
-    depthTest: false, depthWrite: false,
+    color,
+    transparent: true,
+    opacity: 0.9,
+    depthTest: false,
+    depthWrite: false,
   });
 
   for (const e of edges) {
@@ -617,17 +731,20 @@ function buildEdgeSelectionPreview(
       new THREE.Vector3(
         e.hintPoint[0] - tanLen * e.hintNormal[0],
         e.hintPoint[1] - tanLen * e.hintNormal[1],
-        e.hintPoint[2] - tanLen * e.hintNormal[2],
+        e.hintPoint[2] - tanLen * e.hintNormal[2]
       ),
       new THREE.Vector3(
         e.hintPoint[0] + tanLen * e.hintNormal[0],
         e.hintPoint[1] + tanLen * e.hintNormal[1],
-        e.hintPoint[2] + tanLen * e.hintNormal[2],
+        e.hintPoint[2] + tanLen * e.hintNormal[2]
       ),
     ]);
     const lineMat = new THREE.LineBasicMaterial({
-      color, transparent: true, opacity: 0.9,
-      depthTest: false, depthWrite: false,
+      color,
+      transparent: true,
+      opacity: 0.9,
+      depthTest: false,
+      depthWrite: false,
       linewidth: 3,
     });
     const line = new THREE.Line(lineGeo, lineMat);
@@ -647,7 +764,7 @@ function buildEdgeSelectionPreview(
 export async function evaluateFeatureTreeAsync(
   tree: FeatureTree,
   project: Project,
-  selectedId?: string | null,
+  selectedId?: string | null
 ): Promise<THREE.Object3D> {
   // EDIT MODE for Fillet and Chamfer: when one is selected in the tree,
   // after that feature the solid has no sharp edges left (arcs instead). So that
@@ -655,16 +772,16 @@ export async function evaluateFeatureTreeAsync(
   // feature SKIPPED — which gives the state before it: the solid with its sharp
   // edges, which can be clicked in Edge-select mode.
   let workingTree = tree;
-  const selectedFeature = selectedId ? tree.features.find(f => f.id === selectedId) : null;
-  const isEditingEdgeOp = selectedFeature && selectedFeature.enabled
-    && (selectedFeature.type === 'fillet' || selectedFeature.type === 'chamfer');
+  const selectedFeature = selectedId ? tree.features.find((f) => f.id === selectedId) : null;
+  const isEditingEdgeOp =
+    selectedFeature &&
+    selectedFeature.enabled &&
+    (selectedFeature.type === 'fillet' || selectedFeature.type === 'chamfer');
   if (isEditingEdgeOp) {
     // Build a copy of the tree without the selected Fillet or Chamfer (skip it in the evaluation)
     workingTree = {
       ...tree,
-      features: tree.features.map(f =>
-        f.id === selectedId ? { ...f, enabled: false } : f
-      ),
+      features: tree.features.map((f) => (f.id === selectedId ? { ...f, enabled: false } : f)),
     };
   }
 
@@ -678,21 +795,22 @@ export async function evaluateFeatureTreeAsync(
 
   if (isEditingEdgeOp && selectedFeature) {
     // Highlight the CHOSEN edges (orange spheres and lines at their midpoints)
-    const edgePreview = buildEdgeSelectionPreview(selectedFeature as FilletFeature | ChamferFeature);
+    const edgePreview = buildEdgeSelectionPreview(
+      selectedFeature as FilletFeature | ChamferFeature
+    );
     if (edgePreview) root.add(edgePreview);
-    console.log('[evaluate] edit mode for Fillet/Chamfer — the solid BEFORE it, and the chosen edges:',
-      (selectedFeature as FilletFeature).edges?.length ?? 0);
+    console.log(
+      '[evaluate] edit mode for Fillet/Chamfer — the solid BEFORE it, and the chosen edges:',
+      (selectedFeature as FilletFeature).edges?.length ?? 0
+    );
   }
 
   if (selectedId && !isEditingEdgeOp) {
     // The preview overlays only when we are NOT editing the edges
-    const selected = tree.features.find(f => f.id === selectedId);
+    const selected = tree.features.find((f) => f.id === selectedId);
     if (selected && selected.enabled) {
       if (selected.type === 'extrude' || selected.type === 'pocket') {
-        const preview = buildFeaturePreview(
-          selected as ExtrudeFeature | PocketFeature,
-          tree,
-        );
+        const preview = buildFeaturePreview(selected as ExtrudeFeature | PocketFeature, tree);
         if (preview) root.add(preview);
       } else if (selected.type === 'hole') {
         const preview = buildHolePreview(selected as HoleFeature, tree);

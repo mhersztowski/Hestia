@@ -1,4 +1,4 @@
-import { TreeNode } from '../TreeNode';
+import { CoreObject } from '../CoreObject';
 import { Signal } from '../Signal';
 import { QtProperty } from './QtProperty';
 import { isQtSignal } from './types';
@@ -17,7 +17,7 @@ export interface QtWrapOptions {
 
 /**
  * Generic reflective wrapper turning any browser-Qt `QObject` into a minislib
- * {@link TreeNode}, bridging its meta-properties and signals.
+ * {@link CoreObject}, bridging its meta-properties and signals.
  *
  *  - **Properties** — every declared `Q_PROPERTY` is available as a live
  *    {@link QtProperty} via `prop(name)`, plus `get(name)` / `set(name, v)`.
@@ -29,7 +29,7 @@ export interface QtWrapOptions {
  *
  * Typed subclasses (see `widgets.ts`) add convenience accessors on top.
  */
-export class QtNode extends TreeNode {
+export class QtNode extends CoreObject {
   /** The wrapped native browser-Qt object. */
   readonly native: QtObjectLike;
 
@@ -50,16 +50,16 @@ export class QtNode extends TreeNode {
   constructor(native?: QtObjectLike, parent?: QtNode, opts: QtWrapOptions = {}) {
     // No native passed → auto-create one from globalThis using the subclass's
     // `qtClass` (so `new QtLineEditNode()` yields a real native QLineEdit).
-    const resolved = native ?? QtNode.#autoNative((new.target as unknown as { qtClass?: string })?.qtClass);
+    const resolved =
+      native ?? QtNode.#autoNative((new.target as unknown as { qtClass?: string })?.qtClass);
     if (!resolved) {
       throw new Error(
         `${(new.target as { name?: string })?.name ?? 'QtNode'}: no native object provided and ` +
-        `no browser-Qt class available (load qt.module.js, or pass a native object / use createQt).`,
+          `no browser-Qt class available (load qt.module.js, or pass a native object / use createQt).`
       );
     }
-    // Attach the parent *after* super() — TreeNode's tree signals aren't
-    // initialised until its field initialisers run (post-super), so passing a
-    // parent into CoreObject's ctor (which calls setParent) would NPE.
+    // Attach the parent *after* super() on purpose: `childAdded` fires during
+    // setParent, and a slot reading `wrapper.native` must not see `undefined`.
     super(undefined, resolved.objectName());
     this.native = resolved;
     this.#ownsNative = opts.ownsNative ?? native === undefined;

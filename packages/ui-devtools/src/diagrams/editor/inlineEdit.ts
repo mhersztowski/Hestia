@@ -19,14 +19,21 @@ export interface InlineEditResult {
  * @param allowEmpty czy pusty tekst jest sensowny (etykieta krawędzi — tak,
  *   bo znaczy „bez opisu"; nazwa węzła — nie, bo zostałby anonimowy prostokąt)
  */
-export function resolveInlineEdit(current: string, draft: string, allowEmpty: boolean): InlineEditResult {
+export function resolveInlineEdit(
+  current: string,
+  draft: string,
+  allowEmpty: boolean
+): InlineEditResult {
   const value = draft.trim();
   if (!value && !allowEmpty) return { changed: false, value: current };
   return { changed: value !== current, value };
 }
 
 /** Czy klawisz kończy edycję i jak. */
-export function inlineEditKey(event: { key: string; shiftKey?: boolean }): 'commit' | 'cancel' | 'continue' {
+export function inlineEditKey(event: {
+  key: string;
+  shiftKey?: boolean;
+}): 'commit' | 'cancel' | 'continue' {
   if (event.key === 'Enter' && !event.shiftKey) return 'commit';
   if (event.key === 'Escape') return 'cancel';
   return 'continue';
@@ -46,7 +53,11 @@ export function inlineEditKey(event: { key: string; shiftKey?: boolean }): 'comm
  * @param displayed tekst widoczny na diagramie, gdy `value` jest puste
  * @param displayedIsValue czy ten tekst jest realną wartością, czy tylko zachętą
  */
-export function initialEditValue(value: string, displayed: string, displayedIsValue: boolean): string {
+export function initialEditValue(
+  value: string,
+  displayed: string,
+  displayedIsValue: boolean
+): string {
   if (value) return value;
   return displayedIsValue ? displayed : '';
 }

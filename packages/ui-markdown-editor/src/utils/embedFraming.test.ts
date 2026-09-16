@@ -19,12 +19,15 @@ describe('framingAllowed — nagłówki odpowiedzi', () => {
 
   it('X-Frame-Options DENY i SAMEORIGIN blokują osadzenie u nas', () => {
     expect(framingAllowed({ 'x-frame-options': 'DENY' }, 'https://claude.ai').allowed).toBe(false);
-    expect(framingAllowed({ 'x-frame-options': 'sameorigin' }, 'https://x.org').allowed).toBe(false);
+    expect(framingAllowed({ 'x-frame-options': 'sameorigin' }, 'https://x.org').allowed).toBe(
+      false
+    );
   });
 
   it('wartość nagłówka trafia do powodu — użytkownik ma wiedzieć, co go zablokowało', () => {
-    expect(framingAllowed({ 'x-frame-options': 'DENY' }, 'https://claude.ai').reason)
-      .toContain('X-Frame-Options');
+    expect(framingAllowed({ 'x-frame-options': 'DENY' }, 'https://claude.ai').reason).toContain(
+      'X-Frame-Options'
+    );
   });
 
   it('CSP frame-ancestors none blokuje', () => {
@@ -40,12 +43,15 @@ describe('framingAllowed — nagłówki odpowiedzi', () => {
   });
 
   it('CSP bez dyrektywy frame-ancestors nie blokuje', () => {
-    expect(framingAllowed({ 'content-security-policy': "default-src 'self'" }, 'https://x.org').allowed)
-      .toBe(true);
+    expect(
+      framingAllowed({ 'content-security-policy': "default-src 'self'" }, 'https://x.org').allowed
+    ).toBe(true);
   });
 
   it('frame-ancestors z konkretnymi adresami traktujemy jak zgodę — dopiero ramka rozstrzygnie', () => {
-    const headers = { 'content-security-policy': 'frame-ancestors https://mycastle.hersztowski.org' };
+    const headers = {
+      'content-security-policy': 'frame-ancestors https://mycastle.hersztowski.org',
+    };
     expect(framingAllowed(headers, 'https://x.org').allowed).toBe(true);
   });
 
@@ -82,13 +88,19 @@ describe('embedDecision — co pokazać w bloku', () => {
     // Serwis z listy, ale serwer mówi, że osadzanie jest dozwolone.
     expect(embedDecision('https://claude.ai/x', { embeddable: true }).mode).toBe('iframe');
     // I odwrotnie: nieznany adres, który jednak blokuje.
-    const blocked = embedDecision('https://example.com', { embeddable: false, reason: 'X-Frame-Options: DENY' });
+    const blocked = embedDecision('https://example.com', {
+      embeddable: false,
+      reason: 'X-Frame-Options: DENY',
+    });
     expect(blocked.mode).toBe('card');
     expect(blocked.reason).toBe('X-Frame-Options: DENY');
   });
 
   it('tytuł ze sprawdzenia trafia do karty', () => {
-    const d = embedDecision('https://claude.ai/x', { embeddable: false, title: 'Rozmowa — Claude' });
+    const d = embedDecision('https://claude.ai/x', {
+      embeddable: false,
+      title: 'Rozmowa — Claude',
+    });
     expect(d.title).toBe('Rozmowa — Claude');
   });
 

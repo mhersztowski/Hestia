@@ -8,7 +8,10 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 
-export interface TSPoint { row: number; column: number }
+export interface TSPoint {
+  row: number;
+  column: number;
+}
 export interface TSNode {
   type: string;
   text: string;
@@ -18,7 +21,9 @@ export interface TSNode {
   descendantsOfType(type: string | string[]): TSNode[];
   startPosition: TSPoint;
 }
-export interface TSTree { rootNode: TSNode }
+export interface TSTree {
+  rootNode: TSNode;
+}
 export type TSGrammar = 'python' | 'c' | 'cpp';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -29,7 +34,9 @@ async function getParserClass(): Promise<any> {
   if (!parserClassPromise) {
     parserClassPromise = import('web-tree-sitter').then(async (mod: any) => {
       const Parser = mod.default ?? mod;
-      await Parser.init({ locateFile: (name: string) => require.resolve(`web-tree-sitter/${name}`) });
+      await Parser.init({
+        locateFile: (name: string) => require.resolve(`web-tree-sitter/${name}`),
+      });
       return Parser;
     });
   }
@@ -47,7 +54,12 @@ async function loadLanguage(grammar: TSGrammar): Promise<any> {
 
 /** Returns whether tree-sitter and the requested grammar can be loaded. */
 export async function isGrammarAvailable(grammar: TSGrammar): Promise<boolean> {
-  try { await loadLanguage(grammar); return true; } catch { return false; }
+  try {
+    await loadLanguage(grammar);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function parseTree(grammar: TSGrammar, code: string): Promise<TSTree> {
@@ -62,7 +74,10 @@ export async function parseTree(grammar: TSGrammar, code: string): Promise<TSTre
 export function collect(root: TSNode, ...types: string[]): TSNode[] {
   const want = new Set(types);
   const out: TSNode[] = [];
-  const walk = (n: TSNode) => { if (want.has(n.type)) out.push(n); for (const c of n.namedChildren) walk(c); };
+  const walk = (n: TSNode) => {
+    if (want.has(n.type)) out.push(n);
+    for (const c of n.namedChildren) walk(c);
+  };
   walk(root);
   return out;
 }

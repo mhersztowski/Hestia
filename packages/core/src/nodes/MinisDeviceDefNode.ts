@@ -14,8 +14,12 @@ export class MinisDeviceDefNode extends NodeBase<MinisDeviceDefModel> {
     this.modules = [...model.modules];
   }
 
-  static fromModel(model: MinisDeviceDefModel): MinisDeviceDefNode { return new MinisDeviceDefNode(model); }
-  static fromModels(models: MinisDeviceDefModel[]): MinisDeviceDefNode[] { return models.map(m => new MinisDeviceDefNode(m)); }
+  static fromModel(model: MinisDeviceDefModel): MinisDeviceDefNode {
+    return new MinisDeviceDefNode(model);
+  }
+  static fromModels(models: MinisDeviceDefModel[]): MinisDeviceDefNode[] {
+    return models.map((m) => new MinisDeviceDefNode(m));
+  }
 
   getDisplayName(): string {
     return this.name;

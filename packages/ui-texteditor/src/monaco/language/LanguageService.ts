@@ -12,9 +12,7 @@ export interface LanguageConfiguration {
 }
 
 export interface DiagnosticsProvider {
-  provideDiagnostics(
-    model: monaco.editor.ITextModel
-  ): Promise<monaco.editor.IMarkerData[]>;
+  provideDiagnostics(model: monaco.editor.ITextModel): Promise<monaco.editor.IMarkerData[]>;
 }
 
 /**
@@ -42,10 +40,7 @@ export class LanguageService implements Disposable {
     });
 
     if (config.configuration) {
-      monaco.languages.setLanguageConfiguration(
-        config.languageId,
-        config.configuration
-      );
+      monaco.languages.setLanguageConfiguration(config.languageId, config.configuration);
     }
 
     this.registeredLanguages.add(config.languageId);
@@ -64,10 +59,7 @@ export class LanguageService implements Disposable {
     languageId: string,
     provider: monaco.languages.CompletionItemProvider
   ): Disposable {
-    const disposable = monaco.languages.registerCompletionItemProvider(
-      languageId,
-      provider
-    );
+    const disposable = monaco.languages.registerCompletionItemProvider(languageId, provider);
     this.disposables.add(disposable);
     return disposable;
   }
@@ -75,14 +67,8 @@ export class LanguageService implements Disposable {
   /**
    * Registers a hover provider for a language
    */
-  registerHoverProvider(
-    languageId: string,
-    provider: monaco.languages.HoverProvider
-  ): Disposable {
-    const disposable = monaco.languages.registerHoverProvider(
-      languageId,
-      provider
-    );
+  registerHoverProvider(languageId: string, provider: monaco.languages.HoverProvider): Disposable {
+    const disposable = monaco.languages.registerHoverProvider(languageId, provider);
     this.disposables.add(disposable);
     return disposable;
   }
@@ -124,10 +110,7 @@ export class LanguageService implements Disposable {
     languageId: string,
     provider: monaco.languages.DefinitionProvider
   ): Disposable {
-    const disposable = monaco.languages.registerDefinitionProvider(
-      languageId,
-      provider
-    );
+    const disposable = monaco.languages.registerDefinitionProvider(languageId, provider);
     this.disposables.add(disposable);
     return disposable;
   }
@@ -139,10 +122,7 @@ export class LanguageService implements Disposable {
     languageId: string,
     provider: monaco.languages.ReferenceProvider
   ): Disposable {
-    const disposable = monaco.languages.registerReferenceProvider(
-      languageId,
-      provider
-    );
+    const disposable = monaco.languages.registerReferenceProvider(languageId, provider);
     this.disposables.add(disposable);
     return disposable;
   }
@@ -150,10 +130,7 @@ export class LanguageService implements Disposable {
   /**
    * Registers a diagnostics provider with debounced validation
    */
-  registerDiagnosticsProvider(
-    languageId: string,
-    provider: DiagnosticsProvider
-  ): Disposable {
+  registerDiagnosticsProvider(languageId: string, provider: DiagnosticsProvider): Disposable {
     this.diagnosticsProviders.set(languageId, provider);
 
     return {
@@ -185,9 +162,7 @@ export class LanguageService implements Disposable {
   /**
    * Creates a debounced validator for a model
    */
-  createModelValidator(
-    model: monaco.editor.ITextModel
-  ): Disposable {
+  createModelValidator(model: monaco.editor.ITextModel): Disposable {
     const debouncedValidate = debounce(() => {
       this.validateModel(model);
     }, this.validationDebounceMs);

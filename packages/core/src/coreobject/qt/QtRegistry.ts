@@ -17,7 +17,11 @@ import {
 } from './widgets';
 
 /** Constructor shape shared by {@link QtNode} and its typed subclasses. */
-export type QtNodeCtor = new (native: QtObjectLike, parent?: QtNode, opts?: QtWrapOptions) => QtNode;
+export type QtNodeCtor = new (
+  native: QtObjectLike,
+  parent?: QtNode,
+  opts?: QtWrapOptions
+) => QtNode;
 
 /**
  * `className` → wrapper subclass. Ordered most-specific → least-specific so the

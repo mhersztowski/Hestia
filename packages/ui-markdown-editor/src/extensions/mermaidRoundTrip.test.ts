@@ -343,14 +343,18 @@ describe('układ zapisany we front matterze', () => {
    */
   it('diagram z pozycjami nadal parsuje się Mermaidem', async () => {
     const doc = mermaidFormat.parse(SOURCE).document;
-    doc.nodes.forEach((node, i) => { node.position = { x: 100 * (i % 4), y: 80 * Math.floor(i / 4) }; });
+    doc.nodes.forEach((node, i) => {
+      node.position = { x: 100 * (i % 4), y: 80 * Math.floor(i / 4) };
+    });
 
     await expect(mermaid.parse(mermaidFormat.serialize(doc))).resolves.toBeTruthy();
   });
 
   it('diagram stanów z ramkami grup nadal parsuje się Mermaidem', async () => {
     const doc = mermaidFormat.parse(STATE).document;
-    doc.nodes.forEach((node, i) => { node.position = { x: 40 * i, y: 60 * i }; });
+    doc.nodes.forEach((node, i) => {
+      node.position = { x: 40 * i, y: 60 * i };
+    });
     doc.groups.forEach((group) => {
       group.position = { x: 10, y: 10 };
       group.size = { width: 320, height: 240 };

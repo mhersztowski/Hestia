@@ -40,11 +40,21 @@ const FIELD_TYPES: MjdFieldType[] = ['string', 'number', 'boolean', 'date', 'enu
 
 // --- Sub-components ---
 
-function Section({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
+function Section({
+  title,
+  children,
+  action,
+}: {
+  title: string;
+  children: ReactNode;
+  action?: ReactNode;
+}) {
   return (
     <Box sx={{ mb: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{title}</Typography>
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+          {title}
+        </Typography>
         {action}
       </Box>
       {children}
@@ -66,17 +76,29 @@ function TagManager({ tags, onChange }: { tags: string[]; onChange: (tags: strin
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
       {tags.map((t) => (
-        <Chip key={t} label={t} size="small" onDelete={() => onChange(tags.filter((x) => x !== t))} />
+        <Chip
+          key={t}
+          label={t}
+          size="small"
+          onDelete={() => onChange(tags.filter((x) => x !== t))}
+        />
       ))}
       <TextField
         size="small"
         placeholder="New tag..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addTag();
+          }
+        }}
         sx={{ width: 120 }}
       />
-      <Button size="small" onClick={addTag} disabled={!input.trim()}>Add</Button>
+      <Button size="small" onClick={addTag} disabled={!input.trim()}>
+        Add
+      </Button>
     </Box>
   );
 }
@@ -148,11 +170,20 @@ function FieldRow({
         </TableCell>
         <TableCell>
           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-            {field.tags.map((t) => <Chip key={t} label={t} size="small" />)}
+            {field.tags.map((t) => (
+              <Chip key={t} label={t} size="small" />
+            ))}
           </Box>
         </TableCell>
         <TableCell align="right">
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onDelete(index); }} title="Delete">
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(index);
+            }}
+            title="Delete"
+          >
             <Typography variant="body2">\u2715</Typography>
           </IconButton>
         </TableCell>
@@ -185,7 +216,11 @@ function FieldRow({
                     label="Type"
                     onChange={(e) => handleTypeChange(e.target.value as MjdFieldType)}
                   >
-                    {FIELD_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+                    {FIELD_TYPES.map((t) => (
+                      <MenuItem key={t} value={t}>
+                        {t}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -201,13 +236,20 @@ function FieldRow({
               />
 
               <FormControlLabel
-                control={<Switch checked={field.required ?? false} onChange={(e) => update({ required: e.target.checked })} />}
+                control={
+                  <Switch
+                    checked={field.required ?? false}
+                    onChange={(e) => update({ required: e.target.checked })}
+                  />
+                }
                 label="Required"
               />
 
               {/* Tags */}
               <Box>
-                <Typography variant="caption" color="text.secondary">Tags</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Tags
+                </Typography>
                 <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
                   {allTags.map((t) => (
                     <Chip
@@ -219,7 +261,9 @@ function FieldRow({
                     />
                   ))}
                   {allTags.length === 0 && (
-                    <Typography variant="caption" color="text.secondary">No tags defined yet</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      No tags defined yet
+                    </Typography>
                   )}
                 </Box>
               </Box>
@@ -227,14 +271,26 @@ function FieldRow({
               {/* Enum options */}
               {field.type === 'enum' && (
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Enum options</Typography>
-                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5, alignItems: 'center' }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Enum options
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      gap: 0.5,
+                      flexWrap: 'wrap',
+                      mt: 0.5,
+                      alignItems: 'center',
+                    }}
+                  >
                     {(field.options ?? []).map((opt) => (
                       <Chip
                         key={opt}
                         label={opt}
                         size="small"
-                        onDelete={() => update({ options: (field.options ?? []).filter((o) => o !== opt) })}
+                        onDelete={() =>
+                          update({ options: (field.options ?? []).filter((o) => o !== opt) })
+                        }
                       />
                     ))}
                     <TextField
@@ -242,10 +298,17 @@ function FieldRow({
                       placeholder="Add option..."
                       value={enumInput}
                       onChange={(e) => setEnumInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEnumOption(); } }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addEnumOption();
+                        }
+                      }}
                       sx={{ width: 120 }}
                     />
-                    <Button size="small" onClick={addEnumOption} disabled={!enumInput.trim()}>Add</Button>
+                    <Button size="small" onClick={addEnumOption} disabled={!enumInput.trim()}>
+                      Add
+                    </Button>
                   </Box>
                 </Box>
               )}
@@ -260,7 +323,9 @@ function FieldRow({
                     onChange={(e) => update({ itemType: e.target.value as MjdFieldType })}
                   >
                     {FIELD_TYPES.filter((t) => t !== 'array').map((t) => (
-                      <MenuItem key={t} value={t}>{t}</MenuItem>
+                      <MenuItem key={t} value={t}>
+                        {t}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -321,7 +386,11 @@ function ViewRow({
             value={view.tag}
             onChange={(e) => onUpdate(index, { ...view, tag: e.target.value })}
           >
-            {allTags.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+            {allTags.map((t) => (
+              <MenuItem key={t} value={t}>
+                {t}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
       </TableCell>
@@ -336,37 +405,57 @@ function ViewRow({
 
 // --- Main Component ---
 
-export function MjdDefEditor({ value, onChange, onGenerateData, dataFileExists }: MjdDefEditorProps) {
+export function MjdDefEditor({
+  value,
+  onChange,
+  onGenerateData,
+  dataFileExists,
+}: MjdDefEditorProps) {
   const [output, setOutput] = useState<{ type: 'mjd' | 'schema'; content: string } | null>(null);
 
-  const updateField = useCallback((index: number, field: MjdFieldDef) => {
-    const fields = [...value.fields];
-    fields[index] = field;
-    onChange({ ...value, fields });
-  }, [value, onChange]);
+  const updateField = useCallback(
+    (index: number, field: MjdFieldDef) => {
+      const fields = [...value.fields];
+      fields[index] = field;
+      onChange({ ...value, fields });
+    },
+    [value, onChange]
+  );
 
-  const deleteField = useCallback((index: number) => {
-    onChange({ ...value, fields: value.fields.filter((_, i) => i !== index) });
-  }, [value, onChange]);
+  const deleteField = useCallback(
+    (index: number) => {
+      onChange({ ...value, fields: value.fields.filter((_, i) => i !== index) });
+    },
+    [value, onChange]
+  );
 
   const addField = useCallback(() => {
     const name = `field${value.fields.length + 1}`;
     onChange({ ...value, fields: [...value.fields, createMjdField(name, 'string')] });
   }, [value, onChange]);
 
-  const updateView = useCallback((index: number, view: MjdViewDef) => {
-    const views = [...value.views];
-    views[index] = view;
-    onChange({ ...value, views });
-  }, [value, onChange]);
+  const updateView = useCallback(
+    (index: number, view: MjdViewDef) => {
+      const views = [...value.views];
+      views[index] = view;
+      onChange({ ...value, views });
+    },
+    [value, onChange]
+  );
 
-  const deleteView = useCallback((index: number) => {
-    onChange({ ...value, views: value.views.filter((_, i) => i !== index) });
-  }, [value, onChange]);
+  const deleteView = useCallback(
+    (index: number) => {
+      onChange({ ...value, views: value.views.filter((_, i) => i !== index) });
+    },
+    [value, onChange]
+  );
 
   const addView = useCallback(() => {
     const tag = value.tags[0] ?? '';
-    onChange({ ...value, views: [...value.views, createMjdView(`View ${value.views.length + 1}`, tag)] });
+    onChange({
+      ...value,
+      views: [...value.views, createMjdView(`View ${value.views.length + 1}`, tag)],
+    });
   }, [value, onChange]);
 
   const handleGenerateMjd = useCallback(() => {
@@ -378,9 +467,12 @@ export function MjdDefEditor({ value, onChange, onGenerateData, dataFileExists }
     setOutput({ type: 'schema', content: JSON.stringify(schema, null, 2) });
   }, [value]);
 
-  const copyOutput = useMemo(() => () => {
-    if (output) navigator.clipboard?.writeText(output.content);
-  }, [output]);
+  const copyOutput = useMemo(
+    () => () => {
+      if (output) navigator.clipboard?.writeText(output.content);
+    },
+    [output]
+  );
 
   return (
     <Box sx={{ p: 2 }}>
@@ -408,7 +500,14 @@ export function MjdDefEditor({ value, onChange, onGenerateData, dataFileExists }
       </Section>
 
       {/* Fields */}
-      <Section title="Fields" action={<Button size="small" onClick={addField}>+ Add Field</Button>}>
+      <Section
+        title="Fields"
+        action={
+          <Button size="small" onClick={addField}>
+            + Add Field
+          </Button>
+        }
+      >
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -439,7 +538,9 @@ export function MjdDefEditor({ value, onChange, onGenerateData, dataFileExists }
             {value.fields.length === 0 && (
               <TableRow>
                 <TableCell colSpan={4}>
-                  <Typography variant="body2" color="text.secondary">No fields defined</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    No fields defined
+                  </Typography>
                 </TableCell>
               </TableRow>
             )}
@@ -456,18 +557,26 @@ export function MjdDefEditor({ value, onChange, onGenerateData, dataFileExists }
       <Section
         title="Views"
         action={
-          <Tooltip title={value.tags.length === 0 ? 'Dodaj co najmniej jeden tag w sekcji "Tags" aby utworzyć view (każdy view musi być powiązany z tagiem)' : ''}>
+          <Tooltip
+            title={
+              value.tags.length === 0
+                ? 'Dodaj co najmniej jeden tag w sekcji "Tags" aby utworzyć view (każdy view musi być powiązany z tagiem)'
+                : ''
+            }
+          >
             {/* span wrapper required by MUI Tooltip on disabled children */}
             <span>
-              <Button size="small" onClick={addView} disabled={value.tags.length === 0}>+ Add View</Button>
+              <Button size="small" onClick={addView} disabled={value.tags.length === 0}>
+                + Add View
+              </Button>
             </span>
           </Tooltip>
         }
       >
         {value.tags.length === 0 && (
           <Alert severity="info" sx={{ mb: 1 }}>
-            Aby dodać view, najpierw zdefiniuj co najmniej jeden tag w sekcji <strong>Tags</strong> powyżej.
-            Każdy view filtruje pola po tagu — bez tagów nie ma czego pokazać.
+            Aby dodać view, najpierw zdefiniuj co najmniej jeden tag w sekcji <strong>Tags</strong>{' '}
+            powyżej. Każdy view filtruje pola po tagu — bez tagów nie ma czego pokazać.
           </Alert>
         )}
         <Table size="small">
@@ -511,8 +620,12 @@ export function MjdDefEditor({ value, onChange, onGenerateData, dataFileExists }
       {/* Actions */}
       <Section title="Generate">
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          <Button variant="outlined" size="small" onClick={handleGenerateMjd}>Generate .mjd</Button>
-          <Button variant="outlined" size="small" onClick={handleGenerateSchema}>Generate JSON Schema</Button>
+          <Button variant="outlined" size="small" onClick={handleGenerateMjd}>
+            Generate .mjd
+          </Button>
+          <Button variant="outlined" size="small" onClick={handleGenerateSchema}>
+            Generate JSON Schema
+          </Button>
           {/* Data-file generator — host wires this up (typically
               MjdVfsLoader) to write a sibling `.data.json` populated with
               `buildDefaults(definition)`. We only show the button when the
@@ -524,11 +637,13 @@ export function MjdDefEditor({ value, onChange, onGenerateData, dataFileExists }
             // different name" workflow. Now we just hint via tooltip that
             // a sibling already exists and the dialog will propose a
             // numbered fallback name (places-2.data.json, places-3.data.json…).
-            <Tooltip title={
-              dataFileExists
-                ? 'Sibling .data.json już istnieje — okno zaproponuje inną nazwę. Zawsze możesz wpisać własną.'
-                : 'Utwórz plik .data.json z domyślnymi wartościami; możesz wybrać dowolną nazwę i lokalizację.'
-            }>
+            <Tooltip
+              title={
+                dataFileExists
+                  ? 'Sibling .data.json już istnieje — okno zaproponuje inną nazwę. Zawsze możesz wpisać własną.'
+                  : 'Utwórz plik .data.json z domyślnymi wartościami; możesz wybrać dowolną nazwę i lokalizację.'
+              }
+            >
               <Button
                 variant="contained"
                 size="small"
@@ -549,8 +664,12 @@ export function MjdDefEditor({ value, onChange, onGenerateData, dataFileExists }
             <Typography variant="subtitle2">
               {output.type === 'mjd' ? 'MJD Definition' : 'JSON Schema (draft-07)'}
             </Typography>
-            <Button size="small" onClick={copyOutput}>Copy</Button>
-            <Button size="small" onClick={() => setOutput(null)}>Close</Button>
+            <Button size="small" onClick={copyOutput}>
+              Copy
+            </Button>
+            <Button size="small" onClick={() => setOutput(null)}>
+              Close
+            </Button>
           </Box>
           <Box
             sx={{

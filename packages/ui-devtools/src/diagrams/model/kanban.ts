@@ -12,7 +12,7 @@
 
 /** Priorytety, które Mermaid rozumie i rysuje kolorem. */
 export const KANBAN_PRIORITIES = ['Very High', 'High', 'Low', 'Very Low'] as const;
-export type KanbanPriority = typeof KANBAN_PRIORITIES[number];
+export type KanbanPriority = (typeof KANBAN_PRIORITIES)[number];
 
 export interface KanbanCard {
   /** Identyfikator z zapisu (`id4[…]`); bez niego karta nie ma nazwy w kodzie. */
@@ -52,6 +52,10 @@ export function cardCount(board: KanbanBoard): number {
 }
 
 /** Gdzie leży karta o danym identyfikatorze; `undefined`, gdy jej nie ma. */
-export function findCard(board: KanbanBoard, columnIndex: number, cardIndex: number): KanbanCard | undefined {
+export function findCard(
+  board: KanbanBoard,
+  columnIndex: number,
+  cardIndex: number
+): KanbanCard | undefined {
   return board.columns[columnIndex]?.cards[cardIndex];
 }

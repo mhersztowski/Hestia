@@ -13,9 +13,14 @@
  *    nie powiódł.
  */
 import {
-  emptyDiagram, edgeId,
-  type DiagramDocument, type DiagramNode, type EntityAttribute, type EntityKey,
-  type ErCardinality, type UnknownLine,
+  emptyDiagram,
+  edgeId,
+  type DiagramDocument,
+  type DiagramNode,
+  type EntityAttribute,
+  type EntityKey,
+  type ErCardinality,
+  type UnknownLine,
 } from '../../model/diagram';
 import type { ParseIssue, ParseResult } from '../../model/format';
 import { splitFrontMatter, withFrontMatter } from './frontMatter';
@@ -36,25 +41,37 @@ const BLOCK_CLOSE = /^\s*\}\s*$/;
  */
 const RELATION = new RegExp(
   `^\\s*(?<left>${NAME})\\s+` +
-  '(?<leftCard>\\|o|\\|\\||\\}o|\\}\\|)' +
-  '(?<line>--|\\.\\.)' +
-  '(?<rightCard>o\\||\\|\\||o\\{|\\|\\{)\\s+' +
-  `(?<right>${NAME})\\s*` +
-  '(?::\\s*(?<label>.*))?$',
+    '(?<leftCard>\\|o|\\|\\||\\}o|\\}\\|)' +
+    '(?<line>--|\\.\\.)' +
+    '(?<rightCard>o\\||\\|\\||o\\{|\\|\\{)\\s+' +
+    `(?<right>${NAME})\\s*` +
+    '(?::\\s*(?<label>.*))?$'
 );
 
 /** Zapis liczebności ⇄ pojęcie. Lewa strona jest odbiciem prawej. */
 const LEFT_CARDINALITY: Record<string, ErCardinality> = {
-  '|o': 'zeroOrOne', '||': 'exactlyOne', '}o': 'zeroOrMore', '}|': 'oneOrMore',
+  '|o': 'zeroOrOne',
+  '||': 'exactlyOne',
+  '}o': 'zeroOrMore',
+  '}|': 'oneOrMore',
 };
 const RIGHT_CARDINALITY: Record<string, ErCardinality> = {
-  'o|': 'zeroOrOne', '||': 'exactlyOne', 'o{': 'zeroOrMore', '|{': 'oneOrMore',
+  'o|': 'zeroOrOne',
+  '||': 'exactlyOne',
+  'o{': 'zeroOrMore',
+  '|{': 'oneOrMore',
 };
 const LEFT_SYMBOL: Record<ErCardinality, string> = {
-  zeroOrOne: '|o', exactlyOne: '||', zeroOrMore: '}o', oneOrMore: '}|',
+  zeroOrOne: '|o',
+  exactlyOne: '||',
+  zeroOrMore: '}o',
+  oneOrMore: '}|',
 };
 const RIGHT_SYMBOL: Record<ErCardinality, string> = {
-  zeroOrOne: 'o|', exactlyOne: '||', zeroOrMore: 'o{', oneOrMore: '|{',
+  zeroOrOne: 'o|',
+  exactlyOne: '||',
+  zeroOrMore: 'o{',
+  oneOrMore: '|{',
 };
 
 const KEYS: EntityKey[] = ['PK', 'FK', 'UK'];
@@ -83,7 +100,10 @@ export function parseAttribute(raw: string): EntityAttribute {
   attribute.name = parts[1];
 
   // Role kluczy bywają rozdzielone przecinkiem, z odstępem albo bez.
-  const keys = parts.slice(2).join(' ').split(/[,\s]+/)
+  const keys = parts
+    .slice(2)
+    .join(' ')
+    .split(/[,\s]+/)
     .map((key) => key.trim().toUpperCase())
     .filter((key): key is EntityKey => (KEYS as string[]).includes(key));
   if (keys.length) attribute.keys = keys;
@@ -126,10 +146,16 @@ export function parseErDiagram(text: string): ParseResult {
     const trimmed = line.trim();
     if (!trimmed) return;
 
-    if (!seenHeader && HEADER.test(line)) { seenHeader = true; return; }
+    if (!seenHeader && HEADER.test(line)) {
+      seenHeader = true;
+      return;
+    }
 
     if (openEntity) {
-      if (BLOCK_CLOSE.test(trimmed)) { openEntity = undefined; return; }
+      if (BLOCK_CLOSE.test(trimmed)) {
+        openEntity = undefined;
+        return;
+      }
       ensureEntity(openEntity).attributes!.push(parseAttribute(trimmed));
       return;
     }
@@ -185,7 +211,10 @@ export function serializeErDiagram(doc: DiagramDocument): string {
   const byAnchor = new Map<string, UnknownLine[]>();
   const tail: UnknownLine[] = [];
   for (const line of [...doc.unknown].sort((a, b) => a.index - b.index)) {
-    if (!line.anchor) { tail.push(line); continue; }
+    if (!line.anchor) {
+      tail.push(line);
+      continue;
+    }
     const bucket = byAnchor.get(line.anchor);
     if (bucket) bucket.push(line);
     else byAnchor.set(line.anchor, [line]);
@@ -227,7 +256,8 @@ export function serializeErDiagram(doc: DiagramDocument): string {
     if (!attributes.length && !inRelation) out.push(`  ${node.id} {\n  }`);
   }
 
-  for (const bucket of byAnchor.values()) for (const line of bucket) out.push(`  ${line.text.trim()}`);
+  for (const bucket of byAnchor.values())
+    for (const line of bucket) out.push(`  ${line.text.trim()}`);
   for (const line of tail) out.push(`  ${line.text.trim()}`);
 
   return withFrontMatter(doc.meta?.frontMatter, out.join('\n'));

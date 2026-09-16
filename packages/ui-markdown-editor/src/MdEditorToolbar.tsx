@@ -108,17 +108,17 @@ interface MdEditorToolbarProps {
  *  Linux distros. User's OS controls actual dictionary availability; we
  *  just hint with the `lang` attribute. */
 const SPELL_LANGUAGES: Array<{ code: string; label: string }> = [
-  { code: 'pl',    label: 'Polski' },
+  { code: 'pl', label: 'Polski' },
   { code: 'en-US', label: 'English (US)' },
   { code: 'en-GB', label: 'English (UK)' },
-  { code: 'de',    label: 'Deutsch' },
-  { code: 'fr',    label: 'Français' },
-  { code: 'es',    label: 'Español' },
-  { code: 'it',    label: 'Italiano' },
-  { code: 'pt',    label: 'Português' },
-  { code: 'ru',    label: 'Русский' },
-  { code: 'uk',    label: 'Українська' },
-  { code: 'cs',    label: 'Čeština' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'pt', label: 'Português' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'uk', label: 'Українська' },
+  { code: 'cs', label: 'Čeština' },
 ];
 
 /** Rough browser detection — used to surface the right setup hint when
@@ -136,16 +136,31 @@ const SPELL_LANGUAGES: Array<{ code: string; label: string }> = [
  *  - Edge inherits Chromium behaviour. */
 function detectBrowser(): 'chrome' | 'safari' | 'firefox' | 'edge' | 'other' {
   const ua = navigator.userAgent;
-  if (/Edg\//.test(ua))     return 'edge';
+  if (/Edg\//.test(ua)) return 'edge';
   if (/Firefox\//.test(ua)) return 'firefox';
-  if (/Chrome\//.test(ua))  return 'chrome';
-  if (/Safari\//.test(ua))  return 'safari';
+  if (/Chrome\//.test(ua)) return 'chrome';
+  if (/Safari\//.test(ua)) return 'safari';
   return 'other';
 }
 
 const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
-  editor, onSave, saveDisabled, onInsertInfoMark, onInsertInternalLink, onInsertEmbed, onInsertGallery, onInsertPhotoMap, onInsertFile, onInsertEnvValue, onToggleGroupMode, groupModeActive, onExportMarkdown,
-  spellLanguage, spellEnabled, onSpellLanguageChange, onSpellEnabledChange,
+  editor,
+  onSave,
+  saveDisabled,
+  onInsertInfoMark,
+  onInsertInternalLink,
+  onInsertEmbed,
+  onInsertGallery,
+  onInsertPhotoMap,
+  onInsertFile,
+  onInsertEnvValue,
+  onToggleGroupMode,
+  groupModeActive,
+  onExportMarkdown,
+  spellLanguage,
+  spellEnabled,
+  onSpellLanguageChange,
+  onSpellEnabledChange,
 }) => {
   const [spellMenuAnchor, setSpellMenuAnchor] = useState<null | HTMLElement>(null);
   const [spellHelpOpen, setSpellHelpOpen] = useState(false);
@@ -178,11 +193,14 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
   // Convert markdown to TipTap-compatible HTML and insert at the cursor.
   // Replaces any current selection. Distinct from the default Ctrl+V which
   // pastes raw text — this one parses the markdown syntax first.
-  const insertMarkdown = useCallback((markdown: string) => {
-    if (!markdown) return;
-    const html = markdownToHtml(markdown);
-    editor.chain().focus().insertContent(html).run();
-  }, [editor]);
+  const insertMarkdown = useCallback(
+    (markdown: string) => {
+      if (!markdown) return;
+      const html = markdownToHtml(markdown);
+      editor.chain().focus().insertContent(html).run();
+    },
+    [editor]
+  );
 
   const pasteMarkdownFromClipboard = useCallback(async () => {
     try {
@@ -215,10 +233,13 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
     setInsertMenuAnchor(null);
   };
 
-  const insertComponent = useCallback((type: 'person' | 'task' | 'project') => {
-    editor.chain().focus().insertComponentEmbed(type, '').run();
-    handleInsertMenuClose();
-  }, [editor]);
+  const insertComponent = useCallback(
+    (type: 'person' | 'task' | 'project') => {
+      editor.chain().focus().insertComponentEmbed(type, '').run();
+      handleInsertMenuClose();
+    },
+    [editor]
+  );
 
   const setLink = useCallback(() => {
     const previousUrl = editor.getAttributes('link').href;
@@ -238,51 +259,73 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
 
   const addImage = useCallback(() => {
     // Insert image with empty src - opens in edit mode
-    editor.chain().focus().setImage({
-      src: '',
-      alt: '',
-    }).run();
+    editor
+      .chain()
+      .focus()
+      .setImage({
+        src: '',
+        alt: '',
+      })
+      .run();
   }, [editor]);
 
   const addAudio = useCallback(() => {
     // Insert audio with empty src - opens in edit mode
-    editor.chain().focus().setAudio({
-      src: '',
-    }).run();
+    editor
+      .chain()
+      .focus()
+      .setAudio({
+        src: '',
+      })
+      .run();
   }, [editor]);
 
   const addVideo = useCallback(() => {
     // Insert video with empty src - opens in edit mode
-    editor.chain().focus().setVideo({
-      src: '',
-    }).run();
+    editor
+      .chain()
+      .focus()
+      .setVideo({
+        src: '',
+      })
+      .run();
   }, [editor]);
 
-  const insertTable = useCallback((rows: number, cols: number) => {
-    editor.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
-  }, [editor]);
+  const insertTable = useCallback(
+    (rows: number, cols: number) => {
+      editor.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
+    },
+    [editor]
+  );
 
-  const insertColumns = useCallback((columnCount: 2 | 3) => {
-    editor.chain().focus().setColumns(columnCount).run();
-  }, [editor]);
+  const insertColumns = useCallback(
+    (columnCount: 2 | 3) => {
+      editor.chain().focus().setColumns(columnCount).run();
+    },
+    [editor]
+  );
 
-  const insertEmoji = useCallback((char: string) => {
-    editor.chain().focus().insertContent(char).run();
-  }, [editor]);
+  const insertEmoji = useCallback(
+    (char: string) => {
+      editor.chain().focus().insertContent(char).run();
+    },
+    [editor]
+  );
 
   // Indent/outdent for bullet, ordered and task list items.
   // taskList uses a different node type ('taskItem') from the other two.
-  const getListItemType = () => editor.isActive('taskList') ? 'taskItem' : 'listItem';
+  const getListItemType = () => (editor.isActive('taskList') ? 'taskItem' : 'listItem');
   const handleIndent = useCallback(() => {
     editor.chain().focus().sinkListItem(getListItemType()).run();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
   const handleOutdent = useCallback(() => {
     editor.chain().focus().liftListItem(getListItemType()).run();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
-  const inList = editor.isActive('bulletList') || editor.isActive('orderedList') || editor.isActive('taskList');
-  const canIndent  = inList && editor.can().sinkListItem(getListItemType());
+  const inList =
+    editor.isActive('bulletList') || editor.isActive('orderedList') || editor.isActive('taskList');
+  const canIndent = inList && editor.can().sinkListItem(getListItemType());
   const canOutdent = inList && editor.can().liftListItem(getListItemType());
 
   const getHeadingLevel = (): string => {
@@ -298,7 +341,11 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
     if (level === 0) {
       editor.chain().focus().setParagraph().run();
     } else {
-      editor.chain().focus().toggleHeading({ level: level as 1 | 2 | 3 | 4 }).run();
+      editor
+        .chain()
+        .focus()
+        .toggleHeading({ level: level as 1 | 2 | 3 | 4 })
+        .run();
     }
   };
 
@@ -528,7 +575,9 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
               setCalloutMenuAnchor(null);
             }}
           >
-            <ListItemIcon sx={{ minWidth: 32, fontSize: 18 }}>{CALLOUT_VARIANTS[variant].emoji}</ListItemIcon>
+            <ListItemIcon sx={{ minWidth: 32, fontSize: 18 }}>
+              {CALLOUT_VARIANTS[variant].emoji}
+            </ListItemIcon>
             <ListItemText primaryTypographyProps={{ fontSize: 14 }}>
               {CALLOUT_VARIANTS[variant].label}
             </ListItemText>
@@ -554,11 +603,13 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
           when active so the user can tell the state at a glance. */}
       {onSpellEnabledChange && onSpellLanguageChange && (
         <>
-          <Tooltip title={
-            spellEnabled
-              ? `Sprawdzanie pisowni: ${SPELL_LANGUAGES.find(l => l.code === spellLanguage)?.label ?? spellLanguage}`
-              : 'Sprawdzanie pisowni wyłączone'
-          }>
+          <Tooltip
+            title={
+              spellEnabled
+                ? `Sprawdzanie pisowni: ${SPELL_LANGUAGES.find((l) => l.code === spellLanguage)?.label ?? spellLanguage}`
+                : 'Sprawdzanie pisowni wyłączone'
+            }
+          >
             <IconButton
               size="small"
               onClick={(e) => setSpellMenuAnchor(e.currentTarget)}
@@ -598,8 +649,15 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
               </MenuItem>
             ))}
             <Divider />
-            <MenuItem onClick={() => { setSpellHelpOpen(true); setSpellMenuAnchor(null); }}>
-              <ListItemIcon><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
+            <MenuItem
+              onClick={() => {
+                setSpellHelpOpen(true);
+                setSpellMenuAnchor(null);
+              }}
+            >
+              <ListItemIcon>
+                <InfoOutlinedIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText
                 primary="Słownik nie działa? Włącz go w przeglądarce →"
                 secondary="Krótka instrukcja dla Chrome / Safari / Firefox / Edge"
@@ -613,37 +671,70 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
               spellcheck isn't doing anything. Each browser has its own
               quirk: Chrome wants the language on its preferred list, Safari
               + Firefox lean on OS settings, etc. */}
-          <Dialog open={spellHelpOpen} onClose={() => setSpellHelpOpen(false)} maxWidth="sm" fullWidth>
+          <Dialog
+            open={spellHelpOpen}
+            onClose={() => setSpellHelpOpen(false)}
+            maxWidth="sm"
+            fullWidth
+          >
             <DialogTitle>Włączenie sprawdzania pisowni</DialogTitle>
             <DialogContent dividers>
               <Typography variant="body2" sx={{ mb: 2 }}>
-                Edytor ustawia tylko atrybuty <code>spellcheck</code> i <code>lang="{spellLanguage}"</code>
-                — faktyczne podświetlanie błędów wykonuje <strong>przeglądarka</strong>, korzystając ze
-                swojego słownika. Jeśli nic nie podświetla się dla wybranego języka, najczęściej trzeba
-                go ręcznie aktywować.
+                Edytor ustawia tylko atrybuty <code>spellcheck</code> i{' '}
+                <code>lang="{spellLanguage}"</code>— faktyczne podświetlanie błędów wykonuje{' '}
+                <strong>przeglądarka</strong>, korzystając ze swojego słownika. Jeśli nic nie
+                podświetla się dla wybranego języka, najczęściej trzeba go ręcznie aktywować.
               </Typography>
 
               {(browser === 'chrome' || browser === 'edge') && (
                 <>
                   <Typography variant="subtitle2" sx={{ mt: 1 }}>
-                    {browser === 'chrome' ? 'Google Chrome' : 'Microsoft Edge'} (wykryto twoje przeglądarka)
+                    {browser === 'chrome' ? 'Google Chrome' : 'Microsoft Edge'} (wykryto twoje
+                    przeglądarka)
                   </Typography>
                   <Typography variant="body2" component="div" sx={{ mt: 1 }}>
                     <ol style={{ marginTop: 0, paddingLeft: '1.25rem' }}>
-                      <li>Otwórz <code>{browser === 'chrome' ? 'chrome://settings/languages' : 'edge://settings/languages'}</code> w nowej karcie
-                        (skopiuj — link do <code>chrome://</code> nie zadziała z poziomu strony).</li>
-                      <li>W sekcji <em>Preferred languages</em> kliknij <em>Add languages</em> i dodaj <strong>{
-                        SPELL_LANGUAGES.find(l => l.code === spellLanguage)?.label ?? spellLanguage
-                      }</strong>.</li>
-                      <li>Pod listą języków znajdź sekcję <em>Spell check</em>. Włącz <em>Enhanced spell check</em>
-                        (lub przynajmniej <em>Basic</em>) — bez tego Chrome ignoruje słownik.</li>
-                      <li>Upewnij się że wybrany język ma checkbox <em>Use this language for spell checking</em>.</li>
+                      <li>
+                        Otwórz{' '}
+                        <code>
+                          {browser === 'chrome'
+                            ? 'chrome://settings/languages'
+                            : 'edge://settings/languages'}
+                        </code>{' '}
+                        w nowej karcie (skopiuj — link do <code>chrome://</code> nie zadziała z
+                        poziomu strony).
+                      </li>
+                      <li>
+                        W sekcji <em>Preferred languages</em> kliknij <em>Add languages</em> i dodaj{' '}
+                        <strong>
+                          {SPELL_LANGUAGES.find((l) => l.code === spellLanguage)?.label ??
+                            spellLanguage}
+                        </strong>
+                        .
+                      </li>
+                      <li>
+                        Pod listą języków znajdź sekcję <em>Spell check</em>. Włącz{' '}
+                        <em>Enhanced spell check</em>
+                        (lub przynajmniej <em>Basic</em>) — bez tego Chrome ignoruje słownik.
+                      </li>
+                      <li>
+                        Upewnij się że wybrany język ma checkbox{' '}
+                        <em>Use this language for spell checking</em>.
+                      </li>
                       <li>Wróć do MyCastle i odśwież stronę.</li>
                     </ol>
                   </Typography>
                   <Button
-                    variant="outlined" size="small" sx={{ mt: 1 }}
-                    onClick={() => navigator.clipboard?.writeText(browser === 'chrome' ? 'chrome://settings/languages' : 'edge://settings/languages')}
+                    variant="outlined"
+                    size="small"
+                    sx={{ mt: 1 }}
+                    onClick={() =>
+                      navigator.clipboard?.writeText(
+                        browser === 'chrome'
+                          ? 'chrome://settings/languages'
+                          : 'edge://settings/languages'
+                      )
+                    }
                   >
                     Skopiuj URL ustawień
                   </Button>
@@ -652,14 +743,26 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
 
               {browser === 'safari' && (
                 <>
-                  <Typography variant="subtitle2" sx={{ mt: 1 }}>Safari (macOS)</Typography>
+                  <Typography variant="subtitle2" sx={{ mt: 1 }}>
+                    Safari (macOS)
+                  </Typography>
                   <Typography variant="body2" component="div" sx={{ mt: 1 }}>
                     <ol style={{ marginTop: 0, paddingLeft: '1.25rem' }}>
-                      <li>System Settings → <em>Keyboard</em> → <em>Text Input</em> → <em>Edit</em>.</li>
-                      <li>W polu <em>Spelling</em> wybierz <strong>{
-                        SPELL_LANGUAGES.find(l => l.code === spellLanguage)?.label ?? spellLanguage
-                      }</strong> lub <em>Automatic by Language</em>.</li>
-                      <li>Jeśli słownik nie jest zainstalowany, kliknij <em>Set Up…</em> obok — macOS pobierze go automatycznie.</li>
+                      <li>
+                        System Settings → <em>Keyboard</em> → <em>Text Input</em> → <em>Edit</em>.
+                      </li>
+                      <li>
+                        W polu <em>Spelling</em> wybierz{' '}
+                        <strong>
+                          {SPELL_LANGUAGES.find((l) => l.code === spellLanguage)?.label ??
+                            spellLanguage}
+                        </strong>{' '}
+                        lub <em>Automatic by Language</em>.
+                      </li>
+                      <li>
+                        Jeśli słownik nie jest zainstalowany, kliknij <em>Set Up…</em> obok — macOS
+                        pobierze go automatycznie.
+                      </li>
                       <li>Wróć do MyCastle i odśwież stronę.</li>
                     </ol>
                   </Typography>
@@ -668,14 +771,27 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
 
               {browser === 'firefox' && (
                 <>
-                  <Typography variant="subtitle2" sx={{ mt: 1 }}>Mozilla Firefox</Typography>
+                  <Typography variant="subtitle2" sx={{ mt: 1 }}>
+                    Mozilla Firefox
+                  </Typography>
                   <Typography variant="body2" component="div" sx={{ mt: 1 }}>
                     <ol style={{ marginTop: 0, paddingLeft: '1.25rem' }}>
-                      <li>Prawym przyciskiem klikinij w polu edytora → <em>Languages</em> → <em>Add Dictionaries…</em></li>
-                      <li>Wybierz słownik dla języka <strong>{
-                        SPELL_LANGUAGES.find(l => l.code === spellLanguage)?.label ?? spellLanguage
-                      }</strong> i zainstaluj.</li>
-                      <li>Po instalacji ponownie prawy przycisk → <em>Languages</em> → wybierz zainstalowany słownik.</li>
+                      <li>
+                        Prawym przyciskiem klikinij w polu edytora → <em>Languages</em> →{' '}
+                        <em>Add Dictionaries…</em>
+                      </li>
+                      <li>
+                        Wybierz słownik dla języka{' '}
+                        <strong>
+                          {SPELL_LANGUAGES.find((l) => l.code === spellLanguage)?.label ??
+                            spellLanguage}
+                        </strong>{' '}
+                        i zainstaluj.
+                      </li>
+                      <li>
+                        Po instalacji ponownie prawy przycisk → <em>Languages</em> → wybierz
+                        zainstalowany słownik.
+                      </li>
                     </ol>
                   </Typography>
                 </>
@@ -683,17 +799,22 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
 
               {browser === 'other' && (
                 <Typography variant="body2">
-                  Nie udało się wykryć twojej przeglądarki. Sprawdź w ustawieniach przeglądarki sekcję
-                  "Languages" lub "Spell check" i upewnij się że
-                  <strong> {SPELL_LANGUAGES.find(l => l.code === spellLanguage)?.label ?? spellLanguage} </strong>
+                  Nie udało się wykryć twojej przeglądarki. Sprawdź w ustawieniach przeglądarki
+                  sekcję "Languages" lub "Spell check" i upewnij się że
+                  <strong>
+                    {' '}
+                    {SPELL_LANGUAGES.find((l) => l.code === spellLanguage)?.label ??
+                      spellLanguage}{' '}
+                  </strong>
                   jest aktywnym słownikiem.
                 </Typography>
               )}
 
               <Divider sx={{ my: 2 }} />
               <Typography variant="caption" color="text.secondary">
-                Edytor nie dystrybuuje słowników — to celowe, bo systemowe / wbudowane są zoptymalizowane,
-                aktualizowane przez producenta przeglądarki i działają również w innych aplikacjach.
+                Edytor nie dystrybuuje słowników — to celowe, bo systemowe / wbudowane są
+                zoptymalizowane, aktualizowane przez producenta przeglądarki i działają również w
+                innych aplikacjach.
               </Typography>
             </DialogContent>
             <DialogActions>
@@ -787,7 +908,10 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
         </IconButton>
       </Tooltip>
       <Tooltip title="Math Block (LaTeX)">
-        <IconButton size="small" onClick={() => editor.chain().focus().insertMathBlock('E = mc^2').run()}>
+        <IconButton
+          size="small"
+          onClick={() => editor.chain().focus().insertMathBlock('E = mc^2').run()}
+        >
           <FunctionsIcon fontSize="small" />
         </IconButton>
       </Tooltip>
@@ -872,11 +996,7 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
 
       {/* Dictation dialog — full screen, mounted lazily on first open */}
       {dictateDialog && (
-        <DictationDialog
-          open
-          text={dictateDialog.text}
-          onClose={() => setDictateDialog(null)}
-        />
+        <DictationDialog open text={dictateDialog.text} onClose={() => setDictateDialog(null)} />
       )}
 
       {/* Manual paste fallback (mobile / HTTP / blocked clipboard) */}
@@ -887,9 +1007,9 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
           </DialogTitle>
           <DialogContent>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Twoja przeglądarka nie pozwoliła odczytać schowka automatycznie.
-              Wklej zawartość poniżej (<code>⌘V</code>/<code>Ctrl+V</code> na desktopie,
-              przytrzymaj pole → <strong>Wklej</strong> na mobile), a po kliknięciu
+              Twoja przeglądarka nie pozwoliła odczytać schowka automatycznie. Wklej zawartość
+              poniżej (<code>⌘V</code>/<code>Ctrl+V</code> na desktopie, przytrzymaj pole →{' '}
+              <strong>Wklej</strong> na mobile), a po kliknięciu
               <strong> Wstaw</strong> zostanie sparsowana jako Markdown.
             </Typography>
             <TextField
@@ -907,13 +1027,21 @@ const MdEditorToolbar: React.FC<MdEditorToolbarProps> = ({
                 }
               }}
               placeholder="# Nagłówek&#10;&#10;**pogrubiony** tekst, _kursywa_, [link](https://…)"
-              slotProps={{ htmlInput: { style: { fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace', fontSize: 13 } } }}
+              slotProps={{
+                htmlInput: {
+                  style: { fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace', fontSize: 13 },
+                },
+              }}
               helperText={`${pasteDialog.text.length} znaków · Ctrl+Enter wstawia`}
             />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setPasteDialog(null)}>Anuluj</Button>
-            <Button variant="contained" disabled={!pasteDialog.text.trim()} onClick={confirmPasteDialog}>
+            <Button
+              variant="contained"
+              disabled={!pasteDialog.text.trim()}
+              onClick={confirmPasteDialog}
+            >
               Wstaw
             </Button>
           </DialogActions>

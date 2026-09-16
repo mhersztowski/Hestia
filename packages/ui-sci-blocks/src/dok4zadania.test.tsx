@@ -5,9 +5,13 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '4-Zadania.md';
-const pliki = [DOK, '4-2-stale-przyspieszenie.md', '4-4-ruch-po-okregu.md',
-  '3-10-spadek-swobodny.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [
+  DOK,
+  '4-2-stale-przyspieszenie.md',
+  '4-4-ruch-po-okregu.md',
+  '3-10-spadek-swobodny.md',
+  'Slownik.md',
+].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const cel = (id: string) =>
@@ -15,12 +19,13 @@ const cel = (id: string) =>
 const resolveRef = (id: string) => {
   const c = cel(id);
   if (!c.found || !c.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[c.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[c.path] ?? ''
+  );
   return { code: m?.[1], kind: c.kind, sameDocument: c.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 const tresc = () => bodies[DOK].split('## Uwagi redakcyjne')[0];
 
@@ -39,8 +44,14 @@ describe('Zadania rozdziału 4 w czytniku', () => {
     expect(id[0]).toBe('rh1-zad-4-1');
     expect(id[41]).toBe('rh1-zad-4-42');
     const grupy = tresc().match(/^### Paragraf 4-\d$/gm) ?? [];
-    expect(grupy).toEqual(['### Paragraf 4-1', '### Paragraf 4-2', '### Paragraf 4-3',
-      '### Paragraf 4-4', '### Paragraf 4-5', '### Paragraf 4-6']);
+    expect(grupy).toEqual([
+      '### Paragraf 4-1',
+      '### Paragraf 4-2',
+      '### Paragraf 4-3',
+      '### Paragraf 4-4',
+      '### Paragraf 4-5',
+      '### Paragraf 4-6',
+    ]);
   });
 
   /**
@@ -99,8 +110,13 @@ describe('Zadania rozdziału 4 w czytniku', () => {
 
   it('pięć rysunków, jeden służy dwóm zadaniom', () => {
     const d = index.documents.find((x) => x.path === DOK);
-    expect(d?.figures.map((f) => f.id))
-      .toEqual(['rh1-4-rys14', 'rh1-4-rys15', 'rh1-4-rys16', 'rh1-4-rys17', 'rh1-4-rys18']);
+    expect(d?.figures.map((f) => f.id)).toEqual([
+      'rh1-4-rys14',
+      'rh1-4-rys15',
+      'rh1-4-rys16',
+      'rh1-4-rys17',
+      'rh1-4-rys18',
+    ]);
     expect(widok().container.querySelectorAll('img')).toHaveLength(5);
     expect(tekst()).toContain('Rys. 4-14. Zadania 7 i 15');
   });

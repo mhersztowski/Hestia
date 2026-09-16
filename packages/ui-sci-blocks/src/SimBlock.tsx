@@ -14,8 +14,14 @@
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import {
-  buildGraph, formatIn, knownAfter, serializeFormulaBlock, suggestViews, walkthrough,
-  type FormulaBlock, type ViewSpec,
+  buildGraph,
+  formatIn,
+  knownAfter,
+  serializeFormulaBlock,
+  suggestViews,
+  walkthrough,
+  type FormulaBlock,
+  type ViewSpec,
 } from '@hestia/core-sci';
 import { buildSimSetup } from './documentModel';
 import { ModelViews } from './ModelViews';
@@ -44,11 +50,21 @@ export interface SimBlockProps {
   workerFactory?: WorkerFactory;
 }
 
-const box: CSSProperties = { border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff', padding: 10 };
+const box: CSSProperties = {
+  border: '1px solid #e2e8f0',
+  borderRadius: 6,
+  background: '#fff',
+  padding: 10,
+};
 const label: CSSProperties = { fontSize: 11, color: '#64748b' };
 const btn: CSSProperties = {
-  fontSize: 12, padding: '3px 10px', borderRadius: 4,
-  border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#334155',
+  fontSize: 12,
+  padding: '3px 10px',
+  borderRadius: 4,
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#334155',
 };
 
 /**
@@ -63,7 +79,10 @@ function usedId(setup: { usedFormulas: Array<{ id: string }> }): string | undefi
 
 export function SimBlock({ code, formulas, onChange, bare, workerFactory }: SimBlockProps) {
   const setup = useMemo(() => buildSimSetup(formulas, code), [formulas, code]);
-  const allViews = useMemo(() => suggestViews(setup.model, setup.spec.view), [setup.model, setup.spec.view]);
+  const allViews = useMemo(
+    () => suggestViews(setup.model, setup.spec.view),
+    [setup.model, setup.spec.view]
+  );
 
   /**
    * Wyprowadzenie krok po kroku.
@@ -85,13 +104,27 @@ export function SimBlock({ code, formulas, onChange, bare, workerFactory }: SimB
   const [current, setCurrent] = useState<Record<string, number>>(setup.values);
 
   return (
-    <div style={bare
-      ? { display: 'flex', flexDirection: 'column', gap: 10 }
-      : { ...box, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div
+      style={
+        bare
+          ? { display: 'flex', flexDirection: 'column', gap: 10 }
+          : { ...box, display: 'flex', flexDirection: 'column', gap: 10 }
+      }
+    >
       {/* W ramce hosta uwagi pokazuje `BlockShell` — tutaj tylko poza nim. */}
       {!bare && setup.issues.length > 0 && (
-        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', borderRadius: 4, padding: '6px 8px' }}>
-          {setup.issues.map((issue, index) => <div key={index}>{issue}</div>)}
+        <div
+          style={{
+            fontSize: 11,
+            color: '#b91c1c',
+            background: '#fef2f2',
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
+          {setup.issues.map((issue, index) => (
+            <div key={index}>{issue}</div>
+          ))}
         </div>
       )}
 
@@ -99,7 +132,11 @@ export function SimBlock({ code, formulas, onChange, bare, workerFactory }: SimB
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <button
             type="button"
-            style={step === undefined ? btn : { ...btn, background: '#dbeafe', borderColor: '#2563eb', color: '#1e40af' }}
+            style={
+              step === undefined
+                ? btn
+                : { ...btn, background: '#dbeafe', borderColor: '#2563eb', color: '#1e40af' }
+            }
             onClick={() => setStep(step === undefined ? 0 : undefined)}
             title="Odsłania wyprowadzenie wzór po wzorze, w kolejności wynikającej z grafu"
           >
@@ -107,14 +144,32 @@ export function SimBlock({ code, formulas, onChange, bare, workerFactory }: SimB
           </button>
           {step !== undefined && (
             <>
-              <button type="button" style={btn} disabled={step === 0} onClick={() => setStep(step - 1)}>←</button>
-              <button type="button" style={btn} disabled={step === steps.length - 1} onClick={() => setStep(step + 1)}>→</button>
+              <button
+                type="button"
+                style={btn}
+                disabled={step === 0}
+                onClick={() => setStep(step - 1)}
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                style={btn}
+                disabled={step === steps.length - 1}
+                onClick={() => setStep(step + 1)}
+              >
+                →
+              </button>
               <span style={label}>
-                krok {step + 1}/{steps.length}: <strong style={{ color: '#0f172a' }}>{steps[step].formulaId}</strong>
+                krok {step + 1}/{steps.length}:{' '}
+                <strong style={{ color: '#0f172a' }}>{steps[step].formulaId}</strong>
                 {' → '}
                 {steps[step].produces.join(', ')}
                 {steps[step].assumptions.length > 0 && (
-                  <span style={{ color: '#92400e' }}> · przy założeniu: {steps[step].assumptions.join(', ')}</span>
+                  <span style={{ color: '#92400e' }}>
+                    {' '}
+                    · przy założeniu: {steps[step].assumptions.join(', ')}
+                  </span>
                 )}
               </span>
             </>
@@ -150,7 +205,9 @@ export function SimBlock({ code, formulas, onChange, bare, workerFactory }: SimB
           >
             Zapisz nastawy w bloku
           </button>
-          <span>widoków: {views.length} · parametrów: {setup.model.parameters.length}</span>
+          <span>
+            widoków: {views.length} · parametrów: {setup.model.parameters.length}
+          </span>
         </div>
       )}
     </div>
@@ -160,26 +217,37 @@ export function SimBlock({ code, formulas, onChange, bare, workerFactory }: SimB
 /** Wielkości, których widok potrzebuje — po nich zawęża się wykład. */
 function viewNames(view: ViewSpec): string[] {
   switch (view.kind) {
-    case 'angular2d': return [view.angle];
-    case 'path2d': return [view.x, view.y];
-    case 'path3d': return [view.x, view.y, view.z];
-    case 'phase': return [view.x, view.y];
-    case 'timeseries': return view.names;
-    case 'scalars': return view.names;
-    default: return [];
+    case 'angular2d':
+      return [view.angle];
+    case 'path2d':
+      return [view.x, view.y];
+    case 'path3d':
+      return [view.x, view.y, view.z];
+    case 'phase':
+      return [view.x, view.y];
+    case 'timeseries':
+      return view.names;
+    case 'scalars':
+      return view.names;
+    default:
+      return [];
   }
 }
 
 /** Ustawienia bloku z obecnymi wartościami suwaków — z jednostkami. */
-function currentSpec(setup: ReturnType<typeof buildSimSetup>, values: Record<string, number>): Record<string, unknown> {
+function currentSpec(
+  setup: ReturnType<typeof buildSimSetup>,
+  values: Record<string, number>
+): Record<string, unknown> {
   const spec: Record<string, unknown> = { ...setup.spec };
   for (const parameter of setup.model.parameters) {
     const value = values[parameter.name];
     if (value === undefined) continue;
     // Jednostka zostaje przy wartości: „1.5 m" niesie znaczenie, samo 1.5 nie.
-    spec[parameter.name] = parameter.unit && parameter.unit !== '1'
-      ? formatIn(value, parameter.unit, 4)
-      : Number(value.toPrecision(4));
+    spec[parameter.name] =
+      parameter.unit && parameter.unit !== '1'
+        ? formatIn(value, parameter.unit, 4)
+        : Number(value.toPrecision(4));
   }
   return spec;
 }

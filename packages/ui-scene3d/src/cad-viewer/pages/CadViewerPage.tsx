@@ -9,7 +9,9 @@ import { CAD_EXT, readFileAt } from '../vfs';
 import { loadProjectFromText, buildSVGString } from '../cad/buildSvg';
 import { PanZoom } from '../components/PanZoom';
 
-interface Props { vfsPath: string }
+interface Props {
+  vfsPath: string;
+}
 
 export function CadViewerPage({ vfsPath }: Props) {
   const [svg, setSvg] = useState<string | null>(null);
@@ -31,24 +33,61 @@ export function CadViewerPage({ vfsPath }: Props) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [vfsPath]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, bgcolor: '#1a1a1a', color: '#fff' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+        bgcolor: '#1a1a1a',
+        color: '#fff',
+      }}
+    >
       <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0 }}>
         {!svg && !error && (
-          <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress size={32} /></Box>
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <CircularProgress size={32} />
+          </Box>
         )}
         {error && (
-          <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography sx={{ color: 'error.main', fontSize: 14 }}>Failed to load: {error}</Typography>
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography sx={{ color: 'error.main', fontSize: 14 }}>
+              Failed to load: {error}
+            </Typography>
           </Box>
         )}
         {svg && (
           <PanZoom>
-            <Box dangerouslySetInnerHTML={{ __html: svg }}
-              sx={{ width: '100%', height: '100%', '& svg': { display: 'block', width: '100%', height: '100%' } }} />
+            <Box
+              dangerouslySetInnerHTML={{ __html: svg }}
+              sx={{
+                width: '100%',
+                height: '100%',
+                '& svg': { display: 'block', width: '100%', height: '100%' },
+              }}
+            />
           </PanZoom>
         )}
       </Box>

@@ -39,13 +39,19 @@ describe('issueSummary', () => {
 
   it('pięć i więcej — dopełniacz', () => {
     expect(issueSummary([1, 2, 3, 4, 5].map((n) => ({ message: String(n) })))).toBe('5 uwag');
-    expect(issueSummary(Array.from({ length: 12 }, (_, n) => ({ message: String(n) })))).toBe('12 uwag');
+    expect(issueSummary(Array.from({ length: 12 }, (_, n) => ({ message: String(n) })))).toBe(
+      '12 uwag'
+    );
   });
 
   it('liczebniki od 22 wzwyż wracają do formy bliższej', () => {
     // Po polsku „22 uwagi", ale „12 uwag" — decyduje ostatnia cyfra przy
     // dziesiątce innej niż 1.
-    expect(issueSummary(Array.from({ length: 22 }, (_, n) => ({ message: String(n) })))).toBe('22 uwagi');
-    expect(issueSummary(Array.from({ length: 25 }, (_, n) => ({ message: String(n) })))).toBe('25 uwag');
+    expect(issueSummary(Array.from({ length: 22 }, (_, n) => ({ message: String(n) })))).toBe(
+      '22 uwagi'
+    );
+    expect(issueSummary(Array.from({ length: 25 }, (_, n) => ({ message: String(n) })))).toBe(
+      '25 uwag'
+    );
   });
 });

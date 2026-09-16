@@ -12,9 +12,20 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, Stack, Box, Typography, Divider,
-  IconButton, Tooltip, CircularProgress, InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Stack,
+  Box,
+  Typography,
+  Divider,
+  IconButton,
+  Tooltip,
+  CircularProgress,
+  InputAdornment,
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
@@ -39,11 +50,15 @@ export interface InfoMarkDialogProps {
 }
 
 const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
-  open, onClose, initial, onSubmit, mode = 'insert',
+  open,
+  onClose,
+  initial,
+  onSubmit,
+  mode = 'insert',
 }) => {
-  const [text,  setText]  = useState(initial?.text  ?? '');
+  const [text, setText] = useState(initial?.text ?? '');
   const [title, setTitle] = useState(initial?.title ?? '');
-  const [body,  setBody]  = useState(initial?.body  ?? '');
+  const [body, setBody] = useState(initial?.body ?? '');
   const [bodyPath, setBodyPath] = useState(initial?.bodyPath ?? '');
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -61,9 +76,9 @@ const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
   // because useState's initial value is only used on first render.
   useEffect(() => {
     if (open) {
-      setText(initial?.text  ?? '');
+      setText(initial?.text ?? '');
       setTitle(initial?.title ?? '');
-      setBody(initial?.body  ?? '');
+      setBody(initial?.body ?? '');
       setBodyPath(initial?.bodyPath ?? '');
       setFilePreview(null);
       setPreviewError(null);
@@ -82,10 +97,18 @@ const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
     setPreviewError(null);
     if (!readFile) return;
     readFile(bodyPath)
-      .then((r) => { if (!cancelled) setFilePreview(r?.content ?? ''); })
-      .catch((err) => { if (!cancelled) setPreviewError((err as Error).message); })
-      .finally(() => { if (!cancelled) setPreviewLoading(false); });
-    return () => { cancelled = true; };
+      .then((r) => {
+        if (!cancelled) setFilePreview(r?.content ?? '');
+      })
+      .catch((err) => {
+        if (!cancelled) setPreviewError((err as Error).message);
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [bodyPath, readFile]);
 
   const handlePickerSelect = useCallback((path: string) => {
@@ -104,7 +127,7 @@ const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
 
   const handleSubmit = () => {
     const trimmed = text.trim();
-    if (!trimmed) return;       // text is required — no submit on empty
+    if (!trimmed) return; // text is required — no submit on empty
     onSubmit({ text: trimmed, title: title.trim(), body, bodyPath });
     onClose();
   };
@@ -121,7 +144,7 @@ const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
             autoFocus
             label="Widoczny tekst"
             value={text}
-            onChange={e => setText(e.target.value)}
+            onChange={(e) => setText(e.target.value)}
             helperText="Tekst wyświetlany w dokumencie jako klikalne wyróżnienie."
             fullWidth
             size="small"
@@ -129,7 +152,7 @@ const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
           <TextField
             label="Tytuł popupu (opcjonalny)"
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={(e) => setTitle(e.target.value)}
             helperText="Pojawia się jako nagłówek okienka po kliknięciu."
             fullWidth
             size="small"
@@ -183,23 +206,27 @@ const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
             <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
               Podgląd treści:
             </Typography>
-            <Box sx={{
-              p: 1.5,
-              border: '1px dashed',
-              borderColor: 'divider',
-              borderRadius: 1,
-              bgcolor: 'action.hover',
-              minHeight: 80,
-              maxHeight: 320,
-              overflow: 'auto',
-              fontSize: '0.875rem',
-              '& p:first-of-type': { mt: 0 },
-              '& p:last-of-type':  { mb: 0 },
-              '& code': { backgroundColor: 'background.paper', px: 0.5, borderRadius: 0.5 },
-            }}>
+            <Box
+              sx={{
+                p: 1.5,
+                border: '1px dashed',
+                borderColor: 'divider',
+                borderRadius: 1,
+                bgcolor: 'action.hover',
+                minHeight: 80,
+                maxHeight: 320,
+                overflow: 'auto',
+                fontSize: '0.875rem',
+                '& p:first-of-type': { mt: 0 },
+                '& p:last-of-type': { mb: 0 },
+                '& code': { backgroundColor: 'background.paper', px: 0.5, borderRadius: 0.5 },
+              }}
+            >
               {bodyPath ? (
                 previewLoading ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}
+                  >
                     <CircularProgress size={14} />
                     <Typography variant="body2">Wczytuję plik…</Typography>
                   </Box>
@@ -215,7 +242,11 @@ const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
                 // inline. Surface it read-only so the author isn't surprised
                 // by missing content; switching to bodyPath will drop it.
                 <>
-                  <Typography variant="caption" color="warning.main" sx={{ display: 'block', mb: 0.5 }}>
+                  <Typography
+                    variant="caption"
+                    color="warning.main"
+                    sx={{ display: 'block', mb: 0.5 }}
+                  >
                     Treść inline (legacy) — wybierz plik powyżej, aby ją zastąpić.
                   </Typography>
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
@@ -233,12 +264,15 @@ const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
           {/* Inline preview of how the marker will look in the document. */}
           <Typography variant="caption" color="text.secondary">
             Podgląd w tekście:&nbsp;
-            <Box component="span" sx={{
-              color: 'primary.main',
-              textDecoration: 'underline dotted',
-              textUnderlineOffset: '3px',
-              cursor: 'help',
-            }}>
+            <Box
+              component="span"
+              sx={{
+                color: 'primary.main',
+                textDecoration: 'underline dotted',
+                textUnderlineOffset: '3px',
+                cursor: 'help',
+              }}
+            >
               {text || <em style={{ opacity: 0.6 }}>tekst</em>}
             </Box>
           </Typography>
@@ -246,11 +280,7 @@ const InfoMarkDialog: React.FC<InfoMarkDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Anuluj</Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={!text.trim()}
-        >
+        <Button onClick={handleSubmit} variant="contained" disabled={!text.trim()}>
           {mode === 'edit' ? 'Zapisz' : 'Wstaw'}
         </Button>
       </DialogActions>

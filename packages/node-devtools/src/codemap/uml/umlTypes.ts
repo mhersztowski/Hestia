@@ -8,8 +8,13 @@
 export type UmlKind = 'class' | 'abstract' | 'interface' | 'enum' | 'struct' | 'module';
 export type MemberKind = 'field' | 'method';
 export type RelType =
-  | 'association' | 'directed' | 'aggregation' | 'composition'
-  | 'generalization' | 'realization' | 'dependency';
+  | 'association'
+  | 'directed'
+  | 'aggregation'
+  | 'composition'
+  | 'generalization'
+  | 'realization'
+  | 'dependency';
 
 export interface UmlMember {
   id: string;
@@ -70,4 +75,9 @@ export interface UmlEdge {
   data: UmlEdgeData;
 }
 
-export interface UmlDiagram { id: string; name: string; nodes: UmlNode[]; edges: UmlEdge[] }
+export interface UmlDiagram {
+  id: string;
+  name: string;
+  nodes: UmlNode[];
+  edges: UmlEdge[];
+}

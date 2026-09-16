@@ -125,7 +125,9 @@ function paramSchema(name: string, units: Record<string, string>): ParamSchema {
 }
 
 export function compileGraph(graph: FormulaGraph): PhenomenonModel {
-  const issues = graph.issues.map((i) => (i.formulaId ? `[${i.formulaId}] ${i.message}` : i.message));
+  const issues = graph.issues.map((i) =>
+    i.formulaId ? `[${i.formulaId}] ${i.message}` : i.message
+  );
 
   // Jednostki zbieramy ze wszystkich bloków: parametr bywa zadeklarowany w
   // jednym wzorze, a używany w drugim.
@@ -146,7 +148,10 @@ export function compileGraph(graph: FormulaGraph): PhenomenonModel {
     .map((node) => ({
       node,
       target: node.block.target!,
-      compiled: compileExpression(node.block.expression!, [...Object.keys(units), ...(odeNode?.outputs ?? [])]),
+      compiled: compileExpression(node.block.expression!, [
+        ...Object.keys(units),
+        ...(odeNode?.outputs ?? []),
+      ]),
     }));
 
   /**
@@ -159,11 +164,14 @@ export function compileGraph(graph: FormulaGraph): PhenomenonModel {
    * a cała trajektoria wychodziła `NaN`.
    */
   const odePosition = odeNode ? order.indexOf(odeNode.block.id) : -1;
-  const beforeOde = definitions.filter((d) => odePosition < 0 || order.indexOf(d.node.block.id) < odePosition);
+  const beforeOde = definitions.filter(
+    (d) => odePosition < 0 || order.indexOf(d.node.block.id) < odePosition
+  );
   const afterOde = definitions.filter((d) => !beforeOde.includes(d));
 
   for (const definition of definitions) {
-    for (const issue of definition.compiled.issues) issues.push(`[${definition.node.block.id}] ${issue}`);
+    for (const issue of definition.compiled.issues)
+      issues.push(`[${definition.node.block.id}] ${issue}`);
   }
 
   const stateNames = ode?.state ?? [];
@@ -176,13 +184,14 @@ export function compileGraph(graph: FormulaGraph): PhenomenonModel {
    * wtedy przy niej. Niezmiennik nie wchodzi do obliczeń, więc nie ma go
    * w kolejności topologicznej — jest czytany dopiero na gotowej trajektorii.
    */
-  const invariantDefs = graph.nodes.flatMap((node) => Object
-    .entries(node.block.invariants ?? {})
-    .map((entry) => {
+  const invariantDefs = graph.nodes.flatMap((node) =>
+    Object.entries(node.block.invariants ?? {}).map((entry) => {
       const [name, expression] = entry;
       const known = [
-        ...Object.keys(units), ...stateNames,
-        ...definitions.map((d) => d.target), ...parameters.map((p) => p.name),
+        ...Object.keys(units),
+        ...stateNames,
+        ...definitions.map((d) => d.target),
+        ...parameters.map((p) => p.name),
       ];
       const compiled = compileExpression(expression, known);
       for (const issue of compiled.issues) {
@@ -196,20 +205,27 @@ export function compileGraph(graph: FormulaGraph): PhenomenonModel {
       const nieznane = compiled.freeSymbols.filter((symbol) => !known.includes(symbol));
       if (nieznane.length) {
         issues.push(
-          `[${node.block.id}] niezmiennik „${name}" używa wielkości spoza modelu: ${nieznane.join(', ')}.`,
+          `[${node.block.id}] niezmiennik „${name}" używa wielkości spoza modelu: ${nieznane.join(', ')}.`
         );
       }
       return { name, compiled };
-    }));
+    })
+  );
 
   const observables: ObservableDef[] = [
     ...stateNames.map((name): ObservableDef => ({
-      name, kind: 'series', unit: units[name], formulaId: odeNode?.block.id, fromState: true,
+      name,
+      kind: 'series',
+      unit: units[name],
+      formulaId: odeNode?.block.id,
+      fromState: true,
     })),
     ...definitions.map((definition): ObservableDef => ({
       name: definition.target,
       // Wielkość zależna od stanu zmienia się w czasie — to przebieg, nie liczba.
-      kind: definition.compiled.freeSymbols.some((s) => stateNames.includes(s)) ? 'series' : 'scalar',
+      kind: definition.compiled.freeSymbols.some((s) => stateNames.includes(s))
+        ? 'series'
+        : 'scalar',
       unit: units[definition.target],
       formulaId: definition.node.block.id,
     })),
@@ -260,7 +276,9 @@ export function compileGraph(graph: FormulaGraph): PhenomenonModel {
 
         series[definition.target] = trajectory.samples.map((sample) => {
           const local = { ...scope };
-          stateNames.forEach((name, index) => { local[name] = sample.y[index]; });
+          stateNames.forEach((name, index) => {
+            local[name] = sample.y[index];
+          });
           return [sample.t, definition.compiled.evaluate(local)] as [number, number];
         });
       }
@@ -273,11 +291,17 @@ export function compileGraph(graph: FormulaGraph): PhenomenonModel {
       // pomocnicze — energia bywa wyrażona przez \omega_0 policzone osobnym
       // wzorem, a nie wprost przez parametry.
       const invariants = trajectory
-        ? invariantDefs.map(({ name, compiled }) => measureInvariant(trajectory, (state) => {
-          const local = { ...scope };
-          for (let i = 0; i < stateNames.length; i += 1) local[stateNames[i]] = state[i];
-          return compiled.evaluate(local);
-        }, { name }))
+        ? invariantDefs.map(({ name, compiled }) =>
+            measureInvariant(
+              trajectory,
+              (state) => {
+                const local = { ...scope };
+                for (let i = 0; i < stateNames.length; i += 1) local[stateNames[i]] = state[i];
+                return compiled.evaluate(local);
+              },
+              { name }
+            )
+          )
         : [];
 
       return { scalars, trajectory, series, invariants, error };
@@ -321,8 +345,8 @@ function compileOde(node: GraphNode, issues: string[]) {
   let method = (block.solver ?? 'rk4').toLowerCase();
   if (method === 'verlet' && !verletUsable) {
     issues.push(
-      `[${block.id}] Verlet wymaga stanu złożonego z par „położenie, prędkość" `
-      + '(każda zmienna z własną pochodną w stanie). Liczę metodą RK4.',
+      `[${block.id}] Verlet wymaga stanu złożonego z par „położenie, prędkość" ` +
+        '(każda zmienna z własną pochodną w stanie). Liczę metodą RK4.'
     );
     method = 'rk4';
   }
@@ -345,21 +369,22 @@ function compileOde(node: GraphNode, issues: string[]) {
    * dotyczy dokładności wyniku, a nie wygody.
    */
   const comparisons = (block.events ?? []).map((event) => compileComparison(event.when, known));
-  const zdarzeniaDokładne = comparisons.length > 0 && comparisons.every((c) => !!c && !c.issues.length);
+  const zdarzeniaDokładne =
+    comparisons.length > 0 && comparisons.every((c) => !!c && !c.issues.length);
 
   if (method === 'rosenbrock' && (block.events ?? []).length) {
     issues.push(
-      `[${block.id}] Metoda niejawna sprawdza zdarzenia po kroku, a jej kroki bywają długie — `
-      + 'chwila zdarzenia będzie przybliżona. Jeśli układ nie jest sztywny, dokładne zdarzenia '
-      + 'daje `@solver dopri5`.',
+      `[${block.id}] Metoda niejawna sprawdza zdarzenia po kroku, a jej kroki bywają długie — ` +
+        'chwila zdarzenia będzie przybliżona. Jeśli układ nie jest sztywny, dokładne zdarzenia ' +
+        'daje `@solver dopri5`.'
     );
   }
 
   if (method === 'dopri5' && comparisons.length && !zdarzeniaDokładne) {
     issues.push(
-      `[${block.id}] Warunku zdarzenia nie da się rozłożyć na jedną wielkość przechodzącą przez zero `
-      + '(np. jest koniunkcją), więc chwila zdarzenia będzie przybliżona — ograniczam krok z góry, '
-      + 'żeby próg nie został przestrzelony. Prosty warunek postaci „wielkość < próg" liczy się dokładnie.',
+      `[${block.id}] Warunku zdarzenia nie da się rozłożyć na jedną wielkość przechodzącą przez zero ` +
+        '(np. jest koniunkcją), więc chwila zdarzenia będzie przybliżona — ograniczam krok z góry, ' +
+        'żeby próg nie został przestrzelony. Prosty warunek postaci „wielkość < próg" liczy się dokładnie.'
     );
   }
 
@@ -412,21 +437,21 @@ function compileOde(node: GraphNode, issues: string[]) {
        */
       const onStep = events.length
         ? (t: number, y: number[]) => {
-          const local: Record<string, number> = { ...scope, t };
-          for (let i = 0; i < state.length; i += 1) local[state[i]] = y[i];
+            const local: Record<string, number> = { ...scope, t };
+            for (let i = 0; i < state.length; i += 1) local[state[i]] = y[i];
 
-          let next: number[] | undefined;
-          for (const event of events) {
-            if (!event.condition.test(local)) continue;
-            if (event.stop) return 'stop' as const;
-            next = next ?? [...y];
-            for (const { name, compiled } of event.assign) {
-              const index = state.indexOf(name);
-              if (index >= 0) next[index] = compiled.evaluate(local);
+            let next: number[] | undefined;
+            for (const event of events) {
+              if (!event.condition.test(local)) continue;
+              if (event.stop) return 'stop' as const;
+              next = next ?? [...y];
+              for (const { name, compiled } of event.assign) {
+                const index = state.indexOf(name);
+                if (index >= 0) next[index] = compiled.evaluate(local);
+              }
             }
+            return next;
           }
-          return next;
-        }
         : undefined;
 
       const options = { dt, sampleEvery: 4, stateNames: state, onStep };
@@ -456,30 +481,30 @@ function compileOde(node: GraphNode, issues: string[]) {
          */
         const eventSpecs: EventSpec[] = zdarzeniaDokładne
           ? events.map((event, i): EventSpec => {
-            const comparison = comparisons[i]!;
-            const scopeAt = (t: number, y: number[]) => {
-              const at: Record<string, number> = { ...scope, t };
-              for (let j = 0; j < state.length; j += 1) at[state[j]] = y[j];
-              return at;
-            };
-            return {
-              name: block.events![i].when,
-              g: (t, y) => comparison.value(scopeAt(t, y)),
-              direction: comparison.direction,
-              stop: event.stop,
-              apply: event.assign.length
-                ? (t, y) => {
-                  const at = scopeAt(t, y);
-                  const next = [...y];
-                  for (const { name, compiled } of event.assign) {
-                    const index = state.indexOf(name);
-                    if (index >= 0) next[index] = compiled.evaluate(at);
-                  }
-                  return next;
-                }
-                : undefined,
-            };
-          })
+              const comparison = comparisons[i]!;
+              const scopeAt = (t: number, y: number[]) => {
+                const at: Record<string, number> = { ...scope, t };
+                for (let j = 0; j < state.length; j += 1) at[state[j]] = y[j];
+                return at;
+              };
+              return {
+                name: block.events![i].when,
+                g: (t, y) => comparison.value(scopeAt(t, y)),
+                direction: comparison.direction,
+                stop: event.stop,
+                apply: event.assign.length
+                  ? (t, y) => {
+                      const at = scopeAt(t, y);
+                      const next = [...y];
+                      for (const { name, compiled } of event.assign) {
+                        const index = state.indexOf(name);
+                        if (index >= 0) next[index] = compiled.evaluate(at);
+                      }
+                      return next;
+                    }
+                  : undefined,
+              };
+            })
           : [];
         return dopri5(f, y0, tSpan, {
           rtol,
@@ -497,7 +522,7 @@ function compileOde(node: GraphNode, issues: string[]) {
           // Ograniczenie kroku też jest już tylko dla tego przypadku: adaptacja
           // rozciąga krok tam, gdzie rozwiązanie jest gładkie, a próg bywa
           // właśnie na gładkim odcinku.
-          maxStep: (!zdarzeniaDokładne && events.length) ? (tSpan[1] - tSpan[0]) / 500 : undefined,
+          maxStep: !zdarzeniaDokładne && events.length ? (tSpan[1] - tSpan[0]) / 500 : undefined,
           // Niżej niż domyślny limit solvera: to jest blok w dokumencie, a nie
           // obliczenie w tle. Czytelnik ma dostać komunikat „układ jest sztywny"
           // po chwili, a nie po kilku sekundach zamrożonej strony — a żaden
@@ -515,10 +540,14 @@ function compileOde(node: GraphNode, issues: string[]) {
 
         const acceleration = (t: number, x: number[]) => {
           const local: Record<string, number> = { ...scope, t };
-          positions.forEach((name, i) => { local[name] = x[i]; });
+          positions.forEach((name, i) => {
+            local[name] = x[i];
+          });
           // Prędkości bierzemy z ostatniego znanego stanu — dla sił zależnych
           // wyłącznie od położenia (a takich dotyczy Verlet) nie są używane.
-          velocities.forEach((name) => { local[name] = local[name] ?? 0; });
+          velocities.forEach((name) => {
+            local[name] = local[name] ?? 0;
+          });
           return velocities.map((name) => derivatives[indexOf(name)].evaluate(local));
         };
 
@@ -544,7 +573,7 @@ export function defaultValues(model: PhenomenonModel): Record<string, number> {
 /** Nadpisuje parametry wartościami z dokumentu („1 m", „15 deg"). */
 export function applyOverrides(
   model: PhenomenonModel,
-  overrides: Record<string, string | number>,
+  overrides: Record<string, string | number>
 ): { values: Record<string, number>; issues: string[] } {
   const values = defaultValues(model);
   const issues: string[] = [];

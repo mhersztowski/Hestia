@@ -80,18 +80,23 @@ describe('rozwiązywanie', () => {
   const [k] = parseConflicts(zKonfliktem);
 
   it('moja wersja', () => {
-    expect(resolveConflict(zKonfliktem, k, 'ours')).toBe('const a = 1;\nconst b = 2;\nconst c = 4;');
+    expect(resolveConflict(zKonfliktem, k, 'ours')).toBe(
+      'const a = 1;\nconst b = 2;\nconst c = 4;'
+    );
   });
 
   it('ich wersja', () => {
-    expect(resolveConflict(zKonfliktem, k, 'theirs')).toBe('const a = 1;\nconst b = 3;\nconst c = 4;');
+    expect(resolveConflict(zKonfliktem, k, 'theirs')).toBe(
+      'const a = 1;\nconst b = 3;\nconst c = 4;'
+    );
   });
 
   // Najczęściej trafne przy dopisanych obok siebie importach albo pozycjach
   // listy — obie strony mają wtedy rację.
   it('obie wersje po kolei', () => {
-    expect(resolveConflict(zKonfliktem, k, 'both'))
-      .toBe('const a = 1;\nconst b = 2;\nconst b = 3;\nconst c = 4;');
+    expect(resolveConflict(zKonfliktem, k, 'both')).toBe(
+      'const a = 1;\nconst b = 2;\nconst b = 3;\nconst c = 4;'
+    );
   });
 
   it('wersja wyjściowa, gdy jest dostępna', () => {

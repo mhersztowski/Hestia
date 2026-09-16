@@ -19,11 +19,7 @@ import type { LayoutDoc, LayoutResult } from '../model/types';
 import { solveLayout } from './index';
 import { solveConstraint } from './constraint';
 
-export function dragShape(
-  doc: LayoutDoc,
-  id: string,
-  cel: { x: number; y: number },
-): LayoutResult {
+export function dragShape(doc: LayoutDoc, id: string, cel: { x: number; y: number }): LayoutResult {
   if (doc.mode !== 'constraint') {
     // Bez więzów nie ma czego godzić: nowa pozycja jest nową pozycją. Zwracamy
     // wynik zwykłego przeliczenia z podmienionym prostokątem, żeby wołający

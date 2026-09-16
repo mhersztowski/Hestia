@@ -31,22 +31,29 @@ const RYSUNEK = [
 
 // The knowledge base arrives as a service now, not as a module the view
 // imports — so the test supplies one instead of mocking a path.
-const pokaz = (attrs: Record<string, string>) => render(
-  <EditorServicesProvider services={{ knowledgeRefs: { resolve: (id: string) => rozwiaz(id) } }}>
-  <MemoryRouter>
-    {/* Widok czyta z `node` tylko `attrs`, więc reszta kontraktu jest zbędna. */}
-    <KnowledgeRefView {...({ node: { attrs } } as never)} />
-  </MemoryRouter>
-  </EditorServicesProvider>,
-);
+const pokaz = (attrs: Record<string, string>) =>
+  render(
+    <EditorServicesProvider services={{ knowledgeRefs: { resolve: (id: string) => rozwiaz(id) } }}>
+      <MemoryRouter>
+        {/* Widok czyta z `node` tylko `attrs`, więc reszta kontraktu jest zbędna. */}
+        <KnowledgeRefView {...({ node: { attrs } } as never)} />
+      </MemoryRouter>
+    </EditorServicesProvider>
+  );
 
 describe('dymek w edytorze na dotyku', () => {
   beforeEach(() => {
     nawigacja.mockReset();
     rozwiaz.mockReset();
     window.matchMedia = vi.fn().mockImplementation((q: string) => ({
-      matches: false, media: q, addEventListener: vi.fn(), removeEventListener: vi.fn(),
-      addListener: vi.fn(), removeListener: vi.fn(), onchange: null, dispatchEvent: vi.fn(),
+      matches: false,
+      media: q,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      onchange: null,
+      dispatchEvent: vi.fn(),
     }));
   });
 
@@ -60,7 +67,11 @@ describe('dymek w edytorze na dotyku', () => {
   });
 
   it('kliknięcie w przycisk nie jest brane za kliknięcie obok', async () => {
-    rozwiaz.mockResolvedValue({ kind: 'section', path: 'book/10-01.md', documentTitle: 'Co to jest zderzenie' });
+    rozwiaz.mockResolvedValue({
+      kind: 'section',
+      path: 'book/10-01.md',
+      documentTitle: 'Co to jest zderzenie',
+    });
     pokaz({ refId: 'rh1-sec-10-1', label: 'paragrafu 10-1' });
 
     fireEvent.click(screen.getByText('paragrafu 10-1'));
@@ -74,7 +85,11 @@ describe('dymek w edytorze na dotyku', () => {
   });
 
   it('paragraf pokazuje tytuł dokumentu', async () => {
-    rozwiaz.mockResolvedValue({ kind: 'section', path: 'book/10-01.md', documentTitle: 'Co to jest zderzenie' });
+    rozwiaz.mockResolvedValue({
+      kind: 'section',
+      path: 'book/10-01.md',
+      documentTitle: 'Co to jest zderzenie',
+    });
     pokaz({ refId: 'rh1-sec-10-1', label: 'paragrafu 10-1' });
 
     fireEvent.click(screen.getByText('paragrafu 10-1'));

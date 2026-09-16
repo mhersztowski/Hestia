@@ -26,16 +26,12 @@ export type { SpenNotesViewProps, FileOps, FileMenuItem } from './notes/SpenNote
 export { FileBrowser } from './notes/FileBrowser';
 export type { FileBrowserProps } from './notes/FileBrowser';
 
-export {
-    NOTE_EXTENSION, parentDir, sanitiseName, pathIn,
-} from './notes/store';
+export { NOTE_EXTENSION, parentDir, sanitiseName, pathIn } from './notes/store';
 export type { NoteStore, DirEntry } from './notes/store';
 
 export { defaultInkFor, isLightColor, needsInkSwitch } from './notes/notesInk';
 export { renderMarkdown } from './notes/markdown';
-export {
-    exportCanvasPdf, exportCanvasPng, exportCanvasSvg,
-} from './notes/exportGraphics';
+export { exportCanvasPdf, exportCanvasPng, exportCanvasSvg } from './notes/exportGraphics';
 
 // The Onyx Boox pen — away from those readers the bridge reports itself as
 // unavailable and the page handles the pen like any other browser.

@@ -53,7 +53,10 @@ export interface BlockShellProps {
  * napisać, i przepisuje przykład.
  */
 function DirectiveCheatSheet({
-  directives, filtr, onFiltr, accent,
+  directives,
+  filtr,
+  onFiltr,
+  accent,
 }: {
   directives: DirectiveInfo[];
   filtr: string;
@@ -63,28 +66,48 @@ function DirectiveCheatSheet({
   const pasujace = suggestDirectives(filtr, directives);
 
   return (
-    <div style={{
-      border: '1px solid #e2e8f0', borderRadius: 4, background: '#f8fafc',
-      padding: 8, display: 'flex', flexDirection: 'column', gap: 6,
-    }}>
+    <div
+      style={{
+        border: '1px solid #e2e8f0',
+        borderRadius: 4,
+        background: '#f8fafc',
+        padding: 8,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+      }}
+    >
       <input
         value={filtr}
         onChange={(e) => onFiltr(e.target.value)}
         placeholder="filtruj dyrektywy…"
         style={{
-          fontSize: 11, padding: '3px 6px', borderRadius: 4,
-          border: '1px solid #cbd5e1', fontFamily: 'monospace',
+          fontSize: 11,
+          padding: '3px 6px',
+          borderRadius: 4,
+          border: '1px solid #cbd5e1',
+          fontFamily: 'monospace',
         }}
       />
       {pasujace.length === 0 ? (
         <div style={{ fontSize: 11, color: '#94a3b8' }}>Nie ma takiej dyrektywy.</div>
       ) : (
-        <div style={{ maxHeight: 220, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <div
+          style={{
+            maxHeight: 220,
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 5,
+          }}
+        >
           {pasujace.map((d) => (
             <div key={d.name} style={{ fontSize: 11, lineHeight: 1.4 }}>
               <code style={{ color: accent, fontWeight: 600 }}>@{d.name}</code>
               <span style={{ color: '#475569' }}> — {d.summary}</span>
-              <div style={{ color: '#64748b', fontFamily: 'monospace', fontSize: 10 }}>{d.example}</div>
+              <div style={{ color: '#64748b', fontFamily: 'monospace', fontSize: 10 }}>
+                {d.example}
+              </div>
             </div>
           ))}
         </div>
@@ -104,7 +127,14 @@ const btn = (active: boolean): CSSProperties => ({
 });
 
 export function BlockShell({
-  kind, accent, id, toolbar, issues = [], children, view, directives,
+  kind,
+  accent,
+  id,
+  toolbar,
+  issues = [],
+  children,
+  view,
+  directives,
 }: BlockShellProps) {
   // Blok z uwagami otwiera się w kodzie: pokazywanie pustego widoku obok
   // komunikatu o błędzie zmuszałoby autora do zgadnięcia, gdzie szukać.
@@ -113,16 +143,18 @@ export function BlockShell({
   const [filtr, setFiltr] = useState('');
 
   return (
-    <div style={{
-      border: '1px solid #e2e8f0',
-      borderLeft: `4px solid ${accent}`,
-      borderRadius: 6,
-      background: '#fff',
-      padding: 10,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8,
-    }}>
+    <div
+      style={{
+        border: '1px solid #e2e8f0',
+        borderLeft: `4px solid ${accent}`,
+        borderRadius: 6,
+        background: '#fff',
+        padding: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+      }}
+    >
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: accent }}>{kind}</span>
         {id && <code style={{ fontSize: 11, color: '#94a3b8' }}>{id}</code>}
@@ -130,10 +162,20 @@ export function BlockShell({
         <span style={{ flex: 1 }} />
         {children && (
           <>
-            <button type="button" style={btn(mode === 'view')} onClick={() => setMode('view')} title="Podgląd">
+            <button
+              type="button"
+              style={btn(mode === 'view')}
+              onClick={() => setMode('view')}
+              title="Podgląd"
+            >
               Widok
             </button>
-            <button type="button" style={btn(mode === 'code')} onClick={() => setMode('code')} title="Tekst źródłowy bloku">
+            <button
+              type="button"
+              style={btn(mode === 'code')}
+              onClick={() => setMode('code')}
+              title="Tekst źródłowy bloku"
+            >
               Kod
             </button>
             {directives && directives.length > 0 && mode === 'code' && (
@@ -151,22 +193,32 @@ export function BlockShell({
       </div>
 
       {issues.length > 0 && (
-        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', borderRadius: 4, padding: '6px 8px' }}>
-          {issues.map((issue, index) => <div key={index}>{issue}</div>)}
+        <div
+          style={{
+            fontSize: 11,
+            color: '#b91c1c',
+            background: '#fef2f2',
+            borderRadius: 4,
+            padding: '6px 8px',
+          }}
+        >
+          {issues.map((issue, index) => (
+            <div key={index}>{issue}</div>
+          ))}
         </div>
       )}
 
       {/*
-        * Widok jest **nieedytowalny**.
-        *
-        * Blok mieszka w drzewie edytora tekstu, więc bez tego kliknięcie
-        * w wykres albo we wzór wstawia kursor i pozwala pisać po środku
-        * symulacji — a wpisany znak trafia do treści bloku i psuje jego
-        * składnię. Edycja należy do trybu „Kod", gdzie jest widoczna.
-        *
-        * `user-select: text` zostaje: zaznaczanie i kopiowanie działa dalej,
-        * bo to nie jest edycja.
-        */}
+       * Widok jest **nieedytowalny**.
+       *
+       * Blok mieszka w drzewie edytora tekstu, więc bez tego kliknięcie
+       * w wykres albo we wzór wstawia kursor i pozwala pisać po środku
+       * symulacji — a wpisany znak trafia do treści bloku i psuje jego
+       * składnię. Edycja należy do trybu „Kod", gdzie jest widoczna.
+       *
+       * `user-select: text` zostaje: zaznaczanie i kopiowanie działa dalej,
+       * bo to nie jest edycja.
+       */}
       {(mode === 'view' || !children) && (
         <div contentEditable={false} suppressContentEditableWarning style={{ userSelect: 'text' }}>
           {view}
@@ -174,20 +226,23 @@ export function BlockShell({
       )}
 
       {/*
-        * Treść edytowalna zostaje w drzewie **zawsze**, tylko schowana.
-        *
-        * Host renderuje w niej węzeł tekstowy edytora; usunięcie go przy
-        * przełączeniu na widok zabrałoby edytorowi miejsce, w którym trzyma
-        * treść bloku — kursor trafiałby wtedy w przypadkowe miejsca dokumentu.
-        */}
+       * Treść edytowalna zostaje w drzewie **zawsze**, tylko schowana.
+       *
+       * Host renderuje w niej węzeł tekstowy edytora; usunięcie go przy
+       * przełączeniu na widok zabrałoby edytorowi miejsce, w którym trzyma
+       * treść bloku — kursor trafiałby wtedy w przypadkowe miejsca dokumentu.
+       */}
       {children && (
-        <div style={mode === 'code' ? undefined : { display: 'none' }}>
-          {children()}
-        </div>
+        <div style={mode === 'code' ? undefined : { display: 'none' }}>{children()}</div>
       )}
 
       {mode === 'code' && sciagaOtwarta && directives && (
-        <DirectiveCheatSheet directives={directives} filtr={filtr} onFiltr={setFiltr} accent={accent} />
+        <DirectiveCheatSheet
+          directives={directives}
+          filtr={filtr}
+          onFiltr={setFiltr}
+          accent={accent}
+        />
       )}
     </div>
   );

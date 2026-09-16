@@ -39,22 +39,43 @@ export interface SolutionDialogProps {
 }
 
 const nakladka: CSSProperties = {
-  position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1300, padding: 16,
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(15,23,42,0.45)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 1300,
+  padding: 16,
 };
 
 const okno: CSSProperties = {
-  background: '#fff', borderRadius: 8, padding: 16, width: 'min(720px, 100%)',
-  maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10,
+  background: '#fff',
+  borderRadius: 8,
+  padding: 16,
+  width: 'min(720px, 100%)',
+  maxHeight: '90vh',
+  overflowY: 'auto',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10,
 };
 
 const btn: CSSProperties = {
-  fontSize: 12, padding: '5px 12px', border: '1px solid #cbd5e1',
-  borderRadius: 6, background: '#fff', cursor: 'pointer',
+  fontSize: 12,
+  padding: '5px 12px',
+  border: '1px solid #cbd5e1',
+  borderRadius: 6,
+  background: '#fff',
+  cursor: 'pointer',
 };
 
 export function SolutionDialog({
-  title, recognize, onSave, onClose, initialAnswer = '',
+  title,
+  recognize,
+  onSave,
+  onClose,
+  initialAnswer = '',
 }: SolutionDialogProps) {
   const [mode, setMode] = useState<SolutionMode>('md');
   const [md, setMd] = useState('');
@@ -68,7 +89,9 @@ export function SolutionDialog({
       <div style={okno}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <strong style={{ flex: 1, fontSize: 14 }}>{title}</strong>
-          <button type="button" style={btn} onClick={onClose}>zamknij</button>
+          <button type="button" style={btn} onClick={onClose}>
+            zamknij
+          </button>
         </div>
 
         <div style={{ display: 'flex', gap: 6 }}>
@@ -93,17 +116,32 @@ export function SolutionDialog({
             <textarea
               value={md}
               onChange={(e) => setMd(e.target.value)}
-              placeholder={'Wyprowadzenie. Wzory w LaTeX-u między znakami dolara, np. $T = 2\\pi\\sqrt{m/k}$.'}
+              placeholder={
+                'Wyprowadzenie. Wzory w LaTeX-u między znakami dolara, np. $T = 2\\pi\\sqrt{m/k}$.'
+              }
               rows={8}
               style={{
-                width: '100%', fontFamily: 'ui-monospace, monospace', fontSize: 13,
-                padding: 8, border: '1px solid #cbd5e1', borderRadius: 6, resize: 'vertical',
+                width: '100%',
+                fontFamily: 'ui-monospace, monospace',
+                fontSize: 13,
+                padding: 8,
+                border: '1px solid #cbd5e1',
+                borderRadius: 6,
+                resize: 'vertical',
               }}
             />
             {/* Podgląd składu — LaTeX w polu tekstowym jest nieczytelny, a to on
                 jest treścią rozwiązania, nie jego zapis źródłowy. */}
             {md.trim() && (
-              <div style={{ fontSize: 13, lineHeight: 1.6, padding: 8, background: '#f8fafc', borderRadius: 6 }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  padding: 8,
+                  background: '#f8fafc',
+                  borderRadius: 6,
+                }}
+              >
                 {inline(md)}
               </div>
             )}
@@ -125,8 +163,11 @@ export function SolutionDialog({
             onChange={(e) => setAnswer(e.target.value)}
             placeholder="np. 0,28 s"
             style={{
-              flex: 1, fontSize: 13, padding: '5px 8px',
-              border: '1px solid #cbd5e1', borderRadius: 6,
+              flex: 1,
+              fontSize: 13,
+              padding: '5px 8px',
+              border: '1px solid #cbd5e1',
+              borderRadius: 6,
             }}
           />
         </label>
@@ -136,7 +177,9 @@ export function SolutionDialog({
             type="button"
             style={{ ...btn, borderColor: '#0f766e', color: '#0f766e' }}
             disabled={pusto}
-            onClick={() => onSave({ mode, content: mode === 'md' ? md : ink, answer: answer || undefined })}
+            onClick={() =>
+              onSave({ mode, content: mode === 'md' ? md : ink, answer: answer || undefined })
+            }
           >
             zapisz rozwiązanie
           </button>
@@ -166,7 +209,9 @@ export function SolutionHistory({ solutions, onClose }: SolutionHistoryProps) {
       <div style={okno}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <strong style={{ flex: 1, fontSize: 14 }}>Historia rozwiązań</strong>
-          <button type="button" style={btn} onClick={onClose}>zamknij</button>
+          <button type="button" style={btn} onClick={onClose}>
+            zamknij
+          </button>
         </div>
 
         {solutions.length === 0 && (
@@ -197,13 +242,26 @@ export function SolutionHistory({ solutions, onClose }: SolutionHistoryProps) {
             )}
 
             {wybrane?.mode === 'md' ? (
-              <div style={{ fontSize: 13, lineHeight: 1.6, padding: 8, background: '#f8fafc', borderRadius: 6 }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  padding: 8,
+                  background: '#f8fafc',
+                  borderRadius: 6,
+                }}
+              >
                 {inline(wybrane.content)}
               </div>
             ) : (
               /* Pismo odtwarzamy z **wektorów**, nie z obrazu — dlatego historia
                  wygląda tak samo na telefonie i na monitorze. */
-              <InkCanvas mode="latex" readOnly height={260} value={parseInk(wybrane?.content ?? '')} />
+              <InkCanvas
+                mode="latex"
+                readOnly
+                height={260}
+                value={parseInk(wybrane?.content ?? '')}
+              />
             )}
           </>
         )}

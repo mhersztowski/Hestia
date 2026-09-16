@@ -52,7 +52,7 @@ describe('trzy ciała', () => {
    * dobry sprawdzian dla oddziaływań **każdy z każdym** — dwa ciała nie
    * wykryłyby błędu w sumowaniu par.
    */
-  it('trójkąt Lagrange\'a obraca się bez zmiany kształtu', () => {
+  it("trójkąt Lagrange'a obraca się bez zmiany kształtu", () => {
     const r = 1;
     const v = Math.sqrt(1 / Math.sqrt(3));
     const ciała = [0, 1, 2].map((i) => {
@@ -74,7 +74,7 @@ describe('trzy ciała', () => {
     for (const t of [0, 1, 2, 3]) {
       const bok = Math.hypot(
         traj.value('x0', t) - traj.value('x1', t),
-        traj.value('y0', t) - traj.value('y1', t),
+        traj.value('y0', t) - traj.value('y1', t)
       );
       expect(bok).toBeCloseTo(Math.sqrt(3), 3);
     }

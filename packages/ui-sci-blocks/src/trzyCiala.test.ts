@@ -45,7 +45,7 @@ describe('symulacja z biblioteki', () => {
     for (const t of [0, 2e7, 4e7, 6e7]) {
       const zmierzony = Math.hypot(
         traj.value('x0', t) - traj.value('x1', t),
-        traj.value('y0', t) - traj.value('y1', t),
+        traj.value('y0', t) - traj.value('y1', t)
       );
       /**
        * Promil zapasu, nie zero.

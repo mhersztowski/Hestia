@@ -4,7 +4,11 @@ import { solveLayout } from './index';
 import { applyDrag } from './edit';
 
 const DOK = (d: Partial<LayoutDoc>): LayoutDoc => ({
-  vars: {}, shapes: [], mode: 'static', viewport: { width: 400, height: 300 }, ...d,
+  vars: {},
+  shapes: [],
+  mode: 'static',
+  viewport: { width: 400, height: 300 },
+  ...d,
 });
 const rects = (doc: LayoutDoc) => solveLayout(doc).rects;
 
@@ -16,14 +20,20 @@ describe('ruch myszą zapisuje się inaczej w każdym trybie', () => {
   });
 
   it('statyczny odmawia, gdy obie współrzędne wynikają z wyrażeń', () => {
-    const doc = DOK({ vars: { m: 5 }, shapes: [{ id: 'a', x: expr('m * 2'), y: expr('m'), w: lit(10), h: lit(10) }] });
+    const doc = DOK({
+      vars: { m: 5 },
+      shapes: [{ id: 'a', x: expr('m * 2'), y: expr('m'), w: lit(10), h: lit(10) }],
+    });
     const { doc: nowy, odmowa } = applyDrag(doc, 'a', { x: 30, y: 40 }, rects(doc));
     expect(odmowa).toMatch(/wyrażeń/);
     expect(nowy).toBe(doc);
   });
 
   it('jedna współrzędna z wyrażenia nie unieruchamia drugiej', () => {
-    const doc = DOK({ vars: { m: 5 }, shapes: [{ id: 'a', x: expr('m * 2'), y: lit(0), w: lit(10), h: lit(10) }] });
+    const doc = DOK({
+      vars: { m: 5 },
+      shapes: [{ id: 'a', x: expr('m * 2'), y: lit(0), w: lit(10), h: lit(10) }],
+    });
     const { doc: nowy, odmowa, uwaga } = applyDrag(doc, 'a', { x: 30, y: 40 }, rects(doc));
     expect(odmowa).toBeUndefined();
     expect(uwaga).toMatch(/Poziome/);
@@ -33,10 +43,25 @@ describe('ruch myszą zapisuje się inaczej w każdym trybie', () => {
   it('kotwice zmieniają odstępy, a nie pozycję', () => {
     const doc = DOK({
       mode: 'anchor',
-      shapes: [{
-        id: 'a', x: lit(0), y: lit(0), w: lit(0), h: lit(0),
-        anchor: { minX: 1, maxX: 1, minY: 0, maxY: 0, offsetLeft: -50, offsetRight: -10, offsetTop: 10, offsetBottom: 40 },
-      }],
+      shapes: [
+        {
+          id: 'a',
+          x: lit(0),
+          y: lit(0),
+          w: lit(0),
+          h: lit(0),
+          anchor: {
+            minX: 1,
+            maxX: 1,
+            minY: 0,
+            maxY: 0,
+            offsetLeft: -50,
+            offsetRight: -10,
+            offsetTop: 10,
+            offsetBottom: 40,
+          },
+        },
+      ],
     });
     const { doc: nowy } = applyDrag(doc, 'a', { x: 300, y: 60 }, rects(doc));
     // Przypięcie do prawej krawędzi zostaje przypięciem — zmienia się tylko odstęp.
@@ -49,7 +74,14 @@ describe('ruch myszą zapisuje się inaczej w każdym trybie', () => {
     const doc = DOK({
       mode: 'flow',
       shapes: [
-        { id: 'box', x: lit(0), y: lit(0), w: lit(200), h: lit(100), container: { direction: 'row' } },
+        {
+          id: 'box',
+          x: lit(0),
+          y: lit(0),
+          w: lit(200),
+          h: lit(100),
+          container: { direction: 'row' },
+        },
         { id: 'a', parent: 'box', x: lit(0), y: lit(0), w: lit(50), h: lit(20) },
       ],
     });

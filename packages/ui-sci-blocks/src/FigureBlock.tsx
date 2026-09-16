@@ -67,9 +67,7 @@ export function FigureBlock({ id, code, compact, onChange }: FigureBlockProps) {
       )}
       {rysunek.plot && <PlotFigure spec={rysunek.plot} compact={compact} />}
       {!rysunek.image && !rysunek.plot && rysunek.script && (
-        <div style={brakRysunku}>
-          Rysunek liczony kodem — renderer jeszcze nie jest podpięty.
-        </div>
+        <div style={brakRysunku}>Rysunek liczony kodem — renderer jeszcze nie jest podpięty.</div>
       )}
       {rysunek.caption && (
         <figcaption style={compact ? podpisMaly : podpis}>{inline(rysunek.caption)}</figcaption>
@@ -95,28 +93,38 @@ export function FigureBlock({ id, code, compact, onChange }: FigureBlockProps) {
             }}
             style={{ flex: 1, maxWidth: 220 }}
           />
-          <span style={{ minWidth: 52, textAlign: 'right' }}>
-            {szerokość ?? '100%'}
-          </span>
+          <span style={{ minWidth: 52, textAlign: 'right' }}>{szerokość ?? '100%'}</span>
         </div>
       )}
       {rysunek.issues.map((i) => (
-        <div key={i.message} style={{ fontSize: 11, color: '#b91c1c' }}>{i.message}</div>
+        <div key={i.message} style={{ fontSize: 11, color: '#b91c1c' }}>
+          {i.message}
+        </div>
       ))}
     </figure>
   );
 }
 
 const pasekSzerokości: CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 8,
-  fontSize: 11, color: '#64748b',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  fontSize: 11,
+  color: '#64748b',
 };
 
 const podpis: CSSProperties = {
-  fontSize: 13, color: '#475569', paddingLeft: 12, borderLeft: '3px solid #cbd5e1',
+  fontSize: 13,
+  color: '#475569',
+  paddingLeft: 12,
+  borderLeft: '3px solid #cbd5e1',
 };
 const podpisMaly: CSSProperties = { fontSize: 11, color: '#64748b' };
 const brakRysunku: CSSProperties = {
-  fontSize: 12, color: '#92400e', background: '#fffbeb',
-  border: '1px solid #fde68a', borderRadius: 4, padding: 8,
+  fontSize: 12,
+  color: '#92400e',
+  background: '#fffbeb',
+  border: '1px solid #fde68a',
+  borderRadius: 4,
+  padding: 8,
 };

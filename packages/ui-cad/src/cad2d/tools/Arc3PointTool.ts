@@ -16,8 +16,11 @@ export class Arc3PointTool implements Tool {
   private cursor: Point2D = { x: 0, y: 0 };
 
   /** The parameters of the arc from start to end that passes through `mid`. */
-  private arcThrough(start: Point2D, end: Point2D, mid: Point2D):
-    { cx: number; cy: number; r: number; startAngle: number; endAngle: number } | null {
+  private arcThrough(
+    start: Point2D,
+    end: Point2D,
+    mid: Point2D
+  ): { cx: number; cy: number; r: number; startAngle: number; endAngle: number } | null {
     const c = circumcircle(start, end, mid);
     if (!c) return null;
     const a1 = Math.atan2(start.y - c.cy, start.x - c.cx);
@@ -38,34 +41,57 @@ export class Arc3PointTool implements Tool {
       const a = this.arcThrough(this.start, this.end, this.cursor);
       if (!a) return { type: 'line', points: [this.start, this.end] };
       return {
-        type: 'arc', points: [{ x: a.cx, y: a.cy }], radius: a.r,
-        startAngle: a.startAngle, endAngle: a.endAngle,
+        type: 'arc',
+        points: [{ x: a.cx, y: a.cy }],
+        radius: a.r,
+        startAngle: a.startAngle,
+        endAngle: a.endAngle,
       };
     }
     return null;
   }
 
   onPointerDown(point: Point2D, ctx: ToolContext): void {
-    if (!this.start) { this.start = point; this.cursor = point; }
-    else if (!this.end) { this.end = point; this.cursor = point; }
-    else {
+    if (!this.start) {
+      this.start = point;
+      this.cursor = point;
+    } else if (!this.end) {
+      this.end = point;
+      this.cursor = point;
+    } else {
       const a = this.arcThrough(this.start, this.end, point);
       if (a && a.r > 0.01) {
         ctx.project.addEntity({
-          type: 'arc', cx: a.cx, cy: a.cy, radius: a.r,
-          startAngle: a.startAngle, endAngle: a.endAngle,
+          type: 'arc',
+          cx: a.cx,
+          cy: a.cy,
+          radius: a.r,
+          startAngle: a.startAngle,
+          endAngle: a.endAngle,
           layerId: ctx.project.layerSystem.getActiveId(),
-          color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-          visible: true, locked: false, extrudeHeight: 0,
+          color: 'bylayer',
+          lineType: 'bylayer',
+          lineWidth: 'bylayer',
+          visible: true,
+          locked: false,
+          extrudeHeight: 0,
         });
       }
       this.reset();
     }
   }
 
-  onPointerMove(point: Point2D, _ctx: ToolContext): void { this.cursor = point; }
+  onPointerMove(point: Point2D, _ctx: ToolContext): void {
+    this.cursor = point;
+  }
   onPointerUp(_point: Point2D, _ctx: ToolContext): void {}
-  onKeyDown(key: string, _ctx: ToolContext): void { if (key === 'Escape') this.reset(); }
+  onKeyDown(key: string, _ctx: ToolContext): void {
+    if (key === 'Escape') this.reset();
+  }
 
-  reset(): void { this.start = null; this.end = null; this.cursor = { x: 0, y: 0 }; }
+  reset(): void {
+    this.start = null;
+    this.end = null;
+    this.cursor = { x: 0, y: 0 };
+  }
 }

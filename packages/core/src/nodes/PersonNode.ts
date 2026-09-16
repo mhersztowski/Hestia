@@ -21,8 +21,12 @@ export class PersonNode extends NodeBase<PersonModel> {
     this.description = model.description;
   }
 
-  static fromModel(model: PersonModel): PersonNode { return new PersonNode(model); }
-  static fromModels(models: PersonModel[]): PersonNode[] { return models.map(m => new PersonNode(m)); }
+  static fromModel(model: PersonModel): PersonNode {
+    return new PersonNode(model);
+  }
+  static fromModels(models: PersonModel[]): PersonNode[] {
+    return models.map((m) => new PersonNode(m));
+  }
 
   // Display name - prefer full name, fallback to nick
   getDisplayName(): string {

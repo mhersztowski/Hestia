@@ -14,12 +14,7 @@ import type { BufferGeometryData } from '../nodes/MeshNode';
 
 /** Kwadrat leżący w płaszczyźnie XZ, o boku 2, wyśrodkowany w zerze. */
 const KWADRAT_XZ: BufferGeometryData = {
-  positions: [
-    -1, 0, -1,
-    1, 0, -1,
-    1, 0, 1,
-    -1, 0, 1,
-  ],
+  positions: [-1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1],
   indices: [0, 1, 2, 0, 2, 3],
 };
 

@@ -24,7 +24,10 @@ describe('deklaracje', () => {
     expect(m.issues).toEqual([]);
     expect(m.matrices.map((x) => x.name)).toEqual(['A']);
     expect(m.vectors.map((x) => x.name)).toEqual(['v']);
-    expect(m.matrices[0].value).toEqual([[2, 1], [0, 1]]);
+    expect(m.matrices[0].value).toEqual([
+      [2, 1],
+      [0, 1],
+    ]);
     expect(m.vectors[0].value).toEqual([1, 0.5]);
   });
 
@@ -56,13 +59,15 @@ describe('obliczenia', () => {
   });
 
   it('składa macierze w zadanej kolejności', () => {
-    const m = model([
-      '@linalg',
-      '@mat A = [[0, -1], [1, 0]]',
-      '@mat B = [[2, 0], [0, 1]]',
-      'C = A \\cdot B',
-      'u = C \\cdot [1, 0]',
-    ].join('\n'));
+    const m = model(
+      [
+        '@linalg',
+        '@mat A = [[0, -1], [1, 0]]',
+        '@mat B = [[2, 0], [0, 1]]',
+        'C = A \\cdot B',
+        'u = C \\cdot [1, 0]',
+      ].join('\n')
+    );
 
     expect(m.issues).toEqual([]);
     const wynik = m.run({});
@@ -72,13 +77,15 @@ describe('obliczenia', () => {
   });
 
   it('odwrotność cofa przekształcenie', () => {
-    const m = model([
-      '@linalg',
-      '@mat A = [[2, 1], [0, 1]]',
-      '@vec v = [1, 1]',
-      'w = A \\cdot v',
-      'z = A^{-1} \\cdot w',
-    ].join('\n'));
+    const m = model(
+      [
+        '@linalg',
+        '@mat A = [[2, 1], [0, 1]]',
+        '@vec v = [1, 1]',
+        'w = A \\cdot v',
+        'z = A^{-1} \\cdot w',
+      ].join('\n')
+    );
 
     const wynik = m.run({});
     expect(wynik.vectors.z[0]).toBeCloseTo(1, 10);
@@ -117,12 +124,11 @@ describe('scena wynika z typów, nie z nazw', () => {
     // Blok liczący `C = R \cdot D` jest o złożeniu — animowanie samego R
     // pokazywałoby co innego niż to, o czym mówi tekst, a wyznacznik na
     // ekranie nie zgadzałby się z iloczynem wyznaczników składników.
-    const m = model([
-      '@linalg',
-      '@mat R = [[0, -1], [1, 0]]',
-      '@mat D = [[2, 0], [0, 1]]',
-      'C = R \\cdot D',
-    ].join('\n'));
+    const m = model(
+      ['@linalg', '@mat R = [[0, -1], [1, 0]]', '@mat D = [[2, 0], [0, 1]]', 'C = R \\cdot D'].join(
+        '\n'
+      )
+    );
 
     expect(m.transform).toBe('C');
   });
@@ -145,17 +151,29 @@ describe('animacja przekształcenia', () => {
     // Scena animuje `C`, więc podmienia jego wartość na zinterpolowaną. Gdyby
     // definicja `C = R \cdot D` miała pierwszeństwo, suwak animacji nie
     // ruszałby niczym — obraz stałby na wyniku końcowym.
-    const m = compileLinAlg(parseFormulaBlock('scena', [
-      '@linalg',
-      '@mat R = [[0, -1], [1, 0]]',
-      '@mat D = [[2, 0], [0, 1]]',
-      'C = R \\cdot D',
-      '@vec v = [1, 0]',
-      'w = C \\cdot v',
-    ].join('\n')));
+    const m = compileLinAlg(
+      parseFormulaBlock(
+        'scena',
+        [
+          '@linalg',
+          '@mat R = [[0, -1], [1, 0]]',
+          '@mat D = [[2, 0], [0, 1]]',
+          'C = R \\cdot D',
+          '@vec v = [1, 0]',
+          'w = C \\cdot v',
+        ].join('\n')
+      )
+    );
 
     // Identyczność w miejsce C: wynik musi pokrywać się z wejściem.
-    const wPolowie = m.run({ matrices: { C: [[1, 0], [0, 1]] } });
+    const wPolowie = m.run({
+      matrices: {
+        C: [
+          [1, 0],
+          [0, 1],
+        ],
+      },
+    });
     expect(wPolowie.vectors.w).toEqual([1, 0]);
 
     // Bez podmiany — pełne przekształcenie.

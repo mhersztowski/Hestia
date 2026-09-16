@@ -46,11 +46,7 @@ export {
 } from './UIRegistry';
 export { createPluginAPI } from './PluginAPI';
 export type { IInternalPluginAPI } from './PluginAPI';
-export {
-  PluginRegistry,
-  globalPluginRegistry,
-  defineEditorPlugin,
-} from './PluginRegistry';
+export { PluginRegistry, globalPluginRegistry, defineEditorPlugin } from './PluginRegistry';
 
 // ── Built-in example plugins (v1) ────────────────────────────────────────────
 export { WordCountPlugin, HighlightLinePlugin } from './examples';

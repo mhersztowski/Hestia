@@ -35,7 +35,7 @@ export type ProjectActionExecutor = (
   /** Path of the file currently selected in VfsExplorer (helps derive sketchName) */
   selectedPath: string | null,
   onOutput: (line: string) => void,
-  signal: AbortSignal,
+  signal: AbortSignal
 ) => Promise<{ success: boolean; error?: string }>;
 
 export interface OutputLine {
@@ -46,8 +46,10 @@ export interface OutputLine {
 
 export function classifyLine(text: string): OutputLine['type'] {
   const lower = text.toLowerCase();
-  if (/\berror\b/.test(lower) || lower.startsWith('err:') || lower.startsWith('[error]')) return 'error';
-  if (/\bwarning\b/.test(lower) || lower.startsWith('warn:') || lower.startsWith('[warn]')) return 'warning';
+  if (/\berror\b/.test(lower) || lower.startsWith('err:') || lower.startsWith('[error]'))
+    return 'error';
+  if (/\bwarning\b/.test(lower) || lower.startsWith('warn:') || lower.startsWith('[warn]'))
+    return 'warning';
   if (/\bsuccess\b|\bdone\b|\bfinished\b|\bcomplete/.test(lower)) return 'success';
   if (text.startsWith('>') || text.startsWith('$') || text.startsWith('#')) return 'command';
   return 'normal';

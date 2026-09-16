@@ -6,12 +6,25 @@
  * with a viewport, a tree panel, a properties panel and a sketch editor that
  * borrows the 2D canvas from `cad2d/`.
  */
-import { useState, useCallback, useEffect, useMemo, type MutableRefObject, type ReactNode } from 'react';
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  type MutableRefObject,
+  type ReactNode,
+} from 'react';
 import * as THREE from 'three';
 import { Alert, Box, Chip, Divider, Snackbar, Typography } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import {
-  Toolbar as CoreToolbar, custom, item, separator, submenu, toggle, type ToolbarNode,
+  Toolbar as CoreToolbar,
+  custom,
+  item,
+  separator,
+  submenu,
+  toggle,
+  type ToolbarNode,
 } from '@hestia/ui-core';
 // MUI icons for the toolbars outside Ops (GridOnIcon for Add Sketch, say).
 // The Ops toolbar draws <FreeCadIcon> — FreeCAD's own SVGs (LGPL).
@@ -81,7 +94,9 @@ export interface Cad3dEditorProps {
   toolbarStart?: ReactNode;
 }
 
-function fmt(v: number) { return v.toFixed(2); }
+function fmt(v: number) {
+  return v.toFixed(2);
+}
 
 function SubHitLabel({ hit }: { hit: SubHit | null }) {
   if (!hit) return null;
@@ -114,16 +129,50 @@ function SubHitLabel({ hit }: { hit: SubHit | null }) {
   );
 }
 
-export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarStart }: Cad3dEditorProps) {
+export function Cad3dEditor({
+  project,
+  version,
+  apiRef,
+  placementStamp,
+  toolbarStart,
+}: Cad3dEditorProps) {
   const {
-    tree, selectedId, editingSketchId,
-    mergeFeatures, getTreeJson, replaceTree,
-    addSketch, startEditSketch, exitSketch, getSketchProject,
-    addExtrude, addPocket, addHole, addGroove,
-    addMirror, addRevolve, addShell, addFillet, addChamfer, addLinearPattern, addPolarPattern, addLoft, addLoftCut, addSweep, addSweepCut, addHelix,
-    addDatumPoint, addDatumLine, addDatumPlane, addDatumCs,
-    removeFeature, updateFeature, toggleFeature, moveFeature,
-    selectFeature, clearTree,
+    tree,
+    selectedId,
+    editingSketchId,
+    mergeFeatures,
+    getTreeJson,
+    replaceTree,
+    addSketch,
+    startEditSketch,
+    exitSketch,
+    getSketchProject,
+    addExtrude,
+    addPocket,
+    addHole,
+    addGroove,
+    addMirror,
+    addRevolve,
+    addShell,
+    addFillet,
+    addChamfer,
+    addLinearPattern,
+    addPolarPattern,
+    addLoft,
+    addLoftCut,
+    addSweep,
+    addSweepCut,
+    addHelix,
+    addDatumPoint,
+    addDatumLine,
+    addDatumPlane,
+    addDatumCs,
+    removeFeature,
+    updateFeature,
+    toggleFeature,
+    moveFeature,
+    selectFeature,
+    clearTree,
   } = useCad3d();
 
   const [sceneRoot, setSceneRoot] = useState<THREE.Object3D | null>(null);
@@ -137,7 +186,8 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as { feature: string; reason: string } | undefined;
-      if (detail?.feature && detail?.reason) setEvalError({ feature: detail.feature, reason: detail.reason });
+      if (detail?.feature && detail?.reason)
+        setEvalError({ feature: detail.feature, reason: detail.reason });
     };
     window.addEventListener('cad3d:eval-error', handler);
     return () => window.removeEventListener('cad3d:eval-error', handler);
@@ -147,7 +197,9 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
   useEffect(() => {
     if (!apiRef) return;
     apiRef.current = { getTreeJson, replaceTree, mergeFeatures };
-    return () => { apiRef.current = null; };
+    return () => {
+      apiRef.current = null;
+    };
   }, [apiRef, getTreeJson, replaceTree, mergeFeatures]);
 
   const handleSceneChange = useCallback((root: THREE.Object3D) => setSceneRoot(root), []);
@@ -157,25 +209,12 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
     if (placementStamp) mergeFeatures(placementStamp.tree);
   }, [placementStamp, mergeFeatures]);
 
-  const selectedFeature = tree.features.find(f => f.id === selectedId) ?? null;
-
-  if (editingSketchId) {
-    const sketch = tree.features.find(f => f.id === editingSketchId) as SketchFeature | undefined;
-    if (sketch) {
-      return (
-        <SketchEditor
-          project={getSketchProject(editingSketchId)}
-          plane={sketch.plane}
-          onExit={exitSketch}
-        />
-      );
-    }
-  }
+  const selectedFeature = tree.features.find((f) => f.id === selectedId) ?? null;
 
   function getSketchId(): string | null {
-    const selected = selectedId ? tree.features.find(f => f.id === selectedId) : null;
+    const selected = selectedId ? tree.features.find((f) => f.id === selectedId) : null;
     if (selected?.type === 'sketch') return selected.id;
-    const sketches = tree.features.filter(f => f.type === 'sketch');
+    const sketches = tree.features.filter((f) => f.type === 'sketch');
     return sketches.length > 0 ? sketches[sketches.length - 1].id : null;
   }
 
@@ -185,20 +224,22 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
   const faceInfo = faceHit ? planeFromFace(faceHit) : null;
   // Edge hit → midpoint + tangent direction (dla Fillet/Chamfer edge selection)
   const edgeHit = subHit?.type === 'edge' ? subHit : null;
-  const edgeInfo = edgeHit ? {
-    midpoint: [
-      (edgeHit.a.x + edgeHit.b.x) / 2,
-      (edgeHit.a.y + edgeHit.b.y) / 2,
-      (edgeHit.a.z + edgeHit.b.z) / 2,
-    ] as [number, number, number],
-    tangent: (() => {
-      const dx = edgeHit.b.x - edgeHit.a.x;
-      const dy = edgeHit.b.y - edgeHit.a.y;
-      const dz = edgeHit.b.z - edgeHit.a.z;
-      const len = Math.hypot(dx, dy, dz) || 1;
-      return [dx / len, dy / len, dz / len] as [number, number, number];
-    })(),
-  } : null;
+  const edgeInfo = edgeHit
+    ? {
+        midpoint: [
+          (edgeHit.a.x + edgeHit.b.x) / 2,
+          (edgeHit.a.y + edgeHit.b.y) / 2,
+          (edgeHit.a.z + edgeHit.b.z) / 2,
+        ] as [number, number, number],
+        tangent: (() => {
+          const dx = edgeHit.b.x - edgeHit.a.x;
+          const dy = edgeHit.b.y - edgeHit.a.y;
+          const dz = edgeHit.b.z - edgeHit.a.z;
+          const len = Math.hypot(dx, dy, dz) || 1;
+          return [dx / len, dy / len, dz / len] as [number, number, number];
+        })(),
+      }
+    : null;
 
   const handleSketchOnFace = () => {
     if (!faceInfo) return;
@@ -213,25 +254,29 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
   const handleDatumPointOnFace = () => {
     if (!datumParams) return;
     addDatumPoint(datumParams.position);
-    setSubHit(null); setSubSelectMode('object');
+    setSubHit(null);
+    setSubSelectMode('object');
   };
   const handleDatumLineOnFace = () => {
     if (!datumParams) return;
     // A line perpendicular to the face — its direction is the face normal, its length follows the face's size
     addDatumLine(datumParams.position, datumParams.normal, datumParams.size);
-    setSubHit(null); setSubSelectMode('object');
+    setSubHit(null);
+    setSubSelectMode('object');
   };
   const handleDatumPlaneOnFace = () => {
     if (!datumParams) return;
     // A plane along the face — its normal is the face normal
     addDatumPlane(datumParams.position, datumParams.normal, datumParams.size);
-    setSubHit(null); setSubSelectMode('object');
+    setSubHit(null);
+    setSubSelectMode('object');
   };
   const handleDatumCsOnFace = () => {
     if (!datumParams) return;
     // A coordinate system from the face's U/V/N basis (the CS's Z axis is the face normal)
     addDatumCs(datumParams.position, datumParams.rotationEulerXYZ, datumParams.size * 0.6);
-    setSubHit(null); setSubSelectMode('object');
+    setSubHit(null);
+    setSubSelectMode('object');
   };
 
   /**
@@ -247,28 +292,40 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
       item(id, label, { icon: <FreeCadIcon name={icon} />, title, onSelect: run });
 
     const sketchNodes: ToolbarNode[] = faceInfo
-      // With a face selected, everything is built ON that face, and the entries
-      // say so — the same buttons would otherwise mean something else entirely.
-      ? [
-        item('sketchOnFace', 'Sketch on face', {
-          icon: <GridOnIcon fontSize="small" />,
-          title: 'A sketch on the selected face — centred on it, in its own orientation',
-          onSelect: handleSketchOnFace,
-        }),
-        submenu('faceDatums', 'On face', [
-          item('faceDatumPoint', 'Point at the centroid', { onSelect: handleDatumPointOnFace }),
-          item('faceDatumLine', 'Line along the normal', { onSelect: handleDatumLineOnFace }),
-          item('faceDatumPlane', 'Plane along the face', { onSelect: handleDatumPlaneOnFace }),
-          item('faceDatumCs', 'Coordinate system (Z = the normal)', { onSelect: handleDatumCsOnFace }),
-        ], { icon: <GpsFixedIcon fontSize="small" /> }),
-      ]
+      ? // With a face selected, everything is built ON that face, and the entries
+        // say so — the same buttons would otherwise mean something else entirely.
+        [
+          item('sketchOnFace', 'Sketch on face', {
+            icon: <GridOnIcon fontSize="small" />,
+            title: 'A sketch on the selected face — centred on it, in its own orientation',
+            onSelect: handleSketchOnFace,
+          }),
+          submenu(
+            'faceDatums',
+            'On face',
+            [
+              item('faceDatumPoint', 'Point at the centroid', { onSelect: handleDatumPointOnFace }),
+              item('faceDatumLine', 'Line along the normal', { onSelect: handleDatumLineOnFace }),
+              item('faceDatumPlane', 'Plane along the face', { onSelect: handleDatumPlaneOnFace }),
+              item('faceDatumCs', 'Coordinate system (Z = the normal)', {
+                onSelect: handleDatumCsOnFace,
+              }),
+            ],
+            { icon: <GpsFixedIcon fontSize="small" /> }
+          ),
+        ]
       : [
-        submenu('addSketch', 'Add sketch', [
-          item('sketchXY', 'XY — front plane', { onSelect: () => handleAddSketch('XY') }),
-          item('sketchXZ', 'XZ — top plane', { onSelect: () => handleAddSketch('XZ') }),
-          item('sketchYZ', 'YZ — right plane', { onSelect: () => handleAddSketch('YZ') }),
-        ], { icon: <GridOnIcon fontSize="small" /> }),
-      ];
+          submenu(
+            'addSketch',
+            'Add sketch',
+            [
+              item('sketchXY', 'XY — front plane', { onSelect: () => handleAddSketch('XY') }),
+              item('sketchXZ', 'XZ — top plane', { onSelect: () => handleAddSketch('XZ') }),
+              item('sketchYZ', 'YZ — right plane', { onSelect: () => handleAddSketch('YZ') }),
+            ],
+            { icon: <GridOnIcon fontSize="small" /> }
+          ),
+        ];
 
     return [
       ...(toolbarStart ? [custom('hostStart', toolbarStart), separator('s0')] : []),
@@ -284,58 +341,137 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
        * Each group's button carries the operation it is named after, so the
        * common one is still a single click; the arrow beside it holds the rest.
        */
-      submenu('additive', 'Additive', [
-        op('extrude', 'Extrude', 'extrude', 'Extrude the selected sketch', () => addExtrude(getSketchId(), [])),
-        op('revolve', 'Revolve', 'revolve', 'Revolve the selected profile about an axis', () => addRevolve(getSketchId(), [])),
-        op('loft', 'Loft', 'loft', 'Loft — blend through several cross-sections', () => addLoft()),
-        op('sweep', 'Sweep', 'sweep', 'Sweep — a profile along a path', () => addSweep()),
-        op('helix', 'Helix', 'helix', 'Helix — a profile along a helical spine', () => addHelix()),
-      ], {
-        icon: <FreeCadIcon name="extrude" />,
-        title: 'Adds material — extrude, revolve, loft, sweep, helix',
-        // The button itself does the usual one; the arrow offers the group.
-        onSelect: () => addExtrude(getSketchId(), []),
-      }),
+      submenu(
+        'additive',
+        'Additive',
+        [
+          op('extrude', 'Extrude', 'extrude', 'Extrude the selected sketch', () =>
+            addExtrude(getSketchId(), [])
+          ),
+          op('revolve', 'Revolve', 'revolve', 'Revolve the selected profile about an axis', () =>
+            addRevolve(getSketchId(), [])
+          ),
+          op('loft', 'Loft', 'loft', 'Loft — blend through several cross-sections', () =>
+            addLoft()
+          ),
+          op('sweep', 'Sweep', 'sweep', 'Sweep — a profile along a path', () => addSweep()),
+          op('helix', 'Helix', 'helix', 'Helix — a profile along a helical spine', () =>
+            addHelix()
+          ),
+        ],
+        {
+          icon: <FreeCadIcon name="extrude" />,
+          title: 'Adds material — extrude, revolve, loft, sweep, helix',
+          // The button itself does the usual one; the arrow offers the group.
+          onSelect: () => addExtrude(getSketchId(), []),
+        }
+      ),
 
-      submenu('subtractive', 'Subtractive', [
-        op('pocket', 'Pocket', 'pocket', 'Pocket — subtract the selected sketch from the solid', () => addPocket(getSketchId(), [])),
-        op('hole', 'Hole', 'hole', 'Hole — drill a cylinder at each circle of the sketch', () => addHole(getSketchId())),
-        op('groove', 'Groove', 'groove', 'Groove — a subtractive revolution', () => addGroove(getSketchId(), [])),
-        op('loftCut', 'Loft cut', 'loft_cut', 'Loft cut — a subtractive loft', () => addLoftCut()),
-        op('sweepCut', 'Sweep cut', 'sweep_cut', 'Sweep cut — a subtractive sweep', () => addSweepCut()),
-      ], {
-        icon: <FreeCadIcon name="pocket" />,
-        title: 'Takes material away — pocket, hole, groove, loft cut, sweep cut',
-        onSelect: () => addPocket(getSketchId(), []),
-      }),
+      submenu(
+        'subtractive',
+        'Subtractive',
+        [
+          op(
+            'pocket',
+            'Pocket',
+            'pocket',
+            'Pocket — subtract the selected sketch from the solid',
+            () => addPocket(getSketchId(), [])
+          ),
+          op('hole', 'Hole', 'hole', 'Hole — drill a cylinder at each circle of the sketch', () =>
+            addHole(getSketchId())
+          ),
+          op('groove', 'Groove', 'groove', 'Groove — a subtractive revolution', () =>
+            addGroove(getSketchId(), [])
+          ),
+          op('loftCut', 'Loft cut', 'loft_cut', 'Loft cut — a subtractive loft', () =>
+            addLoftCut()
+          ),
+          op('sweepCut', 'Sweep cut', 'sweep_cut', 'Sweep cut — a subtractive sweep', () =>
+            addSweepCut()
+          ),
+        ],
+        {
+          icon: <FreeCadIcon name="pocket" />,
+          title: 'Takes material away — pocket, hole, groove, loft cut, sweep cut',
+          onSelect: () => addPocket(getSketchId(), []),
+        }
+      ),
 
       // Neither adds nor subtracts: these reshape what is already there.
-      submenu('dressUp', 'Dress-up', [
-        op('fillet', 'Fillet', 'fillet', 'Fillet — round the sharp edges', () => addFillet()),
-        op('chamfer', 'Chamfer', 'chamfer', 'Chamfer — bevel the sharp edges', () => addChamfer()),
-        op('shell', 'Shell', 'shell', 'Shell — hollow the solid to a wall thickness', () => addShell()),
-      ], {
-        icon: <FreeCadIcon name="fillet" />,
-        title: 'Reshapes what is there — fillet, chamfer, shell',
-        onSelect: () => addFillet(),
-      }),
+      submenu(
+        'dressUp',
+        'Dress-up',
+        [
+          op('fillet', 'Fillet', 'fillet', 'Fillet — round the sharp edges', () => addFillet()),
+          op('chamfer', 'Chamfer', 'chamfer', 'Chamfer — bevel the sharp edges', () =>
+            addChamfer()
+          ),
+          op('shell', 'Shell', 'shell', 'Shell — hollow the solid to a wall thickness', () =>
+            addShell()
+          ),
+        ],
+        {
+          icon: <FreeCadIcon name="fillet" />,
+          title: 'Reshapes what is there — fillet, chamfer, shell',
+          onSelect: () => addFillet(),
+        }
+      ),
 
       // And these repeat it.
-      submenu('transform', 'Transform', [
-        op('mirror', 'Mirror', 'mirror', 'Mirror the accumulated solid', () => addMirror()),
-        op('linear', 'Linear pattern', 'linear_pattern', 'Linear pattern — repeat along a line', () => addLinearPattern()),
-        op('polar', 'Polar pattern', 'polar_pattern', 'Polar pattern — repeat about an axis', () => addPolarPattern()),
-      ], {
-        icon: <FreeCadIcon name="mirror" />,
-        title: 'Repeats what is there — mirror, linear pattern, polar pattern',
-        onSelect: () => addMirror(),
-      }),
+      submenu(
+        'transform',
+        'Transform',
+        [
+          op('mirror', 'Mirror', 'mirror', 'Mirror the accumulated solid', () => addMirror()),
+          op(
+            'linear',
+            'Linear pattern',
+            'linear_pattern',
+            'Linear pattern — repeat along a line',
+            () => addLinearPattern()
+          ),
+          op(
+            'polar',
+            'Polar pattern',
+            'polar_pattern',
+            'Polar pattern — repeat about an axis',
+            () => addPolarPattern()
+          ),
+        ],
+        {
+          icon: <FreeCadIcon name="mirror" />,
+          title: 'Repeats what is there — mirror, linear pattern, polar pattern',
+          onSelect: () => addMirror(),
+        }
+      ),
     ];
   }, [
-    addChamfer, addExtrude, addFillet, addGroove, addHelix, addHole, addLinearPattern, addLoft,
-    addLoftCut, addMirror, addPocket, addPolarPattern, addRevolve, addShell, addSweep, addSweepCut,
-    faceInfo, getSketchId, handleAddSketch, handleDatumCsOnFace, handleDatumLineOnFace,
-    handleDatumPlaneOnFace, handleDatumPointOnFace, handleSketchOnFace, toolbarStart,
+    addChamfer,
+    addExtrude,
+    addFillet,
+    addGroove,
+    addHelix,
+    addHole,
+    addLinearPattern,
+    addLoft,
+    addLoftCut,
+    addMirror,
+    addPocket,
+    addPolarPattern,
+    addRevolve,
+    addShell,
+    addSweep,
+    addSweepCut,
+    faceInfo,
+    getSketchId,
+    handleAddSketch,
+    handleDatumCsOnFace,
+    handleDatumLineOnFace,
+    handleDatumPlaneOnFace,
+    handleDatumPointOnFace,
+    handleSketchOnFace,
+    toolbarStart,
   ]);
 
   /**
@@ -350,27 +486,62 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
    */
   const contextNodes: ToolbarNode[] = useMemo(() => {
     const modes: { value: SubSelectMode; label: string; icon: ReactNode; title: string }[] = [
-      { value: 'object', label: 'Object', icon: <NearMeIcon sx={{ fontSize: 16 }} />, title: 'Object mode (default)' },
-      { value: 'vertex', label: 'Vertex', icon: <ScatterPlotIcon sx={{ fontSize: 16 }} />, title: 'Vertex selection' },
-      { value: 'edge', label: 'Edge', icon: <TimelineIcon sx={{ fontSize: 16 }} />, title: 'Edge selection' },
-      { value: 'face', label: 'Face', icon: <CropSquareIcon sx={{ fontSize: 16 }} />, title: 'Face selection' },
+      {
+        value: 'object',
+        label: 'Object',
+        icon: <NearMeIcon sx={{ fontSize: 16 }} />,
+        title: 'Object mode (default)',
+      },
+      {
+        value: 'vertex',
+        label: 'Vertex',
+        icon: <ScatterPlotIcon sx={{ fontSize: 16 }} />,
+        title: 'Vertex selection',
+      },
+      {
+        value: 'edge',
+        label: 'Edge',
+        icon: <TimelineIcon sx={{ fontSize: 16 }} />,
+        title: 'Edge selection',
+      },
+      {
+        value: 'face',
+        label: 'Face',
+        icon: <CropSquareIcon sx={{ fontSize: 16 }} />,
+        title: 'Face selection',
+      },
     ];
 
     return [
-      submenu('datums', 'Datums', [
-        item('datumPoint', 'Point', { onSelect: () => addDatumPoint() }),
-        item('datumLine', 'Line', { onSelect: () => addDatumLine() }),
-        item('datumPlane', 'Plane', { onSelect: () => addDatumPlane() }),
-        item('datumCs', 'Coordinate system', { onSelect: () => addDatumCs() }),
-      ], { icon: <GpsFixedIcon fontSize="small" />, title: 'Datums: point, line, plane, coordinate system' }),
+      submenu(
+        'datums',
+        'Datums',
+        [
+          item('datumPoint', 'Point', { onSelect: () => addDatumPoint() }),
+          item('datumLine', 'Line', { onSelect: () => addDatumLine() }),
+          item('datumPlane', 'Plane', { onSelect: () => addDatumPlane() }),
+          item('datumCs', 'Coordinate system', { onSelect: () => addDatumCs() }),
+        ],
+        {
+          icon: <GpsFixedIcon fontSize="small" />,
+          title: 'Datums: point, line, plane, coordinate system',
+        }
+      ),
 
       separator('s3'),
-      ...modes.map((m) => toggle(`mode:${m.value}`, m.label, subSelectMode === m.value, {
-        group: 'select', icon: m.icon, title: m.title,
-        // Turning the current mode off would leave none; clicking it again stays
-        // where it is.
-        onChange: () => { setSubSelectMode(m.value); setSubHit(null); },
-      })),
+      ...modes.map((m) =>
+        toggle(`mode:${m.value}`, m.label, subSelectMode === m.value, {
+          group: 'select',
+          icon: m.icon,
+          title: m.title,
+          // Turning the current mode off would leave none; clicking it again stays
+          // where it is.
+          onChange: () => {
+            setSubSelectMode(m.value);
+            setSubHit(null);
+          },
+        })
+      ),
       ...(subSelectMode !== 'object' ? [custom('subHit', <SubHitLabel hit={subHit} />)] : []),
 
       separator('s4'),
@@ -379,14 +550,21 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
         title: 'Remove every feature',
         onSelect: clearTree,
       }),
-      custom('count', (
+      custom(
+        'count',
         <Typography variant="caption" color="text.disabled" sx={{ px: 1, whiteSpace: 'nowrap' }}>
           {tree.features.length} feature{tree.features.length !== 1 ? 's' : ''}
         </Typography>
-      )),
+      ),
     ];
   }, [
-    addDatumCs, addDatumLine, addDatumPlane, addDatumPoint, clearTree, subHit, subSelectMode,
+    addDatumCs,
+    addDatumLine,
+    addDatumPlane,
+    addDatumPoint,
+    clearTree,
+    subHit,
+    subSelectMode,
     tree.features.length,
   ]);
 
@@ -406,114 +584,183 @@ export function Cad3dEditor({ project, version, apiRef, placementStamp, toolbarS
     },
   });
 
+  /*
+   * Editing a sketch replaces this whole editor with the sketch one — and the
+   * check has to happen **here**, after every hook.
+   *
+   * It used to stand near the top, before three `useMemo`s and a `useTheme`.
+   * Entering a sketch therefore ran four hooks fewer than leaving it did, which
+   * is the one thing React cannot cope with: it matches hooks by call order, so
+   * the state of one would come back as the state of another. The symptom is
+   * not an error at the early return but nonsense somewhere else afterwards.
+   */
+  if (editingSketchId) {
+    const sketch = tree.features.find((f) => f.id === editingSketchId) as SketchFeature | undefined;
+    if (sketch) {
+      return (
+        <SketchEditor
+          project={getSketchProject(editingSketchId)}
+          plane={sketch.plane}
+          onExit={exitSketch}
+        />
+      );
+    }
+  }
+
   return (
     <ThemeProvider theme={lightTheme}>
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', bgcolor: 'background.default', color: 'text.primary' }}>
-      <CoreToolbar
-        nodes={toolbarNodes}
-        display="both"
-        aria-label="modelling"
-        renderCustom={(node) => node.render as ReactNode}
-        sx={{ px: 1.5, py: 0.75, flexShrink: 0, borderBottom: 'none' }}
-      />
-      <CoreToolbar
-        nodes={contextNodes}
-        display="both"
-        aria-label="datums and selection"
-        renderCustom={(node) => node.render as ReactNode}
-        sx={{ px: 1.5, py: 0.5, flexShrink: 0 }}
-      />
-
-      {/* Main area */}
-      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-
-        {/* Left column */}
-        <Box sx={{ width: 220, height: '100%', display: 'flex', flexDirection: 'column', borderRight: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-          {/* Feature tree — shrinks at 50% so scene tree always has room */}
-          <Box sx={{ flex: '0 0 auto', maxHeight: '50%', minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <FeatureTreePanel
-              features={tree.features}
-              selectedId={selectedId}
-              editingSketchId={editingSketchId}
-              onSelect={selectFeature}
-              onToggle={toggleFeature}
-              onRemove={removeFeature}
-              onMove={moveFeature}
-              onEditSketch={startEditSketch}
-            />
-          </Box>
-          <Divider sx={{ flexShrink: 0 }} />
-          {/* Scene tree — takes all remaining space */}
-          <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <SceneTreePanel
-              sceneRoot={sceneRoot}
-              features={tree.features}
-              selectedId={selectedId}
-              onSelect={selectFeature}
-            />
-          </Box>
-        </Box>
-
-        <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          <Cad3dViewport
-            tree={tree}
-            project={project}
-            version={version}
-            subSelectMode={subSelectMode}
-            style={{ position: 'absolute', inset: 0 }}
-            onSceneChange={handleSceneChange}
-            onSubSelect={handleSubSelect}
-            selectedId={selectedId}
-          />
-          {/* Placement overlay — click anywhere in viewport to stamp template */}
-          {placementStamp && (
-            <Box
-              sx={{ position: 'absolute', inset: 0, cursor: 'copy', zIndex: 10 }}
-              onClick={handleViewportPlacementClick}
-            />
-          )}
-          {/* Sub-selection mode indicator overlay */}
-          {subSelectMode !== 'object' && (
-            <Box sx={{
-              position: 'absolute', bottom: 8, left: 8,
-              bgcolor: 'rgba(0,0,0,0.6)', borderRadius: 1, px: 1, py: 0.5,
-              pointerEvents: 'none',
-            }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                {subSelectMode === 'vertex' && 'Vertex mode — hover to preview, click to select'}
-                {subSelectMode === 'edge' && 'Edge mode — hover to preview, click to select'}
-                {subSelectMode === 'face' && 'Face mode — hover to preview, click to select'}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-
-        <FeaturePropsPanel
-          feature={selectedFeature}
-          features={tree.features}
-          onUpdate={updateFeature}
-          onEditSketch={startEditSketch}
-          onCreateDatumPlane={addDatumPlane}
-          faceDatumParams={datumParams ? {
-            position: datumParams.position,
-            normal: datumParams.normal,
-            size: datumParams.size,
-          } : null}
-          edgeParams={edgeInfo}
-        />
-      </Box>
-
-      <Snackbar
-        open={!!evalError}
-        autoHideDuration={6000}
-        onClose={() => setEvalError(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          overflow: 'hidden',
+          bgcolor: 'background.default',
+          color: 'text.primary',
+        }}
       >
-        <Alert severity="warning" onClose={() => setEvalError(null)} sx={{ maxWidth: 480 }}>
-          <strong>{evalError?.feature}</strong> — {evalError?.reason}
-        </Alert>
-      </Snackbar>
-    </Box>
+        <CoreToolbar
+          nodes={toolbarNodes}
+          display="both"
+          aria-label="modelling"
+          renderCustom={(node) => node.render as ReactNode}
+          sx={{ px: 1.5, py: 0.75, flexShrink: 0, borderBottom: 'none' }}
+        />
+        <CoreToolbar
+          nodes={contextNodes}
+          display="both"
+          aria-label="datums and selection"
+          renderCustom={(node) => node.render as ReactNode}
+          sx={{ px: 1.5, py: 0.5, flexShrink: 0 }}
+        />
+
+        {/* Main area */}
+        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+          {/* Left column */}
+          <Box
+            sx={{
+              width: 220,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              borderRight: '1px solid',
+              borderColor: 'divider',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Feature tree — shrinks at 50% so scene tree always has room */}
+            <Box
+              sx={{
+                flex: '0 0 auto',
+                maxHeight: '50%',
+                minHeight: 0,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <FeatureTreePanel
+                features={tree.features}
+                selectedId={selectedId}
+                editingSketchId={editingSketchId}
+                onSelect={selectFeature}
+                onToggle={toggleFeature}
+                onRemove={removeFeature}
+                onMove={moveFeature}
+                onEditSketch={startEditSketch}
+              />
+            </Box>
+            <Divider sx={{ flexShrink: 0 }} />
+            {/* Scene tree — takes all remaining space */}
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <SceneTreePanel
+                sceneRoot={sceneRoot}
+                features={tree.features}
+                selectedId={selectedId}
+                onSelect={selectFeature}
+              />
+            </Box>
+          </Box>
+
+          <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+            <Cad3dViewport
+              tree={tree}
+              project={project}
+              version={version}
+              subSelectMode={subSelectMode}
+              style={{ position: 'absolute', inset: 0 }}
+              onSceneChange={handleSceneChange}
+              onSubSelect={handleSubSelect}
+              selectedId={selectedId}
+            />
+            {/* Placement overlay — click anywhere in viewport to stamp template */}
+            {placementStamp && (
+              <Box
+                sx={{ position: 'absolute', inset: 0, cursor: 'copy', zIndex: 10 }}
+                onClick={handleViewportPlacementClick}
+              />
+            )}
+            {/* Sub-selection mode indicator overlay */}
+            {subSelectMode !== 'object' && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 8,
+                  left: 8,
+                  bgcolor: 'rgba(0,0,0,0.6)',
+                  borderRadius: 1,
+                  px: 1,
+                  py: 0.5,
+                  pointerEvents: 'none',
+                }}
+              >
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                  {subSelectMode === 'vertex' && 'Vertex mode — hover to preview, click to select'}
+                  {subSelectMode === 'edge' && 'Edge mode — hover to preview, click to select'}
+                  {subSelectMode === 'face' && 'Face mode — hover to preview, click to select'}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+
+          <FeaturePropsPanel
+            feature={selectedFeature}
+            features={tree.features}
+            onUpdate={updateFeature}
+            onEditSketch={startEditSketch}
+            onCreateDatumPlane={addDatumPlane}
+            faceDatumParams={
+              datumParams
+                ? {
+                    position: datumParams.position,
+                    normal: datumParams.normal,
+                    size: datumParams.size,
+                  }
+                : null
+            }
+            edgeParams={edgeInfo}
+          />
+        </Box>
+
+        <Snackbar
+          open={!!evalError}
+          autoHideDuration={6000}
+          onClose={() => setEvalError(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert severity="warning" onClose={() => setEvalError(null)} sx={{ maxWidth: 480 }}>
+            <strong>{evalError?.feature}</strong> — {evalError?.reason}
+          </Alert>
+        </Snackbar>
+      </Box>
     </ThemeProvider>
   );
 }

@@ -44,7 +44,8 @@ describe('FormulaBlockView — edycja', () => {
   it('układ ODE daje osobny wzór na każde równanie', () => {
     // Edycja całego bloku naraz byłaby edycją tekstu, nie matematyki.
     const ode = [
-      '@ode', '@state theta, omega',
+      '@ode',
+      '@state theta, omega',
       '@d theta = \\omega',
       '@d omega = -\\frac{g}{L}\\sin(\\theta)',
       '@vars g: m/s^2, L: m, theta: rad, omega: rad/s',

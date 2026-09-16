@@ -9,19 +9,35 @@
 import { describe, it, expect } from 'vitest';
 import { emptyDiagram, type DiagramDocument } from './diagram';
 import {
-  addMember, updateMember, removeMember, moveMember, setStereotype, formatMember, emptyMember,
+  addMember,
+  updateMember,
+  removeMember,
+  moveMember,
+  setStereotype,
+  formatMember,
+  emptyMember,
 } from './classMembers';
 import { serializeClassDiagram } from '../formats/mermaid/classDiagram';
 
 function klasa(): DiagramDocument {
   const doc = emptyDiagram('class');
-  doc.nodes = [{
-    id: 'Zwierze', label: 'Zwierze', shape: 'rectangle',
-    members: [
-      { raw: '+String imie', kind: 'field', visibility: 'public', type: 'String', name: 'imie' },
-      { raw: '+opis() String', kind: 'method', visibility: 'public', name: 'opis', type: 'String' },
-    ],
-  }];
+  doc.nodes = [
+    {
+      id: 'Zwierze',
+      label: 'Zwierze',
+      shape: 'rectangle',
+      members: [
+        { raw: '+String imie', kind: 'field', visibility: 'public', type: 'String', name: 'imie' },
+        {
+          raw: '+opis() String',
+          kind: 'method',
+          visibility: 'public',
+          name: 'opis',
+          type: 'String',
+        },
+      ],
+    },
+  ];
   return doc;
 }
 const members = (doc: DiagramDocument) => doc.nodes[0].members!;
@@ -34,17 +50,28 @@ describe('zapis kanoniczny składowej', () => {
     [{ kind: 'field', visibility: 'protected', name: 'stan' }, '#stan'],
     [{ kind: 'field', visibility: 'package', type: 'bool', name: 'flaga' }, '~bool flaga'],
     [{ kind: 'method', visibility: 'public', name: 'opis', type: 'String' }, '+opis() String'],
-    [{ kind: 'method', visibility: 'public', name: 'sum', params: 'int a, int b', type: 'int' }, '+sum(int a, int b) int'],
-    [{ kind: 'method', visibility: 'public', name: 'policz', isStatic: true, type: 'int' }, '+policz()$ int'],
+    [
+      { kind: 'method', visibility: 'public', name: 'sum', params: 'int a, int b', type: 'int' },
+      '+sum(int a, int b) int',
+    ],
+    [
+      { kind: 'method', visibility: 'public', name: 'policz', isStatic: true, type: 'int' },
+      '+policz()$ int',
+    ],
     [{ kind: 'method', visibility: 'public', name: 'rysuj', isAbstract: true }, '+rysuj()*'],
-    [{ kind: 'field', visibility: 'public', type: 'int', name: 'licznik', isStatic: true }, '+int licznik$'],
+    [
+      { kind: 'field', visibility: 'public', type: 'int', name: 'licznik', isStatic: true },
+      '+int licznik$',
+    ],
   ] as const)('%o → %s', (member, expected) => {
     expect(formatMember({ raw: '', ...member })).toBe(expected);
   });
 
   it('nierozpoznana składowa zostaje nietknięta', () => {
     // Rozbiór się nie udał (brak `name`), więc nie wolno nam zapisu odtwarzać.
-    expect(formatMember({ raw: '+Map~String, int~ dane', kind: 'field' })).toBe('+Map~String, int~ dane');
+    expect(formatMember({ raw: '+Map~String, int~ dane', kind: 'field' })).toBe(
+      '+Map~String, int~ dane'
+    );
   });
 });
 
@@ -81,16 +108,21 @@ describe('zmiana składowej', () => {
   });
 
   it('zmienia widoczność', () => {
-    expect(members(updateMember(klasa(), 'Zwierze', 0, { visibility: 'private' }))[0].raw).toBe('-String imie');
+    expect(members(updateMember(klasa(), 'Zwierze', 0, { visibility: 'private' }))[0].raw).toBe(
+      '-String imie'
+    );
   });
 
   it('zmienia typ', () => {
-    expect(members(updateMember(klasa(), 'Zwierze', 1, { type: 'void' }))[1].raw).toBe('+opis() void');
+    expect(members(updateMember(klasa(), 'Zwierze', 1, { type: 'void' }))[1].raw).toBe(
+      '+opis() void'
+    );
   });
 
   it('dodaje parametry metody', () => {
-    expect(members(updateMember(klasa(), 'Zwierze', 1, { params: 'bool krotki' }))[1].raw)
-      .toBe('+opis(bool krotki) String');
+    expect(members(updateMember(klasa(), 'Zwierze', 1, { params: 'bool krotki' }))[1].raw).toBe(
+      '+opis(bool krotki) String'
+    );
   });
 
   it('modyfikatory wykluczają się nawzajem', () => {
@@ -106,7 +138,9 @@ describe('zmiana składowej', () => {
   });
 
   it('zmiana rodzaju z pola na metodę daje nawiasy', () => {
-    expect(members(updateMember(klasa(), 'Zwierze', 0, { kind: 'method' }))[0].raw).toBe('+imie() String');
+    expect(members(updateMember(klasa(), 'Zwierze', 0, { kind: 'method' }))[0].raw).toBe(
+      '+imie() String'
+    );
   });
 });
 
@@ -149,7 +183,9 @@ describe('zmiany wychodzą do Mermaida', () => {
   });
 
   it('kolejność w zapisie odpowiada kolejności na liście', () => {
-    const lines = zapis(moveMember(klasa(), 'Zwierze', 1, 0)).split('\n').map((l) => l.trim());
+    const lines = zapis(moveMember(klasa(), 'Zwierze', 1, 0))
+      .split('\n')
+      .map((l) => l.trim());
     expect(lines.indexOf('+opis() String')).toBeLessThan(lines.indexOf('+String imie'));
   });
 

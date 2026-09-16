@@ -36,14 +36,16 @@ export function useTaskOptions(enabled: boolean = true): TaskOptionsResult {
   const tasks: TaskOption[] = useMemo(() => {
     if (!enabled) return [];
     try {
-      const ts = dataSource?.tasks ?? [];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return ts.map((t: any) => ({
-        id: String(t.id ?? t.model?.id ?? ''),
-        name: String(t.name ?? t.model?.name ?? '(unnamed)'),
-        projectId: t.projectId ?? t.model?.projectId,
-        description: t.description ?? t.model?.description,
-      })).filter(t => t.id);
+      const ts: any[] = dataSource?.tasks ?? [];
+      return ts
+        .map((t) => ({
+          id: String(t.id ?? t.model?.id ?? ''),
+          name: String(t.name ?? t.model?.name ?? '(unnamed)'),
+          projectId: t.projectId ?? t.model?.projectId,
+          description: t.description ?? t.model?.description,
+        }))
+        .filter((t) => t.id);
     } catch {
       return [];
     }
@@ -60,7 +62,7 @@ export function useTaskOptions(enabled: boolean = true): TaskOptionsResult {
         const name = String(p.name ?? p.model?.name ?? '');
         if (id) byId.set(id, name);
       }
-      return (id?: string) => id ? byId.get(id) : undefined;
+      return (id?: string) => (id ? byId.get(id) : undefined);
     } catch {
       return () => undefined;
     }

@@ -104,7 +104,9 @@ describe('SceneGraph', () => {
   it('round-trip toData -> fromData -> toData produces identical data', () => {
     const graph = new SceneGraph();
     graph.addNode(new MeshNode({ id: 'mesh-1', name: 'Box' }));
-    graph.addNode(new LightNode({ id: 'light-1', lightType: 'point', color: '#ff0000', intensity: 2 }));
+    graph.addNode(
+      new LightNode({ id: 'light-1', lightType: 'point', color: '#ff0000', intensity: 2 })
+    );
     graph.addNode(new CameraNode({ id: 'cam-1', fov: 60, near: 0.5, far: 500 }));
 
     const data1 = graph.toData();
@@ -121,7 +123,7 @@ describe('SceneGraph', () => {
         id: 'm1',
         geometry: { type: 'sphere', params: { radius: 2 } },
         material: { color: '#ff0000', opacity: 0.5, wireframe: true },
-      }),
+      })
     );
 
     const restored = SceneGraph.fromData(graph.toData());
@@ -137,9 +139,7 @@ describe('SceneGraph', () => {
 
   it('fromData preserves LightNode type, color, and intensity', () => {
     const graph = new SceneGraph();
-    graph.addNode(
-      new LightNode({ id: 'l1', lightType: 'spot', color: '#00ff00', intensity: 3 }),
-    );
+    graph.addNode(new LightNode({ id: 'l1', lightType: 'spot', color: '#00ff00', intensity: 3 }));
 
     const restored = SceneGraph.fromData(graph.toData());
     const light = restored.findNode('l1') as LightNode;
@@ -152,9 +152,7 @@ describe('SceneGraph', () => {
 
   it('fromData preserves CameraNode fov, near, far', () => {
     const graph = new SceneGraph();
-    graph.addNode(
-      new CameraNode({ id: 'c1', fov: 90, near: 0.01, far: 5000 }),
-    );
+    graph.addNode(new CameraNode({ id: 'c1', fov: 90, near: 0.01, far: 5000 }));
 
     const restored = SceneGraph.fromData(graph.toData());
     const cam = restored.findNode('c1') as CameraNode;

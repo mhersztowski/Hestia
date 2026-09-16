@@ -18,7 +18,13 @@ export type C4ElementKind = 'person' | 'system' | 'container' | 'component' | 'n
 /** Wariant elementu: zwykły, baza danych albo kolejka. */
 export type C4Variant = 'plain' | 'db' | 'queue';
 
-export const C4_ELEMENT_KINDS: readonly C4ElementKind[] = ['person', 'system', 'container', 'component', 'node'];
+export const C4_ELEMENT_KINDS: readonly C4ElementKind[] = [
+  'person',
+  'system',
+  'container',
+  'component',
+  'node',
+];
 export const C4_VARIANTS: readonly C4Variant[] = ['plain', 'db', 'queue'];
 
 export interface C4NodeInfo {
@@ -41,7 +47,13 @@ export interface C4NodeInfo {
 /** Rodzaj granicy — od tego zależy podpis i obramowanie. */
 export type C4BoundaryKind = 'generic' | 'enterprise' | 'system' | 'container' | 'node';
 
-export const C4_BOUNDARY_KINDS: readonly C4BoundaryKind[] = ['generic', 'enterprise', 'system', 'container', 'node'];
+export const C4_BOUNDARY_KINDS: readonly C4BoundaryKind[] = [
+  'generic',
+  'enterprise',
+  'system',
+  'container',
+  'node',
+];
 
 export interface C4BoundaryInfo {
   kind: C4BoundaryKind;
@@ -71,7 +83,11 @@ export interface C4RelInfo {
 export type C4Variant4 = 'C4Context' | 'C4Container' | 'C4Component' | 'C4Dynamic' | 'C4Deployment';
 
 export const C4_DIAGRAM_KINDS: readonly C4Variant4[] = [
-  'C4Context', 'C4Container', 'C4Component', 'C4Dynamic', 'C4Deployment',
+  'C4Context',
+  'C4Container',
+  'C4Component',
+  'C4Dynamic',
+  'C4Deployment',
 ];
 
 /** Czy dla tego rodzaju trzeci argument wywołania niesie technologię. */
@@ -82,30 +98,43 @@ export function hasTechnology(kind: C4ElementKind): boolean {
 
 /** Nazwa wywołania Mermaida dla elementu, np. `SystemDb_Ext`. */
 export function c4CallName(info: C4NodeInfo): string {
-  const base = info.kind === 'person' ? 'Person'
-    : info.kind === 'system' ? 'System'
-    : info.kind === 'container' ? 'Container'
-    : info.kind === 'component' ? 'Component'
-    : 'Node';
+  const base =
+    info.kind === 'person'
+      ? 'Person'
+      : info.kind === 'system'
+        ? 'System'
+        : info.kind === 'container'
+          ? 'Container'
+          : info.kind === 'component'
+            ? 'Component'
+            : 'Node';
   // Osoba nie ma wariantu bazy ani kolejki — Mermaid nie zna `PersonDb`.
-  const variant = info.kind === 'person' || info.kind === 'node' ? ''
-    : info.variant === 'db' ? 'Db'
-    : info.variant === 'queue' ? 'Queue'
-    : '';
-  const placement = info.kind === 'node' && info.placement
-    ? (info.placement === 'left' ? '_L' : '_R')
-    : '';
+  const variant =
+    info.kind === 'person' || info.kind === 'node'
+      ? ''
+      : info.variant === 'db'
+        ? 'Db'
+        : info.variant === 'queue'
+          ? 'Queue'
+          : '';
+  const placement =
+    info.kind === 'node' && info.placement ? (info.placement === 'left' ? '_L' : '_R') : '';
   return `${base}${variant}${placement}${info.external ? '_Ext' : ''}`;
 }
 
 /** Nazwa wywołania dla granicy. */
 export function c4BoundaryCallName(info: C4BoundaryInfo): string {
   switch (info.kind) {
-    case 'enterprise': return 'Enterprise_Boundary';
-    case 'system': return 'System_Boundary';
-    case 'container': return 'Container_Boundary';
-    case 'node': return info.placement === 'left' ? 'Node_L' : info.placement === 'right' ? 'Node_R' : 'Node';
-    default: return 'Boundary';
+    case 'enterprise':
+      return 'Enterprise_Boundary';
+    case 'system':
+      return 'System_Boundary';
+    case 'container':
+      return 'Container_Boundary';
+    case 'node':
+      return info.placement === 'left' ? 'Node_L' : info.placement === 'right' ? 'Node_R' : 'Node';
+    default:
+      return 'Boundary';
   }
 }
 

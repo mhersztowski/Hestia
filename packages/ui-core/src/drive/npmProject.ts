@@ -10,9 +10,9 @@
 export type PackageManagerId = 'npm' | 'pnpm' | 'yarn' | 'bun';
 
 export interface PackageManagerInfo {
-    id: PackageManagerId;
-    lockfile: string;
-    command: string;
+  id: PackageManagerId;
+  lockfile: string;
+  command: string;
 }
 
 /**
@@ -21,21 +21,21 @@ export interface PackageManagerInfo {
  * built with pnpm.
  */
 export const PACKAGE_MANAGERS: readonly PackageManagerInfo[] = [
-    { id: 'pnpm', lockfile: 'pnpm-lock.yaml', command: 'pnpm' },
-    { id: 'yarn', lockfile: 'yarn.lock', command: 'yarn' },
-    { id: 'bun', lockfile: 'bun.lockb', command: 'bun' },
-    { id: 'npm', lockfile: 'package-lock.json', command: 'npm' },
+  { id: 'pnpm', lockfile: 'pnpm-lock.yaml', command: 'pnpm' },
+  { id: 'yarn', lockfile: 'yarn.lock', command: 'yarn' },
+  { id: 'bun', lockfile: 'bun.lockb', command: 'bun' },
+  { id: 'npm', lockfile: 'package-lock.json', command: 'npm' },
 ];
 
 export interface DetectedManager extends PackageManagerInfo {
-    /** `false` = a guess, made because nothing in the project said anything. */
-    detected: boolean;
-    /** Whether the lockfile is there — it decides which install variant to use. */
-    hasLockfile: boolean;
+  /** `false` = a guess, made because nothing in the project said anything. */
+  detected: boolean;
+  /** Whether the lockfile is there — it decides which install variant to use. */
+  hasLockfile: boolean;
 }
 
 const byId = (id: PackageManagerId): PackageManagerInfo =>
-    PACKAGE_MANAGERS.find((m) => m.id === id)!;
+  PACKAGE_MANAGERS.find((m) => m.id === id)!;
 
 /**
  * Which tool builds this project.
@@ -51,29 +51,29 @@ const byId = (id: PackageManagerId): PackageManagerInfo =>
  * rather than assert something it does not know.
  */
 export function detectPackageManager(
-    files: readonly string[],
-    packageManagerField?: string,
+  files: readonly string[],
+  packageManagerField?: string
 ): DetectedManager {
-    const names = new Set(files);
-    const hasLock = (m: PackageManagerInfo): boolean => names.has(m.lockfile);
+  const names = new Set(files);
+  const hasLock = (m: PackageManagerInfo): boolean => names.has(m.lockfile);
 
-    // The `packageManager` field is the author's own declaration, and outranks
-    // a file that may be left over from the tool they moved away from.
-    const declared = packageManagerField?.split('@')[0]?.trim().toLowerCase();
-    const fromField = PACKAGE_MANAGERS.find((m) => m.id === declared);
-    if (fromField) return { ...fromField, detected: true, hasLockfile: hasLock(fromField) };
+  // The `packageManager` field is the author's own declaration, and outranks
+  // a file that may be left over from the tool they moved away from.
+  const declared = packageManagerField?.split('@')[0]?.trim().toLowerCase();
+  const fromField = PACKAGE_MANAGERS.find((m) => m.id === declared);
+  if (fromField) return { ...fromField, detected: true, hasLockfile: hasLock(fromField) };
 
-    const fromLock = PACKAGE_MANAGERS.find(hasLock);
-    if (fromLock) return { ...fromLock, detected: true, hasLockfile: true };
+  const fromLock = PACKAGE_MANAGERS.find(hasLock);
+  if (fromLock) return { ...fromLock, detected: true, hasLockfile: true };
 
-    return { ...byId('npm'), detected: false, hasLockfile: false };
+  return { ...byId('npm'), detected: false, hasLockfile: false };
 }
 
 export interface CommandPlan {
-    command: string;
-    args: string[];
-    /** A sentence for the user, saying why this and not something else. */
-    note?: string;
+  command: string;
+  args: string[];
+  /** A sentence for the user, saying why this and not something else. */
+  note?: string;
 }
 
 /**
@@ -85,30 +85,34 @@ export interface CommandPlan {
  * usually for somebody else.
  */
 export function installPlan(id: PackageManagerId, hasLockfile: boolean): CommandPlan {
-    const command = byId(id).command;
-    if (!hasLockfile) {
-        return {
-            command,
-            args: id === 'npm' ? ['install', '--include=dev'] : ['install'],
-            note: 'Brak pliku blokady — instalacja rozwiąże wersje od nowa.',
-        };
-    }
-    const note = 'Plik blokady obecny — instaluję dokładnie z niego (bez jego zmiany).';
-    switch (id) {
-        case 'npm': return { command, args: ['ci'], note };
-        case 'pnpm': return { command, args: ['install', '--frozen-lockfile'], note };
-        case 'yarn': return { command, args: ['install', '--immutable'], note };
-        case 'bun': return { command, args: ['install', '--frozen-lockfile'], note };
-    }
+  const command = byId(id).command;
+  if (!hasLockfile) {
+    return {
+      command,
+      args: id === 'npm' ? ['install', '--include=dev'] : ['install'],
+      note: 'Brak pliku blokady — instalacja rozwiąże wersje od nowa.',
+    };
+  }
+  const note = 'Plik blokady obecny — instaluję dokładnie z niego (bez jego zmiany).';
+  switch (id) {
+    case 'npm':
+      return { command, args: ['ci'], note };
+    case 'pnpm':
+      return { command, args: ['install', '--frozen-lockfile'], note };
+    case 'yarn':
+      return { command, args: ['install', '--immutable'], note };
+    case 'bun':
+      return { command, args: ['install', '--frozen-lockfile'], note };
+  }
 }
 
 /** Running one entry of `scripts`. */
 export function runPlan(id: PackageManagerId, script: string): CommandPlan {
-    const command = byId(id).command;
-    // `yarn build` rather than `yarn run build`: both work, but the first is
-    // what yarn projects document, so what the drive does is easy to compare
-    // with what the user types in a terminal.
-    return id === 'yarn' ? { command, args: [script] } : { command, args: ['run', script] };
+  const command = byId(id).command;
+  // `yarn build` rather than `yarn run build`: both work, but the first is
+  // what yarn projects document, so what the drive does is easy to compare
+  // with what the user types in a terminal.
+  return id === 'yarn' ? { command, args: [script] } : { command, args: ['run', script] };
 }
 
 /**
@@ -122,7 +126,7 @@ export function runPlan(id: PackageManagerId, script: string): CommandPlan {
 const SAFE_NAME = /^[A-Za-z0-9][A-Za-z0-9:._-]{0,63}$/;
 
 export function isSafeScriptName(name: string): boolean {
-    return SAFE_NAME.test(name);
+  return SAFE_NAME.test(name);
 }
 
 /**
@@ -133,35 +137,33 @@ export function isSafeScriptName(name: string): boolean {
  * user guessing whether the file is broken or simply defines nothing.
  */
 export function readPackageScripts(text: string): Record<string, string> | null {
-    let parsed: unknown;
-    try {
-        parsed = JSON.parse(text);
-    } catch {
-        return null;
-    }
-    if (!parsed || typeof parsed !== 'object') return null;
-    const raw = (parsed as Record<string, unknown>).scripts;
-    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
-    const out: Record<string, string> = {};
-    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
-        if (typeof value === 'string') out[key] = value;
-    }
-    return out;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== 'object') return null;
+  const raw = (parsed as Record<string, unknown>).scripts;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value === 'string') out[key] = value;
+  }
+  return out;
 }
 
 /** The `packageManager` field, when the file declares one. */
 export function readPackageManagerField(text: string): string | undefined {
-    try {
-        const parsed = JSON.parse(text) as { packageManager?: unknown };
-        return typeof parsed?.packageManager === 'string' ? parsed.packageManager : undefined;
-    } catch {
-        return undefined;
-    }
+  try {
+    const parsed = JSON.parse(text) as { packageManager?: unknown };
+    return typeof parsed?.packageManager === 'string' ? parsed.packageManager : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
-export type ScriptDecision =
-    | { ok: true; plan: CommandPlan }
-    | { ok: false; reason: string };
+export type ScriptDecision = { ok: true; plan: CommandPlan } | { ok: false; reason: string };
 
 /**
  * Whether this script may be run, and how.
@@ -172,24 +174,29 @@ export type ScriptDecision =
  * drive themselves — to have it accepted.
  */
 export function decideScript(
-    script: string, scripts: Record<string, string> | null, manager: PackageManagerId,
+  script: string,
+  scripts: Record<string, string> | null,
+  manager: PackageManagerId
 ): ScriptDecision {
-    if (!isSafeScriptName(script)) {
-        return { ok: false, reason: `Niedozwolona nazwa skryptu: ${JSON.stringify(script)}` };
-    }
-    if (scripts === null) {
-        return { ok: false, reason: 'Nie udało się odczytać package.json — nie wiem, co wolno uruchomić.' };
-    }
-    if (!Object.prototype.hasOwnProperty.call(scripts, script)) {
-        const available = Object.keys(scripts).sort();
-        return {
-            ok: false,
-            // Naming what is available turns a "no" into an answer to the
-            // question "then what do I type".
-            reason: available.length
-                ? `package.json nie ma skryptu „${script}". Dostępne: ${available.join(', ')}.`
-                : `package.json nie definiuje żadnych skryptów (żądano „${script}").`,
-        };
-    }
-    return { ok: true, plan: runPlan(manager, script) };
+  if (!isSafeScriptName(script)) {
+    return { ok: false, reason: `Niedozwolona nazwa skryptu: ${JSON.stringify(script)}` };
+  }
+  if (scripts === null) {
+    return {
+      ok: false,
+      reason: 'Nie udało się odczytać package.json — nie wiem, co wolno uruchomić.',
+    };
+  }
+  if (!Object.prototype.hasOwnProperty.call(scripts, script)) {
+    const available = Object.keys(scripts).sort();
+    return {
+      ok: false,
+      // Naming what is available turns a "no" into an answer to the
+      // question "then what do I type".
+      reason: available.length
+        ? `package.json nie ma skryptu „${script}". Dostępne: ${available.join(', ')}.`
+        : `package.json nie definiuje żadnych skryptów (żądano „${script}").`,
+    };
+  }
+  return { ok: true, plan: runPlan(manager, script) };
 }

@@ -1,6 +1,12 @@
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
 import { FileSystem, BinaryFileData } from '../filesystem/FileSystem';
-import type { IOcrService, IAutomateService, IReceiptParser, ExecutionResult, ParsedReceipt } from '../interfaces';
+import type {
+  IOcrService,
+  IAutomateService,
+  IReceiptParser,
+  ExecutionResult,
+  ParsedReceipt,
+} from '../interfaces';
 import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
@@ -82,7 +88,14 @@ export class HttpUploadServer {
   private receiptParser?: IReceiptParser;
   private staticDir: string | null;
 
-  constructor(port: number, fileSystem: FileSystem, ocrService?: IOcrService, automateService?: IAutomateService, receiptParser?: IReceiptParser, staticDir?: string) {
+  constructor(
+    port: number,
+    fileSystem: FileSystem,
+    ocrService?: IOcrService,
+    automateService?: IAutomateService,
+    receiptParser?: IReceiptParser,
+    staticDir?: string
+  ) {
     this.port = port;
     this.fileSystem = fileSystem;
     this.ocrService = ocrService;
@@ -99,7 +112,10 @@ export class HttpUploadServer {
   protected setCorsHeaders(res: ServerResponse): void {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-File-Path, X-Mime-Type, X-Webhook-Token');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, X-File-Path, X-Mime-Type, X-Webhook-Token'
+    );
     res.setHeader('Access-Control-Max-Age', '86400');
   }
 
@@ -221,12 +237,16 @@ export class HttpUploadServer {
       const normalizedPath = path.normalize(filePath).replace(/\\/g, '/');
       if (!normalizedPath.startsWith('data/public/') && normalizedPath !== 'data/public') {
         res.writeHead(403, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Access denied: only files from data/public are allowed' }));
+        res.end(
+          JSON.stringify({ error: 'Access denied: only files from data/public are allowed' })
+        );
         return;
       }
 
       // FileSystem rootDir is the data/ directory, so strip the leading data/ prefix
-      const readPath = normalizedPath.startsWith('data/') ? normalizedPath.slice('data/'.length) : normalizedPath;
+      const readPath = normalizedPath.startsWith('data/')
+        ? normalizedPath.slice('data/'.length)
+        : normalizedPath;
 
       // Read the file
       const fileData = await this.fileSystem.readBinaryFile(readPath);
@@ -254,7 +274,7 @@ export class HttpUploadServer {
 
   private async handleUpload(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const filePath = req.headers['x-file-path'] as string;
-    const mimeType = req.headers['x-mime-type'] as string || 'application/octet-stream';
+    const mimeType = (req.headers['x-mime-type'] as string) || 'application/octet-stream';
 
     if (!filePath) {
       this.sendResponse(res, 400, { success: false, error: 'Missing X-File-Path header' });
@@ -269,7 +289,7 @@ export class HttpUploadServer {
       if (totalSize > MAX_FILE_SIZE) {
         this.sendResponse(res, 413, {
           success: false,
-          error: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`
+          error: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`,
         });
         req.destroy();
         return;
@@ -300,10 +320,12 @@ export class HttpUploadServer {
   private handleOcrStatus(res: ServerResponse): void {
     const available = this.ocrService?.isAvailable() ?? false;
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      available,
-      languages: available ? ['pol'] : [],
-    }));
+    res.end(
+      JSON.stringify({
+        available,
+        languages: available ? ['pol'] : [],
+      })
+    );
   }
 
   private async handleOcr(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -331,7 +353,10 @@ export class HttpUploadServer {
         const { images } = JSON.parse(body) as { images: string[] };
 
         if (!images || !Array.isArray(images) || images.length === 0) {
-          this.sendOcrResponse(res, 400, { success: false, error: 'Missing or empty images array' });
+          this.sendOcrResponse(res, 400, {
+            success: false,
+            error: 'Missing or empty images array',
+          });
           return;
         }
 
@@ -360,7 +385,10 @@ export class HttpUploadServer {
   private async handleWebhook(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // Check if automate service is available
     if (!this.automateService) {
-      this.sendWebhookResponse(res, 503, { success: false, error: 'Automate service not available' });
+      this.sendWebhookResponse(res, 503, {
+        success: false,
+        error: 'Automate service not available',
+      });
       return;
     }
 
@@ -369,7 +397,10 @@ export class HttpUploadServer {
     const pathParts = (parsedUrl.pathname || '').replace(/^\/webhook\//, '').split('/');
 
     if (pathParts.length < 2 || !pathParts[0] || !pathParts[1]) {
-      this.sendWebhookResponse(res, 400, { success: false, error: 'Invalid webhook URL. Expected: /webhook/{flowId}/{nodeId}' });
+      this.sendWebhookResponse(res, 400, {
+        success: false,
+        error: 'Invalid webhook URL. Expected: /webhook/{flowId}/{nodeId}',
+      });
       return;
     }
 
@@ -386,21 +417,27 @@ export class HttpUploadServer {
     // Validate secret token
     const token = (parsedUrl.query.token as string) || (req.headers['x-webhook-token'] as string);
     if (!this.automateService.validateWebhookSecret(flowId, nodeId, token)) {
-      this.sendWebhookResponse(res, 401, { success: false, error: 'Unauthorized: Invalid or missing token' });
+      this.sendWebhookResponse(res, 401, {
+        success: false,
+        error: 'Unauthorized: Invalid or missing token',
+      });
       return;
     }
 
     // Validate HTTP method
     const allowedMethods = this.automateService.getWebhookAllowedMethods(flowId, nodeId);
     if (!allowedMethods) {
-      this.sendWebhookResponse(res, 404, { success: false, error: `Webhook node not found: ${nodeId}` });
+      this.sendWebhookResponse(res, 404, {
+        success: false,
+        error: `Webhook node not found: ${nodeId}`,
+      });
       return;
     }
 
     if (!allowedMethods.includes(req.method || '')) {
       this.sendWebhookResponse(res, 405, {
         success: false,
-        error: `Method not allowed. Allowed: ${allowedMethods.join(', ')}`
+        error: `Method not allowed. Allowed: ${allowedMethods.join(', ')}`,
       });
       return;
     }
@@ -489,7 +526,11 @@ export class HttpUploadServer {
     });
   }
 
-  private sendWebhookResponse(res: ServerResponse, statusCode: number, data: WebhookResponse): void {
+  private sendWebhookResponse(
+    res: ServerResponse,
+    statusCode: number,
+    data: WebhookResponse
+  ): void {
     if (!res.writableEnded) {
       res.writeHead(statusCode, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(data));

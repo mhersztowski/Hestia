@@ -18,7 +18,15 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Node, mergeAttributes } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, NodeViewProps } from '@tiptap/react';
-import { Box, Popover, Typography, IconButton, Tooltip, CircularProgress, Link } from '@mui/material';
+import {
+  Box,
+  Popover,
+  Typography,
+  IconButton,
+  Tooltip,
+  CircularProgress,
+  Link,
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -51,7 +59,10 @@ export interface InfoMarkEditEventDetail {
 
 const InfoMarkNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => {
   const { text, title, body, bodyPath } = node.attrs as {
-    text: string; title: string; body: string; bodyPath: string;
+    text: string;
+    title: string;
+    body: string;
+    bodyPath: string;
   };
   // Popover anchor — ref instead of state to avoid re-renders during open.
   const anchorRef = useRef<HTMLSpanElement | null>(null);
@@ -106,18 +117,24 @@ const InfoMarkNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => 
     setOpen(false);
     const raw = typeof getPos === 'function' ? getPos() : undefined;
     if (typeof raw !== 'number' || raw < 0) return;
-    window.dispatchEvent(new CustomEvent<InfoMarkEditEventDetail>(INFO_MARK_EDIT_EVENT, {
-      detail: { pos: raw, text, title, body, bodyPath },
-    }));
+    window.dispatchEvent(
+      new CustomEvent<InfoMarkEditEventDetail>(INFO_MARK_EDIT_EVENT, {
+        detail: { pos: raw, text, title, body, bodyPath },
+      })
+    );
   };
 
   // Resolve which body text actually renders. bodyPath has priority — when
   // it's set we always show the file content (or loading / error state),
   // even if a stale `body` attr lingers from an earlier version.
-  const renderedBody: { kind: 'markdown'; text: string } | { kind: 'loading' } | { kind: 'error'; msg: string } | { kind: 'empty' } = (() => {
+  const renderedBody:
+    | { kind: 'markdown'; text: string }
+    | { kind: 'loading' }
+    | { kind: 'error'; msg: string }
+    | { kind: 'empty' } = (() => {
     if (bodyPath) {
       if (fileLoading) return { kind: 'loading' };
-      if (fileError)   return { kind: 'error', msg: fileError };
+      if (fileError) return { kind: 'error', msg: fileError };
       if (fileBody !== null) return { kind: 'markdown', text: fileBody };
       return { kind: 'loading' }; // first render after open, before fetch resolves
     }
@@ -166,13 +183,19 @@ const InfoMarkNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => 
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         PaperProps={{ sx: { maxWidth: 480, minWidth: 240 } }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, p: 1.5, pb: title ? 1 : 1.5 }}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, p: 1.5, pb: title ? 1 : 1.5 }}
+        >
           <InfoOutlinedIcon fontSize="small" sx={{ color: 'primary.main', mt: 0.3 }} />
           <Box sx={{ flex: 1 }}>
             {title ? (
-              <Typography variant="subtitle2" fontWeight={600}>{title}</Typography>
+              <Typography variant="subtitle2" fontWeight={600}>
+                {title}
+              </Typography>
             ) : (
-              <Typography variant="caption" color="text.secondary">Informacja</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Informacja
+              </Typography>
             )}
           </Box>
           {editor.isEditable && (
@@ -188,11 +211,17 @@ const InfoMarkNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => 
             directly. Click on the path opens the file in MdEditor through
             the standard route (relies on global routing). */}
         {bodyPath && (
-          <Box sx={{
-            px: 1.5, pb: 0.5,
-            display: 'flex', alignItems: 'center', gap: 0.5,
-            color: 'text.secondary', fontSize: '0.7rem',
-          }}>
+          <Box
+            sx={{
+              px: 1.5,
+              pb: 0.5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              color: 'text.secondary',
+              fontSize: '0.7rem',
+            }}
+          >
             <DescriptionIcon fontSize="inherit" />
             <Link
               href={`/workspace/md/${bodyPath}`}
@@ -206,14 +235,16 @@ const InfoMarkNodeView: React.FC<NodeViewProps> = ({ node, editor, getPos }) => 
             </Link>
           </Box>
         )}
-        <Box sx={{
-          px: 1.5,
-          pb: 1.5,
-          fontSize: '0.875rem',
-          '& p:first-of-type': { mt: 0 },
-          '& p:last-of-type': { mb: 0 },
-          '& code': { backgroundColor: 'action.hover', px: 0.5, borderRadius: 0.5 },
-        }}>
+        <Box
+          sx={{
+            px: 1.5,
+            pb: 1.5,
+            fontSize: '0.875rem',
+            '& p:first-of-type': { mt: 0 },
+            '& p:last-of-type': { mb: 0 },
+            '& code': { backgroundColor: 'action.hover', px: 0.5, borderRadius: 0.5 },
+          }}
+        >
           {renderedBody.kind === 'loading' ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
               <CircularProgress size={14} />
@@ -253,12 +284,12 @@ export const InfoMark = Node.create({
 
   addAttributes() {
     return {
-      text:  { default: '' },
+      text: { default: '' },
       title: { default: '' },
       // Inline body (legacy + fallback). Kept so existing infomarks created
       // before bodyPath was added keep working — popup shows `body` when
       // `bodyPath` is empty.
-      body:  { default: '' },
+      body: { default: '' },
       // Path (drive-relative) to an .md file holding the popup content.
       // When set, takes priority over `body`. mqttClient.readFile resolves
       // the path against the user's base path.
@@ -267,42 +298,48 @@ export const InfoMark = Node.create({
   },
 
   parseHTML() {
-    return [{
-      tag: 'span[data-type="info-mark"]',
-      getAttrs(node) {
-        if (typeof node === 'string') return false;
-        const el = node as HTMLElement;
-        // URL-decode here — escapeInfoMarks emits values percent-encoded so
-        // colons / brackets / newlines in body can survive the @[…] syntax.
-        const dec = (s: string | null) => {
-          if (!s) return '';
-          try { return decodeURIComponent(s); } catch { return s; }
-        };
-        return {
-          text:     dec(el.getAttribute('data-text'))  || el.textContent || '',
-          title:    dec(el.getAttribute('data-title')),
-          body:     dec(el.getAttribute('data-body')),
-          bodyPath: dec(el.getAttribute('data-body-path')),
-        };
+    return [
+      {
+        tag: 'span[data-type="info-mark"]',
+        getAttrs(node) {
+          if (typeof node === 'string') return false;
+          const el = node as HTMLElement;
+          // URL-decode here — escapeInfoMarks emits values percent-encoded so
+          // colons / brackets / newlines in body can survive the @[…] syntax.
+          const dec = (s: string | null) => {
+            if (!s) return '';
+            try {
+              return decodeURIComponent(s);
+            } catch {
+              return s;
+            }
+          };
+          return {
+            text: dec(el.getAttribute('data-text')) || el.textContent || '',
+            title: dec(el.getAttribute('data-title')),
+            body: dec(el.getAttribute('data-body')),
+            bodyPath: dec(el.getAttribute('data-body-path')),
+          };
+        },
       },
-    }];
+    ];
   },
 
   renderHTML({ node, HTMLAttributes }) {
     // Both data-text AND inner textContent — data-text is canonical (used
     // by parseHTML), the textContent gives a sane fallback when this HTML
     // is rendered outside our TipTap pipeline (raw preview, search index).
-    const text     = String(node.attrs.text     ?? '');
-    const title    = String(node.attrs.title    ?? '');
-    const body     = String(node.attrs.body     ?? '');
+    const text = String(node.attrs.text ?? '');
+    const title = String(node.attrs.title ?? '');
+    const body = String(node.attrs.body ?? '');
     const bodyPath = String(node.attrs.bodyPath ?? '');
     return [
       'span',
       mergeAttributes(HTMLAttributes, {
         'data-type': 'info-mark',
-        'data-text':      encodeURIComponent(text),
-        'data-title':     encodeURIComponent(title),
-        'data-body':      encodeURIComponent(body),
+        'data-text': encodeURIComponent(text),
+        'data-title': encodeURIComponent(title),
+        'data-body': encodeURIComponent(body),
         'data-body-path': encodeURIComponent(bodyPath),
         // Class is for static (read-only) Markdown rendering — gives the
         // span a hint of style even when the React NodeView isn't mounted.
@@ -318,26 +355,29 @@ export const InfoMark = Node.create({
 
   addCommands() {
     return {
-      insertInfoMark: (attrs: { text: string; title?: string; body?: string; bodyPath?: string }) => ({ commands }) =>
-        commands.insertContent({
-          type: this.name,
-          attrs: {
-            text:     attrs.text,
-            title:    attrs.title    || '',
-            body:     attrs.body     || '',
-            bodyPath: attrs.bodyPath || '',
-          },
-        }),
+      insertInfoMark:
+        (attrs: { text: string; title?: string; body?: string; bodyPath?: string }) =>
+        ({ commands }) =>
+          commands.insertContent({
+            type: this.name,
+            attrs: {
+              text: attrs.text,
+              title: attrs.title || '',
+              body: attrs.body || '',
+              bodyPath: attrs.bodyPath || '',
+            },
+          }),
       // Update an existing info-mark at a specific ProseMirror position —
       // used by the dialog when editing an already-inserted node.
-      updateInfoMark: (pos: number, attrs: { text: string; title?: string; body?: string; bodyPath?: string }) =>
+      updateInfoMark:
+        (pos: number, attrs: { text: string; title?: string; body?: string; bodyPath?: string }) =>
         ({ chain }) =>
           chain()
             .setNodeSelection(pos)
             .updateAttributes('infoMark', {
-              text:     attrs.text,
-              title:    attrs.title    || '',
-              body:     attrs.body     || '',
+              text: attrs.text,
+              title: attrs.title || '',
+              body: attrs.body || '',
               bodyPath: attrs.bodyPath || '',
             })
             .run(),
@@ -348,8 +388,16 @@ export const InfoMark = Node.create({
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     infoMark: {
-      insertInfoMark: (attrs: { text: string; title?: string; body?: string; bodyPath?: string }) => ReturnType;
-      updateInfoMark: (pos: number, attrs: { text: string; title?: string; body?: string; bodyPath?: string }) => ReturnType;
+      insertInfoMark: (attrs: {
+        text: string;
+        title?: string;
+        body?: string;
+        bodyPath?: string;
+      }) => ReturnType;
+      updateInfoMark: (
+        pos: number,
+        attrs: { text: string; title?: string; body?: string; bodyPath?: string }
+      ) => ReturnType;
     };
   }
 }

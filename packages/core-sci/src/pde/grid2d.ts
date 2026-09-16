@@ -106,28 +106,28 @@ export function compilePde(block: FormulaBlock): PdeModel {
 
   if (nx > MAX_BOK || ny > MAX_BOK) {
     issues.push(
-      `Siatka ${nx}×${ny} jest za duża do liczenia w dokumencie — maksimum to ${MAX_BOK}×${MAX_BOK}.`,
+      `Siatka ${nx}×${ny} jest za duża do liczenia w dokumencie — maksimum to ${MAX_BOK}×${MAX_BOK}.`
     );
   }
   if (!prawa) issues.push('Blok pola potrzebuje „@d pole = …" albo „@d2 pole = …".');
   if (prawa?.includes(LAPLASJAN_LATEX.replace('\\\\', '\\'))) {
     issues.push(
-      'Symbol \\Lambda jest zarezerwowany na laplasjan liczony przez solver — użyj innej nazwy parametru.',
+      'Symbol \\Lambda jest zarezerwowany na laplasjan liczony przez solver — użyj innej nazwy parametru.'
     );
   }
   // Rysunek ma pierwszeństwo przed wzorem: jeśli autor coś narysował, to jest
   // jego ostatnia decyzja, a `@init` zostaje w pliku jako ślad poprzedniej.
-  const warunekZrodlo = spec.strokes !== undefined
-    ? compileStrokes(parseStrokes(spec.strokes))
-    : spec.init;
+  const warunekZrodlo =
+    spec.strokes !== undefined ? compileStrokes(parseStrokes(spec.strokes)) : spec.init;
 
   if (!warunekZrodlo) {
     issues.push('Blok pola potrzebuje warunku początkowego „@init …" albo rysunku „@strokes …".');
   }
 
   // Symbole dostępne w wyrażeniu ewolucji: laplasjan, samo pole i parametry.
-  const nazwyParametrow = Object.keys(block.vars)
-    .filter((name) => name !== field && name !== 'x' && name !== 'y');
+  const nazwyParametrow = Object.keys(block.vars).filter(
+    (name) => name !== field && name !== 'x' && name !== 'y'
+  );
 
   const ewolucja = prawa
     ? compileExpression(podstawLaplasjan(prawa, field), [LAPLASJAN, field, ...nazwyParametrow])
@@ -148,11 +148,23 @@ export function compilePde(block: FormulaBlock): PdeModel {
   const hy = (domainY[1] - domainY[0]) / (ny - 1);
 
   return {
-    field, nx, ny, domainX, domainY, order, parameters, issues,
+    field,
+    nx,
+    ny,
+    domainX,
+    domainY,
+    order,
+    parameters,
+    issues,
 
     run(values, tSpan = [0, 1], frames = 60) {
       if (!ewolucja || !warunek) {
-        return { frames: [{ t: tSpan[0], data: new Float32Array(nx * ny) }], min: 0, max: 0, steps: 0 };
+        return {
+          frames: [{ t: tSpan[0], data: new Float32Array(nx * ny) }],
+          min: 0,
+          max: 0,
+          steps: 0,
+        };
       }
 
       const u = new Float32Array(nx * ny);
@@ -177,7 +189,8 @@ export function compilePde(block: FormulaBlock): PdeModel {
       if (krokow > MAX_KROKOW) {
         return {
           frames: [{ t: tSpan[0], data: u }],
-          min: minOf(u), max: maxOf(u),
+          min: minOf(u),
+          max: maxOf(u),
           steps: 0,
         };
       }
@@ -196,7 +209,17 @@ export function compilePde(block: FormulaBlock): PdeModel {
 
       for (let krok = 1; krok <= krokow; krok += 1) {
         step(biezace, poprzednie, nastepne, {
-          nx, ny, hx, hy, dt: rzeczywisteDt, order, boundary, ewolucja, scope, field, liniowe,
+          nx,
+          ny,
+          hx,
+          hy,
+          dt: rzeczywisteDt,
+          order,
+          boundary,
+          ewolucja,
+          scope,
+          field,
+          liniowe,
         });
 
         // Rotacja buforów zamiast kopiowania: przy 16k punktów i dziesiątkach
@@ -238,16 +261,16 @@ function stableStep(
   hx: number,
   hy: number,
   order: 'diffusion' | 'wave',
-  tSpan: [number, number],
+  tSpan: [number, number]
 ): number {
   const h = Math.min(hx, hy);
   const skala = Math.max(1e-9, ...Object.values(values).map(Math.abs));
 
-  if (order === 'diffusion') return 0.2 * (h * h) / skala;
+  if (order === 'diffusion') return (0.2 * (h * h)) / skala;
 
   // Dla fali w wyrażeniu stoi `c^2`, więc prędkością jest pierwiastek skali.
   const dlugosc = tSpan[1] - tSpan[0];
-  return Math.min(0.35 * h / Math.max(Math.sqrt(skala), 1e-9), dlugosc / 4);
+  return Math.min((0.35 * h) / Math.max(Math.sqrt(skala), 1e-9), dlugosc / 4);
 }
 
 interface StepContext {
@@ -283,7 +306,7 @@ interface StepContext {
 function wykryjLiniowosc(
   ewolucja: { evaluate(scope: Record<string, number>): number },
   scope: Record<string, number>,
-  field: string,
+  field: string
 ): { a: number; b: number; c: number } | undefined {
   const probka = (pole: number, lap: number) => {
     scope[field] = pole;
@@ -298,7 +321,12 @@ function wykryjLiniowosc(
 
   // Punkty kontrolne poza tymi, z których wyliczyliśmy współczynniki —
   // inaczej test przeszedłby dla dowolnej funkcji.
-  const kontrolne: Array<[number, number]> = [[2, 3], [-1, 5], [0.5, -2], [7, 0.25]];
+  const kontrolne: Array<[number, number]> = [
+    [2, 3],
+    [-1, 5],
+    [0.5, -2],
+    [7, 0.25],
+  ];
   for (const [pole, lap] of kontrolne) {
     const zmierzone = probka(pole, lap);
     const przewidziane = a + b * pole + c * lap;
@@ -309,7 +337,12 @@ function wykryjLiniowosc(
 }
 
 /** Jeden krok schematu jawnego. */
-function step(u: Float32Array, poprzednie: Float32Array, out: Float32Array, ctx: StepContext): void {
+function step(
+  u: Float32Array,
+  poprzednie: Float32Array,
+  out: Float32Array,
+  ctx: StepContext
+): void {
   const { nx, ny, hx, hy, dt, order, boundary, ewolucja, scope, field, liniowe } = ctx;
   const ix2 = 1 / (hx * hx);
   const iy2 = 1 / (hy * hy);
@@ -344,10 +377,11 @@ function step(u: Float32Array, poprzednie: Float32Array, out: Float32Array, ctx:
         pochodna = ewolucja.evaluate(scope);
       }
 
-      out[k] = order === 'diffusion'
-        ? u[k] + dt * pochodna
-        // Schemat Verleta dla drugiego rzędu: u(t+dt) = 2u - u(t-dt) + dt²·ü.
-        : 2 * u[k] - poprzednie[k] + dt * dt * pochodna;
+      out[k] =
+        order === 'diffusion'
+          ? u[k] + dt * pochodna
+          : // Schemat Verleta dla drugiego rzędu: u(t+dt) = 2u - u(t-dt) + dt²·ü.
+            2 * u[k] - poprzednie[k] + dt * dt * pochodna;
     }
   }
 }

@@ -49,7 +49,7 @@ export function getTextContent(content: AiMessageContent): string {
   if (typeof content === 'string') return content;
   return content
     .filter((b): b is AiTextContentBlock => b.type === 'text')
-    .map(b => b.text)
+    .map((b) => b.text)
     .join('');
 }
 

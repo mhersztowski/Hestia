@@ -74,7 +74,11 @@ export function parseQuantity(input: string | number, expected?: string): Parsed
   }
 
   const si = unit.toSI();
-  return { si: si.toNumber(), unit: value.toString().replace(/^[\d.eE+-]+\s*/, ''), dimension: si.formatUnits() };
+  return {
+    si: si.toNumber(),
+    unit: value.toString().replace(/^[\d.eE+-]+\s*/, ''),
+    dimension: si.formatUnits(),
+  };
 }
 
 /** Skrót: sama wartość w SI. */

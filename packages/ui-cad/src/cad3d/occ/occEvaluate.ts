@@ -2,13 +2,34 @@ import * as THREE from 'three';
 import { Project } from '../../cad2d/barrel';
 import { getOcc, type OCC } from './occLoader';
 import {
-  OccScope, sketchToWorldTrsf, entitiesToWires, entitiesToOpenPathWire, wiresToFace,
+  OccScope,
+  sketchToWorldTrsf,
+  entitiesToWires,
+  entitiesToOpenPathWire,
+  wiresToFace,
   shapeToGroup,
 } from './occConvert';
 import type {
-  ChamferFeature, ExtrudeFeature, FaceRef, FeatureTree, FilletFeature, GrooveFeature, HelixFeature,
-  HoleFeature, LinearPatternFeature, LoftCutFeature, LoftFeature, MirrorFeature, PatternDirection, PocketFeature,
-  PolarPatternFeature, RevolveFeature, ShellFeature, SketchFeature, SweepCutFeature, SweepFeature,
+  ChamferFeature,
+  ExtrudeFeature,
+  FaceRef,
+  FeatureTree,
+  FilletFeature,
+  GrooveFeature,
+  HelixFeature,
+  HoleFeature,
+  LinearPatternFeature,
+  LoftCutFeature,
+  LoftFeature,
+  MirrorFeature,
+  PatternDirection,
+  PocketFeature,
+  PolarPatternFeature,
+  RevolveFeature,
+  ShellFeature,
+  SketchFeature,
+  SweepCutFeature,
+  SweepFeature,
 } from '../model/types';
 
 const SOLID_COLOR = new THREE.Color('#4fc3f7');
@@ -17,7 +38,11 @@ const SOLID_COLOR = new THREE.Color('#4fc3f7');
 
 function loadSketchProject(sketch: SketchFeature): Project | null {
   if (!sketch.projectData) return null;
-  try { return Project.fromJSON(JSON.parse(sketch.projectData)); } catch { return null; }
+  try {
+    return Project.fromJSON(JSON.parse(sketch.projectData));
+  } catch {
+    return null;
+  }
 }
 
 function sketchEntities(sketch: SketchFeature): Record<string, unknown>[] {
@@ -27,9 +52,10 @@ function sketchEntities(sketch: SketchFeature): Record<string, unknown>[] {
 }
 
 function resolveEntities(entityIds: string[], project: Project): Record<string, unknown>[] {
-  if (entityIds.length === 0) return project.entityRegistry.getAll() as unknown as Record<string, unknown>[];
+  if (entityIds.length === 0)
+    return project.entityRegistry.getAll() as unknown as Record<string, unknown>[];
   return entityIds
-    .map(id => project.entityRegistry.get(id) as unknown as Record<string, unknown> | undefined)
+    .map((id) => project.entityRegistry.get(id) as unknown as Record<string, unknown> | undefined)
     .filter((e): e is Record<string, unknown> => !!e);
 }
 
@@ -39,7 +65,9 @@ function resolveEntities(entityIds: string[], project: Project): Record<string, 
  * sketchToWorldTrsf, say), because Copy=false only changes the shape's
  * `TopLoc_Location` instead of producing new geometry. */
 function transformShape(oc: OCC, shape: unknown, trsf: unknown, sc: OccScope): unknown {
-  const builder = sc.track(new oc.BRepBuilderAPI_Transform_2(shape as object, trsf as object, true));
+  const builder = sc.track(
+    new oc.BRepBuilderAPI_Transform_2(shape as object, trsf as object, true)
+  );
   return builder.Shape();
 }
 
@@ -50,7 +78,7 @@ function transformShape(oc: OCC, shape: unknown, trsf: unknown, sc: OccScope): u
  */
 function pickExtrudeDirection(
   d: 'normal' | 'X' | 'Y' | 'Z' | undefined,
-  plane: 'XY' | 'XZ' | 'YZ' | 'face',
+  plane: 'XY' | 'XZ' | 'YZ' | 'face'
 ): { x: number; y: number; z: number } {
   if (!d || d === 'normal') return { x: 0, y: 0, z: 1 };
   // Sketch → world mapping (patrz sketchToWorldTrsf):
@@ -62,9 +90,9 @@ function pickExtrudeDirection(
   //   XZ: worldX=(1,0,0) worldY=(0,0,1) worldZ=(0,1,0)
   //   YZ: worldX=(0,0,1) worldY=(1,0,0) worldZ=(0,1,0)
   const map: Record<string, Record<'X' | 'Y' | 'Z', [number, number, number]>> = {
-    XY:   { X: [1, 0, 0], Y: [0, 1, 0], Z: [0, 0, 1] },
-    XZ:   { X: [1, 0, 0], Y: [0, 0, 1], Z: [0, 1, 0] },
-    YZ:   { X: [0, 0, 1], Y: [1, 0, 0], Z: [0, 1, 0] },
+    XY: { X: [1, 0, 0], Y: [0, 1, 0], Z: [0, 0, 1] },
+    XZ: { X: [1, 0, 0], Y: [0, 0, 1], Z: [0, 1, 0] },
+    YZ: { X: [0, 0, 1], Y: [1, 0, 0], Z: [0, 1, 0] },
     face: { X: [1, 0, 0], Y: [0, 1, 0], Z: [0, 0, 1] }, // a fallback — sketchToWorldTrsf does the exact transform
   };
   const v = map[plane][d];
@@ -82,8 +110,13 @@ function pickExtrudeDirection(
  * Bounding box XY policzony po stronie JS z surowych entities (bez OCC).
  * Handles rect, circle, closed polyline and line. Other types are skipped.
  */
-function entitiesBBoxXY(entities: Record<string, unknown>[]): { cx: number; cy: number; halfDiag: number } | null {
-  let xMin = Infinity, yMin = Infinity, xMax = -Infinity, yMax = -Infinity;
+function entitiesBBoxXY(
+  entities: Record<string, unknown>[]
+): { cx: number; cy: number; halfDiag: number } | null {
+  let xMin = Infinity,
+    yMin = Infinity,
+    xMax = -Infinity,
+    yMax = -Infinity;
   const acc = (x: number, y: number) => {
     if (x < xMin) xMin = x;
     if (y < yMin) yMin = y;
@@ -93,12 +126,18 @@ function entitiesBBoxXY(entities: Record<string, unknown>[]): { cx: number; cy: 
   for (const e of entities) {
     const t = e['type'] as string;
     if (t === 'rect') {
-      const x = e['x'] as number, y = e['y'] as number;
-      const w = e['width'] as number, h = e['height'] as number;
-      acc(x, y); acc(x + w, y + h);
+      const x = e['x'] as number,
+        y = e['y'] as number;
+      const w = e['width'] as number,
+        h = e['height'] as number;
+      acc(x, y);
+      acc(x + w, y + h);
     } else if (t === 'circle') {
-      const cx = e['cx'] as number, cy = e['cy'] as number, r = e['radius'] as number;
-      acc(cx - r, cy - r); acc(cx + r, cy + r);
+      const cx = e['cx'] as number,
+        cy = e['cy'] as number,
+        r = e['radius'] as number;
+      acc(cx - r, cy - r);
+      acc(cx + r, cy + r);
     } else if (t === 'polyline') {
       const pts = (e['points'] as Array<{ x: number; y: number }>) ?? [];
       for (const p of pts) acc(p.x, p.y);
@@ -123,9 +162,11 @@ function extrudeToSolidWithTaper(
   oc: OCC,
   wires: unknown[],
   entities: Record<string, unknown>[],
-  dx: number, dy: number, dz: number,
+  dx: number,
+  dy: number,
+  dz: number,
   taperDeg: number,
-  sc: OccScope,
+  sc: OccScope
 ): unknown | null {
   try {
     const depth = Math.hypot(dx, dy, dz);
@@ -169,14 +210,23 @@ function extrudeToSolidWithTaper(
 }
 
 /** Builds an extruded solid from a face + direction vector. */
-function extrudeToSolid(oc: OCC, face: unknown, dx: number, dy: number, dz: number, sc: OccScope): unknown | null {
+function extrudeToSolid(
+  oc: OCC,
+  face: unknown,
+  dx: number,
+  dy: number,
+  dz: number,
+  sc: OccScope
+): unknown | null {
   try {
     const vec = sc.track(new oc.gp_Vec_4(dx, dy, dz));
     const prism = sc.track(new oc.BRepPrimAPI_MakePrism_1(face as object, vec, false, true));
     prism.Build(sc.track(new oc.Message_ProgressRange_1()));
     if (!prism.IsDone()) return null;
     return prism.Shape();
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 /** CSG subtract: base - tool. Returns new shape or null on failure. */
@@ -186,12 +236,17 @@ function countFaces(oc: OCC, shape: unknown): number {
     const exp = new oc.TopExp_Explorer_2(
       shape as object,
       oc.TopAbs_ShapeEnum.TopAbs_FACE,
-      oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+      oc.TopAbs_ShapeEnum.TopAbs_SHAPE
     );
     let n = 0;
-    while (exp.More()) { n++; exp.Next(); }
+    while (exp.More()) {
+      n++;
+      exp.Next();
+    }
     return n;
-  } catch { return -1; }
+  } catch {
+    return -1;
+  }
 }
 
 /**
@@ -206,7 +261,7 @@ function extractFirstSolid(oc: OCC, shape: unknown): unknown {
     const exp = new oc.TopExp_Explorer_2(
       shape as object,
       oc.TopAbs_ShapeEnum.TopAbs_SOLID,
-      oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+      oc.TopAbs_ShapeEnum.TopAbs_SHAPE
     );
     let first: unknown = null;
     let count = 0;
@@ -228,9 +283,13 @@ function extractFirstSolid(oc: OCC, shape: unknown): unknown {
 
 function csgCut(oc: OCC, base: unknown, tool: unknown, sc: OccScope): unknown | null {
   try {
-    const cutter = sc.track(new oc.BRepAlgoAPI_Cut_3(
-      base as object, tool as object, sc.track(new oc.Message_ProgressRange_1()),
-    ));
+    const cutter = sc.track(
+      new oc.BRepAlgoAPI_Cut_3(
+        base as object,
+        tool as object,
+        sc.track(new oc.Message_ProgressRange_1())
+      )
+    );
     cutter.Build(sc.track(new oc.Message_ProgressRange_1()));
     if (!cutter.IsDone()) return null;
     const shape = extractFirstSolid(oc, cutter.Shape());
@@ -239,16 +298,22 @@ function csgCut(oc: OCC, base: unknown, tool: unknown, sc: OccScope): unknown | 
     // become an empty compound and the whole model would disappear.
     if (countSolids(oc, shape) === 0) return null;
     return shape;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 /** CSG fuse: A + B. Returns a compound when the result holds several disjoint solids
  *  (a solid mirrored about a plane outside it, say). */
 function csgFuse(oc: OCC, a: unknown, b: unknown, sc: OccScope): unknown | null {
   try {
-    const fuser = sc.track(new oc.BRepAlgoAPI_Fuse_3(
-      a as object, b as object, sc.track(new oc.Message_ProgressRange_1()),
-    ));
+    const fuser = sc.track(
+      new oc.BRepAlgoAPI_Fuse_3(
+        a as object,
+        b as object,
+        sc.track(new oc.Message_ProgressRange_1())
+      )
+    );
     fuser.Build(sc.track(new oc.Message_ProgressRange_1()));
     if (!fuser.IsDone()) return null;
     const shape = extractFirstSolid(oc, fuser.Shape());
@@ -258,27 +323,45 @@ function csgFuse(oc: OCC, a: unknown, b: unknown, sc: OccScope): unknown | null 
     // falls back to FUSE FAILED, which adds the sweep as a separate solid.
     if (countSolids(oc, shape) === 0) return null;
     return shape;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // ── Feature evaluators ─────────────────────────────────────────────────────────
 
-function reportEvalError(featureName: string, reason: string, extra?: Record<string, unknown>): void {
+function reportEvalError(
+  featureName: string,
+  reason: string,
+  extra?: Record<string, unknown>
+): void {
   // The console for whoever is developing, and a CustomEvent for the interface (the 3D page shows a snackbar).
   console.warn(`[cad3d/evaluate] ${featureName} failed: ${reason}`, extra ?? '');
   if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
-    window.dispatchEvent(new CustomEvent('cad3d:eval-error', {
-      detail: { feature: featureName, reason, extra },
-    }));
+    window.dispatchEvent(
+      new CustomEvent('cad3d:eval-error', {
+        detail: { feature: featureName, reason, extra },
+      })
+    );
   }
 }
 
-function evalExtrude(oc: OCC, feature: ExtrudeFeature, project: Project, tree: FeatureTree): unknown | null {
+function evalExtrude(
+  oc: OCC,
+  feature: ExtrudeFeature,
+  project: Project,
+  tree: FeatureTree
+): unknown | null {
   console.log('[evalExtrude] START', {
-    id: feature.id, sketchId: feature.sketchId, entityIds: feature.entityIds,
-    extrudeType: feature.extrudeType, height: feature.height,
-    symmetric: feature.symmetric, reversed: feature.reversed,
-    direction: feature.direction, taper: feature.taper,
+    id: feature.id,
+    sketchId: feature.sketchId,
+    entityIds: feature.entityIds,
+    extrudeType: feature.extrudeType,
+    height: feature.height,
+    symmetric: feature.symmetric,
+    reversed: feature.reversed,
+    direction: feature.direction,
+    taper: feature.taper,
   });
   const sc = new OccScope();
   try {
@@ -286,20 +369,34 @@ function evalExtrude(oc: OCC, feature: ExtrudeFeature, project: Project, tree: F
     let sketchRef: SketchFeature | undefined;
 
     if (feature.sketchId) {
-      sketchRef = tree.features.find(f => f.id === feature.sketchId && f.type === 'sketch') as SketchFeature | undefined;
+      sketchRef = tree.features.find((f) => f.id === feature.sketchId && f.type === 'sketch') as
+        SketchFeature | undefined;
       if (!sketchRef) {
-        reportEvalError(feature.name || 'Extrude', 'sketch not found', { sketchId: feature.sketchId });
+        reportEvalError(feature.name || 'Extrude', 'sketch not found', {
+          sketchId: feature.sketchId,
+        });
         return null;
       }
       if (!sketchRef.projectData) {
-        reportEvalError(feature.name || 'Extrude', 'the sketch is empty — go into Edit Sketch, draw a rectangle and click Exit Sketch', { sketchId: feature.sketchId });
+        reportEvalError(
+          feature.name || 'Extrude',
+          'the sketch is empty — go into Edit Sketch, draw a rectangle and click Exit Sketch',
+          { sketchId: feature.sketchId }
+        );
         return null;
       }
       entities = sketchEntities(sketchRef);
-      console.log('[evalExtrude] entities from sketch', { sketchId: feature.sketchId, count: entities.length, types: entities.map(e => e.type) });
+      console.log('[evalExtrude] entities from sketch', {
+        sketchId: feature.sketchId,
+        count: entities.length,
+        types: entities.map((e) => e.type),
+      });
     } else {
       entities = resolveEntities(feature.entityIds, project);
-      console.log('[evalExtrude] entities from project', { count: entities.length, types: entities.map(e => e.type) });
+      console.log('[evalExtrude] entities from project', {
+        count: entities.length,
+        types: entities.map((e) => e.type),
+      });
     }
 
     if (entities.length === 0) {
@@ -312,7 +409,7 @@ function evalExtrude(oc: OCC, feature: ExtrudeFeature, project: Project, tree: F
       reportEvalError(
         feature.name || 'Extrude',
         'the sketch does not close — draw a rectangle, a circle or a closed polyline',
-        { entityCount: entities.length },
+        { entityCount: entities.length }
       );
       return null;
     }
@@ -325,7 +422,9 @@ function evalExtrude(oc: OCC, feature: ExtrudeFeature, project: Project, tree: F
 
     const depth = feature.extrudeType === 'through_all' ? 10000 : Math.abs(feature.height);
     if (depth <= 0) {
-      reportEvalError(feature.name || 'Extrude', 'the height has to be greater than 0', { height: feature.height });
+      reportEvalError(feature.name || 'Extrude', 'the height has to be greater than 0', {
+        height: feature.height,
+      });
       return null;
     }
 
@@ -348,7 +447,10 @@ function evalExtrude(oc: OCC, feature: ExtrudeFeature, project: Project, tree: F
     if (Math.abs(taperDeg) > 0.001) {
       solid = extrudeToSolidWithTaper(oc, wires, entities, dx, dy, dz, taperDeg, sc);
       if (!solid) {
-        reportEvalError(feature.name || 'Extrude', 'could not apply the taper — a plain extrude was used instead');
+        reportEvalError(
+          feature.name || 'Extrude',
+          'could not apply the taper — a plain extrude was used instead'
+        );
         solid = extrudeToSolid(oc, face, dx, dy, dz, sc);
       }
     } else {
@@ -361,8 +463,9 @@ function evalExtrude(oc: OCC, feature: ExtrudeFeature, project: Project, tree: F
 
     // Symmetric (or dimension+symmetric) centres the solid on the sketch plane,
     // by moving it −depth/2 along the prism.
-    const symmetric = feature.extrudeType === 'symmetric'
-      || (feature.extrudeType === 'dimension' && feature.symmetric);
+    const symmetric =
+      feature.extrudeType === 'symmetric' ||
+      (feature.extrudeType === 'dimension' && feature.symmetric);
     console.log('[evalExtrude] symmetric flag =', symmetric, {
       'feature.extrudeType': feature.extrudeType,
       'feature.symmetric': feature.symmetric,
@@ -379,8 +482,13 @@ function evalExtrude(oc: OCC, feature: ExtrudeFeature, project: Project, tree: F
     const trsf = sketchToWorldTrsf(oc, sketchRef ?? { plane: 'XY', offset: 0 });
     const finalShape = transformShape(oc, solid, trsf, sc);
     console.log('[evalExtrude] SUCCESS', {
-      id: feature.id, height: feature.height, extrudeType: feature.extrudeType,
-      direction: feature.direction, reversed: feature.reversed, taper: taperDeg, symmetric,
+      id: feature.id,
+      height: feature.height,
+      extrudeType: feature.extrudeType,
+      direction: feature.direction,
+      reversed: feature.reversed,
+      taper: taperDeg,
+      symmetric,
     });
     return finalShape;
   } catch (err) {
@@ -394,14 +502,20 @@ function evalExtrude(oc: OCC, feature: ExtrudeFeature, project: Project, tree: F
   }
 }
 
-function evalRevolve(oc: OCC, feature: RevolveFeature, project: Project, tree: FeatureTree): unknown | null {
+function evalRevolve(
+  oc: OCC,
+  feature: RevolveFeature,
+  project: Project,
+  tree: FeatureTree
+): unknown | null {
   const sc = new OccScope();
   try {
     let entities: Record<string, unknown>[];
     let sketchRef: SketchFeature | undefined;
 
     if (feature.sketchId) {
-      sketchRef = tree.features.find(f => f.id === feature.sketchId && f.type === 'sketch') as SketchFeature | undefined;
+      sketchRef = tree.features.find((f) => f.id === feature.sketchId && f.type === 'sketch') as
+        SketchFeature | undefined;
       entities = sketchRef ? sketchEntities(sketchRef) : [];
     } else {
       entities = resolveEntities(feature.entityIds, project);
@@ -417,8 +531,10 @@ function evalRevolve(oc: OCC, feature: RevolveFeature, project: Project, tree: F
     // why revolve used to look as though it did nothing.
     const wires = entitiesToWires(oc, entities, sc);
     if (wires.length === 0) {
-      reportEvalError(feature.name || 'Revolve',
-        'the sketch does not close — draw a rectangle, a circle or a closed polyline');
+      reportEvalError(
+        feature.name || 'Revolve',
+        'the sketch does not close — draw a rectangle, a circle or a closed polyline'
+      );
       return null;
     }
     const face = wiresToFace(oc, wires, sc);
@@ -439,27 +555,41 @@ function evalRevolve(oc: OCC, feature: RevolveFeature, project: Project, tree: F
       //   axis Z = out-of-plane (nie przecina profile w plane XY)
       const axisIsY = feature.axis === 'sketch_vertical' || feature.axis === 'Y';
       const axisIsX = feature.axis === 'sketch_horizontal' || feature.axis === 'X';
-      const cx = bbox2d.cx, halfDiag = bbox2d.halfDiag;
+      const cx = bbox2d.cx,
+        halfDiag = bbox2d.halfDiag;
       // halfDiag is only an approximate size — what is needed here are the exact
       // min and max in X and Y, and the raw entities are at hand, so they are
       // measured directly:
-      let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+      let xMin = Infinity,
+        xMax = -Infinity,
+        yMin = Infinity,
+        yMax = -Infinity;
       for (const e of entities) {
         const t = e['type'] as string;
         if (t === 'rect') {
-          const x = e['x'] as number, y = e['y'] as number;
-          const w = e['width'] as number, h = e['height'] as number;
-          xMin = Math.min(xMin, x); xMax = Math.max(xMax, x + w);
-          yMin = Math.min(yMin, y); yMax = Math.max(yMax, y + h);
+          const x = e['x'] as number,
+            y = e['y'] as number;
+          const w = e['width'] as number,
+            h = e['height'] as number;
+          xMin = Math.min(xMin, x);
+          xMax = Math.max(xMax, x + w);
+          yMin = Math.min(yMin, y);
+          yMax = Math.max(yMax, y + h);
         } else if (t === 'circle') {
-          const cxc = e['cx'] as number, cyc = e['cy'] as number, r = e['radius'] as number;
-          xMin = Math.min(xMin, cxc - r); xMax = Math.max(xMax, cxc + r);
-          yMin = Math.min(yMin, cyc - r); yMax = Math.max(yMax, cyc + r);
+          const cxc = e['cx'] as number,
+            cyc = e['cy'] as number,
+            r = e['radius'] as number;
+          xMin = Math.min(xMin, cxc - r);
+          xMax = Math.max(xMax, cxc + r);
+          yMin = Math.min(yMin, cyc - r);
+          yMax = Math.max(yMax, cyc + r);
         } else if (t === 'polyline') {
           const pts = (e['points'] as Array<{ x: number; y: number }>) ?? [];
           for (const p of pts) {
-            xMin = Math.min(xMin, p.x); xMax = Math.max(xMax, p.x);
-            yMin = Math.min(yMin, p.y); yMax = Math.max(yMax, p.y);
+            xMin = Math.min(xMin, p.x);
+            xMax = Math.max(xMax, p.x);
+            yMin = Math.min(yMin, p.y);
+            yMax = Math.max(yMax, p.y);
           }
         } else if (t === 'line') {
           xMin = Math.min(xMin, e['x1'] as number, e['x2'] as number);
@@ -470,17 +600,22 @@ function evalRevolve(oc: OCC, feature: RevolveFeature, project: Project, tree: F
       }
       const tol = 1e-4;
       if (axisIsY && xMin < -tol && xMax > tol) {
-        reportEvalError(feature.name || 'Revolve',
-          `The Y axis crosses the profile (x=${xMin.toFixed(1)}..${xMax.toFixed(1)}). Move the sketch so that all of it is on one side of the axis (x>0 or x<0).`);
+        reportEvalError(
+          feature.name || 'Revolve',
+          `The Y axis crosses the profile (x=${xMin.toFixed(1)}..${xMax.toFixed(1)}). Move the sketch so that all of it is on one side of the axis (x>0 or x<0).`
+        );
         return null;
       }
       if (axisIsX && yMin < -tol && yMax > tol) {
-        reportEvalError(feature.name || 'Revolve',
-          `The X axis crosses the profile (y=${yMin.toFixed(1)}..${yMax.toFixed(1)}). Move the sketch so that all of it is on one side of the axis (y>0 or y<0).`);
+        reportEvalError(
+          feature.name || 'Revolve',
+          `The X axis crosses the profile (y=${yMin.toFixed(1)}..${yMax.toFixed(1)}). Move the sketch so that all of it is on one side of the axis (y>0 or y<0).`
+        );
         return null;
       }
       console.log('[evalRevolve] bbox check OK', { xMin, xMax, yMin, yMax, axis: feature.axis });
-      void cx; void halfDiag; // suppress unused
+      void cx;
+      void halfDiag; // suppress unused
     }
 
     const revolveType = feature.revolveType ?? 'dimension';
@@ -492,17 +627,31 @@ function evalRevolve(oc: OCC, feature: RevolveFeature, project: Project, tree: F
     const angle2 = Math.max(0, Math.min(360, feature.angle2 ?? 0));
     // For two_angles the whole range is angle1 + angle2 (the wire is pre-rotated by −angle2, then revolved by the total).
     // For to_last it is 360°. For a plain angle, angle1 alone.
-    const rawTotal = isToLast ? 360 : (isTwoAngles ? angle1 + angle2 : angle1);
+    const rawTotal = isToLast ? 360 : isTwoAngles ? angle1 + angle2 : angle1;
     if (isTwoAngles && rawTotal > 360) {
-      reportEvalError(feature.name || 'Revolve',
-        `Angle (${angle1}°) + Angle 2 (${angle2}°) = ${rawTotal}°, which is over 360°. Lower one of them — this renders as a full turn.`);
+      reportEvalError(
+        feature.name || 'Revolve',
+        `Angle (${angle1}°) + Angle 2 (${angle2}°) = ${rawTotal}°, which is over 360°. Lower one of them — this renders as a full turn.`
+      );
       // NOT a return null — carry on capped at 360°, so at least a full circle appears
     }
     const totalAngleDeg = Math.min(360, rawTotal);
     const angleRad = (totalAngleDeg * Math.PI) / 180;
-    const isSymmetric = revolveType === 'symmetric' || (revolveType === 'dimension' && feature.symmetric && !isTwoAngles);
+    const isSymmetric =
+      revolveType === 'symmetric' ||
+      (revolveType === 'dimension' && feature.symmetric && !isTwoAngles);
     const reversed = feature.reversed;
-    console.log('[evalRevolve] angle setup', { revolveType, typeExt, angle1, angle2, totalAngleDeg, isSymmetric, isTwoAngles, isToLast, reversed });
+    console.log('[evalRevolve] angle setup', {
+      revolveType,
+      typeExt,
+      angle1,
+      angle2,
+      totalAngleDeg,
+      isSymmetric,
+      isTwoAngles,
+      isToLast,
+      reversed,
+    });
 
     // Axis in local sketch space (Y axis by default for 'sketch_vertical')
     let axDir: [number, number, number] = [0, 1, 0];
@@ -522,35 +671,41 @@ function evalRevolve(oc: OCC, feature: RevolveFeature, project: Project, tree: F
     } else if (isSymmetric) {
       phiStart = -angleRad / 2;
     }
-    console.log('[evalRevolve] revol setup', { axDir, phiStart: (phiStart * 180 / Math.PI).toFixed(1) + '°', angleRad: (angleRad * 180 / Math.PI).toFixed(1) + '°' });
+    console.log('[evalRevolve] revol setup', {
+      axDir,
+      phiStart: ((phiStart * 180) / Math.PI).toFixed(1) + '°',
+      angleRad: ((angleRad * 180) / Math.PI).toFixed(1) + '°',
+    });
 
     // If symmetric or reversed, pre-rotate face so revol starts at correct angle
     let workFace: unknown = face;
     if (phiStart !== 0) {
       const rt = sc.track(new oc.gp_Trsf_1());
       rt.SetRotation_1(
-        sc.track(new oc.gp_Ax1_2(
-          sc.track(new oc.gp_Pnt_3(0, 0, 0)),
-          sc.track(new oc.gp_Dir_4(...axDir)),
-        )),
-        phiStart,
+        sc.track(
+          new oc.gp_Ax1_2(sc.track(new oc.gp_Pnt_3(0, 0, 0)), sc.track(new oc.gp_Dir_4(...axDir)))
+        ),
+        phiStart
       );
       workFace = transformShape(oc, face, rt, sc);
     }
 
-    const revol = sc.track(new oc.BRepPrimAPI_MakeRevol_1(
-      workFace as object,
-      sc.track(new oc.gp_Ax1_2(
-        sc.track(new oc.gp_Pnt_3(0, 0, 0)),
-        sc.track(new oc.gp_Dir_4(...axDir)),
-      )),
-      angleRad,
-      true,
-    ));
+    const revol = sc.track(
+      new oc.BRepPrimAPI_MakeRevol_1(
+        workFace as object,
+        sc.track(
+          new oc.gp_Ax1_2(sc.track(new oc.gp_Pnt_3(0, 0, 0)), sc.track(new oc.gp_Dir_4(...axDir)))
+        ),
+        angleRad,
+        true
+      )
+    );
     revol.Build(sc.track(new oc.Message_ProgressRange_1()));
     if (!revol.IsDone()) {
-      reportEvalError(feature.name || 'Revolve',
-        'BRepPrimAPI_MakeRevol failed — check whether the axis of revolution crosses the profile');
+      reportEvalError(
+        feature.name || 'Revolve',
+        'BRepPrimAPI_MakeRevol failed — check whether the axis of revolution crosses the profile'
+      );
       return null;
     }
 
@@ -568,12 +723,20 @@ function evalRevolve(oc: OCC, feature: RevolveFeature, project: Project, tree: F
 }
 
 function evalLoft(oc: OCC, feature: LoftFeature, tree: FeatureTree): unknown | null {
-  console.log('[evalLoft] START', { id: feature.id, sectionCount: feature.sections.length, ruled: feature.ruled, closed: feature.closed });
+  console.log('[evalLoft] START', {
+    id: feature.id,
+    sectionCount: feature.sections.length,
+    ruled: feature.ruled,
+    closed: feature.closed,
+  });
   const sc = new OccScope();
   try {
     const sections = feature.sections;
     if (sections.length < 2) {
-      reportEvalError(feature.name || 'Loft', `wymaga co najmniej 2 sekcji (masz ${sections.length})`);
+      reportEvalError(
+        feature.name || 'Loft',
+        `wymaga co najmniej 2 sekcji (masz ${sections.length})`
+      );
       return null;
     }
 
@@ -583,7 +746,8 @@ function evalLoft(oc: OCC, feature: LoftFeature, tree: FeatureTree): unknown | n
 
     let addedWires = 0;
     for (const sec of sections) {
-      const sketch = tree.features.find(f => f.id === sec.sketchId && f.type === 'sketch') as SketchFeature | undefined;
+      const sketch = tree.features.find((f) => f.id === sec.sketchId && f.type === 'sketch') as
+        SketchFeature | undefined;
       if (!sketch) {
         console.warn('[evalLoft] sketch not found for section', sec.sketchId);
         continue;
@@ -597,7 +761,10 @@ function evalLoft(oc: OCC, feature: LoftFeature, tree: FeatureTree): unknown | n
 
       const wires = entitiesToWires(oc, entities, sc);
       if (wires.length === 0) {
-        console.warn('[evalLoft] no wires generated for sketch (empty or not closed?)', sec.sketchId);
+        console.warn(
+          '[evalLoft] no wires generated for sketch (empty or not closed?)',
+          sec.sketchId
+        );
         continue;
       }
 
@@ -606,21 +773,31 @@ function evalLoft(oc: OCC, feature: LoftFeature, tree: FeatureTree): unknown | n
       const trsf = sketchToWorldTrsf(oc, sketch);
       const worldShape = transformShape(oc, wires[0] as unknown, trsf, sc);
       let worldWire: unknown = worldShape;
-      try { worldWire = oc.TopoDS.Wire_1(worldShape as object); } catch { /* fallback */ }
+      try {
+        worldWire = oc.TopoDS.Wire_1(worldShape as object);
+      } catch {
+        /* fallback */
+      }
       loftBuilder.AddWire(worldWire as object);
       addedWires++;
     }
 
     console.log('[evalLoft] added wires:', addedWires);
     if (addedWires < 2) {
-      reportEvalError(feature.name || 'Loft', `only ${addedWires} wires were added — check that the sketches close (a rect, a circle, a closed polyline)`);
+      reportEvalError(
+        feature.name || 'Loft',
+        `only ${addedWires} wires were added — check that the sketches close (a rect, a circle, a closed polyline)`
+      );
       return null;
     }
 
     if (feature.closed) loftBuilder.SetClosing(true);
     loftBuilder.Build(sc.track(new oc.Message_ProgressRange_1()));
     if (!loftBuilder.IsDone()) {
-      reportEvalError(feature.name || 'Loft', 'BRepOffsetAPI_ThruSections failed — check the order of the sections, how the wires are oriented, and that they are not coplanar');
+      reportEvalError(
+        feature.name || 'Loft',
+        'BRepOffsetAPI_ThruSections failed — check the order of the sections, how the wires are oriented, and that they are not coplanar'
+      );
       return null;
     }
 
@@ -638,14 +815,20 @@ function evalLoft(oc: OCC, feature: LoftFeature, tree: FeatureTree): unknown | n
 }
 
 function evalSweep(oc: OCC, feature: SweepFeature, tree: FeatureTree): unknown | null {
-  console.log('[evalSweep] START', { id: feature.id, profileSketchId: feature.profileSketchId, pathSketchId: feature.pathSketchId });
+  console.log('[evalSweep] START', {
+    id: feature.id,
+    profileSketchId: feature.profileSketchId,
+    pathSketchId: feature.pathSketchId,
+  });
   const sc = new OccScope();
   try {
     const profileSketch = feature.profileSketchId
-      ? tree.features.find(f => f.id === feature.profileSketchId && f.type === 'sketch') as SketchFeature | undefined
+      ? (tree.features.find((f) => f.id === feature.profileSketchId && f.type === 'sketch') as
+          SketchFeature | undefined)
       : undefined;
     const pathSketch = feature.pathSketchId
-      ? tree.features.find(f => f.id === feature.pathSketchId && f.type === 'sketch') as SketchFeature | undefined
+      ? (tree.features.find((f) => f.id === feature.pathSketchId && f.type === 'sketch') as
+          SketchFeature | undefined)
       : undefined;
     if (!profileSketch) {
       reportEvalError(feature.name || 'Sweep', 'brak Profile sketch — wybierz szkic w properties');
@@ -656,7 +839,10 @@ function evalSweep(oc: OCC, feature: SweepFeature, tree: FeatureTree): unknown |
       return null;
     }
     if (profileSketch.id === pathSketch.id) {
-      reportEvalError(feature.name || 'Sweep', 'the Profile and the Path cannot be the same sketch');
+      reportEvalError(
+        feature.name || 'Sweep',
+        'the Profile and the Path cannot be the same sketch'
+      );
       return null;
     }
 
@@ -694,13 +880,19 @@ function evalSweep(oc: OCC, feature: SweepFeature, tree: FeatureTree): unknown |
       // A fallback — the sketch may hold only closed shapes, so try the usual way
       const pathWires = entitiesToWires(oc, pathEntities, sc);
       if (pathWires.length === 0) {
-        reportEvalError(feature.name || 'Sweep',
-          'the Path sketch gives no wire — draw a line or a polyline');
+        reportEvalError(
+          feature.name || 'Sweep',
+          'the Path sketch gives no wire — draw a line or a polyline'
+        );
         return null;
       }
-      console.warn('[evalSweep] no open curve in the Path — using the first closed wire (the result will be a torus)');
-      reportEvalError(feature.name || 'Sweep',
-        'Note: the Path holds only closed shapes, so the result is toroidal. Add a line to the Path sketch.');
+      console.warn(
+        '[evalSweep] no open curve in the Path — using the first closed wire (the result will be a torus)'
+      );
+      reportEvalError(
+        feature.name || 'Sweep',
+        'Note: the Path holds only closed shapes, so the result is toroidal. Add a line to the Path sketch.'
+      );
     }
     const pathWireToUse = openPathWire ?? entitiesToWires(oc, pathEntities, sc)[0];
 
@@ -712,14 +904,26 @@ function evalSweep(oc: OCC, feature: SweepFeature, tree: FeatureTree): unknown |
     // Wire or a Face), use the raw shape: OCC's MakePipe may cast it itself.
     let worldPathWire: unknown = worldPathShape;
     let worldProfFace: unknown = worldProfShape;
-    try { worldPathWire = oc.TopoDS.Wire_1(worldPathShape as object); } catch { /* fallback do raw shape */ }
-    try { worldProfFace = oc.TopoDS.Face_1(worldProfShape as object); } catch { /* fallback do raw shape */ }
+    try {
+      worldPathWire = oc.TopoDS.Wire_1(worldPathShape as object);
+    } catch {
+      /* fallback do raw shape */
+    }
+    try {
+      worldProfFace = oc.TopoDS.Face_1(worldProfShape as object);
+    } catch {
+      /* fallback do raw shape */
+    }
 
-    const pipe = sc.track(new oc.BRepOffsetAPI_MakePipe_1(worldPathWire as object, worldProfFace as object));
+    const pipe = sc.track(
+      new oc.BRepOffsetAPI_MakePipe_1(worldPathWire as object, worldProfFace as object)
+    );
     pipe.Build(sc.track(new oc.Message_ProgressRange_1()));
     if (!pipe.IsDone()) {
-      reportEvalError(feature.name || 'Sweep',
-        'BRepOffsetAPI_MakePipe failed — check that the Path is an OPEN curve (not a closed rectangle) and that the Profile sits AT THE START of it');
+      reportEvalError(
+        feature.name || 'Sweep',
+        'BRepOffsetAPI_MakePipe failed — check that the Path is an OPEN curve (not a closed rectangle) and that the Profile sits AT THE START of it'
+      );
       return null;
     }
 
@@ -738,7 +942,11 @@ function evalSweep(oc: OCC, feature: SweepFeature, tree: FeatureTree): unknown |
         const shellShape = result as any;
         // Try a TopoDS.Shell_1 downcast and MakeSolid
         let shell: unknown;
-        try { shell = oc.TopoDS.Shell_1(shellShape); } catch { shell = shellShape; }
+        try {
+          shell = oc.TopoDS.Shell_1(shellShape);
+        } catch {
+          shell = shellShape;
+        }
         const solidBuilder = sc.track(new oc.BRepBuilderAPI_MakeSolid_1());
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (solidBuilder as any).Add(shell);
@@ -754,7 +962,11 @@ function evalSweep(oc: OCC, feature: SweepFeature, tree: FeatureTree): unknown |
       }
     }
 
-    console.log('[evalSweep] SUCCESS', { id: feature.id, finalSolids: countSolids(oc, result), finalFaces: countFaces(oc, result) });
+    console.log('[evalSweep] SUCCESS', {
+      id: feature.id,
+      finalSolids: countSolids(oc, result),
+      finalFaces: countFaces(oc, result),
+    });
     return result;
   } catch (err) {
     const msg = (err as Error)?.message ?? String(err);
@@ -772,9 +984,16 @@ function evalHelix(oc: OCC, feature: HelixFeature, tree: FeatureTree): unknown |
     const { mode, pitch, height, turns, radius, taper, leftHanded, reversed } = feature;
 
     let h: number, t: number;
-    if (mode === 'pitch_height') { h = height; t = h / Math.max(0.001, pitch); }
-    else if (mode === 'pitch_turns') { t = Math.max(0.25, turns); h = Math.max(0.001, pitch) * t; }
-    else { t = Math.max(0.25, turns); h = height; }
+    if (mode === 'pitch_height') {
+      h = height;
+      t = h / Math.max(0.001, pitch);
+    } else if (mode === 'pitch_turns') {
+      t = Math.max(0.25, turns);
+      h = Math.max(0.001, pitch) * t;
+    } else {
+      t = Math.max(0.25, turns);
+      h = height;
+    }
 
     const steps = Math.max(16, Math.round(t * 32));
     const taperRad = (taper * Math.PI) / 180;
@@ -795,7 +1014,9 @@ function evalHelix(oc: OCC, feature: HelixFeature, tree: FeatureTree): unknown |
     for (let i = 0; i < pts.length; i++) {
       ptArr.SetValue(i + 1, sc.track(new oc.gp_Pnt_3(pts[i].x, pts[i].y, pts[i].z)));
     }
-    const interp = sc.track(new oc.GeomAPI_PointsToBSpline_2(ptArr, 3, 8, oc.GeomAbs_Shape.GeomAbs_C2, 1e-3));
+    const interp = sc.track(
+      new oc.GeomAPI_PointsToBSpline_2(ptArr, 3, 8, oc.GeomAbs_Shape.GeomAbs_C2, 1e-3)
+    );
     if (!interp.IsDone()) return null;
     const helixCurve = interp.Curve();
 
@@ -804,7 +1025,8 @@ function evalHelix(oc: OCC, feature: HelixFeature, tree: FeatureTree): unknown |
 
     // Profile
     const profileSketch = feature.profileSketchId
-      ? tree.features.find(f => f.id === feature.profileSketchId && f.type === 'sketch') as SketchFeature | undefined
+      ? (tree.features.find((f) => f.id === feature.profileSketchId && f.type === 'sketch') as
+          SketchFeature | undefined)
       : undefined;
 
     if (!profileSketch) {
@@ -829,15 +1051,19 @@ function evalHelix(oc: OCC, feature: HelixFeature, tree: FeatureTree): unknown |
     if (axis === 'sketch_horizontal' || axis === 'X') {
       const rt = sc.track(new oc.gp_Trsf_1());
       rt.SetRotation_1(
-        sc.track(new oc.gp_Ax1_2(sc.track(new oc.gp_Pnt_3(0,0,0)), sc.track(new oc.gp_Dir_4(0,0,1)))),
-        -Math.PI / 2,
+        sc.track(
+          new oc.gp_Ax1_2(sc.track(new oc.gp_Pnt_3(0, 0, 0)), sc.track(new oc.gp_Dir_4(0, 0, 1)))
+        ),
+        -Math.PI / 2
       );
       solid = transformShape(oc, solid, rt, sc);
     } else if (axis === 'Z') {
       const rt = sc.track(new oc.gp_Trsf_1());
       rt.SetRotation_1(
-        sc.track(new oc.gp_Ax1_2(sc.track(new oc.gp_Pnt_3(0,0,0)), sc.track(new oc.gp_Dir_4(1,0,0)))),
-        Math.PI / 2,
+        sc.track(
+          new oc.gp_Ax1_2(sc.track(new oc.gp_Pnt_3(0, 0, 0)), sc.track(new oc.gp_Dir_4(1, 0, 0)))
+        ),
+        Math.PI / 2
       );
       solid = transformShape(oc, solid, rt, sc);
     }
@@ -850,11 +1076,22 @@ function evalHelix(oc: OCC, feature: HelixFeature, tree: FeatureTree): unknown |
   }
 }
 
-function evalPocket(oc: OCC, feature: PocketFeature, project: Project, tree: FeatureTree, accumulated: unknown): unknown | null {
+function evalPocket(
+  oc: OCC,
+  feature: PocketFeature,
+  project: Project,
+  tree: FeatureTree,
+  accumulated: unknown
+): unknown | null {
   console.log('[evalPocket] START', {
-    id: feature.id, sketchId: feature.sketchId, extrudeType: feature.extrudeType,
-    height: feature.height, symmetric: feature.symmetric, reversed: feature.reversed,
-    direction: feature.direction, taper: feature.taper,
+    id: feature.id,
+    sketchId: feature.sketchId,
+    extrudeType: feature.extrudeType,
+    height: feature.height,
+    symmetric: feature.symmetric,
+    reversed: feature.reversed,
+    direction: feature.direction,
+    taper: feature.taper,
   });
   const sc = new OccScope();
   try {
@@ -867,7 +1104,10 @@ function evalPocket(oc: OCC, feature: PocketFeature, project: Project, tree: Fea
     }
     const result = csgCut(oc, accumulated, tool, sc);
     if (!result) {
-      reportEvalError(feature.name || 'Pocket', 'the CSG cut failed — check whether the pocket crosses the solid');
+      reportEvalError(
+        feature.name || 'Pocket',
+        'the CSG cut failed — check whether the pocket crosses the solid'
+      );
       return null;
     }
     // Compare the face count before and after the cut. Unchanged means the tool
@@ -876,13 +1116,14 @@ function evalPocket(oc: OCC, feature: PocketFeature, project: Project, tree: Fea
     const resultFaces = countFaces(oc, result);
     console.log('[evalPocket] SUCCESS', {
       id: feature.id,
-      baseFaces, resultFaces,
+      baseFaces,
+      resultFaces,
       changed: resultFaces !== baseFaces,
     });
     if (resultFaces === baseFaces) {
       reportEvalError(
         feature.name || 'Pocket',
-        'the CSG cut changed nothing — the pocket\'s sketch probably does NOT cross the solid. Check the direction (Reversed), the depth (Length) and where the sketch sits.',
+        "the CSG cut changed nothing — the pocket's sketch probably does NOT cross the solid. Check the direction (Reversed), the depth (Length) and where the sketch sits."
       );
     }
     return result;
@@ -894,15 +1135,30 @@ function evalPocket(oc: OCC, feature: PocketFeature, project: Project, tree: Fea
   }
 }
 
-function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated: unknown): unknown | null {
-  console.log('[evalHole] START', { id: feature.id, sketchId: feature.sketchId, diameter: feature.diameter, depth: feature.depth, reversed: feature.reversed });
+function evalHole(
+  oc: OCC,
+  feature: HoleFeature,
+  tree: FeatureTree,
+  accumulated: unknown
+): unknown | null {
+  console.log('[evalHole] START', {
+    id: feature.id,
+    sketchId: feature.sketchId,
+    diameter: feature.diameter,
+    depth: feature.depth,
+    reversed: feature.reversed,
+  });
   const sc = new OccScope();
   try {
     const sketch = feature.sketchId
-      ? tree.features.find(f => f.id === feature.sketchId && f.type === 'sketch') as SketchFeature | undefined
+      ? (tree.features.find((f) => f.id === feature.sketchId && f.type === 'sketch') as
+          SketchFeature | undefined)
       : undefined;
     if (!sketch) {
-      reportEvalError(feature.name || 'Hole', 'no sketch — choose one holding circles in the properties');
+      reportEvalError(
+        feature.name || 'Hole',
+        'no sketch — choose one holding circles in the properties'
+      );
       return null;
     }
 
@@ -918,7 +1174,10 @@ function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated:
       if (e['type'] === 'circle') centers.push({ x: e['cx'] as number, y: e['cy'] as number });
     }
     if (centers.length === 0) {
-      reportEvalError(feature.name || 'Hole', 'the sketch holds no circles — draw one where each hole belongs');
+      reportEvalError(
+        feature.name || 'Hole',
+        'the sketch holds no circles — draw one where each hole belongs'
+      );
       return null;
     }
     console.log('[evalHole] centers:', centers.length);
@@ -933,19 +1192,28 @@ function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated:
     const isOnFace = sketch.plane === 'face';
     const defaultZDir = isOnFace ? -1 : 1;
     const zDir = feature.reversed ? -defaultZDir : defaultZDir;
-    console.log('[evalHole] direction', { sketchPlane: sketch.plane, isOnFace, defaultZDir, reversed: feature.reversed, finalZDir: zDir });
+    console.log('[evalHole] direction', {
+      sketchPlane: sketch.plane,
+      isOnFace,
+      defaultZDir,
+      reversed: feature.reversed,
+      finalZDir: zDir,
+    });
 
     console.log('[evalHole] sketch.planeMatrix:', sketch.planeMatrix?.slice(0, 4), '...');
 
     for (const center of centers) {
       console.log('[evalHole] processing center:', center);
       // Build bore cylinder w sketch-local space
-      const ax2 = sc.track(new oc.gp_Ax2_3(
-        sc.track(new oc.gp_Pnt_3(center.x, center.y, 0)),
-        sc.track(new oc.gp_Dir_4(0, 0, zDir)),
-      ));
+      const ax2 = sc.track(
+        new oc.gp_Ax2_3(
+          sc.track(new oc.gp_Pnt_3(center.x, center.y, 0)),
+          sc.track(new oc.gp_Dir_4(0, 0, zDir))
+        )
+      );
 
-      let rTop = r, rBot = r;
+      const rTop = r;
+      let rBot = r;
       if (!through && feature.tapered && feature.taperAngle > 0) {
         const half = ((feature.taperAngle / 2) * Math.PI) / 180;
         rBot = r + depth * Math.tan(half);
@@ -958,7 +1226,7 @@ function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated:
       const drillPointAngle = feature.drillPointAngle ?? 118;
       let coneHeight = 0;
       if (drillPoint === 'angled' && !through) {
-        const halfRad = ((drillPointAngle) / 2) * Math.PI / 180;
+        const halfRad = ((drillPointAngle / 2) * Math.PI) / 180;
         // The cone's height: r / tan(half the tip angle). For 118°: half = 59°, tan(59°) ≈ 1.66 → coneH ≈ r*0.6
         coneHeight = Math.min(r / Math.tan(halfRad), depth * 0.5);
       }
@@ -975,7 +1243,9 @@ function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated:
         console.log('[evalHole] bore CYLINDER OK, faces:', countFaces(oc, holeShape));
       } else {
         // A taper from rTop to rBot, over the whole depth, ignoring the drill point
-        const cone = sc.track(new oc.BRepPrimAPI_MakeCone_4(ax2, rTop, rBot, cylinderHeight, 2 * Math.PI));
+        const cone = sc.track(
+          new oc.BRepPrimAPI_MakeCone_4(ax2, rTop, rBot, cylinderHeight, 2 * Math.PI)
+        );
         cone.Build(sc.track(new oc.Message_ProgressRange_1()));
         holeShape = cone.Shape();
         console.log('[evalHole] bore CONE OK, faces:', countFaces(oc, holeShape));
@@ -983,12 +1253,16 @@ function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated:
 
       // Add the drill point — a cone at the bottom of the hole — when it is angled
       if (coneHeight > 0.001) {
-        const tipAx2 = sc.track(new oc.gp_Ax2_3(
-          sc.track(new oc.gp_Pnt_3(center.x, center.y, cylinderHeight * zDir)),
-          sc.track(new oc.gp_Dir_4(0, 0, zDir)),
-        ));
-      // A cone from r (its base at the bottom of the cylinder) to 0 (the tip of the bit)
-        const tip = sc.track(new oc.BRepPrimAPI_MakeCone_4(tipAx2, r, 0.001, coneHeight, 2 * Math.PI));
+        const tipAx2 = sc.track(
+          new oc.gp_Ax2_3(
+            sc.track(new oc.gp_Pnt_3(center.x, center.y, cylinderHeight * zDir)),
+            sc.track(new oc.gp_Dir_4(0, 0, zDir))
+          )
+        );
+        // A cone from r (its base at the bottom of the cylinder) to 0 (the tip of the bit)
+        const tip = sc.track(
+          new oc.BRepPrimAPI_MakeCone_4(tipAx2, r, 0.001, coneHeight, 2 * Math.PI)
+        );
         tip.Build(sc.track(new oc.Message_ProgressRange_1()));
         const fused = csgFuse(oc, holeShape, tip.Shape(), sc);
         if (fused) {
@@ -1001,10 +1275,12 @@ function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated:
       if (feature.counterType === 'counterbore' && feature.counterDepth > 0) {
         const cbR = Math.max(r + 0.01, feature.counterDiameter / 2);
         const cbD = feature.counterDepth;
-        const cbAx2 = sc.track(new oc.gp_Ax2_3(
-          sc.track(new oc.gp_Pnt_3(center.x, center.y, 0)),
-          sc.track(new oc.gp_Dir_4(0, 0, zDir)),
-        ));
+        const cbAx2 = sc.track(
+          new oc.gp_Ax2_3(
+            sc.track(new oc.gp_Pnt_3(center.x, center.y, 0)),
+            sc.track(new oc.gp_Dir_4(0, 0, zDir))
+          )
+        );
         const cbCyl = sc.track(new oc.BRepPrimAPI_MakeCylinder_3(cbAx2, cbR, cbD));
         cbCyl.Build(sc.track(new oc.Message_ProgressRange_1()));
         const fused = csgFuse(oc, holeShape, cbCyl.Shape(), sc);
@@ -1017,10 +1293,12 @@ function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated:
         const csHalf = ((feature.counterAngle / 2) * Math.PI) / 180;
         const csD = (csR - r) / Math.tan(csHalf);
         if (csD > 0.001) {
-          const csAx2 = sc.track(new oc.gp_Ax2_3(
-            sc.track(new oc.gp_Pnt_3(center.x, center.y, 0)),
-            sc.track(new oc.gp_Dir_4(0, 0, zDir)),
-          ));
+          const csAx2 = sc.track(
+            new oc.gp_Ax2_3(
+              sc.track(new oc.gp_Pnt_3(center.x, center.y, 0)),
+              sc.track(new oc.gp_Dir_4(0, 0, zDir))
+            )
+          );
           const cone = sc.track(new oc.BRepPrimAPI_MakeCone_4(csAx2, csR, r, csD, 2 * Math.PI));
           cone.Build(sc.track(new oc.Message_ProgressRange_1()));
           const fused = csgFuse(oc, holeShape, cone.Shape(), sc);
@@ -1048,20 +1326,33 @@ function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated:
       const f = csgFuse(oc, allHoles, holeGeos[i], sc);
       if (f) allHoles = f;
     }
-    console.log('[evalHole] allHoles faces:', countFaces(oc, allHoles), 'solids:', countSolids(oc, allHoles));
+    console.log(
+      '[evalHole] allHoles faces:',
+      countFaces(oc, allHoles),
+      'solids:',
+      countSolids(oc, allHoles)
+    );
 
     const baseFaces = countFaces(oc, accumulated);
     const result = csgCut(oc, accumulated, allHoles, sc);
     if (!result) {
-      reportEvalError(feature.name || 'Hole',
-        'the CSG cut failed — check that the sketch\'s circles are above the solid and that Reversed is set the right way');
+      reportEvalError(
+        feature.name || 'Hole',
+        "the CSG cut failed — check that the sketch's circles are above the solid and that Reversed is set the right way"
+      );
       return null;
     }
     const resultFaces = countFaces(oc, result);
-    console.log('[evalHole] SUCCESS', { baseFaces, resultFaces, changed: resultFaces !== baseFaces });
+    console.log('[evalHole] SUCCESS', {
+      baseFaces,
+      resultFaces,
+      changed: resultFaces !== baseFaces,
+    });
     if (resultFaces === baseFaces) {
-      reportEvalError(feature.name || 'Hole',
-        'no holes were cut — the sketch\'s circles probably do not reach the solid. Check the direction (Reversed) and where the sketch sits.');
+      reportEvalError(
+        feature.name || 'Hole',
+        "no holes were cut — the sketch's circles probably do not reach the solid. Check the direction (Reversed) and where the sketch sits."
+      );
     }
     return result;
   } catch (err) {
@@ -1074,7 +1365,13 @@ function evalHole(oc: OCC, feature: HoleFeature, tree: FeatureTree, accumulated:
   }
 }
 
-function evalGroove(oc: OCC, feature: GrooveFeature, project: Project, tree: FeatureTree, accumulated: unknown): unknown | null {
+function evalGroove(
+  oc: OCC,
+  feature: GrooveFeature,
+  project: Project,
+  tree: FeatureTree,
+  accumulated: unknown
+): unknown | null {
   const asRevolve: RevolveFeature = { ...feature, type: 'revolve' };
   const sc = new OccScope();
   try {
@@ -1088,7 +1385,12 @@ function evalGroove(oc: OCC, feature: GrooveFeature, project: Project, tree: Fea
   }
 }
 
-function evalLoftCut(oc: OCC, feature: LoftCutFeature, tree: FeatureTree, accumulated: unknown): unknown | null {
+function evalLoftCut(
+  oc: OCC,
+  feature: LoftCutFeature,
+  tree: FeatureTree,
+  accumulated: unknown
+): unknown | null {
   const asLoft: LoftFeature = { ...feature, type: 'loft' };
   const sc = new OccScope();
   try {
@@ -1102,7 +1404,12 @@ function evalLoftCut(oc: OCC, feature: LoftCutFeature, tree: FeatureTree, accumu
   }
 }
 
-function evalSweepCut(oc: OCC, feature: SweepCutFeature, tree: FeatureTree, accumulated: unknown): unknown | null {
+function evalSweepCut(
+  oc: OCC,
+  feature: SweepCutFeature,
+  tree: FeatureTree,
+  accumulated: unknown
+): unknown | null {
   const asSweep: SweepFeature = { ...feature, type: 'sweep' };
   const sc = new OccScope();
   try {
@@ -1121,49 +1428,50 @@ function evalSweepCut(oc: OCC, feature: SweepCutFeature, tree: FeatureTree, accu
  * - XY/XZ/YZ: preset world plane w origin
  * - datum_plane: pozycja + normalna z DatumPlaneFeature w tree
  */
-function buildMirrorAx2(
-  oc: OCC,
-  feature: MirrorFeature,
-  tree: FeatureTree,
-  sc: OccScope,
-): unknown {
+function buildMirrorAx2(oc: OCC, feature: MirrorFeature, tree: FeatureTree, sc: OccScope): unknown {
   const mode = feature.planeMode ?? feature.plane;
 
   if (mode === 'datum_plane' && feature.datumPlaneId) {
-    const dp = tree.features.find(f => f.id === feature.datumPlaneId && f.type === 'datum_plane') as
-      { position: [number, number, number]; normal: [number, number, number] } | undefined;
+    const dp = tree.features.find(
+      (f) => f.id === feature.datumPlaneId && f.type === 'datum_plane'
+    ) as { position: [number, number, number]; normal: [number, number, number] } | undefined;
     if (dp) {
       const [px, py, pz] = dp.position;
       const [nx, ny, nz] = dp.normal;
-      return sc.track(new oc.gp_Ax2_3(
-        sc.track(new oc.gp_Pnt_3(px, py, pz)),
-        sc.track(new oc.gp_Dir_4(nx || 1e-9, ny, nz)),
-      ));
+      return sc.track(
+        new oc.gp_Ax2_3(
+          sc.track(new oc.gp_Pnt_3(px, py, pz)),
+          sc.track(new oc.gp_Dir_4(nx || 1e-9, ny, nz))
+        )
+      );
     }
     // fallback → YZ world
   }
 
   // Preset world planes
   if (mode === 'XY') {
-    return sc.track(new oc.gp_Ax2_3(
-      sc.track(new oc.gp_Pnt_3(0, 0, 0)),
-      sc.track(new oc.gp_Dir_4(0, 0, 1)),
-    ));
+    return sc.track(
+      new oc.gp_Ax2_3(sc.track(new oc.gp_Pnt_3(0, 0, 0)), sc.track(new oc.gp_Dir_4(0, 0, 1)))
+    );
   }
   if (mode === 'XZ') {
-    return sc.track(new oc.gp_Ax2_3(
-      sc.track(new oc.gp_Pnt_3(0, 0, 0)),
-      sc.track(new oc.gp_Dir_4(0, 1, 0)),
-    ));
+    return sc.track(
+      new oc.gp_Ax2_3(sc.track(new oc.gp_Pnt_3(0, 0, 0)), sc.track(new oc.gp_Dir_4(0, 1, 0)))
+    );
   }
   // YZ (the default)
-  return sc.track(new oc.gp_Ax2_3(
-    sc.track(new oc.gp_Pnt_3(0, 0, 0)),
-    sc.track(new oc.gp_Dir_4(1, 0, 0)),
-  ));
+  return sc.track(
+    new oc.gp_Ax2_3(sc.track(new oc.gp_Pnt_3(0, 0, 0)), sc.track(new oc.gp_Dir_4(1, 0, 0)))
+  );
 }
 
-function evalMirror(oc: OCC, feature: MirrorFeature, tree: FeatureTree, project: Project, accumulated: unknown): unknown | null {
+function evalMirror(
+  oc: OCC,
+  feature: MirrorFeature,
+  tree: FeatureTree,
+  project: Project,
+  accumulated: unknown
+): unknown | null {
   console.log('[evalMirror] START', {
     id: feature.id,
     mode: feature.mode ?? 'content',
@@ -1178,12 +1486,13 @@ function evalMirror(oc: OCC, feature: MirrorFeature, tree: FeatureTree, project:
 
     // Debug — what datum_plane is in the tree?
     if ((feature.planeMode ?? feature.plane) === 'datum_plane') {
-      const dp = tree.features.find(f => f.id === feature.datumPlaneId);
+      const dp = tree.features.find((f) => f.id === feature.datumPlaneId);
       console.log('[evalMirror] datum_plane lookup', {
         datumPlaneId: feature.datumPlaneId,
         found: !!dp,
         type: dp?.type,
-        position: dp && 'position' in dp ? (dp as unknown as { position: unknown }).position : undefined,
+        position:
+          dp && 'position' in dp ? (dp as unknown as { position: unknown }).position : undefined,
         normal: dp && 'normal' in dp ? (dp as unknown as { normal: unknown }).normal : undefined,
       });
     }
@@ -1200,15 +1509,17 @@ function evalMirror(oc: OCC, feature: MirrorFeature, tree: FeatureTree, project:
       // Build only the chosen features as "tools", mirror those and fuse with the accumulation
       let toolsResult: unknown | null = null;
       for (const fid of feature.featureIds) {
-        const target = tree.features.find(f => f.id === fid);
+        const target = tree.features.find((f) => f.id === fid);
         if (!target || !target.enabled) continue;
 
         let toolShape: unknown | null = null;
-        if (target.type === 'extrude')      toolShape = evalExtrude(oc, target as ExtrudeFeature, project, tree);
-        else if (target.type === 'revolve') toolShape = evalRevolve(oc, target as RevolveFeature, project, tree);
-        else if (target.type === 'loft')    toolShape = evalLoft(oc, target as LoftFeature, tree);
-        else if (target.type === 'sweep')   toolShape = evalSweep(oc, target as SweepFeature, tree);
-        else if (target.type === 'helix')   toolShape = evalHelix(oc, target as HelixFeature, tree);
+        if (target.type === 'extrude')
+          toolShape = evalExtrude(oc, target as ExtrudeFeature, project, tree);
+        else if (target.type === 'revolve')
+          toolShape = evalRevolve(oc, target as RevolveFeature, project, tree);
+        else if (target.type === 'loft') toolShape = evalLoft(oc, target as LoftFeature, tree);
+        else if (target.type === 'sweep') toolShape = evalSweep(oc, target as SweepFeature, tree);
+        else if (target.type === 'helix') toolShape = evalHelix(oc, target as HelixFeature, tree);
         // pocket, hole, groove — for tool_shapes the subtractive modifiers are not accumulated
         if (!toolShape) continue;
 
@@ -1243,12 +1554,17 @@ function countSolids(oc: OCC, shape: unknown): number {
     const exp = new oc.TopExp_Explorer_2(
       shape as object,
       oc.TopAbs_ShapeEnum.TopAbs_SOLID,
-      oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+      oc.TopAbs_ShapeEnum.TopAbs_SHAPE
     );
     let n = 0;
-    while (exp.More()) { n++; exp.Next(); }
+    while (exp.More()) {
+      n++;
+      exp.Next();
+    }
     return n;
-  } catch { return -1; }
+  } catch {
+    return -1;
+  }
 }
 
 /**
@@ -1261,9 +1577,15 @@ function findFaceByRef(oc: OCC, shape: unknown, hint: FaceRef): unknown | null {
     const mesher = new oc.BRepMesh_IncrementalMesh_2(shape as object, 0.5, false, 0.3, false);
     mesher.Perform_1(new oc.Message_ProgressRange_1());
     mesher.delete();
-  } catch { /* it may already be triangulated */ }
+  } catch {
+    /* it may already be triangulated */
+  }
 
-  const hintNormalVec = new THREE.Vector3(hint.hintNormal[0], hint.hintNormal[1], hint.hintNormal[2]).normalize();
+  const hintNormalVec = new THREE.Vector3(
+    hint.hintNormal[0],
+    hint.hintNormal[1],
+    hint.hintNormal[2]
+  ).normalize();
   const hintPointVec = new THREE.Vector3(hint.hintPoint[0], hint.hintPoint[1], hint.hintPoint[2]);
 
   let bestScore = Infinity;
@@ -1272,18 +1594,24 @@ function findFaceByRef(oc: OCC, shape: unknown, hint: FaceRef): unknown | null {
   const exp = new oc.TopExp_Explorer_2(
     shape as object,
     oc.TopAbs_ShapeEnum.TopAbs_FACE,
-    oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+    oc.TopAbs_ShapeEnum.TopAbs_SHAPE
   );
 
   while (exp.More()) {
     const face = oc.TopoDS.Face_1(exp.Current());
     const aLoc = new oc.TopLoc_Location_1();
     const poly = oc.BRep_Tool.Triangulation(face, aLoc, 0);
-    if (poly.IsNull()) { exp.Next(); continue; }
+    if (poly.IsNull()) {
+      exp.Next();
+      continue;
+    }
 
     const p = poly.get();
     const nn = p.NbNodes();
-    if (nn < 3) { exp.Next(); continue; }
+    if (nn < 3) {
+      exp.Next();
+      continue;
+    }
 
     // Location transformation
     let locMat: THREE.Matrix4 | null = null;
@@ -1296,10 +1624,22 @@ function findFaceByRef(oc: OCC, shape: unknown, hint: FaceRef): unknown | null {
       const t = trsf.TranslationPart();
       const m = trsf.VectorialPart();
       locMat = new THREE.Matrix4().set(
-        m.Value(1, 1), m.Value(1, 2), m.Value(1, 3), t.X(),
-        m.Value(2, 1), m.Value(2, 2), m.Value(2, 3), t.Y(),
-        m.Value(3, 1), m.Value(3, 2), m.Value(3, 3), t.Z(),
-        0, 0, 0, 1,
+        m.Value(1, 1),
+        m.Value(1, 2),
+        m.Value(1, 3),
+        t.X(),
+        m.Value(2, 1),
+        m.Value(2, 2),
+        m.Value(2, 3),
+        t.Y(),
+        m.Value(3, 1),
+        m.Value(3, 2),
+        m.Value(3, 3),
+        t.Z(),
+        0,
+        0,
+        0,
+        1
       );
     }
 
@@ -1312,11 +1652,17 @@ function findFaceByRef(oc: OCC, shape: unknown, hint: FaceRef): unknown | null {
     }
     centroid.divideScalar(nn);
 
-    const n1 = p.Node(1), n2 = p.Node(2), n3 = p.Node(3);
+    const n1 = p.Node(1),
+      n2 = p.Node(2),
+      n3 = p.Node(3);
     const va = new THREE.Vector3(n1.X(), n1.Y(), n1.Z());
     const vb = new THREE.Vector3(n2.X(), n2.Y(), n2.Z());
     const vc = new THREE.Vector3(n3.X(), n3.Y(), n3.Z());
-    if (locMat) { va.applyMatrix4(locMat); vb.applyMatrix4(locMat); vc.applyMatrix4(locMat); }
+    if (locMat) {
+      va.applyMatrix4(locMat);
+      vb.applyMatrix4(locMat);
+      vc.applyMatrix4(locMat);
+    }
     const normal = new THREE.Vector3()
       .crossVectors(vb.clone().sub(va), vc.clone().sub(va))
       .normalize();
@@ -1352,7 +1698,10 @@ function findFaceByRef(oc: OCC, shape: unknown, hint: FaceRef): unknown | null {
  * The (midpoint, tangent) of an edge — from its Polygon3D when it is tessellated,
  * or from its vertices (for straight edges without one, the FIRST and LAST vertex).
  */
-function edgeMidAndTangent(oc: OCC, edge: unknown): { mid: THREE.Vector3; tan: THREE.Vector3 } | null {
+function edgeMidAndTangent(
+  oc: OCC,
+  edge: unknown
+): { mid: THREE.Vector3; tan: THREE.Vector3 } | null {
   try {
     const aLoc = new oc.TopLoc_Location_1();
     const poly = oc.BRep_Tool.Polygon3D(edge as object, aLoc);
@@ -1366,24 +1715,26 @@ function edgeMidAndTangent(oc: OCC, edge: unknown): { mid: THREE.Vector3; tan: T
         const mid = new THREE.Vector3(
           (first.X() + last.X()) / 2,
           (first.Y() + last.Y()) / 2,
-          (first.Z() + last.Z()) / 2,
+          (first.Z() + last.Z()) / 2
         );
         const tan = new THREE.Vector3(
           last.X() - first.X(),
           last.Y() - first.Y(),
-          last.Z() - first.Z(),
+          last.Z() - first.Z()
         ).normalize();
         return { mid, tan };
       }
     }
-  } catch { /* fallback do vertices */ }
+  } catch {
+    /* fallback do vertices */
+  }
 
   // Fallback: take the edge's vertices (start and end) from TopExp
   try {
     const vExp = new oc.TopExp_Explorer_2(
       edge as object,
       oc.TopAbs_ShapeEnum.TopAbs_VERTEX,
-      oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+      oc.TopAbs_ShapeEnum.TopAbs_SHAPE
     );
     const vertices: THREE.Vector3[] = [];
     while (vExp.More() && vertices.length < 2) {
@@ -1398,7 +1749,9 @@ function edgeMidAndTangent(oc: OCC, edge: unknown): { mid: THREE.Vector3; tan: T
       const tan = new THREE.Vector3().subVectors(vertices[1], vertices[0]).normalize();
       return { mid, tan };
     }
-  } catch { /* pass */ }
+  } catch {
+    /* pass */
+  }
   return null;
 }
 
@@ -1409,12 +1762,18 @@ function findEdgesByRefs(oc: OCC, shape: unknown, hints: FaceRef[]): unknown[] {
     const mesher = new oc.BRepMesh_IncrementalMesh_2(shape as object, 0.5, false, 0.3, false);
     mesher.Perform_1(new oc.Message_ProgressRange_1());
     mesher.delete();
-  } catch { /* it may already have been */ }
+  } catch {
+    /* it may already have been */
+  }
 
   const found: unknown[] = [];
   for (const hint of hints) {
     const hintMid = new THREE.Vector3(hint.hintPoint[0], hint.hintPoint[1], hint.hintPoint[2]);
-    const hintTan = new THREE.Vector3(hint.hintNormal[0], hint.hintNormal[1], hint.hintNormal[2]).normalize();
+    const hintTan = new THREE.Vector3(
+      hint.hintNormal[0],
+      hint.hintNormal[1],
+      hint.hintNormal[2]
+    ).normalize();
 
     let bestScore = Infinity;
     let bestEdge: unknown | null = null;
@@ -1422,7 +1781,7 @@ function findEdgesByRefs(oc: OCC, shape: unknown, hints: FaceRef[]): unknown[] {
     const exp = new oc.TopExp_Explorer_2(
       shape as object,
       oc.TopAbs_ShapeEnum.TopAbs_EDGE,
-      oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+      oc.TopAbs_ShapeEnum.TopAbs_SHAPE
     );
     while (exp.More()) {
       const edge = oc.TopoDS.Edge_1(exp.Current());
@@ -1441,17 +1800,31 @@ function findEdgesByRefs(oc: OCC, shape: unknown, hints: FaceRef[]): unknown[] {
     exp.delete();
     // A more forgiving threshold (200 rather than 100), for large solids
     if (bestEdge && bestScore < 200) found.push(bestEdge);
-    console.log('[findEdgesByRefs] hint', hint.hintPoint, '→ bestScore:', bestScore.toFixed(1), 'found:', !!bestEdge);
+    console.log(
+      '[findEdgesByRefs] hint',
+      hint.hintPoint,
+      '→ bestScore:',
+      bestScore.toFixed(1),
+      'found:',
+      !!bestEdge
+    );
   }
   return found;
 }
 
 function evalFillet(oc: OCC, feature: FilletFeature, accumulated: unknown): unknown | null {
-  console.log('[evalFillet] START', { id: feature.id, radius: feature.radius, useAllEdges: feature.useAllEdges, edges: feature.edges?.length ?? 0 });
+  console.log('[evalFillet] START', {
+    id: feature.id,
+    radius: feature.radius,
+    useAllEdges: feature.useAllEdges,
+    edges: feature.edges?.length ?? 0,
+  });
   const sc = new OccScope();
   try {
     const radius = Math.max(0.01, feature.radius);
-    const filletBuilder = sc.track(new oc.BRepFilletAPI_MakeFillet(accumulated as object, oc.ChFi3d_FilletShape.ChFi3d_Rational));
+    const filletBuilder = sc.track(
+      new oc.BRepFilletAPI_MakeFillet(accumulated as object, oc.ChFi3d_FilletShape.ChFi3d_Rational)
+    );
 
     const useAll = feature.useAllEdges ?? true;
     let edgeCount = 0;
@@ -1459,7 +1832,12 @@ function evalFillet(oc: OCC, feature: FilletFeature, accumulated: unknown): unkn
     if (!useAll && (feature.edges ?? []).length > 0) {
       // Use ONLY the chosen edges
       const selectedEdges = findEdgesByRefs(oc, accumulated, feature.edges ?? []);
-      console.log('[evalFillet] selected edges found:', selectedEdges.length, '/', feature.edges?.length ?? 0);
+      console.log(
+        '[evalFillet] selected edges found:',
+        selectedEdges.length,
+        '/',
+        feature.edges?.length ?? 0
+      );
       for (const edge of selectedEdges) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (filletBuilder as any).Add_2(radius, edge);
@@ -1470,7 +1848,7 @@ function evalFillet(oc: OCC, feature: FilletFeature, accumulated: unknown): unkn
       const exp = new oc.TopExp_Explorer_2(
         accumulated as object,
         oc.TopAbs_ShapeEnum.TopAbs_EDGE,
-        oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+        oc.TopAbs_ShapeEnum.TopAbs_SHAPE
       );
       while (exp.More()) {
         const edge = oc.TopoDS.Edge_1(exp.Current());
@@ -1493,8 +1871,10 @@ function evalFillet(oc: OCC, feature: FilletFeature, accumulated: unknown): unkn
 
     filletBuilder.Build(sc.track(new oc.Message_ProgressRange_1()));
     if (!filletBuilder.IsDone()) {
-      reportEvalError(feature.name || 'Fillet',
-        `BRepFilletAPI_MakeFillet failed — try a smaller Radius (it is ${radius})`);
+      reportEvalError(
+        feature.name || 'Fillet',
+        `BRepFilletAPI_MakeFillet failed — try a smaller Radius (it is ${radius})`
+      );
       return accumulated;
     }
     console.log('[evalFillet] SUCCESS');
@@ -1514,7 +1894,14 @@ function evalFillet(oc: OCC, feature: FilletFeature, accumulated: unknown): unkn
  * Type 'equal' is a symmetric distance; 'two_distances' differs on each side.
  */
 function evalChamfer(oc: OCC, feature: ChamferFeature, accumulated: unknown): unknown | null {
-  console.log('[evalChamfer] START', { id: feature.id, size: feature.size, size2: feature.size2, type: feature.chamferType, useAllEdges: feature.useAllEdges, edges: feature.edges?.length ?? 0 });
+  console.log('[evalChamfer] START', {
+    id: feature.id,
+    size: feature.size,
+    size2: feature.size2,
+    type: feature.chamferType,
+    useAllEdges: feature.useAllEdges,
+    edges: feature.edges?.length ?? 0,
+  });
   const sc = new OccScope();
   try {
     const size = Math.max(0.01, feature.size);
@@ -1527,7 +1914,12 @@ function evalChamfer(oc: OCC, feature: ChamferFeature, accumulated: unknown): un
 
     if (!useAll && (feature.edges ?? []).length > 0) {
       const selectedEdges = findEdgesByRefs(oc, accumulated, feature.edges ?? []);
-      console.log('[evalChamfer] selected edges found:', selectedEdges.length, '/', feature.edges?.length ?? 0);
+      console.log(
+        '[evalChamfer] selected edges found:',
+        selectedEdges.length,
+        '/',
+        feature.edges?.length ?? 0
+      );
       for (const edge of selectedEdges) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (chamferBuilder as any).Add_2(size, edge);
@@ -1537,7 +1929,7 @@ function evalChamfer(oc: OCC, feature: ChamferFeature, accumulated: unknown): un
       const exp = new oc.TopExp_Explorer_2(
         accumulated as object,
         oc.TopAbs_ShapeEnum.TopAbs_EDGE,
-        oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+        oc.TopAbs_ShapeEnum.TopAbs_SHAPE
       );
       while (exp.More()) {
         const edge = oc.TopoDS.Edge_1(exp.Current());
@@ -1560,8 +1952,10 @@ function evalChamfer(oc: OCC, feature: ChamferFeature, accumulated: unknown): un
 
     chamferBuilder.Build(sc.track(new oc.Message_ProgressRange_1()));
     if (!chamferBuilder.IsDone()) {
-      reportEvalError(feature.name || 'Chamfer',
-        `BRepFilletAPI_MakeChamfer failed — try a smaller Size (it is ${size})`);
+      reportEvalError(
+        feature.name || 'Chamfer',
+        `BRepFilletAPI_MakeChamfer failed — try a smaller Size (it is ${size})`
+      );
       return accumulated;
     }
     console.log('[evalChamfer] SUCCESS');
@@ -1579,13 +1973,20 @@ function evalChamfer(oc: OCC, feature: ChamferFeature, accumulated: unknown): un
 /** The direction vector, in the sketch's own space (for the sketch_* directions) or in the world's (for X/Y/Z). */
 function directionToVec3(dir: PatternDirection): [number, number, number] {
   switch (dir) {
-    case 'X': return [1, 0, 0];
-    case 'Y': return [0, 1, 0];
-    case 'Z': return [0, 0, 1];
-    case 'sketch_horizontal': return [1, 0, 0];
-    case 'sketch_vertical': return [0, 1, 0];
-    case 'sketch_normal': return [0, 0, 1];
-    default: return [1, 0, 0];
+    case 'X':
+      return [1, 0, 0];
+    case 'Y':
+      return [0, 1, 0];
+    case 'Z':
+      return [0, 0, 1];
+    case 'sketch_horizontal':
+      return [1, 0, 0];
+    case 'sketch_vertical':
+      return [0, 1, 0];
+    case 'sketch_normal':
+      return [0, 0, 1];
+    default:
+      return [1, 0, 0];
   }
 }
 
@@ -1593,14 +1994,19 @@ function directionToVec3(dir: PatternDirection): [number, number, number] {
  * Buduje shape z jednego wybranego feature (dla mode='tool_shapes').
  * Calls evalX and returns the raw shape, for transforming.
  */
-function buildToolShape(oc: OCC, targetId: string, tree: FeatureTree, project: Project): unknown | null {
-  const target = tree.features.find(f => f.id === targetId);
+function buildToolShape(
+  oc: OCC,
+  targetId: string,
+  tree: FeatureTree,
+  project: Project
+): unknown | null {
+  const target = tree.features.find((f) => f.id === targetId);
   if (!target || !target.enabled) return null;
-  if (target.type === 'extrude')      return evalExtrude(oc, target as ExtrudeFeature, project, tree);
-  if (target.type === 'revolve')      return evalRevolve(oc, target as RevolveFeature, project, tree);
-  if (target.type === 'loft')         return evalLoft(oc, target as LoftFeature, tree);
-  if (target.type === 'sweep')        return evalSweep(oc, target as SweepFeature, tree);
-  if (target.type === 'helix')        return evalHelix(oc, target as HelixFeature, tree);
+  if (target.type === 'extrude') return evalExtrude(oc, target as ExtrudeFeature, project, tree);
+  if (target.type === 'revolve') return evalRevolve(oc, target as RevolveFeature, project, tree);
+  if (target.type === 'loft') return evalLoft(oc, target as LoftFeature, tree);
+  if (target.type === 'sweep') return evalSweep(oc, target as SweepFeature, tree);
+  if (target.type === 'helix') return evalHelix(oc, target as HelixFeature, tree);
   return null;
 }
 
@@ -1609,11 +2015,22 @@ function buildToolShape(oc: OCC, targetId: string, tree: FeatureTree, project: P
  * - mode='content': transforms the WHOLE accumulation (as Mirror's content does)
  * - mode='tool_shapes': buduje wybrane features i replikuje je, fuse z accumulated
  */
-function evalLinearPattern(oc: OCC, feature: LinearPatternFeature, tree: FeatureTree, project: Project, accumulated: unknown): unknown | null {
+function evalLinearPattern(
+  oc: OCC,
+  feature: LinearPatternFeature,
+  tree: FeatureTree,
+  project: Project,
+  accumulated: unknown
+): unknown | null {
   console.log('[evalLinearPattern] START', {
-    id: feature.id, mode: feature.mode, direction: feature.direction,
-    length: feature.length, occurrences: feature.occurrences,
-    d2: feature.direction2Enabled ? { dir: feature.direction2, len: feature.length2, n: feature.occurrences2 } : null,
+    id: feature.id,
+    mode: feature.mode,
+    direction: feature.direction,
+    length: feature.length,
+    occurrences: feature.occurrences,
+    d2: feature.direction2Enabled
+      ? { dir: feature.direction2, len: feature.length2, n: feature.occurrences2 }
+      : null,
   });
   const sc = new OccScope();
   try {
@@ -1622,14 +2039,14 @@ function evalLinearPattern(oc: OCC, feature: LinearPatternFeature, tree: Feature
     const sign = feature.reversed ? -1 : 1;
     const dir = directionToVec3(feature.direction);
     // The steps along direction 1: 0, len/(occ−1), 2·len/(occ−1), …, len
-    const step = (occ > 1) ? (len * sign) / (occ - 1) : 0;
+    const step = occ > 1 ? (len * sign) / (occ - 1) : 0;
 
     // Direction 2 (opcjonalne)
     const d2Enabled = feature.direction2Enabled && (feature.occurrences2 ?? 2) >= 2;
     const occ2 = d2Enabled ? Math.max(2, (feature.occurrences2 ?? 2) | 0) : 1;
     const len2 = feature.length2 ?? 100;
     const dir2 = directionToVec3(feature.direction2 ?? 'sketch_vertical');
-    const step2 = (occ2 > 1) ? len2 / (occ2 - 1) : 0;
+    const step2 = occ2 > 1 ? len2 / (occ2 - 1) : 0;
 
     // Build the list of base shapes (content mode: the accumulation, as one shape; tool_shapes: the chosen features)
     const baseShapes: unknown[] = [];
@@ -1642,7 +2059,10 @@ function evalLinearPattern(oc: OCC, feature: LinearPatternFeature, tree: Feature
       }
     }
     if (baseShapes.length === 0) {
-      reportEvalError(feature.name || 'LinearPattern', 'nothing to repeat — add a feature in the properties');
+      reportEvalError(
+        feature.name || 'LinearPattern',
+        'nothing to repeat — add a feature in the properties'
+      );
       return accumulated;
     }
 
@@ -1677,10 +2097,19 @@ function evalLinearPattern(oc: OCC, feature: LinearPatternFeature, tree: Feature
 /**
  * Polar Pattern — repeats a solid about an axis.
  */
-function evalPolarPattern(oc: OCC, feature: PolarPatternFeature, tree: FeatureTree, project: Project, accumulated: unknown): unknown | null {
+function evalPolarPattern(
+  oc: OCC,
+  feature: PolarPatternFeature,
+  tree: FeatureTree,
+  project: Project,
+  accumulated: unknown
+): unknown | null {
   console.log('[evalPolarPattern] START', {
-    id: feature.id, mode: feature.mode, axis: feature.axis,
-    angle: feature.angle, occurrences: feature.occurrences,
+    id: feature.id,
+    mode: feature.mode,
+    axis: feature.axis,
+    angle: feature.angle,
+    occurrences: feature.occurrences,
   });
   const sc = new OccScope();
   try {
@@ -1692,8 +2121,8 @@ function evalPolarPattern(oc: OCC, feature: PolarPatternFeature, tree: FeatureTr
     // The step: 360° over 4 occurrences gives 90° each; 180° over 3 also gives 90°
     const isFullRotation = Math.abs(angleDeg - 360) < 0.01;
     const stepRad = isFullRotation
-      ? (2 * Math.PI) / occ                    // a full turn: steps of 360/occ, not 360/(occ−1)
-      : ((angleDeg * Math.PI) / 180) / (occ - 1);
+      ? (2 * Math.PI) / occ // a full turn: steps of 360/occ, not 360/(occ−1)
+      : (angleDeg * Math.PI) / 180 / (occ - 1);
 
     const baseShapes: unknown[] = [];
     if ((feature.mode ?? 'tool_shapes') === 'content') {
@@ -1705,7 +2134,10 @@ function evalPolarPattern(oc: OCC, feature: PolarPatternFeature, tree: FeatureTr
       }
     }
     if (baseShapes.length === 0) {
-      reportEvalError(feature.name || 'PolarPattern', 'nothing to repeat — add a feature in the properties');
+      reportEvalError(
+        feature.name || 'PolarPattern',
+        'nothing to repeat — add a feature in the properties'
+      );
       return accumulated;
     }
 
@@ -1715,11 +2147,10 @@ function evalPolarPattern(oc: OCC, feature: PolarPatternFeature, tree: FeatureTr
       const phi = i * stepRad;
       const trsf = sc.track(new oc.gp_Trsf_1());
       trsf.SetRotation_1(
-        sc.track(new oc.gp_Ax1_2(
-          sc.track(new oc.gp_Pnt_3(0, 0, 0)),
-          sc.track(new oc.gp_Dir_4(...axDir)),
-        )),
-        phi,
+        sc.track(
+          new oc.gp_Ax1_2(sc.track(new oc.gp_Pnt_3(0, 0, 0)), sc.track(new oc.gp_Dir_4(...axDir)))
+        ),
+        phi
       );
       for (const base of baseShapes) {
         const copy = transformShape(oc, base, trsf, sc);
@@ -1740,9 +2171,12 @@ function evalPolarPattern(oc: OCC, feature: PolarPatternFeature, tree: FeatureTr
 
 function evalShell(oc: OCC, feature: ShellFeature, accumulated: unknown): unknown | null {
   console.log('[evalShell] START', {
-    id: feature.id, thickness: feature.thickness,
+    id: feature.id,
+    thickness: feature.thickness,
     facesToRemove: (feature.facesToRemove ?? []).length,
-    mode: feature.mode, joinType: feature.joinType, inwards: feature.inwards,
+    mode: feature.mode,
+    joinType: feature.joinType,
+    inwards: feature.inwards,
   });
   const sc = new OccScope();
   try {
@@ -1752,9 +2186,10 @@ function evalShell(oc: OCC, feature: ShellFeature, accumulated: unknown): unknow
     const offset = inwards ? -thickness : thickness;
 
     // Join type mapping
-    const joinType = feature.joinType === 'intersection'
-      ? oc.GeomAbs_JoinType.GeomAbs_Intersection
-      : oc.GeomAbs_JoinType.GeomAbs_Arc;
+    const joinType =
+      feature.joinType === 'intersection'
+        ? oc.GeomAbs_JoinType.GeomAbs_Intersection
+        : oc.GeomAbs_JoinType.GeomAbs_Arc;
 
     // Mode mapping (FreeCAD → OCC BRepOffset_Mode)
     const modeMap = {
@@ -1770,12 +2205,18 @@ function evalShell(oc: OCC, feature: ShellFeature, accumulated: unknown): unknow
       // With no faces listed — the plain BRepOffsetAPI_MakeOffsetShape (a closed cavity)
       const os = sc.track(new oc.BRepOffsetAPI_MakeOffsetShape());
       os.PerformByJoin(
-        accumulated as object, offset, 1e-3, modeEnum,
-        false, false, joinType, feature.intersection ?? false,
-        sc.track(new oc.Message_ProgressRange_1()),
+        accumulated as object,
+        offset,
+        1e-3,
+        modeEnum,
+        false,
+        false,
+        joinType,
+        feature.intersection ?? false,
+        sc.track(new oc.Message_ProgressRange_1())
       );
       if (!os.IsDone()) {
-      reportEvalError(feature.name || 'Shell', 'BRepOffsetAPI_MakeOffsetShape failed');
+        reportEvalError(feature.name || 'Shell', 'BRepOffsetAPI_MakeOffsetShape failed');
         return accumulated;
       }
       console.log('[evalShell] SUCCESS (closed cavity)');
@@ -1796,8 +2237,10 @@ function evalShell(oc: OCC, feature: ShellFeature, accumulated: unknown): unknow
     }
     console.log('[evalShell] found faces:', foundCount, '/', facesToRemove.length);
     if (foundCount === 0) {
-      reportEvalError(feature.name || 'Shell',
-        `None of the ${facesToRemove.length} faces to remove were found — the solid may have changed since the face refs were stored. Add the faces again.`);
+      reportEvalError(
+        feature.name || 'Shell',
+        `None of the ${facesToRemove.length} faces to remove were found — the solid may have changed since the face refs were stored. Add the faces again.`
+      );
       return accumulated;
     }
 
@@ -1814,11 +2257,13 @@ function evalShell(oc: OCC, feature: ShellFeature, accumulated: unknown): unknow
       false,
       joinType,
       false,
-      sc.track(new oc.Message_ProgressRange_1()),
+      sc.track(new oc.Message_ProgressRange_1())
     );
     if (!thickSolid.IsDone()) {
-      reportEvalError(feature.name || 'Shell',
-        'BRepOffsetAPI_MakeThickSolid failed — try a smaller Thickness, or another Join type');
+      reportEvalError(
+        feature.name || 'Shell',
+        'BRepOffsetAPI_MakeThickSolid failed — try a smaller Thickness, or another Join type'
+      );
       return accumulated;
     }
     console.log('[evalShell] SUCCESS (open shell)');
@@ -1853,9 +2298,15 @@ function resolveFaceRef(oc: OCC, shape: unknown, hint: FaceRef): number[] | null
     const mesher = new oc.BRepMesh_IncrementalMesh_2(shape as object, 0.5, false, 0.3, false);
     mesher.Perform_1(new oc.Message_ProgressRange_1());
     mesher.delete();
-  } catch { /* it may already be triangulated */ }
+  } catch {
+    /* it may already be triangulated */
+  }
 
-  const hintNormalVec = new THREE.Vector3(hint.hintNormal[0], hint.hintNormal[1], hint.hintNormal[2]).normalize();
+  const hintNormalVec = new THREE.Vector3(
+    hint.hintNormal[0],
+    hint.hintNormal[1],
+    hint.hintNormal[2]
+  ).normalize();
   const hintPointVec = new THREE.Vector3(hint.hintPoint[0], hint.hintPoint[1], hint.hintPoint[2]);
 
   let bestScore = Infinity;
@@ -1865,18 +2316,24 @@ function resolveFaceRef(oc: OCC, shape: unknown, hint: FaceRef): number[] | null
   const exp = new oc.TopExp_Explorer_2(
     shape as object,
     oc.TopAbs_ShapeEnum.TopAbs_FACE,
-    oc.TopAbs_ShapeEnum.TopAbs_SHAPE,
+    oc.TopAbs_ShapeEnum.TopAbs_SHAPE
   );
 
   while (exp.More()) {
     const face = oc.TopoDS.Face_1(exp.Current());
     const aLoc = new oc.TopLoc_Location_1();
     const poly = oc.BRep_Tool.Triangulation(face, aLoc, 0);
-    if (poly.IsNull()) { exp.Next(); continue; }
+    if (poly.IsNull()) {
+      exp.Next();
+      continue;
+    }
 
     const p = poly.get();
     const nn = p.NbNodes();
-    if (nn < 3) { exp.Next(); continue; }
+    if (nn < 3) {
+      exp.Next();
+      continue;
+    }
 
     // The TopLoc_Location transform (for the inner faces a CSG cut leaves)
     let locMat: THREE.Matrix4 | null = null;
@@ -1889,10 +2346,22 @@ function resolveFaceRef(oc: OCC, shape: unknown, hint: FaceRef): number[] | null
       const t = trsf.TranslationPart();
       const m = trsf.VectorialPart();
       locMat = new THREE.Matrix4().set(
-        m.Value(1, 1), m.Value(1, 2), m.Value(1, 3), t.X(),
-        m.Value(2, 1), m.Value(2, 2), m.Value(2, 3), t.Y(),
-        m.Value(3, 1), m.Value(3, 2), m.Value(3, 3), t.Z(),
-        0, 0, 0, 1,
+        m.Value(1, 1),
+        m.Value(1, 2),
+        m.Value(1, 3),
+        t.X(),
+        m.Value(2, 1),
+        m.Value(2, 2),
+        m.Value(2, 3),
+        t.Y(),
+        m.Value(3, 1),
+        m.Value(3, 2),
+        m.Value(3, 3),
+        t.Z(),
+        0,
+        0,
+        0,
+        1
       );
     }
 
@@ -1907,11 +2376,17 @@ function resolveFaceRef(oc: OCC, shape: unknown, hint: FaceRef): number[] | null
     centroid.divideScalar(nn);
 
     // The normal from the first triangle (on a planar face every triangle has the same one)
-    const n1 = p.Node(1), n2 = p.Node(2), n3 = p.Node(3);
+    const n1 = p.Node(1),
+      n2 = p.Node(2),
+      n3 = p.Node(3);
     const va = new THREE.Vector3(n1.X(), n1.Y(), n1.Z());
     const vb = new THREE.Vector3(n2.X(), n2.Y(), n2.Z());
     const vc = new THREE.Vector3(n3.X(), n3.Y(), n3.Z());
-    if (locMat) { va.applyMatrix4(locMat); vb.applyMatrix4(locMat); vc.applyMatrix4(locMat); }
+    if (locMat) {
+      va.applyMatrix4(locMat);
+      vb.applyMatrix4(locMat);
+      vc.applyMatrix4(locMat);
+    }
     const normal = new THREE.Vector3()
       .crossVectors(vb.clone().sub(va), vc.clone().sub(va))
       .normalize();
@@ -1940,10 +2415,11 @@ function resolveFaceRef(oc: OCC, shape: unknown, hint: FaceRef): number[] | null
 
   // Zbuduj planeMatrix (basis + centroid) — identycznie jak w subSelect.planeFromFace
   const n = bestNormal.normalize();
-  const helper = Math.abs(n.y) < 0.9
-    ? new THREE.Vector3(0, 1, 0)
-    : new THREE.Vector3(1, 0, 0);
-  const u = helper.clone().sub(n.clone().multiplyScalar(n.dot(helper))).normalize();
+  const helper = Math.abs(n.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+  const u = helper
+    .clone()
+    .sub(n.clone().multiplyScalar(n.dot(helper)))
+    .normalize();
   const v = new THREE.Vector3().crossVectors(n, u).normalize();
   const mat = new THREE.Matrix4().makeBasis(u, v, n);
   mat.setPosition(bestCentroid);
@@ -1955,7 +2431,7 @@ function resolveFaceRef(oc: OCC, shape: unknown, hint: FaceRef): number[] | null
 export async function evaluateFeatureTreeOcc(
   tree: FeatureTree,
   project: Project,
-  sketchWireframeRoot: THREE.Object3D,
+  sketchWireframeRoot: THREE.Object3D
 ): Promise<THREE.Object3D> {
   const oc = await getOcc();
   const root = new THREE.Group();
@@ -1973,175 +2449,203 @@ export async function evaluateFeatureTreeOcc(
     // exception from evalX (a BindingError in sweep or loft) breaks the whole
     // loop, and every solid built before it disappears from the scene.
     try {
-
-    if (feature.type === 'sketch') {
-      // A sketch on a face — its planeMatrix is recomputed from the current solid
-      // (that is what makes the reference parametric). Without it, a sketch
-      // whose parent changed hung in mid-air where the parent used to be.
-      const sk = feature as SketchFeature;
-      if (sk.plane === 'face' && sk.faceRef && accumulated) {
-        const newMatrix = resolveFaceRef(oc, accumulated, sk.faceRef);
-        if (newMatrix) {
-          sk.planeMatrix = newMatrix;
-          // The hint point is updated to the new centroid, so the next evaluation
-          // finds the same face after another change to the parent. hintNormal
-          // stays as it was — a face may move along Z, but its normal does not
-          // turn as long as it is topologically the same face.
-          sk.faceRef = {
-            hintNormal: sk.faceRef.hintNormal,
-            hintPoint: [newMatrix[12], newMatrix[13], newMatrix[14]],
-          };
+      if (feature.type === 'sketch') {
+        // A sketch on a face — its planeMatrix is recomputed from the current solid
+        // (that is what makes the reference parametric). Without it, a sketch
+        // whose parent changed hung in mid-air where the parent used to be.
+        const sk = feature as SketchFeature;
+        if (sk.plane === 'face' && sk.faceRef && accumulated) {
+          const newMatrix = resolveFaceRef(oc, accumulated, sk.faceRef);
+          if (newMatrix) {
+            sk.planeMatrix = newMatrix;
+            // The hint point is updated to the new centroid, so the next evaluation
+            // finds the same face after another change to the parent. hintNormal
+            // stays as it was — a face may move along Z, but its normal does not
+            // turn as long as it is topologically the same face.
+            sk.faceRef = {
+              hintNormal: sk.faceRef.hintNormal,
+              hintPoint: [newMatrix[12], newMatrix[13], newMatrix[14]],
+            };
+          }
         }
+        continue; // handled by sketchWireframeRoot
       }
-      continue; // handled by sketchWireframeRoot
-    }
 
-    let result: unknown | null = null;
-    let isModifier = false;
+      let result: unknown | null = null;
+      let isModifier = false;
 
-    switch (feature.type) {
-      case 'extrude':
-        result = evalExtrude(oc, feature as ExtrudeFeature, project, tree);
-        break;
-      case 'revolve':
-        result = evalRevolve(oc, feature as RevolveFeature, project, tree);
-        break;
-      case 'loft':
-        result = evalLoft(oc, feature as LoftFeature, tree);
-        break;
-      case 'sweep':
-        result = evalSweep(oc, feature as SweepFeature, tree);
-        break;
-      case 'helix':
-        result = evalHelix(oc, feature as HelixFeature, tree);
-        break;
+      switch (feature.type) {
+        case 'extrude':
+          result = evalExtrude(oc, feature as ExtrudeFeature, project, tree);
+          break;
+        case 'revolve':
+          result = evalRevolve(oc, feature as RevolveFeature, project, tree);
+          break;
+        case 'loft':
+          result = evalLoft(oc, feature as LoftFeature, tree);
+          break;
+        case 'sweep':
+          result = evalSweep(oc, feature as SweepFeature, tree);
+          break;
+        case 'helix':
+          result = evalHelix(oc, feature as HelixFeature, tree);
+          break;
 
-      // Subtractive / modifier operations
-      case 'pocket':
-        isModifier = true;
-        if (accumulated) {
-          const next = evalPocket(oc, feature as PocketFeature, project, tree, accumulated);
-          if (next) accumulated = next;
-          else reportEvalError(feature.name || 'Pocket', 'the pocket failed — check whether the sketch crosses the solid');
-        } else {
-          reportEvalError(feature.name || 'Pocket', 'a pocket needs a solid to cut into — add an extrude first');
-        }
-        break;
-      case 'hole':
-        isModifier = true;
-        if (accumulated) {
-          const next = evalHole(oc, feature as HoleFeature, tree, accumulated);
-          if (next) accumulated = next;
-        }
-        break;
-      case 'groove':
-        isModifier = true;
-        if (accumulated) {
-          const next = evalGroove(oc, feature as GrooveFeature, project, tree, accumulated);
-          if (next) accumulated = next;
-        }
-        break;
-      case 'loft_cut':
-        isModifier = true;
-        if (accumulated) {
-          const next = evalLoftCut(oc, feature as LoftCutFeature, tree, accumulated);
-          if (next) accumulated = next;
-        }
-        break;
-      case 'sweep_cut':
-        isModifier = true;
-        if (accumulated) {
-          const next = evalSweepCut(oc, feature as SweepCutFeature, tree, accumulated);
-          if (next) accumulated = next;
-        }
-        break;
-      case 'mirror':
-        isModifier = true;
-        // Mirror wspiera dwa tryby:
-        // - 'content' (the default): needs the accumulation, mirrors the whole solid and fuses
-        // - 'tool_shapes': works without one (it builds from featureIds), and fuses with the accumulation when there is one
-        {
-          const mf = feature as MirrorFeature;
-          const isToolMode = (mf.mode ?? 'content') === 'tool_shapes';
-          if (accumulated || isToolMode) {
-            const next = evalMirror(oc, mf, tree, project, accumulated);
+        // Subtractive / modifier operations
+        case 'pocket':
+          isModifier = true;
+          if (accumulated) {
+            const next = evalPocket(oc, feature as PocketFeature, project, tree, accumulated);
+            if (next) accumulated = next;
+            else
+              reportEvalError(
+                feature.name || 'Pocket',
+                'the pocket failed — check whether the sketch crosses the solid'
+              );
+          } else {
+            reportEvalError(
+              feature.name || 'Pocket',
+              'a pocket needs a solid to cut into — add an extrude first'
+            );
+          }
+          break;
+        case 'hole':
+          isModifier = true;
+          if (accumulated) {
+            const next = evalHole(oc, feature as HoleFeature, tree, accumulated);
             if (next) accumulated = next;
           }
-        }
-        break;
-      case 'shell':
-        isModifier = true;
-        if (accumulated) {
-          const next = evalShell(oc, feature as ShellFeature, accumulated);
-          if (next) accumulated = next;
-        }
-        break;
-      case 'fillet':
-        isModifier = true;
-        if (accumulated) {
-          const next = evalFillet(oc, feature as FilletFeature, accumulated);
-          if (next) accumulated = next;
-        }
-        break;
-      case 'chamfer':
-        isModifier = true;
-        if (accumulated) {
-          const next = evalChamfer(oc, feature as ChamferFeature, accumulated);
-          if (next) accumulated = next;
-        }
-        break;
-      case 'linear_pattern':
-        isModifier = true;
-        {
-          const next = evalLinearPattern(oc, feature as LinearPatternFeature, tree, project, accumulated);
-          if (next) accumulated = next;
-        }
-        break;
-      case 'polar_pattern':
-        isModifier = true;
-        {
-          const next = evalPolarPattern(oc, feature as PolarPatternFeature, tree, project, accumulated);
-          if (next) accumulated = next;
-        }
-        break;
-    }
-
-    if (!isModifier && result) {
-      const resultSolids = countSolids(oc, result);
-      const resultFaces = countFaces(oc, result);
-      console.log(`[loop] ${feature.type} additive result:`, { solids: resultSolids, faces: resultFaces, hasAccumulated: !!accumulated });
-
-      if (accumulated) {
-        // Fuse additive features
-        const sc = new OccScope();
-        try {
-          const fused = csgFuse(oc, accumulated, result, sc);
-          if (fused) {
-            const fusedSolids = countSolids(oc, fused);
-            const fusedFaces = countFaces(oc, fused);
-            console.log(`[loop] ${feature.type} FUSED:`, { fusedSolids, fusedFaces });
-            accumulated = fused;
-          } else {
-            // Fuse failed — add as separate solid
-            console.log(`[loop] ${feature.type} FUSE FAILED — adding it as a separate solid`);
-            root.add(shapeToGroup(oc, result, SOLID_COLOR, feature.id));
+          break;
+        case 'groove':
+          isModifier = true;
+          if (accumulated) {
+            const next = evalGroove(oc, feature as GrooveFeature, project, tree, accumulated);
+            if (next) accumulated = next;
           }
-        } finally {
-          sc.dispose();
-        }
-      } else {
-        console.log(`[loop] ${feature.type} — brak accumulated, ustawiam result jako accumulated`);
-        accumulated = result;
+          break;
+        case 'loft_cut':
+          isModifier = true;
+          if (accumulated) {
+            const next = evalLoftCut(oc, feature as LoftCutFeature, tree, accumulated);
+            if (next) accumulated = next;
+          }
+          break;
+        case 'sweep_cut':
+          isModifier = true;
+          if (accumulated) {
+            const next = evalSweepCut(oc, feature as SweepCutFeature, tree, accumulated);
+            if (next) accumulated = next;
+          }
+          break;
+        case 'mirror':
+          isModifier = true;
+          // Mirror wspiera dwa tryby:
+          // - 'content' (the default): needs the accumulation, mirrors the whole solid and fuses
+          // - 'tool_shapes': works without one (it builds from featureIds), and fuses with the accumulation when there is one
+          {
+            const mf = feature as MirrorFeature;
+            const isToolMode = (mf.mode ?? 'content') === 'tool_shapes';
+            if (accumulated || isToolMode) {
+              const next = evalMirror(oc, mf, tree, project, accumulated);
+              if (next) accumulated = next;
+            }
+          }
+          break;
+        case 'shell':
+          isModifier = true;
+          if (accumulated) {
+            const next = evalShell(oc, feature as ShellFeature, accumulated);
+            if (next) accumulated = next;
+          }
+          break;
+        case 'fillet':
+          isModifier = true;
+          if (accumulated) {
+            const next = evalFillet(oc, feature as FilletFeature, accumulated);
+            if (next) accumulated = next;
+          }
+          break;
+        case 'chamfer':
+          isModifier = true;
+          if (accumulated) {
+            const next = evalChamfer(oc, feature as ChamferFeature, accumulated);
+            if (next) accumulated = next;
+          }
+          break;
+        case 'linear_pattern':
+          isModifier = true;
+          {
+            const next = evalLinearPattern(
+              oc,
+              feature as LinearPatternFeature,
+              tree,
+              project,
+              accumulated
+            );
+            if (next) accumulated = next;
+          }
+          break;
+        case 'polar_pattern':
+          isModifier = true;
+          {
+            const next = evalPolarPattern(
+              oc,
+              feature as PolarPatternFeature,
+              tree,
+              project,
+              accumulated
+            );
+            if (next) accumulated = next;
+          }
+          break;
       }
-    }
 
+      if (!isModifier && result) {
+        const resultSolids = countSolids(oc, result);
+        const resultFaces = countFaces(oc, result);
+        console.log(`[loop] ${feature.type} additive result:`, {
+          solids: resultSolids,
+          faces: resultFaces,
+          hasAccumulated: !!accumulated,
+        });
+
+        if (accumulated) {
+          // Fuse additive features
+          const sc = new OccScope();
+          try {
+            const fused = csgFuse(oc, accumulated, result, sc);
+            if (fused) {
+              const fusedSolids = countSolids(oc, fused);
+              const fusedFaces = countFaces(oc, fused);
+              console.log(`[loop] ${feature.type} FUSED:`, { fusedSolids, fusedFaces });
+              accumulated = fused;
+            } else {
+              // Fuse failed — add as separate solid
+              console.log(`[loop] ${feature.type} FUSE FAILED — adding it as a separate solid`);
+              root.add(shapeToGroup(oc, result, SOLID_COLOR, feature.id));
+            }
+          } finally {
+            sc.dispose();
+          }
+        } else {
+          console.log(
+            `[loop] ${feature.type} — brak accumulated, ustawiam result jako accumulated`
+          );
+          accumulated = result;
+        }
+      }
     } catch (err) {
       // An uncaught exception from evalX must not break the loop: log it and
       // carry on with the accumulation so far. The feature (a Sweep with bad
       // sketches, say) simply adds nothing, and what was built before stays.
-      console.warn(`[evaluateFeatureTreeOcc] uncaught exception w feature ${feature.type} (${feature.id}):`, err);
-      reportEvalError(feature.name || feature.type,
-        `unhandled exception: ${((err as Error)?.message ?? String(err)).slice(0, 200)}`);
+      console.warn(
+        `[evaluateFeatureTreeOcc] uncaught exception w feature ${feature.type} (${feature.id}):`,
+        err
+      );
+      reportEvalError(
+        feature.name || feature.type,
+        `unhandled exception: ${((err as Error)?.message ?? String(err)).slice(0, 200)}`
+      );
     }
   }
 

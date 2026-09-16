@@ -1,17 +1,24 @@
 import { describe, it, expect } from 'vitest';
-import { parseGanttDiagram, serializeGanttDiagram, parseTaskData, serializeTaskData } from './ganttDiagram';
+import {
+  parseGanttDiagram,
+  serializeGanttDiagram,
+  parseTaskData,
+  serializeTaskData,
+} from './ganttDiagram';
 import type { GanttChart } from '../../model/gantt';
 
 const chartOf = (text: string): GanttChart => parseGanttDiagram(text).document.gantt!;
 
 describe('gantt: nagłówek dokumentu', () => {
   it('czyta tytuł i format dat', () => {
-    const chart = chartOf([
-      'gantt',
-      '    title Plan wdrożenia',
-      '    dateFormat YYYY-MM-DD',
-      '    axisFormat %m-%d',
-    ].join('\n'));
+    const chart = chartOf(
+      [
+        'gantt',
+        '    title Plan wdrożenia',
+        '    dateFormat YYYY-MM-DD',
+        '    axisFormat %m-%d',
+      ].join('\n')
+    );
 
     expect(chart.title).toBe('Plan wdrożenia');
     expect(chart.dateFormat).toBe('YYYY-MM-DD');
@@ -19,14 +26,16 @@ describe('gantt: nagłówek dokumentu', () => {
   });
 
   it('czyta pozostałe ustawienia osi', () => {
-    const chart = chartOf([
-      'gantt',
-      '    tickInterval 1week',
-      '    weekday monday',
-      '    excludes weekends',
-      '    includes 2024-01-06',
-      '    todayMarker off',
-    ].join('\n'));
+    const chart = chartOf(
+      [
+        'gantt',
+        '    tickInterval 1week',
+        '    weekday monday',
+        '    excludes weekends',
+        '    includes 2024-01-06',
+        '    todayMarker off',
+      ].join('\n')
+    );
 
     expect(chart.tickInterval).toBe('1week');
     expect(chart.weekday).toBe('monday');
@@ -38,14 +47,16 @@ describe('gantt: nagłówek dokumentu', () => {
 
 describe('gantt: sekcje i zadania', () => {
   it('grupuje zadania w sekcje', () => {
-    const chart = chartOf([
-      'gantt',
-      '    section Projekt',
-      '        Analiza :a1, 2024-01-01, 5d',
-      '        Makiety :a2, after a1, 3d',
-      '    section Budowa',
-      '        Szkielet :b1, after a2, 10d',
-    ].join('\n'));
+    const chart = chartOf(
+      [
+        'gantt',
+        '    section Projekt',
+        '        Analiza :a1, 2024-01-01, 5d',
+        '        Makiety :a2, after a1, 3d',
+        '    section Budowa',
+        '        Szkielet :b1, after a2, 10d',
+      ].join('\n')
+    );
 
     expect(chart.sections).toHaveLength(2);
     expect(chart.sections[0].label).toBe('Projekt');
@@ -55,12 +66,14 @@ describe('gantt: sekcje i zadania', () => {
   });
 
   it('zadania przed pierwszą sekcją trafiają do sekcji bez nazwy', () => {
-    const chart = chartOf([
-      'gantt',
-      '    Rozruch :2024-01-01, 2d',
-      '    section Właściwa praca',
-      '        Kodowanie :5d',
-    ].join('\n'));
+    const chart = chartOf(
+      [
+        'gantt',
+        '    Rozruch :2024-01-01, 2d',
+        '    section Właściwa praca',
+        '        Kodowanie :5d',
+      ].join('\n')
+    );
 
     expect(chart.sections[0].label).toBeUndefined();
     expect(chart.sections[0].tasks[0].label).toBe('Rozruch');
@@ -68,7 +81,9 @@ describe('gantt: sekcje i zadania', () => {
   });
 
   it('pusta sekcja zostaje w modelu', () => {
-    const chart = chartOf(['gantt', '    section Pusta', '    section Druga', '        A :1d'].join('\n'));
+    const chart = chartOf(
+      ['gantt', '    section Pusta', '    section Druga', '        A :1d'].join('\n')
+    );
     expect(chart.sections.map((s) => s.label)).toEqual(['Pusta', 'Druga']);
     expect(chart.sections[0].tasks).toEqual([]);
   });
@@ -97,12 +112,18 @@ describe('gantt: rozbiór pozycji po dwukropku', () => {
   });
 
   it('data końcowa zamiast czasu trwania', () => {
-    expect(parseTaskData('a1, 2024-01-01, 2024-01-08').end).toEqual({ kind: 'date', value: '2024-01-08' });
+    expect(parseTaskData('a1, 2024-01-01, 2024-01-08').end).toEqual({
+      kind: 'date',
+      value: '2024-01-08',
+    });
   });
 
   it('czyta zależność after z jednym i z wieloma zadaniami', () => {
     expect(parseTaskData('after a1, 3d').start).toEqual({ kind: 'after', ids: ['a1'] });
-    expect(parseTaskData('after a1 a2 a3, 3d').start).toEqual({ kind: 'after', ids: ['a1', 'a2', 'a3'] });
+    expect(parseTaskData('after a1 a2 a3, 3d').start).toEqual({
+      kind: 'after',
+      ids: ['a1', 'a2', 'a3'],
+    });
   });
 
   it('until należy do końca, nie do początku', () => {
@@ -113,7 +134,9 @@ describe('gantt: rozbiór pozycji po dwukropku', () => {
 
   it('czyta znaczniki i zdejmuje je z listy pól', () => {
     expect(parseTaskData('done, a1, 2024-01-01, 5d')).toMatchObject({
-      tags: ['done'], id: 'a1', start: { kind: 'date', value: '2024-01-01' },
+      tags: ['done'],
+      id: 'a1',
+      start: { kind: 'date', value: '2024-01-01' },
     });
     expect(parseTaskData('crit, active, 2024-01-01, 5d').tags).toEqual(['crit', 'active']);
   });
@@ -140,18 +163,32 @@ describe('gantt: pozycja, której nie rozumiemy', () => {
     const task = chart.sections[0].tasks[0];
 
     expect(task.raw).toBe('a, b, c, d, e');
-    expect(serializeGanttDiagram(parseGanttDiagram(source).document)).toContain('Dziwne :a, b, c, d, e');
+    expect(serializeGanttDiagram(parseGanttDiagram(source).document)).toContain(
+      'Dziwne :a, b, c, d, e'
+    );
   });
 
   it('opis dostępności nie jest zadaniem, choć ma dwukropek', () => {
-    const source = ['gantt', '    accTitle: Harmonogram wdrożenia', '    section S', '        A :1d'].join('\n');
+    const source = [
+      'gantt',
+      '    accTitle: Harmonogram wdrożenia',
+      '    section S',
+      '        A :1d',
+    ].join('\n');
     const chart = chartOf(source);
     expect(chart.sections[0].tasks.map((t) => t.label)).toEqual(['A']);
-    expect(serializeGanttDiagram(parseGanttDiagram(source).document)).toContain('accTitle: Harmonogram wdrożenia');
+    expect(serializeGanttDiagram(parseGanttDiagram(source).document)).toContain(
+      'accTitle: Harmonogram wdrożenia'
+    );
   });
 
   it('linia niebędąca ani ustawieniem, ani zadaniem wraca na swoje miejsce', () => {
-    const source = ['gantt', '    click a1 href "https://przyklad.pl"', '    section S', '        A :1d'].join('\n');
+    const source = [
+      'gantt',
+      '    click a1 href "https://przyklad.pl"',
+      '    section S',
+      '        A :1d',
+    ].join('\n');
     const written = serializeGanttDiagram(parseGanttDiagram(source).document);
     expect(written).toContain('click a1 href "https://przyklad.pl"');
   });
@@ -180,7 +217,13 @@ describe('gantt: zapis', () => {
   });
 
   it('drugi zapis niczego nie zmienia', () => {
-    const source = ['gantt', '    dateFormat YYYY-MM-DD', '    section S', '        A :a1, 2024-01-01, 5d', '        B :3d'].join('\n');
+    const source = [
+      'gantt',
+      '    dateFormat YYYY-MM-DD',
+      '    section S',
+      '        A :a1, 2024-01-01, 5d',
+      '        B :3d',
+    ].join('\n');
     const once = roundTrip(source);
     expect(roundTrip(once)).toBe(once);
   });
@@ -191,7 +234,9 @@ describe('gantt: zapis', () => {
   });
 
   it('sekcja bez nazwy nie zapisuje nagłówka section', () => {
-    const written = roundTrip(['gantt', '    A :1d', '    section Druga', '        B :2d'].join('\n'));
+    const written = roundTrip(
+      ['gantt', '    A :1d', '    section Druga', '        B :2d'].join('\n')
+    );
     expect(written).not.toMatch(/section\s*$/m);
     expect(written.indexOf('A :1d')).toBeLessThan(written.indexOf('section Druga'));
   });
@@ -199,19 +244,30 @@ describe('gantt: zapis', () => {
 
 describe('gantt: składanie pozycji z powrotem', () => {
   it('pomija identyfikator, gdy zadanie go nie ma', () => {
-    expect(serializeTaskData({ label: 'A', tags: [], start: { kind: 'date', value: '2024-01-01' }, end: { kind: 'duration', value: '5d' } }))
-      .toBe('2024-01-01, 5d');
+    expect(
+      serializeTaskData({
+        label: 'A',
+        tags: [],
+        start: { kind: 'date', value: '2024-01-01' },
+        end: { kind: 'duration', value: '5d' },
+      })
+    ).toBe('2024-01-01, 5d');
   });
 
   it('sam czas trwania, gdy nie ma ani identyfikatora, ani początku', () => {
-    expect(serializeTaskData({ label: 'A', tags: [], end: { kind: 'duration', value: '5d' } })).toBe('5d');
+    expect(
+      serializeTaskData({ label: 'A', tags: [], end: { kind: 'duration', value: '5d' } })
+    ).toBe('5d');
   });
 
   it('identyfikator bez początku podpina się pod poprzednika', () => {
     // Trzy pola znaczą „id, początek, koniec"; przy dwóch Mermaid wziąłby
     // identyfikator za datę i cicho podstawił dzisiejszy dzień. Skoro brak
     // początku znaczy „po poprzednim", zapisujemy to wprost.
-    const written = serializeTaskData({ label: 'A', id: 'a1', tags: [], end: { kind: 'duration', value: '5d' } }, 'a0');
+    const written = serializeTaskData(
+      { label: 'A', id: 'a1', tags: [], end: { kind: 'duration', value: '5d' } },
+      'a0'
+    );
     expect(written).toBe('a1, after a0, 5d');
   });
 
@@ -219,10 +275,14 @@ describe('gantt: składanie pozycji z powrotem', () => {
     // Zapis `a1, 5d` Mermaid zrozumiałby jako „start = a1" i wstawił dzisiejszą
     // datę — zadanie wylądowałoby w zupełnie innym miejscu osi. Utrata nazwy
     // jest widoczna, przesunięty pasek nie.
-    expect(serializeTaskData({ label: 'A', id: 'a1', tags: [], end: { kind: 'duration', value: '5d' } })).toBe('5d');
+    expect(
+      serializeTaskData({ label: 'A', id: 'a1', tags: [], end: { kind: 'duration', value: '5d' } })
+    ).toBe('5d');
   });
 
   it('oddaje zapis źródłowy, gdy rozbiór się nie powiódł', () => {
-    expect(serializeTaskData({ label: 'A', tags: [], raw: 'cokolwiek, tu, było' })).toBe('cokolwiek, tu, było');
+    expect(serializeTaskData({ label: 'A', tags: [], raw: 'cokolwiek, tu, było' })).toBe(
+      'cokolwiek, tu, było'
+    );
   });
 });

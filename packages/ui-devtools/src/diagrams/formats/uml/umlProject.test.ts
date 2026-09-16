@@ -56,9 +56,27 @@ const DIAGRAM: UmlDiagramLike = {
     },
   ],
   edges: [
-    { id: 'e1', source: 'n:Pies', target: 'n:Zwierze', type: 'uml', data: { relType: 'generalization' } },
-    { id: 'e2', source: 'n:Pies', target: 'n:Karmiciel', type: 'uml', data: { relType: 'realization' } },
-    { id: 'e3', source: 'n:Karmiciel', target: 'n:Pies', type: 'uml', data: { relType: 'directed', label: 'karmi' } },
+    {
+      id: 'e1',
+      source: 'n:Pies',
+      target: 'n:Zwierze',
+      type: 'uml',
+      data: { relType: 'generalization' },
+    },
+    {
+      id: 'e2',
+      source: 'n:Pies',
+      target: 'n:Karmiciel',
+      type: 'uml',
+      data: { relType: 'realization' },
+    },
+    {
+      id: 'e3',
+      source: 'n:Karmiciel',
+      target: 'n:Pies',
+      type: 'uml',
+      data: { relType: 'directed', label: 'karmi' },
+    },
   ],
 };
 
@@ -132,7 +150,16 @@ describe('umlDiagramToDocument', () => {
     // Osierocona krawędź psuje każdy format zapisu i wywraca układ.
     const zObcym: UmlDiagramLike = {
       ...DIAGRAM,
-      edges: [...DIAGRAM.edges, { id: 'e9', source: 'n:Pies', target: 'n:Nieznany', type: 'uml', data: { relType: 'association' } }],
+      edges: [
+        ...DIAGRAM.edges,
+        {
+          id: 'e9',
+          source: 'n:Pies',
+          target: 'n:Nieznany',
+          type: 'uml',
+          data: { relType: 'association' },
+        },
+      ],
     };
     const wynik = umlDiagramToDocument(zObcym);
     expect(wynik.edges).toHaveLength(3);
@@ -157,7 +184,10 @@ describe('documentToUmlDiagram', () => {
     // Zapis ze spacją po znaku widoczności — taki generuje `renderMember`
     // w `devtools`, więc odświeżenie z kodu nie pokaże różnicy tam, gdzie
     // niczego nie zmieniono.
-    expect(zwierze?.data.members.map((m) => m.text)).toEqual(['- imie: string', '+ glos(): string']);
+    expect(zwierze?.data.members.map((m) => m.text)).toEqual([
+      '- imie: string',
+      '+ glos(): string',
+    ]);
   });
 
   it('zachowuje techniczne identyfikatory z poprzedniej wersji', () => {
@@ -172,9 +202,9 @@ describe('documentToUmlDiagram', () => {
     // gubić przy każdej edycji graficznej, przepisujemy ją z poprzedniej wersji.
     const zDokumentacja: UmlDiagramLike = {
       ...DIAGRAM,
-      nodes: DIAGRAM.nodes.map((n) => (n.data.name === 'Pies'
-        ? { ...n, data: { ...n.data, doc: { summary: 'Pies domowy' } } }
-        : n)),
+      nodes: DIAGRAM.nodes.map((n) =>
+        n.data.name === 'Pies' ? { ...n, data: { ...n.data, doc: { summary: 'Pies domowy' } } } : n
+      ),
     };
     const wrocil = documentToUmlDiagram(umlDiagramToDocument(zDokumentacja), zDokumentacja);
     expect(wrocil.nodes.find((n) => n.data.name === 'Pies')?.data.doc?.summary).toBe('Pies domowy');
@@ -215,12 +245,25 @@ describe('rodzaje relacji w obie strony', () => {
   for (const [uml, model] of PARY) {
     it(`${uml} ⇄ ${model}`, () => {
       const wejscie: UmlDiagramLike = {
-        id: 'd', name: 'T',
+        id: 'd',
+        name: 'T',
         nodes: [
-          { id: 'a', type: 'umlClass', position: { x: 0, y: 0 }, data: { kind: 'class', name: 'A', members: [] } },
-          { id: 'b', type: 'umlClass', position: { x: 0, y: 0 }, data: { kind: 'class', name: 'B', members: [] } },
+          {
+            id: 'a',
+            type: 'umlClass',
+            position: { x: 0, y: 0 },
+            data: { kind: 'class', name: 'A', members: [] },
+          },
+          {
+            id: 'b',
+            type: 'umlClass',
+            position: { x: 0, y: 0 },
+            data: { kind: 'class', name: 'B', members: [] },
+          },
         ],
-        edges: [{ id: 'e', source: 'a', target: 'b', type: 'uml', data: { relType: uml as never } }],
+        edges: [
+          { id: 'e', source: 'a', target: 'b', type: 'uml', data: { relType: uml as never } },
+        ],
       };
 
       const doc = umlDiagramToDocument(wejscie);

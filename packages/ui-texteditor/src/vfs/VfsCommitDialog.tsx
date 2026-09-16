@@ -5,7 +5,10 @@ import type { WritableGitHubFS } from '@hestia/core';
 // ── Simple unified diff ───────────────────────────────────────────────────────
 
 type DiffOp = '=' | '+' | '-';
-interface DiffLine { op: DiffOp; line: string }
+interface DiffLine {
+  op: DiffOp;
+  line: string;
+}
 
 function computeDiff(oldText: string, newText: string): DiffLine[] {
   const a = oldText.split('\n');
@@ -22,10 +25,12 @@ function computeDiff(oldText: string, newText: string): DiffLine[] {
   }
 
   const result: DiffLine[] = [];
-  let i = 0, j = 0;
+  let i = 0,
+    j = 0;
   while (i < m || j < n) {
     if (i < m && j < n && a[i] === b[j]) {
-      result.push({ op: '=', line: a[i++] }); j++;
+      result.push({ op: '=', line: a[i++] });
+      j++;
     } else if (j < n && (i >= m || dp[i][j + 1] >= dp[i + 1][j])) {
       result.push({ op: '+', line: b[j++] });
     } else {
@@ -38,7 +43,9 @@ function computeDiff(oldText: string, newText: string): DiffLine[] {
 // Show only changed lines with N lines of context
 function withContext(lines: DiffLine[], ctx = 3): DiffLine[] {
   const changed = new Set<number>();
-  lines.forEach((l, i) => { if (l.op !== '=') changed.add(i); });
+  lines.forEach((l, i) => {
+    if (l.op !== '=') changed.add(i);
+  });
 
   const visible = new Set<number>();
   for (const idx of changed) {
@@ -68,7 +75,11 @@ function fileStatus(base: Uint8Array | null, pending: Uint8Array | null): FileSt
 }
 
 const STATUS_LABEL: Record<FileStatus, string> = { added: 'A', modified: 'M', deleted: 'D' };
-const STATUS_COLOR: Record<FileStatus, string> = { added: '#89d185', modified: '#dcdcaa', deleted: '#f14c4c' };
+const STATUS_COLOR: Record<FileStatus, string> = {
+  added: '#89d185',
+  modified: '#dcdcaa',
+  deleted: '#f14c4c',
+};
 
 // ── Diff view ─────────────────────────────────────────────────────────────────
 
@@ -108,8 +119,21 @@ function DiffView({ base, pending }: { base: Uint8Array | null; pending: Uint8Ar
       <div style={{ overflowY: 'auto', flex: 1, fontFamily: 'monospace', fontSize: 12 }}>
         {lines.map((line, i) => (
           <div key={i} style={{ display: 'flex', background: '#1e3a1e' }}>
-            <span style={{ width: 28, color: '#4d4d4d', userSelect: 'none', textAlign: 'right', paddingRight: 6, flexShrink: 0 }}>{i + 1}</span>
-            <span style={{ color: '#89d185', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>+{line}</span>
+            <span
+              style={{
+                width: 28,
+                color: '#4d4d4d',
+                userSelect: 'none',
+                textAlign: 'right',
+                paddingRight: 6,
+                flexShrink: 0,
+              }}
+            >
+              {i + 1}
+            </span>
+            <span style={{ color: '#89d185', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+              +{line}
+            </span>
           </div>
         ))}
       </div>
@@ -126,7 +150,17 @@ function DiffView({ base, pending }: { base: Uint8Array | null; pending: Uint8Ar
         const prefix = dl.op === '+' ? '+' : dl.op === '-' ? '-' : ' ';
         return (
           <div key={i} style={{ display: 'flex', background: bg }}>
-            <span style={{ width: 16, color: '#4d4d4d', userSelect: 'none', flexShrink: 0, paddingLeft: 4 }}>{prefix}</span>
+            <span
+              style={{
+                width: 16,
+                color: '#4d4d4d',
+                userSelect: 'none',
+                flexShrink: 0,
+                paddingLeft: 4,
+              }}
+            >
+              {prefix}
+            </span>
             <span style={{ color, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{dl.line}</span>
           </div>
         );
@@ -170,7 +204,7 @@ export function VfsCommitDialog({ provider, onClose, onCommit }: VfsCommitDialog
         entries.map(async ({ path, content }) => {
           const base = await provider.getBaseContent(path);
           return { path, content, base, status: fileStatus(base, content) };
-        }),
+        })
       );
       if (!cancelled) {
         setFiles(loaded);
@@ -179,7 +213,9 @@ export function VfsCommitDialog({ provider, onClose, onCommit }: VfsCommitDialog
       }
     }
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [provider]);
 
   const handleCommit = useCallback(async () => {
@@ -200,50 +236,101 @@ export function VfsCommitDialog({ provider, onClose, onCommit }: VfsCommitDialog
     <div
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
         background: 'rgba(0,0,0,0.6)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 760, maxWidth: '95vw', height: 520, maxHeight: '90vh',
-          background: '#252526', border: '1px solid #454545', borderRadius: 6,
-          display: 'flex', flexDirection: 'column',
+          width: 760,
+          maxWidth: '95vw',
+          height: 520,
+          maxHeight: '90vh',
+          background: '#252526',
+          border: '1px solid #454545',
+          borderRadius: 6,
+          display: 'flex',
+          flexDirection: 'column',
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           color: '#cccccc',
         }}
       >
         {/* Header */}
-        <div style={{ padding: '10px 16px', borderBottom: '1px solid #3c3c3c', fontSize: 13, fontWeight: 600 }}>
+        <div
+          style={{
+            padding: '10px 16px',
+            borderBottom: '1px solid #3c3c3c',
+            fontSize: 13,
+            fontWeight: 600,
+          }}
+        >
           Commit changes
         </div>
 
         {loading ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8c8c8c', fontSize: 13 }}>
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#8c8c8c',
+              fontSize: 13,
+            }}
+          >
             Loading diff…
           </div>
         ) : (
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
             {/* File list */}
-            <div style={{ width: 220, borderRight: '1px solid #3c3c3c', overflowY: 'auto', flexShrink: 0 }}>
+            <div
+              style={{
+                width: 220,
+                borderRight: '1px solid #3c3c3c',
+                overflowY: 'auto',
+                flexShrink: 0,
+              }}
+            >
               {files.map((f) => (
                 <div
                   key={f.path}
                   onClick={() => setSelected(f.path)}
                   style={{
-                    padding: '5px 10px', cursor: 'pointer', fontSize: 12,
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                    fontSize: 12,
                     background: selected === f.path ? '#094771' : 'transparent',
-                    display: 'flex', alignItems: 'center', gap: 6,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
-                  <span style={{ color: STATUS_COLOR[f.status], fontWeight: 700, width: 12, flexShrink: 0 }}>
+                  <span
+                    style={{
+                      color: STATUS_COLOR[f.status],
+                      fontWeight: 700,
+                      width: 12,
+                      flexShrink: 0,
+                    }}
+                  >
                     {STATUS_LABEL[f.status]}
                   </span>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#cccccc' }}
-                    title={f.path}>
+                  <span
+                    style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      color: '#cccccc',
+                    }}
+                    title={f.path}
+                  >
                     {f.path.split('/').pop()}
                   </span>
                 </div>
@@ -254,7 +341,15 @@ export function VfsCommitDialog({ provider, onClose, onCommit }: VfsCommitDialog
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               {selectedFile && (
                 <>
-                  <div style={{ padding: '4px 10px', fontSize: 11, color: '#8c8c8c', borderBottom: '1px solid #3c3c3c', flexShrink: 0 }}>
+                  <div
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: 11,
+                      color: '#8c8c8c',
+                      borderBottom: '1px solid #3c3c3c',
+                      flexShrink: 0,
+                    }}
+                  >
                     {selectedFile.path}
                   </div>
                   <DiffView base={selectedFile.base} pending={selectedFile.content} />
@@ -265,23 +360,42 @@ export function VfsCommitDialog({ provider, onClose, onCommit }: VfsCommitDialog
         )}
 
         {/* Footer */}
-        <div style={{ padding: '10px 16px', borderTop: '1px solid #3c3c3c', display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div
+          style={{
+            padding: '10px 16px',
+            borderTop: '1px solid #3c3c3c',
+            display: 'flex',
+            gap: 8,
+            alignItems: 'center',
+          }}
+        >
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Commit message"
             style={{
-              flex: 1, padding: '5px 8px', fontSize: 13,
-              background: '#3c3c3c', border: '1px solid #555', borderRadius: 3, color: '#cccccc', outline: 'none',
+              flex: 1,
+              padding: '5px 8px',
+              fontSize: 13,
+              background: '#3c3c3c',
+              border: '1px solid #555',
+              borderRadius: 3,
+              color: '#cccccc',
+              outline: 'none',
             }}
           />
           <button
             onClick={handleCommit}
             disabled={committing || !message.trim() || loading}
             style={{
-              padding: '5px 16px', fontSize: 13, cursor: 'pointer',
-              background: '#0e639c', color: '#fff', border: 'none', borderRadius: 3,
-              opacity: (committing || !message.trim() || loading) ? 0.5 : 1,
+              padding: '5px 16px',
+              fontSize: 13,
+              cursor: 'pointer',
+              background: '#0e639c',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 3,
+              opacity: committing || !message.trim() || loading ? 0.5 : 1,
             }}
           >
             {committing ? 'Committing…' : 'Commit'}
@@ -290,8 +404,13 @@ export function VfsCommitDialog({ provider, onClose, onCommit }: VfsCommitDialog
             onClick={onClose}
             disabled={committing}
             style={{
-              padding: '5px 12px', fontSize: 13, cursor: 'pointer',
-              background: 'transparent', color: '#cccccc', border: '1px solid #555', borderRadius: 3,
+              padding: '5px 12px',
+              fontSize: 13,
+              cursor: 'pointer',
+              background: 'transparent',
+              color: '#cccccc',
+              border: '1px solid #555',
+              borderRadius: 3,
             }}
           >
             Cancel

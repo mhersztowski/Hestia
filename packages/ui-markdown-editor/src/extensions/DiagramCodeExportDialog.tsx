@@ -14,8 +14,16 @@
  */
 import { useCallback, useState } from 'react';
 import {
-  Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle,
-  MenuItem, Stack, TextField, Typography,
+  Alert,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material';
 import { documentToUmlDiagram, type DiagramDocument } from '@hestia/ui-devtools/diagrams';
 import { useEditorServices } from '../capabilities';
@@ -36,9 +44,16 @@ export interface DiagramCodeExportDialogProps {
   document: DiagramDocument;
 }
 
-interface Plik { file: string; content: string }
+interface Plik {
+  file: string;
+  content: string;
+}
 
-export function DiagramCodeExportDialog({ open, onClose, document: doc }: DiagramCodeExportDialogProps) {
+export function DiagramCodeExportDialog({
+  open,
+  onClose,
+  document: doc,
+}: DiagramCodeExportDialogProps) {
   const { umlCodeSync } = useEditorServices();
   const [language, setLanguage] = useState<Language>('typescript');
   const [pliki, setPliki] = useState<Plik[]>([]);
@@ -47,15 +62,23 @@ export function DiagramCodeExportDialog({ open, onClose, document: doc }: Diagra
 
   const generuj = useCallback(async () => {
     const user = currentUserName();
-    if (!user) { setBlad('Generowanie wymaga zalogowania'); return; }
+    if (!user) {
+      setBlad('Generowanie wymaga zalogowania');
+      return;
+    }
 
     setPracuje(true);
     setBlad('');
     try {
       if (!umlCodeSync) return;
-      const wynik = await umlCodeSync.generateCodeFromUml(user, documentToUmlDiagram(doc), language);
+      const wynik = await umlCodeSync.generateCodeFromUml(
+        user,
+        documentToUmlDiagram(doc),
+        language
+      );
       setPliki(wynik.files);
-      if (wynik.files.length === 0) setBlad('Diagram nie ma klas, z których dałoby się coś wygenerować.');
+      if (wynik.files.length === 0)
+        setBlad('Diagram nie ma klas, z których dałoby się coś wygenerować.');
     } catch (e) {
       setBlad(e instanceof Error ? e.message : String(e));
     } finally {
@@ -86,11 +109,21 @@ export function DiagramCodeExportDialog({ open, onClose, document: doc }: Diagra
 
           <Stack direction="row" spacing={1}>
             <TextField
-              select size="small" label="Język" value={language}
-              onChange={(e) => { setLanguage(e.target.value as Language); setPliki([]); }}
+              select
+              size="small"
+              label="Język"
+              value={language}
+              onChange={(e) => {
+                setLanguage(e.target.value as Language);
+                setPliki([]);
+              }}
               sx={{ minWidth: 180 }}
             >
-              {JEZYKI.map((j) => <MenuItem key={j.value} value={j.value}>{j.label}</MenuItem>)}
+              {JEZYKI.map((j) => (
+                <MenuItem key={j.value} value={j.value}>
+                  {j.label}
+                </MenuItem>
+              ))}
             </TextField>
             <Button variant="contained" onClick={() => void generuj()} disabled={pracuje}>
               {pracuje ? 'Generuję…' : 'Generuj'}
@@ -102,15 +135,25 @@ export function DiagramCodeExportDialog({ open, onClose, document: doc }: Diagra
           {pliki.map((plik) => (
             <Stack key={plik.file} spacing={0.5}>
               <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="body2" sx={{ fontFamily: 'monospace', flex: 1 }}>{plik.file}</Typography>
-                <Button size="small" onClick={() => pobierz(plik)}>Pobierz</Button>
+                <Typography variant="body2" sx={{ fontFamily: 'monospace', flex: 1 }}>
+                  {plik.file}
+                </Typography>
+                <Button size="small" onClick={() => pobierz(plik)}>
+                  Pobierz
+                </Button>
               </Stack>
               <Typography
                 component="pre"
                 variant="caption"
                 sx={{
-                  m: 0, p: 1, maxHeight: 240, overflow: 'auto',
-                  bgcolor: 'grey.100', borderRadius: 1, fontFamily: 'monospace', whiteSpace: 'pre',
+                  m: 0,
+                  p: 1,
+                  maxHeight: 240,
+                  overflow: 'auto',
+                  bgcolor: 'grey.100',
+                  borderRadius: 1,
+                  fontFamily: 'monospace',
+                  whiteSpace: 'pre',
                 }}
               >
                 {plik.content}

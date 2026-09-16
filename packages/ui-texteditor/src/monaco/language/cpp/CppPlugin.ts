@@ -53,103 +53,90 @@ export const CppLanguagePlugin = definePlugin(
     disposables.push(cCompletionProvider);
 
     // Register hover provider
-    const hoverProvider = monaco.languages.registerHoverProvider(
-      'cpp',
-      createCppHoverProvider()
-    );
+    const hoverProvider = monaco.languages.registerHoverProvider('cpp', createCppHoverProvider());
     disposables.push(hoverProvider);
 
     // Also for C
-    const cHoverProvider = monaco.languages.registerHoverProvider(
-      'c',
-      createCppHoverProvider()
-    );
+    const cHoverProvider = monaco.languages.registerHoverProvider('c', createCppHoverProvider());
     disposables.push(cHoverProvider);
 
     // Register signature help provider for function calls
-    const signatureProvider = monaco.languages.registerSignatureHelpProvider(
-      'cpp',
-      {
-        signatureHelpTriggerCharacters: ['(', ','],
-        provideSignatureHelp(
-          model: monaco.editor.ITextModel,
-          position: monaco.Position
-        ): monaco.languages.ProviderResult<monaco.languages.SignatureHelpResult> {
-          // Get the text before cursor
-          const lineContent = model.getLineContent(position.lineNumber);
-          const textUntil = lineContent.substring(0, position.column - 1);
+    const signatureProvider = monaco.languages.registerSignatureHelpProvider('cpp', {
+      signatureHelpTriggerCharacters: ['(', ','],
+      provideSignatureHelp(
+        model: monaco.editor.ITextModel,
+        position: monaco.Position
+      ): monaco.languages.ProviderResult<monaco.languages.SignatureHelpResult> {
+        // Get the text before cursor
+        const lineContent = model.getLineContent(position.lineNumber);
+        const textUntil = lineContent.substring(0, position.column - 1);
 
-          // Find the function name
-          const match = textUntil.match(/(\w+)\s*\([^)]*$/);
-          if (!match) {
-            return null;
-          }
+        // Find the function name
+        const match = textUntil.match(/(\w+)\s*\([^)]*$/);
+        if (!match) {
+          return null;
+        }
 
-          const funcName = match[1];
+        const funcName = match[1];
 
-          // Common function signatures
-          const signatures: Record<string, monaco.languages.SignatureInformation> = {
-            'printf': {
-              label: 'printf(const char* format, ...)',
-              documentation: 'Prints formatted output to stdout',
-              parameters: [
-                { label: 'format', documentation: 'Format string with conversion specifiers' },
-                { label: '...', documentation: 'Additional arguments' },
-              ],
-            },
-            'malloc': {
-              label: 'void* malloc(size_t size)',
-              documentation: 'Allocates memory block of given size',
-              parameters: [
-                { label: 'size', documentation: 'Number of bytes to allocate' },
-              ],
-            },
-            'memcpy': {
-              label: 'void* memcpy(void* dest, const void* src, size_t count)',
-              documentation: 'Copies bytes from source to destination',
-              parameters: [
-                { label: 'dest', documentation: 'Destination buffer' },
-                { label: 'src', documentation: 'Source buffer' },
-                { label: 'count', documentation: 'Number of bytes to copy' },
-              ],
-            },
-            'strlen': {
-              label: 'size_t strlen(const char* str)',
-              documentation: 'Returns the length of a null-terminated string',
-              parameters: [
-                { label: 'str', documentation: 'Null-terminated string' },
-              ],
-            },
-            'strcmp': {
-              label: 'int strcmp(const char* lhs, const char* rhs)',
-              documentation: 'Compares two null-terminated strings lexicographically',
-              parameters: [
-                { label: 'lhs', documentation: 'First string to compare' },
-                { label: 'rhs', documentation: 'Second string to compare' },
-              ],
-            },
-          };
+        // Common function signatures
+        const signatures: Record<string, monaco.languages.SignatureInformation> = {
+          printf: {
+            label: 'printf(const char* format, ...)',
+            documentation: 'Prints formatted output to stdout',
+            parameters: [
+              { label: 'format', documentation: 'Format string with conversion specifiers' },
+              { label: '...', documentation: 'Additional arguments' },
+            ],
+          },
+          malloc: {
+            label: 'void* malloc(size_t size)',
+            documentation: 'Allocates memory block of given size',
+            parameters: [{ label: 'size', documentation: 'Number of bytes to allocate' }],
+          },
+          memcpy: {
+            label: 'void* memcpy(void* dest, const void* src, size_t count)',
+            documentation: 'Copies bytes from source to destination',
+            parameters: [
+              { label: 'dest', documentation: 'Destination buffer' },
+              { label: 'src', documentation: 'Source buffer' },
+              { label: 'count', documentation: 'Number of bytes to copy' },
+            ],
+          },
+          strlen: {
+            label: 'size_t strlen(const char* str)',
+            documentation: 'Returns the length of a null-terminated string',
+            parameters: [{ label: 'str', documentation: 'Null-terminated string' }],
+          },
+          strcmp: {
+            label: 'int strcmp(const char* lhs, const char* rhs)',
+            documentation: 'Compares two null-terminated strings lexicographically',
+            parameters: [
+              { label: 'lhs', documentation: 'First string to compare' },
+              { label: 'rhs', documentation: 'Second string to compare' },
+            ],
+          },
+        };
 
-          const sig = signatures[funcName];
-          if (!sig) {
-            return null;
-          }
+        const sig = signatures[funcName];
+        if (!sig) {
+          return null;
+        }
 
-          // Count commas to determine active parameter
-          const afterParen = textUntil.substring(textUntil.lastIndexOf('('));
-          const commaCount = (afterParen.match(/,/g) ?? []).length;
+        // Count commas to determine active parameter
+        const afterParen = textUntil.substring(textUntil.lastIndexOf('('));
+        const commaCount = (afterParen.match(/,/g) ?? []).length;
 
-          return {
-            value: {
-              signatures: [sig],
-              activeSignature: 0,
-              activeParameter: Math.min(commaCount, (sig.parameters?.length ?? 1) - 1),
-            },
-            dispose: () => {},
-          };
-        },
-      }
-    );
+        return {
+          value: {
+            signatures: [sig],
+            activeSignature: 0,
+            activeParameter: Math.min(commaCount, (sig.parameters?.length ?? 1) - 1),
+          },
+          dispose: () => {},
+        };
+      },
+    });
     disposables.push(signatureProvider);
 
     // Store cleanup function

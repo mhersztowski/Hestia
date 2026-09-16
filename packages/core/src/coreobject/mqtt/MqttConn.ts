@@ -3,13 +3,13 @@
 // appears in the generated .d.ts, preventing @types/node conflicts
 // in consumer projects.
 //
-// mqtt's TreeNode build exposes a named `connect`, but its browser ESM build only
+// mqtt's Node build exposes a named `connect`, but its browser ESM build only
 // has a default export. Import the namespace and resolve `connect` from either
 // shape so minislib bundles for the browser (Vite/Rollup, which fails on a
-// missing named export) AND still runs under TreeNode.
+// missing named export) AND still runs under Node.
 import * as mqttModule from 'mqtt';
 import { Signal } from '../Signal';
-import { TreeNode } from '../TreeNode';
+import { CoreObject } from '../CoreObject';
 
 export interface MqttConnOptions {
   /** Auto-generated when omitted. */
@@ -31,12 +31,13 @@ interface _Client {
   on(event: string, listener: (...args: unknown[]) => void): void;
 }
 
-// Resolve mqtt's `connect` from either the TreeNode (named) or browser (default)
+// Resolve mqtt's `connect` from either the Node (named) or browser (default)
 // export shape — see the import note above.
-const mqttConnect = (
-  (mqttModule as unknown as { connect?: unknown }).connect ??
-  (mqttModule as unknown as { default?: { connect?: unknown } }).default?.connect
-) as (url: string, opts: Record<string, unknown>) => _Client;
+const mqttConnect = ((mqttModule as unknown as { connect?: unknown }).connect ??
+  (mqttModule as unknown as { default?: { connect?: unknown } }).default?.connect) as (
+  url: string,
+  opts: Record<string, unknown>
+) => _Client;
 
 /**
  * MQTT connection node.
@@ -57,7 +58,7 @@ const mqttConnect = (
  *   const pub = new MqttPub('sensors/cmd', conn);
  *   pub.publish({ on: true });
  */
-export class MqttConn extends TreeNode {
+export class MqttConn extends CoreObject {
   /** Emitted once the MQTT session is established. */
   readonly connected = new Signal();
   /** Emitted when the connection is closed or dropped. */
@@ -74,7 +75,7 @@ export class MqttConn extends TreeNode {
   #options: MqttConnOptions;
   #client: _Client | null = null;
 
-  constructor(url: string, options: MqttConnOptions = {}, parent?: TreeNode) {
+  constructor(url: string, options: MqttConnOptions = {}, parent?: CoreObject) {
     super(parent, 'MqttConn');
     this.#url = url;
     this.#options = options;
@@ -102,7 +103,9 @@ export class MqttConn extends TreeNode {
     }) as _Client;
     this.#client.on('connect', () => this.connected.emit());
     this.#client.on('close', () => this.disconnected.emit('close'));
-    this.#client.on('error', (err: unknown) => this.error.emit(err instanceof Error ? err : new Error(String(err))));
+    this.#client.on('error', (err: unknown) =>
+      this.error.emit(err instanceof Error ? err : new Error(String(err)))
+    );
     this.#client.on('message', (topic: unknown, payload: unknown) => {
       this.messageArrived.emit(String(topic), String(payload));
     });
@@ -128,11 +131,7 @@ export class MqttConn extends TreeNode {
    * Publish a raw message. Prefer `MqttPub.publish()` in most cases —
    * this method is also used internally by `MqttPub` nodes.
    */
-  publish(
-    topic: string,
-    payload: string,
-    opts?: { qos?: 0 | 1 | 2; retain?: boolean },
-  ): void {
+  publish(topic: string, payload: string, opts?: { qos?: 0 | 1 | 2; retain?: boolean }): void {
     this.#client?.publish(topic, payload, {
       qos: opts?.qos ?? 0,
       retain: opts?.retain ?? false,

@@ -60,10 +60,10 @@ describe('@relation po wzorze wyglądającym na przypisanie', () => {
 });
 
 describe('@relation z wieloliniowym zapisem', () => {
-  const block = parseFormulaBlock('r', [
-    '\\nabla \\cdot \\vec{E} = \\frac{\\rho}{\\varepsilon_0}',
-    '@relation',
-  ].join('\n'));
+  const block = parseFormulaBlock(
+    'r',
+    ['\\nabla \\cdot \\vec{E} = \\frac{\\rho}{\\varepsilon_0}', '@relation'].join('\n')
+  );
 
   it('czyta całość', () => {
     expect(block.latex).toBe('\\nabla \\cdot \\vec{E} = \\frac{\\rho}{\\varepsilon_0}');

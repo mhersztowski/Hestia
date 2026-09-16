@@ -127,8 +127,12 @@ export class GitRepoService {
       });
       let stdout = '';
       let stderr = '';
-      proc.stdout.on('data', (d) => { stdout += String(d); });
-      proc.stderr.on('data', (d) => { stderr += String(d); });
+      proc.stdout.on('data', (d) => {
+        stdout += String(d);
+      });
+      proc.stderr.on('data', (d) => {
+        stderr += String(d);
+      });
       proc.on('error', reject);
       proc.on('close', (code) => {
         if (code === 0) resolve(stdout);
@@ -159,7 +163,7 @@ export class GitRepoService {
     } catch (e) {
       const err = e as { stderr?: string; stdout?: string; message?: string };
       const msg = (err.stderr || err.stdout || err.message || 'git error').toString().trim();
-      throw new Error(msg);
+      throw new Error(msg, { cause: e });
     }
   }
 
@@ -177,7 +181,13 @@ export class GitRepoService {
       // dowiązaniami, a katalog danych bywa za dowiązaniem (wolumen w kontenerze,
       // `/tmp` na macOS). Porównanie tekstowe uznawało wtedy korzeń repozytorium
       // za „nie repozytorium" i cały panel odmawiał działania.
-      const rzeczywisty = (p: string) => { try { return fs.realpathSync(p); } catch { return path.resolve(p); } };
+      const rzeczywisty = (p: string) => {
+        try {
+          return fs.realpathSync(p);
+        } catch {
+          return path.resolve(p);
+        }
+      };
       return rzeczywisty(top) === rzeczywisty(dir);
     } catch {
       return false;
@@ -205,7 +215,10 @@ export class GitRepoService {
   /** Lista lokalnych branchy. */
   async listBranches(dir: string): Promise<string[]> {
     const out = await this.git(dir, ['branch', '--format=%(refname:short)']);
-    return out.split('\n').map((s) => s.trim()).filter(Boolean);
+    return out
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
   /** Lista branchy zdalnych (bez `origin/HEAD`), nazwy bez prefiksu remote. */
@@ -227,7 +240,10 @@ export class GitRepoService {
   /** Lista tagów (posortowana malejąco wg wersji). */
   async listTags(dir: string): Promise<string[]> {
     const out = await this.git(dir, ['tag', '--sort=-v:refname']);
-    return out.split('\n').map((s) => s.trim()).filter(Boolean);
+    return out
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
   /** Bieżący ref: branch (lub null gdy detached), tag wskazujący HEAD, commit.
@@ -235,19 +251,31 @@ export class GitRepoService {
    *  przerwany clone) — wtedy `rev-parse HEAD` zawodzi; bierzemy nazwę gałęzi
    *  z `symbolic-ref`, a commit zostaje pusty. */
   async currentRef(dir: string): Promise<GitRef> {
-    let branch: string | null = null;
+    let branch: string | null;
     try {
       const branchRaw = (await this.git(dir, ['rev-parse', '--abbrev-ref', 'HEAD'])).trim();
       branch = branchRaw === 'HEAD' ? null : branchRaw;
     } catch {
       // unborn HEAD — nazwa gałęzi mimo braku commitów
-      try { branch = (await this.git(dir, ['symbolic-ref', '--short', 'HEAD'])).trim() || null; } catch { branch = null; }
+      try {
+        branch = (await this.git(dir, ['symbolic-ref', '--short', 'HEAD'])).trim() || null;
+      } catch {
+        branch = null;
+      }
     }
-    let commit = '';
-    try { commit = (await this.git(dir, ['rev-parse', '--short', 'HEAD'])).trim(); } catch { commit = ''; }
+    let commit: string;
+    try {
+      commit = (await this.git(dir, ['rev-parse', '--short', 'HEAD'])).trim();
+    } catch {
+      commit = '';
+    }
     let tag: string | null = null;
     if (commit) {
-      try { tag = (await this.git(dir, ['describe', '--tags', '--exact-match', 'HEAD'])).trim() || null; } catch { tag = null; }
+      try {
+        tag = (await this.git(dir, ['describe', '--tags', '--exact-match', 'HEAD'])).trim() || null;
+      } catch {
+        tag = null;
+      }
     }
     return { branch, tag, commit };
   }
@@ -258,7 +286,9 @@ export class GitRepoService {
     let ahead = 0;
     let behind = 0;
     try {
-      const counts = (await this.git(dir, ['rev-list', '--left-right', '--count', '@{upstream}...HEAD'])).trim();
+      const counts = (
+        await this.git(dir, ['rev-list', '--left-right', '--count', '@{upstream}...HEAD'])
+      ).trim();
       const [b, a] = counts.split(/\s+/).map((n) => parseInt(n, 10) || 0);
       behind = b;
       ahead = a;
@@ -314,8 +344,8 @@ export class GitRepoService {
   async unstage(dir: string, paths: readonly string[]): Promise<GitCommandResult> {
     const maCommity = await this.hasCommits(dir);
     return maCommity
-        ? this.run(dir, ['restore', '--staged', '--', ...paths])
-        : this.run(dir, ['rm', '--cached', '-r', '--', ...paths]);
+      ? this.run(dir, ['restore', '--staged', '--', ...paths])
+      : this.run(dir, ['rm', '--cached', '-r', '--', ...paths]);
   }
 
   /**
@@ -326,7 +356,9 @@ export class GitRepoService {
    */
   async discard(dir: string, paths: readonly string[]): Promise<GitCommandResult> {
     const zmiany = await this.changes(dir);
-    const nieslecone = new Set(zmiany.filter((z) => z.index === 'untracked' || z.workTree === 'untracked').map((z) => z.path));
+    const nieslecone = new Set(
+      zmiany.filter((z) => z.index === 'untracked' || z.workTree === 'untracked').map((z) => z.path)
+    );
     const doPrzywrocenia = paths.filter((p) => !nieslecone.has(p));
     const doUsuniecia = paths.filter((p) => nieslecone.has(p));
     try {
@@ -360,10 +392,13 @@ export class GitRepoService {
     if (opts.path) args.push('--', opts.path);
     try {
       const out = await this.git(dir, args);
-      return out.split('\n').filter(Boolean).map((wiersz) => {
-        const [hash, short, authorName, authorEmail, date, subject] = wiersz.split('\x1f');
-        return { hash, short, authorName, authorEmail, date, subject };
-      });
+      return out
+        .split('\n')
+        .filter(Boolean)
+        .map((wiersz) => {
+          const [hash, short, authorName, authorEmail, date, subject] = wiersz.split('\x1f');
+          return { hash, short, authorName, authorEmail, date, subject };
+        });
     } catch {
       // Repozytorium bez ani jednego commita — pusta historia, nie błąd.
       return [];
@@ -395,7 +430,7 @@ export class GitRepoService {
   async applyPatch(
     dir: string,
     patch: string,
-    opts: { cached?: boolean; reverse?: boolean } = {},
+    opts: { cached?: boolean; reverse?: boolean } = {}
   ): Promise<GitCommandResult> {
     const args = ['apply', '--unidiff-zero'];
     if (opts.cached) args.push('--cached');
@@ -416,10 +451,13 @@ export class GitRepoService {
   async stashList(dir: string): Promise<GitStashEntry[]> {
     try {
       const out = await this.git(dir, ['stash', 'list', '--format=%gd\x1f%gs\x1f%aI']);
-      return out.split('\n').filter(Boolean).map((wiersz) => {
-        const [ref, subject, date] = wiersz.split('\x1f');
-        return { ref, subject, date };
-      });
+      return out
+        .split('\n')
+        .filter(Boolean)
+        .map((wiersz) => {
+          const [ref, subject, date] = wiersz.split('\x1f');
+          return { ref, subject, date };
+        });
     } catch {
       return [];
     }
@@ -432,7 +470,11 @@ export class GitRepoService {
    * roboczym i „schowałem zmiany" okazuje się nieprawdą dokładnie wtedy, gdy
    * chodziło o czysty katalog przed przełączeniem gałęzi.
    */
-  async stashPush(dir: string, message?: string, opts: { keepIndex?: boolean } = {}): Promise<GitCommandResult> {
+  async stashPush(
+    dir: string,
+    message?: string,
+    opts: { keepIndex?: boolean } = {}
+  ): Promise<GitCommandResult> {
     const args = ['stash', 'push', '--include-untracked'];
     if (opts.keepIndex) args.push('--keep-index');
     if (message) args.push('-m', message);
@@ -462,9 +504,16 @@ export class GitRepoService {
    * nie było" (np. plik dodany po obu stronach nie ma wersji wyjściowej) —
    * i to jest informacja, nie usterka.
    */
-  async conflictVersions(dir: string, path: string): Promise<{ base: string; ours: string; theirs: string }> {
+  async conflictVersions(
+    dir: string,
+    path: string
+  ): Promise<{ base: string; ours: string; theirs: string }> {
     const wersja = async (numer: 1 | 2 | 3): Promise<string> => {
-      try { return await this.git(dir, ['show', `:${numer}:${path}`]); } catch { return ''; }
+      try {
+        return await this.git(dir, ['show', `:${numer}:${path}`]);
+      } catch {
+        return '';
+      }
     };
     const [base, ours, theirs] = await Promise.all([wersja(1), wersja(2), wersja(3)]);
     return { base, ours, theirs };
@@ -494,7 +543,11 @@ export class GitRepoService {
     }
   }
 
-  async checkout(dir: string, ref: string, opts: { type?: 'branch' | 'tag'; remote?: string } = {}): Promise<void> {
+  async checkout(
+    dir: string,
+    ref: string,
+    opts: { type?: 'branch' | 'tag'; remote?: string } = {}
+  ): Promise<void> {
     const remote = opts.remote ?? 'origin';
     if (opts.type === 'branch') {
       const localBranches = await this.listBranches(dir);
@@ -527,14 +580,26 @@ export class GitRepoService {
   }
 
   /** Stage all changes + commit. */
-  async commit(dir: string, message: string, opts: { authorName?: string; authorEmail?: string } = {}): Promise<GitCommandResult> {
+  async commit(
+    dir: string,
+    message: string,
+    opts: { authorName?: string; authorEmail?: string } = {}
+  ): Promise<GitCommandResult> {
     try {
       await this.git(dir, ['add', '-A']);
       // Fallback identity — serwer (Docker) może nie mieć skonfigurowanego
       // globalnego user.name/email; git commit zawiodłoby bez tych wartości.
       const name = opts.authorName ?? 'MyCastle';
       const email = opts.authorEmail ?? 'mycastle@localhost';
-      const out = await this.git(dir, ['-c', `user.name=${name}`, '-c', `user.email=${email}`, 'commit', '-m', message]);
+      const out = await this.git(dir, [
+        '-c',
+        `user.name=${name}`,
+        '-c',
+        `user.email=${email}`,
+        'commit',
+        '-m',
+        message,
+      ]);
       return { ok: true, stdout: out, stderr: '' };
     } catch (e) {
       return { ok: false, stdout: '', stderr: e instanceof Error ? e.message : String(e) };
@@ -542,7 +607,10 @@ export class GitRepoService {
   }
 
   /** Pull (fast-forward jeśli możliwe). Token wstrzykiwany ad-hoc do URL. */
-  async pull(dir: string, opts: { remote?: string; branch?: string; token?: string } = {}): Promise<GitCommandResult> {
+  async pull(
+    dir: string,
+    opts: { remote?: string; branch?: string; token?: string } = {}
+  ): Promise<GitCommandResult> {
     const remote = opts.remote ?? 'origin';
     return this.withToken(dir, remote, opts.token, async () => {
       const args = ['pull', '--ff', remote];
@@ -553,7 +621,10 @@ export class GitRepoService {
   }
 
   /** Push bieżącego brancha (lub podanego) do remote. */
-  async push(dir: string, opts: { remote?: string; branch?: string; token?: string; setUpstream?: boolean } = {}): Promise<GitCommandResult> {
+  async push(
+    dir: string,
+    opts: { remote?: string; branch?: string; token?: string; setUpstream?: boolean } = {}
+  ): Promise<GitCommandResult> {
     const remote = opts.remote ?? 'origin';
     return this.withToken(dir, remote, opts.token, async () => {
       const args = ['push'];
@@ -589,7 +660,7 @@ export class GitRepoService {
    */
   async init(dir: string, opts: { branch?: string } = {}): Promise<GitCommandResult> {
     const branch = opts.branch?.trim() || 'main';
-    if (!/^[A-Za-z0-9._\/-]+$/.test(branch)) {
+    if (!/^[A-Za-z0-9._/-]+$/.test(branch)) {
       return { ok: false, stdout: '', stderr: `Nieprawidłowa nazwa gałęzi: ${branch}` };
     }
     try {
@@ -602,7 +673,7 @@ export class GitRepoService {
       // wymaga gita 2.28, a `symbolic-ref` na pustym repozytorium działa
       // wszędzie i robi dokładnie to samo. Wersja gita w kontenerze jest
       // szczegółem obrazu, nie decyzją tego kodu.
-      out += '\n' + await this.git(dir, ['symbolic-ref', 'HEAD', `refs/heads/${branch}`]);
+      out += '\n' + (await this.git(dir, ['symbolic-ref', 'HEAD', `refs/heads/${branch}`]));
       return { ok: true, stdout: out, stderr: '' };
     } catch (e) {
       return { ok: false, stdout: '', stderr: e instanceof Error ? e.message : String(e) };
@@ -612,7 +683,11 @@ export class GitRepoService {
   /** Inicjalizuje repo W ISTNIEJĄCYM (niepustym) katalogu: `git init` + remote +
    *  fetch + checkout. Używane, gdy katalog zawiera już `.repo.json` (więc `git
    *  clone`, wymagający pustego katalogu, by się nie powiódł). */
-  async cloneInto(dir: string, url: string, opts: { branch?: string; token?: string; remote?: string } = {}): Promise<GitCommandResult> {
+  async cloneInto(
+    dir: string,
+    url: string,
+    opts: { branch?: string; token?: string; remote?: string } = {}
+  ): Promise<GitCommandResult> {
     const remote = opts.remote ?? 'origin';
     fs.mkdirSync(dir, { recursive: true });
     try {
@@ -630,7 +705,8 @@ export class GitRepoService {
     return this.withToken(dir, remote, opts.token, async () => {
       let out = await this.git(dir, ['fetch', remote]);
       const branch = opts.branch || (await this.defaultRemoteBranch(dir, remote)) || 'main';
-      out += '\n' + await this.git(dir, ['checkout', '-B', branch, '--track', `${remote}/${branch}`]);
+      out +=
+        '\n' + (await this.git(dir, ['checkout', '-B', branch, '--track', `${remote}/${branch}`]));
       return out;
     });
   }
@@ -640,7 +716,10 @@ export class GitRepoService {
     try {
       const args = ref ? ['ls-tree', '-r', '--name-only', ref] : ['ls-files'];
       const out = await this.git(dir, args);
-      return out.split('\n').map((s) => s.trim()).filter(Boolean);
+      return out
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean);
     } catch {
       return [];
     }
@@ -650,7 +729,10 @@ export class GitRepoService {
    *  - `from` + `to` podane → `git diff --no-color <from>..<to> [-- file]`
    *  - tylko `from` (to puste) → `git diff --no-color <from> [-- file]` (from vs working tree)
    *  Domyślnie `from='HEAD'`. Zwraca tekst diffa lub rzuca gdy ref nie istnieje. */
-  async diff(dir: string, opts: { from?: string; to?: string; file?: string; maxLines?: number } = {}): Promise<string> {
+  async diff(
+    dir: string,
+    opts: { from?: string; to?: string; file?: string; maxLines?: number } = {}
+  ): Promise<string> {
     const { from = 'HEAD', to, file } = opts;
     const args = ['diff', '--no-color'];
     if (to) {
@@ -668,24 +750,34 @@ export class GitRepoService {
         const untrackedArgs = ['ls-files', '--others', '--exclude-standard'];
         if (file) untrackedArgs.push('--', file);
         const untracked = await this.git(dir, untrackedArgs);
-        const untrackedFiles = untracked.split('\n').map((s) => s.trim()).filter(Boolean);
+        const untrackedFiles = untracked
+          .split('\n')
+          .map((s) => s.trim())
+          .filter(Boolean);
         if (untrackedFiles.length > 0) {
           const parts: string[] = out ? [out] : [];
           for (const uf of untrackedFiles) {
             try {
               const fd = await this.gitNoIndexDiff(dir, uf);
               if (fd) parts.push(fd);
-            } catch { /* binary or inaccessible — skip */ }
+            } catch {
+              /* binary or inaccessible — skip */
+            }
           }
           out = parts.join('\n');
         }
-      } catch { /* ignore ls-files errors */ }
+      } catch {
+        /* ignore ls-files errors */
+      }
     }
 
     if (opts.maxLines) {
       const lines = out.split('\n');
       if (lines.length > opts.maxLines) {
-        return lines.slice(0, opts.maxLines).join('\n') + `\n… (diff ucięty, pokazano ${opts.maxLines} z ${lines.length} linii)`;
+        return (
+          lines.slice(0, opts.maxLines).join('\n') +
+          `\n… (diff ucięty, pokazano ${opts.maxLines} z ${lines.length} linii)`
+        );
       }
     }
     return out;
@@ -696,20 +788,25 @@ export class GitRepoService {
   private async gitNoIndexDiff(dir: string, file: string): Promise<string> {
     try {
       const { stdout } = await pExecFile(
-        'git', ['diff', '--no-color', '--no-index', '/dev/null', file],
-        { cwd: dir, timeout: this.timeoutMs, maxBuffer: 32 * 1024 * 1024 },
+        'git',
+        ['diff', '--no-color', '--no-index', '/dev/null', file],
+        { cwd: dir, timeout: this.timeoutMs, maxBuffer: 32 * 1024 * 1024 }
       );
       return stdout; // exit 0 = brak różnic (praktycznie niemożliwe dla /dev/null vs plik)
     } catch (e) {
       const err = e as { code?: number; stdout?: string; stderr?: string };
       if (err.code === 1 && err.stdout) return err.stdout; // exit 1 = są różnice — stdout to diff
       const msg = (err.stderr || err.stdout || 'git diff --no-index error').toString().trim();
-      throw new Error(msg);
+      throw new Error(msg, { cause: e });
     }
   }
 
   /** Clone url do katalogu docelowego (musi być pusty/nieistniejący). */
-  async clone(url: string, dir: string, opts: { branch?: string; token?: string } = {}): Promise<GitCommandResult> {
+  async clone(
+    url: string,
+    dir: string,
+    opts: { branch?: string; token?: string } = {}
+  ): Promise<GitCommandResult> {
     const parent = path.dirname(dir);
     fs.mkdirSync(parent, { recursive: true });
     const src = this.urlWithToken(url, opts.token);
@@ -730,7 +827,11 @@ export class GitRepoService {
       return { ok: true, stdout, stderr };
     } catch (e) {
       const err = e as { stderr?: string; stdout?: string; message?: string };
-      return { ok: false, stdout: err.stdout ?? '', stderr: (err.stderr || err.message || 'clone failed').toString() };
+      return {
+        ok: false,
+        stdout: err.stdout ?? '',
+        stderr: (err.stderr || err.message || 'clone failed').toString(),
+      };
     }
   }
 
@@ -739,7 +840,7 @@ export class GitRepoService {
     dir: string,
     remote: string,
     token: string | undefined,
-    op: () => Promise<string>,
+    op: () => Promise<string>
   ): Promise<GitCommandResult> {
     let original: string | null = null;
     if (token) {

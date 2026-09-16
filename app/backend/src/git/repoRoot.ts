@@ -23,23 +23,23 @@ import * as fs from 'node:fs';
  * wskazaniem na prawdziwy katalog gita.
  */
 export function znajdzKorzenRepo(
-    startDir: string,
-    driveRoot: string,
-    istnieje: (p: string) => boolean = (p) => fs.existsSync(p),
+  startDir: string,
+  driveRoot: string,
+  istnieje: (p: string) => boolean = (p) => fs.existsSync(p)
 ): string | null {
-    const korzen = path.resolve(driveRoot);
-    let biezacy = path.resolve(startDir);
-    if (biezacy !== korzen && !biezacy.startsWith(korzen + path.sep)) return null;
+  const korzen = path.resolve(driveRoot);
+  let biezacy = path.resolve(startDir);
+  if (biezacy !== korzen && !biezacy.startsWith(korzen + path.sep)) return null;
 
-    for (;;) {
-        if (istnieje(path.join(biezacy, '.git'))) return biezacy;
-        if (biezacy === korzen) return null;
-        const wyzej = path.dirname(biezacy);
-        // Zabezpieczenie przed pętlą, gdyby `dirname` przestał się skracać
-        // (korzeń systemu plików) — do `driveRoot` i tak byśmy nie dotarli.
-        if (wyzej === biezacy) return null;
-        biezacy = wyzej;
-    }
+  for (;;) {
+    if (istnieje(path.join(biezacy, '.git'))) return biezacy;
+    if (biezacy === korzen) return null;
+    const wyzej = path.dirname(biezacy);
+    // Zabezpieczenie przed pętlą, gdyby `dirname` przestał się skracać
+    // (korzeń systemu plików) — do `driveRoot` i tak byśmy nie dotarli.
+    if (wyzej === biezacy) return null;
+    biezacy = wyzej;
+  }
 }
 
 /**
@@ -53,10 +53,7 @@ export function znajdzKorzenRepo(
  * wtedy zdalne operacje idą przez `remote` zapisany w samym repozytorium.
  */
 export function sciezkiMarkera(repoDir: string): string[] {
-    const katalog = path.resolve(repoDir);
-    const nazwa = path.basename(katalog);
-    return [
-        path.join(katalog, '.repo.json'),
-        path.join(path.dirname(katalog), `${nazwa}.repo.json`),
-    ];
+  const katalog = path.resolve(repoDir);
+  const nazwa = path.basename(katalog);
+  return [path.join(katalog, '.repo.json'), path.join(path.dirname(katalog), `${nazwa}.repo.json`)];
 }

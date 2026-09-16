@@ -18,7 +18,13 @@
  * Wybór metody jest więc decyzją fizyczną, nie techniczną — stąd trzy osobne
  * funkcje z jednym interfejsem zamiast jednej z przełącznikiem w środku.
  */
-import { Trajectory, type Derivative, type SolveOptions, type State, type StepHook } from './trajectory';
+import {
+  Trajectory,
+  type Derivative,
+  type SolveOptions,
+  type State,
+  type StepHook,
+} from './trajectory';
 
 /** Ile kroków wykonać, żeby przejść przedział — z zabezpieczeniem przed zerem. */
 function stepCount(tSpan: [number, number], dt: number): number {
@@ -45,7 +51,12 @@ export interface SolverOptions extends SolveOptions {
  * Najprostsza możliwa i właśnie dlatego pouczająca — po kilkudziesięciu
  * okresach oscylatora widać, jak amplituda rośnie z niczego.
  */
-export function euler(f: Derivative, y0: State, tSpan: [number, number], options: SolverOptions): Trajectory {
+export function euler(
+  f: Derivative,
+  y0: State,
+  tSpan: [number, number],
+  options: SolverOptions
+): Trajectory {
   const { dt, sampleEvery = 1 } = options;
   const steps = stepCount(tSpan, dt);
   const samples = [{ t: tSpan[0], y: [...y0] }];
@@ -68,7 +79,10 @@ export function euler(f: Derivative, y0: State, tSpan: [number, number], options
     t = tSpan[0] + (i + 1) * dt;
 
     const reaction = options.onStep?.(t, y);
-    if (reaction === 'stop') { samples.push({ t, y: [...y] }); break; }
+    if (reaction === 'stop') {
+      samples.push({ t, y: [...y] });
+      break;
+    }
     if (reaction) y = reaction;
 
     if ((i + 1) % sampleEvery === 0 || i === steps - 1) samples.push({ t, y: [...y] });
@@ -83,7 +97,12 @@ export function euler(f: Derivative, y0: State, tSpan: [number, number], options
  * Cztery wywołania `f` na krok, za to błąd maleje z czwartą potęgą kroku —
  * przy tej samej pracy jest dokładniejszy od Eulera o rzędy wielkości.
  */
-export function rk4(f: Derivative, y0: State, tSpan: [number, number], options: SolverOptions): Trajectory {
+export function rk4(
+  f: Derivative,
+  y0: State,
+  tSpan: [number, number],
+  options: SolverOptions
+): Trajectory {
   const { dt, sampleEvery = 1 } = options;
   const steps = stepCount(tSpan, dt);
   const samples = [{ t: tSpan[0], y: [...y0] }];
@@ -107,7 +126,9 @@ export function rk4(f: Derivative, y0: State, tSpan: [number, number], options: 
   const k2 = new Array<number>(n);
   const k3 = new Array<number>(n);
   const k4 = new Array<number>(n);
-  const kopiuj = (from: State, to: number[]) => { for (let k = 0; k < n; k += 1) to[k] = from[k]; };
+  const kopiuj = (from: State, to: number[]) => {
+    for (let k = 0; k < n; k += 1) to[k] = from[k];
+  };
 
   let t = tSpan[0];
   let y = [...y0];
@@ -128,7 +149,10 @@ export function rk4(f: Derivative, y0: State, tSpan: [number, number], options: 
     t = tSpan[0] + (i + 1) * dt; // patrz uwaga o narastaniu czasu w `euler`
 
     const reaction = options.onStep?.(t, y);
-    if (reaction === 'stop') { samples.push({ t, y: [...y] }); break; }
+    if (reaction === 'stop') {
+      samples.push({ t, y: [...y] });
+      break;
+    }
     if (reaction) y = reaction;
 
     if ((i + 1) % sampleEvery === 0 || i === steps - 1) samples.push({ t, y: [...y] });
@@ -153,7 +177,7 @@ export function verlet(
   x0: State,
   v0: State,
   tSpan: [number, number],
-  options: SolverOptions,
+  options: SolverOptions
 ): Trajectory {
   const { dt, sampleEvery = 1 } = options;
   const steps = stepCount(tSpan, dt);
@@ -173,7 +197,9 @@ export function verlet(
    */
   let acc = new Array<number>(n);
   let accNext = new Array<number>(n);
-  const kopiuj = (from: State, to: number[]) => { for (let k = 0; k < n; k += 1) to[k] = from[k]; };
+  const kopiuj = (from: State, to: number[]) => {
+    for (let k = 0; k < n; k += 1) to[k] = from[k];
+  };
   kopiuj(a(t, x), acc);
 
   const samples = [{ t, y: [...x, ...v] }];
@@ -195,7 +221,10 @@ export function verlet(
     t = tSpan[0] + (i + 1) * dt; // patrz uwaga o narastaniu czasu w `euler`
 
     const reaction = options.onStep?.(t, [...x, ...v]);
-    if (reaction === 'stop') { samples.push({ t, y: [...x, ...v] }); break; }
+    if (reaction === 'stop') {
+      samples.push({ t, y: [...x, ...v] });
+      break;
+    }
     if (reaction) {
       x = reaction.slice(0, x.length);
       v = reaction.slice(x.length);
@@ -206,8 +235,10 @@ export function verlet(
     if ((i + 1) % sampleEvery === 0 || i === steps - 1) samples.push({ t, y: [...x, ...v] });
   }
 
-  const names = options.stateNames
-    ?? [...defaultNames(x0.length, 'x'), ...defaultNames(v0.length, 'v')];
+  const names = options.stateNames ?? [
+    ...defaultNames(x0.length, 'x'),
+    ...defaultNames(v0.length, 'v'),
+  ];
   return new Trajectory(samples, names);
 }
 
@@ -219,7 +250,7 @@ export function solve(
   f: Derivative,
   y0: State,
   tSpan: [number, number],
-  options: SolverOptions,
+  options: SolverOptions
 ): Trajectory {
   return method === 'euler' ? euler(f, y0, tSpan, options) : rk4(f, y0, tSpan, options);
 }

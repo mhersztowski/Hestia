@@ -37,7 +37,7 @@ const dymek = (code: string) => {
       id="rh1-15-eq5"
       label="15-5"
       target={{ code, kind: 'formula', sameDocument: true }}
-    />,
+    />
   );
   fireEvent.mouseEnter(widok.getByText('15-5'));
   return widok;
@@ -51,7 +51,8 @@ describe('wzór w dymku', () => {
 
     // KaTeX zostawia oryginalny zapis w `annotation` — po nim poznajemy,
     // że złożono całe równanie, a nie sklejkę z pustych pól.
-    const zrodlo = baseElement.querySelector('[role="dialog"] .katex annotation')?.textContent ?? '';
+    const zrodlo =
+      baseElement.querySelector('[role="dialog"] .katex annotation')?.textContent ?? '';
     expect(zrodlo).toContain('\\frac{k}{m}');
     expect(zrodlo.trim()).not.toBe('=');
     expect(zrodlo.trim().startsWith('=')).toBe(false);
@@ -59,7 +60,8 @@ describe('wzór w dymku', () => {
 
   it('definicja nadal pokazuje „cel = wyrażenie”', () => {
     const { baseElement } = dymek(DEFINICJA);
-    const zrodlo = baseElement.querySelector('[role="dialog"] .katex annotation')?.textContent ?? '';
+    const zrodlo =
+      baseElement.querySelector('[role="dialog"] .katex annotation')?.textContent ?? '';
     expect(zrodlo).toContain('\\omega');
     expect(zrodlo).toContain('\\sqrt{k/m}');
   });

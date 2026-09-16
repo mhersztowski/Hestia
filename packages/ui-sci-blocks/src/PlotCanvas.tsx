@@ -28,7 +28,13 @@ export interface PlotCanvasProps {
 
 const PADDING = { left: 44, right: 10, top: 10, bottom: 22 };
 
-export function PlotCanvas({ series, width = 460, height = 170, xLabel = 't [s]', marker }: PlotCanvasProps) {
+export function PlotCanvas({
+  series,
+  width = 460,
+  height = 170,
+  xLabel = 't [s]',
+  marker,
+}: PlotCanvasProps) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -59,7 +65,10 @@ export function PlotCanvas({ series, width = 460, height = 170, xLabel = 't [s]'
     const xMax = maxOf(xs);
     let yMin = minOf(ys);
     let yMax = maxOf(ys);
-    if (yMin === yMax) { yMin -= 1; yMax += 1; }
+    if (yMin === yMax) {
+      yMin -= 1;
+      yMax += 1;
+    }
     // Zapas, żeby szczyty nie dotykały krawędzi ramki.
     const margin = (yMax - yMin) * 0.08;
     yMin -= margin;

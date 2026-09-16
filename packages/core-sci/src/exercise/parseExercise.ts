@@ -80,7 +80,8 @@ export interface ExerciseBlock {
 
 const DIRECTIVE = /^\s*@([A-Za-z][A-Za-z0-9]*)\s*(.*)$/;
 /** `L: 0.5..2 m` albo `L: 1..10` albo `L: 0.5..2 m step 0.1`. */
-const GIVEN = /^(?<name>\\?[A-Za-z][A-Za-z0-9]*(?:_\{?[A-Za-z0-9]+\}?)?)\s*:\s*(?<min>-?[\d.eE+-]+)\s*\.\.\s*(?<max>-?[\d.eE+-]+)\s*(?<unit>[^\s]+)?\s*(?:step\s+(?<step>[\d.eE+-]+))?\s*$/;
+const GIVEN =
+  /^(?<name>\\?[A-Za-z][A-Za-z0-9]*(?:_\{?[A-Za-z0-9]+\}?)?)\s*:\s*(?<min>-?[\d.eE+-]+)\s*\.\.\s*(?<max>-?[\d.eE+-]+)\s*(?<unit>[^\s]+)?\s*(?:step\s+(?<step>[\d.eE+-]+))?\s*$/;
 
 export const EXERCISE_FENCE = /^exercise:([A-Za-z0-9_-]+)$/;
 
@@ -171,7 +172,12 @@ export function parseExerciseBlock(id: string, body: string): ExerciseBlock {
         break;
       }
       case 'uses':
-        block.uses.push(...rest.split(',').map((s) => s.trim()).filter(Boolean));
+        block.uses.push(
+          ...rest
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        );
         break;
       case 'hint':
         block.hints.push(rest.trim());
@@ -188,7 +194,9 @@ export function parseExerciseBlock(id: string, body: string): ExerciseBlock {
   // Dane do losowania bez wskazanej wielkości to zawsze pomyłka: nie ma czego
   // policzyć, więc wylosowane liczby nie miałyby dokąd trafić.
   if (block.given.length && !block.answer) {
-    block.issues.push('Są dane do wylosowania („@given"), ale nie wiadomo, co policzyć — dopisz „@answer".');
+    block.issues.push(
+      'Są dane do wylosowania („@given"), ale nie wiadomo, co policzyć — dopisz „@answer".'
+    );
   }
 
   // Wiodąca wielkość z odpowiedzi — tylko gdy autor nie wskazał jej sam.

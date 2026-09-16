@@ -52,7 +52,10 @@ export interface LinAlgModel {
   /** Wektory do narysowania — wszystkie, jakie w bloku występują. */
   drawnVectors: string[];
   issues: string[];
-  run(overrides: { vectors?: Record<string, Vector2>; matrices?: Record<string, Matrix2> }): LinAlgResult;
+  run(overrides: {
+    vectors?: Record<string, Vector2>;
+    matrices?: Record<string, Matrix2>;
+  }): LinAlgResult;
 }
 
 /** Wartość w trakcie liczenia — typ decyduje o tym, co znaczy operacja. */
@@ -67,7 +70,10 @@ const LICZBY = /-?\d+(?:\.\d+)?(?:e-?\d+)?/g;
 function parseMatrix(text: string): Matrix2 | null {
   const liczby = text.match(LICZBY)?.map(Number) ?? [];
   if (liczby.length !== 4 || !liczby.every(Number.isFinite)) return null;
-  return [[liczby[0], liczby[1]], [liczby[2], liczby[3]]];
+  return [
+    [liczby[0], liczby[1]],
+    [liczby[2], liczby[3]],
+  ];
 }
 
 /** `[1, 0.5]` → wektor; `null`, gdy to nie są dwie liczby. */
@@ -88,7 +94,7 @@ function parseVector(text: string): Vector2 | null {
 function evaluate(
   expression: string,
   scope: Record<string, Value>,
-  issues: string[],
+  issues: string[]
 ): Value | null {
   const skladniki = rozdzielSume(expression);
   let suma: Value | null = null;
@@ -96,7 +102,10 @@ function evaluate(
   for (const skladnik of skladniki) {
     const wartosc = evaluateProduct(skladnik, scope, issues);
     if (!wartosc) return null;
-    if (!suma) { suma = wartosc; continue; }
+    if (!suma) {
+      suma = wartosc;
+      continue;
+    }
 
     if (suma.kind !== wartosc.kind) {
       issues.push(`Nie da się dodać ${nazwaTypu(suma)} do ${nazwaTypu(wartosc)}.`);
@@ -117,7 +126,11 @@ function rozdzielSume(expression: string): string[] {
   for (const znak of expression) {
     if (znak === '(' || znak === '[' || znak === '{') glebokosc += 1;
     if (znak === ')' || znak === ']' || znak === '}') glebokosc -= 1;
-    if (znak === '+' && glebokosc === 0) { czesci.push(biezaca); biezaca = ''; continue; }
+    if (znak === '+' && glebokosc === 0) {
+      czesci.push(biezaca);
+      biezaca = '';
+      continue;
+    }
     biezaca += znak;
   }
   czesci.push(biezaca);
@@ -127,15 +140,21 @@ function rozdzielSume(expression: string): string[] {
 function evaluateProduct(
   expression: string,
   scope: Record<string, Value>,
-  issues: string[],
+  issues: string[]
 ): Value | null {
-  const czynniki = expression.split('\\cdot').map((c) => c.trim()).filter(Boolean);
+  const czynniki = expression
+    .split('\\cdot')
+    .map((c) => c.trim())
+    .filter(Boolean);
   let wynik: Value | null = null;
 
   for (const czynnik of czynniki) {
     const wartosc = evaluateAtom(czynnik, scope, issues);
     if (!wartosc) return null;
-    if (!wynik) { wynik = wartosc; continue; }
+    if (!wynik) {
+      wynik = wartosc;
+      continue;
+    }
 
     const pomnozone = pomnoz(wynik, wartosc);
     if (!pomnozone) {
@@ -148,11 +167,7 @@ function evaluateProduct(
   return wynik;
 }
 
-function evaluateAtom(
-  text: string,
-  scope: Record<string, Value>,
-  issues: string[],
-): Value | null {
+function evaluateAtom(text: string, scope: Record<string, Value>, issues: string[]): Value | null {
   const oczyszczony = text.trim();
 
   const wyznacznik = /^\\det\s*\(\s*([A-Za-z][A-Za-z0-9_]*)\s*\)$/.exec(oczyszczony);
@@ -174,7 +189,9 @@ function evaluateAtom(
     }
     const wynik = inverse(macierz.value);
     if (!wynik) {
-      issues.push(`Macierzy „${odwrotna[1]}" nie da się odwrócić — jest osobliwa (wyznacznik zero).`);
+      issues.push(
+        `Macierzy „${odwrotna[1]}" nie da się odwrócić — jest osobliwa (wyznacznik zero).`
+      );
       return null;
     }
     return { kind: 'matrix', value: wynik };
@@ -182,13 +199,19 @@ function evaluateAtom(
 
   if (oczyszczony.startsWith('[[')) {
     const macierz = parseMatrix(oczyszczony);
-    if (!macierz) { issues.push(`Nie umiem odczytać macierzy „${oczyszczony}".`); return null; }
+    if (!macierz) {
+      issues.push(`Nie umiem odczytać macierzy „${oczyszczony}".`);
+      return null;
+    }
     return { kind: 'matrix', value: macierz };
   }
 
   if (oczyszczony.startsWith('[')) {
     const wektor = parseVector(oczyszczony);
-    if (!wektor) { issues.push(`Nie umiem odczytać wektora „${oczyszczony}".`); return null; }
+    if (!wektor) {
+      issues.push(`Nie umiem odczytać wektora „${oczyszczony}".`);
+      return null;
+    }
     return { kind: 'vector', value: wektor };
   }
 
@@ -209,7 +232,8 @@ function nazwaTypu(v: Value): string {
 }
 
 function dodaj(a: Value, b: Value): Value {
-  if (a.kind === 'scalar' && b.kind === 'scalar') return { kind: 'scalar', value: a.value + b.value };
+  if (a.kind === 'scalar' && b.kind === 'scalar')
+    return { kind: 'scalar', value: a.value + b.value };
   if (a.kind === 'vector' && b.kind === 'vector') {
     return { kind: 'vector', value: [a.value[0] + b.value[0], a.value[1] + b.value[1]] };
   }
@@ -217,22 +241,31 @@ function dodaj(a: Value, b: Value): Value {
   const n = b.value as Matrix2;
   return {
     kind: 'matrix',
-    value: [[m[0][0] + n[0][0], m[0][1] + n[0][1]], [m[1][0] + n[1][0], m[1][1] + n[1][1]]],
+    value: [
+      [m[0][0] + n[0][0], m[0][1] + n[0][1]],
+      [m[1][0] + n[1][0], m[1][1] + n[1][1]],
+    ],
   };
 }
 
 function pomnoz(a: Value, b: Value): Value | null {
-  if (a.kind === 'matrix' && b.kind === 'vector') return { kind: 'vector', value: apply(a.value, b.value) };
-  if (a.kind === 'matrix' && b.kind === 'matrix') return { kind: 'matrix', value: compose(a.value, b.value) };
+  if (a.kind === 'matrix' && b.kind === 'vector')
+    return { kind: 'vector', value: apply(a.value, b.value) };
+  if (a.kind === 'matrix' && b.kind === 'matrix')
+    return { kind: 'matrix', value: compose(a.value, b.value) };
   if (a.kind === 'scalar' && b.kind === 'vector') {
     return { kind: 'vector', value: [a.value * b.value[0], a.value * b.value[1]] };
   }
-  if (a.kind === 'scalar' && b.kind === 'scalar') return { kind: 'scalar', value: a.value * b.value };
+  if (a.kind === 'scalar' && b.kind === 'scalar')
+    return { kind: 'scalar', value: a.value * b.value };
   if (a.kind === 'scalar' && b.kind === 'matrix') {
     const m = b.value;
     return {
       kind: 'matrix',
-      value: [[a.value * m[0][0], a.value * m[0][1]], [a.value * m[1][0], a.value * m[1][1]]],
+      value: [
+        [a.value * m[0][0], a.value * m[0][1]],
+        [a.value * m[1][0], a.value * m[1][1]],
+      ],
     };
   }
   // Wektor razy macierz, wektor razy wektor: to nie są operacje, których ten
@@ -250,19 +283,25 @@ export function compileLinAlg(block: FormulaBlock): LinAlgModel {
 
   for (const { name, text } of linalg.matrices) {
     const value = parseMatrix(text);
-    if (!value) { issues.push(`Macierz „${name}" musi mieć kształt 2×2, np. [[1, 0], [0, 1]].`); continue; }
+    if (!value) {
+      issues.push(`Macierz „${name}" musi mieć kształt 2×2, np. [[1, 0], [0, 1]].`);
+      continue;
+    }
     matrices.push({ name, value });
   }
   for (const { name, text } of linalg.vectors) {
     const value = parseVector(text);
-    if (!value) { issues.push(`Wektor „${name}" musi mieć dwie liczby, np. [1, 0.5].`); continue; }
+    if (!value) {
+      issues.push(`Wektor „${name}" musi mieć dwie liczby, np. [1, 0.5].`);
+      continue;
+    }
     vectors.push({ name, value });
   }
 
   /** Buduje zakres i liczy definicje po kolei — kolejność zapisu jest kolejnością liczenia. */
   const policz = (
     overrides: { vectors?: Record<string, Vector2>; matrices?: Record<string, Matrix2> },
-    zbierzIssues: string[],
+    zbierzIssues: string[]
   ): LinAlgResult => {
     const scope: Record<string, Value> = {};
     for (const m of matrices) {

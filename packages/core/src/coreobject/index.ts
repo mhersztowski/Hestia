@@ -4,10 +4,7 @@ export { Signal } from './Signal';
 export type { Slot, IConnectionOwner } from './Signal';
 export { CoreObject } from './CoreObject';
 
-// ── TreeNode (typed scene/tree node) ──────────────────────────────────────────────
-export { TreeNode } from './TreeNode';
-
-// ── Qt wrappers (browser-Qt QObject/widget → TreeNode bridge) ─────────────────────
+// ── Qt wrappers (browser-Qt QObject/widget → CoreObject bridge) ──────────────────
 export {
   QtNode,
   QtProperty,
@@ -71,6 +68,47 @@ export type { LogLevel, LogRecord } from './Logger';
 // outside through `@hestia/core/coreobject-mqtt`.
 export { HttpReq } from './HttpReq';
 export type { HttpMethod, HttpResponse } from './HttpReq';
+
+// ── User-interface objects ────────────────────────────────────────────────────
+//
+// Toolbars, menus and the commands behind them, as objects rather than as React
+// props. Nothing here draws anything — the components live in `@hestia/ui-core`.
+export {
+  UiObject,
+  ItemHost,
+  MenuItem,
+  Action,
+  Separator,
+  CustomItem,
+  ActionGroup,
+  ActionCollection,
+  Toolbar,
+  Menu,
+  MenuBar,
+  Tab,
+  TabBar,
+  Panel,
+  Workspace,
+  addModel,
+  normalizeShortcut,
+} from './ui/index';
+export type {
+  MenuItemKind,
+  MenuItemInit,
+  ActionInit,
+  CustomItemInit,
+  ExclusiveGroup,
+  ActionCollectionLike,
+  ToolbarInit,
+  MenuInit,
+  MenuBarInit,
+  TabInit,
+  TabBarInit,
+  PanelInit,
+  WorkspaceInit,
+  ActionCollectionInit,
+  ItemTarget,
+} from './ui/index';
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 export { debounce, throttle, promiseToSignals, connectOnce } from './utils';

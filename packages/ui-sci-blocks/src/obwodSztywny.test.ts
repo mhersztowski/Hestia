@@ -15,13 +15,16 @@ const DOKUMENT = readFileSync(resolve(__dirname, '../documents/uklad-sztywny.md'
 
 const setup = (solver: string) => {
   const tekst = DOKUMENT.replace('\n@solver rosenbrock\n', `\n@solver ${solver}\n`);
-  return buildSimSetup(scanFormulas(tekst), JSON.stringify({
-    R: '100000 ohm',
-    L: '0.01 H',
-    C: '1e-6 F',
-    U_0: '5 V',
-    Omega: '10000 s^-1',
-  }));
+  return buildSimSetup(
+    scanFormulas(tekst),
+    JSON.stringify({
+      R: '100000 ohm',
+      L: '0.01 H',
+      C: '1e-6 F',
+      U_0: '5 V',
+      Omega: '10000 s^-1',
+    })
+  );
 };
 
 /** W rezonansie reaktancje się znoszą, więc |Z| = R i amplituda prądu = U₀/R. */

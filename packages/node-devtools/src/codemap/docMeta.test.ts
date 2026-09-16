@@ -64,7 +64,8 @@ describe('TS parser — TSDoc', () => {
 
   it('reads returns, example and deprecated', async () => {
     const fetchOne = (await model()).symbols
-      .find((s) => s.name === 'Api')!.members.find((m) => m.name === 'fetchOne')!;
+      .find((s) => s.name === 'Api')!
+      .members.find((m) => m.name === 'fetchOne')!;
     expect(fetchOne.doc?.returns).toBe('The resource contents as text.');
     expect(fetchOne.doc?.examples?.[0]).toContain("Api.fetchOne('42')");
     expect(fetchOne.doc?.deprecated).toBe('Use fetchMany.');
@@ -77,8 +78,9 @@ describe('TS parser — TSDoc', () => {
 
   it('documents fields and module-level functions too', async () => {
     const symbols = (await model()).symbols;
-    expect(symbols.find((s) => s.name === 'Api')!.members.find((m) => m.name === 'baseUrl')?.doc?.summary)
-      .toBe('Base address.');
+    expect(
+      symbols.find((s) => s.name === 'Api')!.members.find((m) => m.name === 'baseUrl')?.doc?.summary
+    ).toBe('Base address.');
     const mod = symbols.find((s) => s.kind === 'module')!;
     const fn = mod.members.find((m) => m.name === 'formatDate')!;
     expect(fn.doc?.summary).toBe('Formats a date as ISO.');
@@ -108,6 +110,8 @@ describe('UML — documentation metadata', () => {
     const back = diagramToModel(codemap.diagrams[0], 'typescript');
     const api = back.symbols.find((s) => s.name === 'Api')!;
     expect(api.doc?.summary).toBe('Backend REST client.');
-    expect(api.members.find((m) => m.name === 'fetchOne')?.doc?.returns).toBe('The resource contents as text.');
+    expect(api.members.find((m) => m.name === 'fetchOne')?.doc?.returns).toBe(
+      'The resource contents as text.'
+    );
   });
 });

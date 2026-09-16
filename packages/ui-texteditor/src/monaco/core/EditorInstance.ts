@@ -33,11 +33,20 @@ export class EditorInstance implements Disposable {
     container: HTMLElement,
     options: EditorOptions & monaco.editor.IStandaloneEditorConstructionOptions
   ) {
-    const uuid = typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : Array.from(crypto.getRandomValues(new Uint8Array(16)))
-          .map((b, i) => ([4, 6, 8, 10].includes(i) ? '-' : '') + (i === 6 ? ((b & 0x0f) | 0x40).toString(16) : i === 8 ? ((b & 0x3f) | 0x80).toString(16) : b.toString(16).padStart(2, '0')))
-          .join('');
+    const uuid =
+      typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : Array.from(crypto.getRandomValues(new Uint8Array(16)))
+            .map(
+              (b, i) =>
+                ([4, 6, 8, 10].includes(i) ? '-' : '') +
+                (i === 6
+                  ? ((b & 0x0f) | 0x40).toString(16)
+                  : i === 8
+                    ? ((b & 0x3f) | 0x80).toString(16)
+                    : b.toString(16).padStart(2, '0'))
+            )
+            .join('');
     this.id = createEditorId(uuid);
 
     this.editor = monaco.editor.create(container, {
@@ -228,10 +237,7 @@ export class EditorInstance implements Disposable {
     this.assertNotDisposed();
     this.setContent(state.content);
     this.setLanguage(state.language);
-    this.setCursorPosition(
-      state.cursorPosition.lineNumber,
-      state.cursorPosition.column
-    );
+    this.setCursorPosition(state.cursorPosition.lineNumber, state.cursorPosition.column);
     this.editor.setScrollPosition({
       scrollTop: state.scrollPosition.scrollTop,
       scrollLeft: state.scrollPosition.scrollLeft,
@@ -261,9 +267,7 @@ export class EditorInstance implements Disposable {
   /**
    * Update editor options
    */
-  updateOptions(
-    options: monaco.editor.IEditorOptions & monaco.editor.IGlobalEditorOptions
-  ): void {
+  updateOptions(options: monaco.editor.IEditorOptions & monaco.editor.IGlobalEditorOptions): void {
     this.assertNotDisposed();
     this.editor.updateOptions(options);
   }

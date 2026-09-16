@@ -69,7 +69,7 @@ export function readSectionLines(frontMatter: string, name: string): string[] {
 export function writeSectionLines(
   frontMatter: string | undefined,
   name: string,
-  sectionLines: string[],
+  sectionLines: string[]
 ): string | undefined {
   const rest = otherLines(frontMatter, name);
   if (sectionLines.length === 0) {
@@ -107,7 +107,10 @@ function otherLines(frontMatter: string | undefined, name: string): string[] {
   const out: string[] = [];
   let inSection = false;
   for (const line of lines) {
-    if (line.trim() === `${name}:`) { inSection = true; continue; }
+    if (line.trim() === `${name}:`) {
+      inSection = true;
+      continue;
+    }
     if (inSection && !isTopLevelKey(line)) continue;
     inSection = false;
     out.push(line);
@@ -123,15 +126,18 @@ function otherLines(frontMatter: string | undefined, name: string): string[] {
  */
 export function writePositions(
   frontMatter: string | undefined,
-  layout: LayoutMap,
+  layout: LayoutMap
 ): string | undefined {
-  const section = Object.keys(layout).sort().map((id) => {
-    const box = layout[id];
-    const numbers = box.width !== undefined && box.height !== undefined
-      ? [box.x, box.y, box.width, box.height]
-      : [box.x, box.y];
-    return `  ${id}: [${numbers.map(Math.round).join(', ')}]`;
-  });
+  const section = Object.keys(layout)
+    .sort()
+    .map((id) => {
+      const box = layout[id];
+      const numbers =
+        box.width !== undefined && box.height !== undefined
+          ? [box.x, box.y, box.width, box.height]
+          : [box.x, box.y];
+      return `  ${id}: [${numbers.map(Math.round).join(', ')}]`;
+    });
 
   return writeSectionLines(frontMatter, SECTION, section);
 }

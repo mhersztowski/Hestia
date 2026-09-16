@@ -17,7 +17,7 @@ export default defineConfig({
       // djvu.js reaches for pngjs to export a page as a PNG, which the viewer
       // never asks it to do — see the stub. Without the alias the production
       // build fails to resolve the import, while the dev server is fine.
-      'pngjs/browser': resolve(__dirname, './src/stubs/pngjs-browser.ts'),
+      'pngjs/browser': resolve(__dirname, './src/stubs/pngjsBrowser.ts'),
     },
     // One copy of each of these in the page. The packages declare them as peers
     // and pnpm's store would otherwise be free to give a package its own —
@@ -25,9 +25,15 @@ export default defineConfig({
     // languages and workers, and the symptom in both cases (a blank panel)
     // does not point at the cause.
     dedupe: [
-      'react', 'react-dom',
-      '@mui/material', '@emotion/react', '@emotion/styled',
-      'monaco-editor', '@tiptap/core', '@tiptap/pm', '@tiptap/react',
+      'react',
+      'react-dom',
+      '@mui/material',
+      '@emotion/react',
+      '@emotion/styled',
+      'monaco-editor',
+      '@tiptap/core',
+      '@tiptap/pm',
+      '@tiptap/react',
     ],
   },
   server: {

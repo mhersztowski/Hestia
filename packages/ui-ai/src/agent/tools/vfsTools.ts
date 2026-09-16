@@ -13,7 +13,8 @@ export function buildVfsToolDefinitions(provider: FileSystemProvider): AiToolDef
     type: 'function',
     function: {
       name: 'vfs_read_file',
-      description: 'Read the text contents of a file at the given path. Returns the file content as text.',
+      description:
+        'Read the text contents of a file at the given path. Returns the file content as text.',
       parameters: {
         type: 'object',
         properties: {
@@ -28,7 +29,8 @@ export function buildVfsToolDefinitions(provider: FileSystemProvider): AiToolDef
     type: 'function',
     function: {
       name: 'vfs_list_directory',
-      description: 'List contents of a directory. Returns array of entries with name and type ("file" or "directory").',
+      description:
+        'List contents of a directory. Returns array of entries with name and type ("file" or "directory").',
       parameters: {
         type: 'object',
         properties: {
@@ -43,7 +45,8 @@ export function buildVfsToolDefinitions(provider: FileSystemProvider): AiToolDef
     type: 'function',
     function: {
       name: 'vfs_stat',
-      description: 'Get file or directory metadata: type, size in bytes, creation time, modification time.',
+      description:
+        'Get file or directory metadata: type, size in bytes, creation time, modification time.',
       parameters: {
         type: 'object',
         properties: {
@@ -58,12 +61,16 @@ export function buildVfsToolDefinitions(provider: FileSystemProvider): AiToolDef
     type: 'function',
     function: {
       name: 'vfs_search_files',
-      description: 'Recursively search for files and directories matching a name pattern. Returns matching paths.',
+      description:
+        'Recursively search for files and directories matching a name pattern. Returns matching paths.',
       parameters: {
         type: 'object',
         properties: {
           path: { type: 'string', description: 'Starting directory path (e.g., /)' },
-          pattern: { type: 'string', description: 'Substring to match in file/directory names (case-insensitive)' },
+          pattern: {
+            type: 'string',
+            description: 'Substring to match in file/directory names (case-insensitive)',
+          },
           maxDepth: { type: 'number', description: 'Maximum recursion depth (default: 5)' },
         },
         required: ['path', 'pattern'],
@@ -78,7 +85,8 @@ export function buildVfsToolDefinitions(provider: FileSystemProvider): AiToolDef
         type: 'function',
         function: {
           name: 'vfs_write_file',
-          description: 'Write text content to a file. Creates the file if it does not exist, overwrites if it does.',
+          description:
+            'Write text content to a file. Creates the file if it does not exist, overwrites if it does.',
           parameters: {
             type: 'object',
             properties: {
@@ -118,7 +126,10 @@ export function buildVfsToolDefinitions(provider: FileSystemProvider): AiToolDef
             type: 'object',
             properties: {
               path: { type: 'string', description: 'Absolute path to delete' },
-              recursive: { type: 'boolean', description: 'Delete directory contents recursively (default: false)' },
+              recursive: {
+                type: 'boolean',
+                description: 'Delete directory contents recursively (default: false)',
+              },
             },
             required: ['path'],
           },

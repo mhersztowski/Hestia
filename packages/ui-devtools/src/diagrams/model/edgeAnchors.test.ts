@@ -14,13 +14,35 @@ import { assignEdgeAnchors, anchorOffset, anchorIds, ANCHORS_PER_SIDE } from './
 function gwiazda(): DiagramDocument {
   const doc = emptyDiagram('er');
   doc.nodes = [
-    { id: 'SRODEK', label: 'SRODEK', shape: 'rectangle', position: { x: 400, y: 0 }, attributes: [] },
+    {
+      id: 'SRODEK',
+      label: 'SRODEK',
+      shape: 'rectangle',
+      position: { x: 400, y: 0 },
+      attributes: [],
+    },
     { id: 'LEWY', label: 'LEWY', shape: 'rectangle', position: { x: 0, y: 300 }, attributes: [] },
-    { id: 'SRODKOWY', label: 'SRODKOWY', shape: 'rectangle', position: { x: 400, y: 300 }, attributes: [] },
-    { id: 'PRAWY', label: 'PRAWY', shape: 'rectangle', position: { x: 800, y: 300 }, attributes: [] },
+    {
+      id: 'SRODKOWY',
+      label: 'SRODKOWY',
+      shape: 'rectangle',
+      position: { x: 400, y: 300 },
+      attributes: [],
+    },
+    {
+      id: 'PRAWY',
+      label: 'PRAWY',
+      shape: 'rectangle',
+      position: { x: 800, y: 300 },
+      attributes: [],
+    },
   ];
   doc.edges = ['LEWY', 'SRODKOWY', 'PRAWY'].map((target) => ({
-    id: `SRODEK__${target}`, source: 'SRODEK', target, lineStyle: 'solid' as const, arrow: 'none' as const,
+    id: `SRODEK__${target}`,
+    source: 'SRODEK',
+    target,
+    lineStyle: 'solid' as const,
+    arrow: 'none' as const,
   }));
   return doc;
 }
@@ -58,7 +80,11 @@ describe('kilka krawędzi w tym samym kierunku', () => {
     { id: 'C', label: 'C', shape: 'rectangle', position: { x: 400, y: 500 }, attributes: [] },
   ];
   doc.edges = ['A', 'B', 'C'].map((target) => ({
-    id: `HUB__${target}`, source: 'HUB', target, lineStyle: 'solid' as const, arrow: 'none' as const,
+    id: `HUB__${target}`,
+    source: 'HUB',
+    target,
+    lineStyle: 'solid' as const,
+    arrow: 'none' as const,
   }));
   const anchors = assignEdgeAnchors(doc);
 
@@ -119,10 +145,24 @@ describe('przypadki brzegowe', () => {
     // Osiem celów dokładnie pod węzłem: wszystkie muszą wyjść dołem, więc
     // sloty się powtórzą — ale mają objąć cały bok, nie skupić się w środku.
     const doc = emptyDiagram('er');
-    doc.nodes = [{ id: 'HUB', label: 'HUB', shape: 'rectangle', position: { x: 500, y: 0 }, attributes: [] }];
+    doc.nodes = [
+      { id: 'HUB', label: 'HUB', shape: 'rectangle', position: { x: 500, y: 0 }, attributes: [] },
+    ];
     for (let i = 0; i < 8; i++) {
-      doc.nodes.push({ id: `N${i}`, label: `N${i}`, shape: 'rectangle', position: { x: 470 + i * 8, y: 900 }, attributes: [] });
-      doc.edges.push({ id: `HUB__N${i}`, source: 'HUB', target: `N${i}`, lineStyle: 'solid', arrow: 'none' });
+      doc.nodes.push({
+        id: `N${i}`,
+        label: `N${i}`,
+        shape: 'rectangle',
+        position: { x: 470 + i * 8, y: 900 },
+        attributes: [],
+      });
+      doc.edges.push({
+        id: `HUB__N${i}`,
+        source: 'HUB',
+        target: `N${i}`,
+        lineStyle: 'solid',
+        arrow: 'none',
+      });
     }
     const anchors = assignEdgeAnchors(doc);
     const sloty = doc.edges.map((e) => anchors.get(e.id)!.source);
@@ -132,7 +172,9 @@ describe('przypadki brzegowe', () => {
 
   it('pętla własna zaczepia się tym samym bokiem', () => {
     const doc = emptyDiagram('er');
-    doc.nodes = [{ id: 'A', label: 'A', shape: 'rectangle', position: { x: 0, y: 0 }, attributes: [] }];
+    doc.nodes = [
+      { id: 'A', label: 'A', shape: 'rectangle', position: { x: 0, y: 0 }, attributes: [] },
+    ];
     doc.edges = [{ id: 'A__A', source: 'A', target: 'A', lineStyle: 'solid', arrow: 'none' }];
     const a = assignEdgeAnchors(doc).get('A__A')!;
     expect(a.source).toMatch(/^b/);
@@ -142,7 +184,9 @@ describe('przypadki brzegowe', () => {
 
   it('krawędź do nieistniejącego węzła nie wywraca wyliczenia', () => {
     const doc = emptyDiagram('er');
-    doc.nodes = [{ id: 'A', label: 'A', shape: 'rectangle', position: { x: 0, y: 0 }, attributes: [] }];
+    doc.nodes = [
+      { id: 'A', label: 'A', shape: 'rectangle', position: { x: 0, y: 0 }, attributes: [] },
+    ];
     doc.edges = [{ id: 'A__X', source: 'A', target: 'X', lineStyle: 'solid', arrow: 'none' }];
     expect(() => assignEdgeAnchors(doc)).not.toThrow();
   });

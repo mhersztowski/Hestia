@@ -20,7 +20,9 @@ const energy = ([x, v]: number[]) => 0.5 * (v * v + x * x);
 
 describe('rozpoznanie sposobu, w jaki metoda psuje niezmiennik', () => {
   it('u Eulera widzi narastanie', () => {
-    const raport = measureInvariant(euler(oscillator, [1, 0], [0, 50], { dt: 0.01 }), energy, { name: 'E' });
+    const raport = measureInvariant(euler(oscillator, [1, 0], [0, 50], { dt: 0.01 }), energy, {
+      name: 'E',
+    });
 
     expect(raport.name).toBe('E');
     expect(raport.trend).toBe('drift');
@@ -33,7 +35,7 @@ describe('rozpoznanie sposobu, w jaki metoda psuje niezmiennik', () => {
     const raport = measureInvariant(
       verlet(acceleration, [1], [0], [0, 200], { dt: 0.01 }),
       ([x, v]) => 0.5 * (v * v + x * x),
-      { name: 'E' },
+      { name: 'E' }
     );
 
     expect(raport.trend).toBe('oscillation');
@@ -42,7 +44,9 @@ describe('rozpoznanie sposobu, w jaki metoda psuje niezmiennik', () => {
   });
 
   it('u RK4 z małym krokiem nie widzi nic — i tak to nazywa', () => {
-    const raport = measureInvariant(rk4(oscillator, [1, 0], [0, 20], { dt: 0.001 }), energy, { name: 'E' });
+    const raport = measureInvariant(rk4(oscillator, [1, 0], [0, 20], { dt: 0.001 }), energy, {
+      name: 'E',
+    });
 
     expect(raport.trend).toBe('stable');
     expect(raport.relative).toBeLessThan(1e-9);
@@ -67,7 +71,9 @@ describe('liczby w raporcie', () => {
   });
 
   it('zwraca przebieg niezmiennika do narysowania', () => {
-    const raport = measureInvariant(rk4(oscillator, [1, 0], [0, 10], { dt: 0.01 }), energy, { samples: 50 });
+    const raport = measureInvariant(rk4(oscillator, [1, 0], [0, 10], { dt: 0.01 }), energy, {
+      samples: 50,
+    });
 
     expect(raport.values.length).toBeLessThanOrEqual(50);
     expect(raport.values[0][0]).toBe(0);
@@ -94,9 +100,8 @@ describe('przypadki zdegenerowane', () => {
   });
 
   it('melduje, gdy niezmiennik przestaje być liczbą', () => {
-    const raport = measureInvariant(
-      rk4(oscillator, [1, 0], [0, 5], { dt: 0.01 }),
-      (_state, t) => (t > 2 ? Number.NaN : 1),
+    const raport = measureInvariant(rk4(oscillator, [1, 0], [0, 5], { dt: 0.01 }), (_state, t) =>
+      t > 2 ? Number.NaN : 1
     );
 
     expect(raport.issues.join(' ')).toMatch(/nie jest liczbą|NaN/i);

@@ -3,10 +3,10 @@ import { parseFormulaBlock, serializeFormulaBlock } from './parseFormula';
 
 describe('blok formula: postać podstawowa', () => {
   it('czyta identyfikator, wyrażenie i zmienne z jednostkami', () => {
-    const block = parseFormulaBlock('pendulum-period', [
-      'T = 2\\pi\\sqrt{\\frac{L}{g}}',
-      '@vars L: m, g: m/s^2',
-    ].join('\n'));
+    const block = parseFormulaBlock(
+      'pendulum-period',
+      ['T = 2\\pi\\sqrt{\\frac{L}{g}}', '@vars L: m, g: m/s^2'].join('\n')
+    );
 
     expect(block.id).toBe('pendulum-period');
     expect(block.kind).toBe('definition');
@@ -16,12 +16,15 @@ describe('blok formula: postać podstawowa', () => {
   });
 
   it('czyta relacje do innych wzorów i założenia', () => {
-    const block = parseFormulaBlock('x', [
-      'T = 2\\pi\\sqrt{\\frac{L}{g}}',
-      '@derivedFrom pendulum-eq',
-      '@assume small-angles',
-      '@assume no-damping',
-    ].join('\n'));
+    const block = parseFormulaBlock(
+      'x',
+      [
+        'T = 2\\pi\\sqrt{\\frac{L}{g}}',
+        '@derivedFrom pendulum-eq',
+        '@assume small-angles',
+        '@assume no-damping',
+      ].join('\n')
+    );
 
     expect(block.derivedFrom).toEqual(['pendulum-eq']);
     expect(block.assume).toEqual(['small-angles', 'no-damping']);
@@ -57,7 +60,10 @@ describe('blok formula: węzeł ODE', () => {
   });
 
   it('brak pochodnej dla zmiennej stanu jest błędem', () => {
-    const block = parseFormulaBlock('x', ['@ode', '@state theta, omega', '@d theta = \\omega'].join('\n'));
+    const block = parseFormulaBlock(
+      'x',
+      ['@ode', '@state theta, omega', '@d theta = \\omega'].join('\n')
+    );
     expect(block.issues.some((i) => i.message.includes('omega'))).toBe(true);
   });
 });
@@ -110,10 +116,13 @@ describe('łańcuch równości', () => {
    * mieści się cała wartość dydaktyczna zapisu.
    */
   it('liczy z ostatniego członu', () => {
-    const blok = parseFormulaBlock('okres', [
-      'T = \\frac{2\\pi}{\\omega} = 2\\pi\\sqrt{\\frac{m}{k}}',
-      '@vars T: s, omega: s^-1, m: kg, k: N/m',
-    ].join('\n'));
+    const blok = parseFormulaBlock(
+      'okres',
+      [
+        'T = \\frac{2\\pi}{\\omega} = 2\\pi\\sqrt{\\frac{m}{k}}',
+        '@vars T: s, omega: s^-1, m: kg, k: N/m',
+      ].join('\n')
+    );
 
     expect(blok.issues).toEqual([]);
     expect(blok.target).toBe('T');
@@ -121,7 +130,10 @@ describe('łańcuch równości', () => {
   });
 
   it('zachowuje człony pośrednie do pokazania', () => {
-    const blok = parseFormulaBlock('okres', 'T = \\frac{2\\pi}{\\omega} = 2\\pi\\sqrt{\\frac{m}{k}}');
+    const blok = parseFormulaBlock(
+      'okres',
+      'T = \\frac{2\\pi}{\\omega} = 2\\pi\\sqrt{\\frac{m}{k}}'
+    );
     expect(blok.chain).toEqual(['\\frac{2\\pi}{\\omega}', '2\\pi\\sqrt{\\frac{m}{k}}']);
   });
 
@@ -134,10 +146,13 @@ describe('łańcuch równości', () => {
   it('człon pośredni może używać wielkości liczonej gdzie indziej', () => {
     // `2π/ω` wymaga `ω`, którego ten blok nie definiuje. Gdybyśmy liczyli
     // z pierwszego członu, wzór zależałby od czegoś, czego może nie być.
-    const blok = parseFormulaBlock('okres', [
-      'T = \\frac{2\\pi}{\\omega} = 2\\pi\\sqrt{\\frac{m}{k}}',
-      '@vars T: s, omega: s^-1, m: kg, k: N/m',
-    ].join('\n'));
+    const blok = parseFormulaBlock(
+      'okres',
+      [
+        'T = \\frac{2\\pi}{\\omega} = 2\\pi\\sqrt{\\frac{m}{k}}',
+        '@vars T: s, omega: s^-1, m: kg, k: N/m',
+      ].join('\n')
+    );
 
     expect(blok.expression).not.toContain('omega');
   });

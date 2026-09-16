@@ -3,15 +3,25 @@ import { parseC4Diagram, serializeC4Diagram, splitArgs } from './c4Diagram';
 import type { DiagramDocument } from '../../model/diagram';
 
 const docOf = (lines: string[]): DiagramDocument => parseC4Diagram(lines.join('\n')).document;
-const roundTrip = (lines: string[]) => serializeC4Diagram(parseC4Diagram(lines.join('\n')).document);
+const roundTrip = (lines: string[]) =>
+  serializeC4Diagram(parseC4Diagram(lines.join('\n')).document);
 
 describe('c4: rozbiór argumentów wywołania', () => {
   it('dzieli po przecinkach i zdejmuje cudzysłowy', () => {
-    expect(splitArgs('a, "Klient banku", "Opis klienta"')).toEqual(['a', 'Klient banku', 'Opis klienta']);
+    expect(splitArgs('a, "Klient banku", "Opis klienta"')).toEqual([
+      'a',
+      'Klient banku',
+      'Opis klienta',
+    ]);
   });
 
   it('przecinek w cudzysłowie nie dzieli', () => {
-    expect(splitArgs('c, "API", "Java, Spring Boot", "Opis"')).toEqual(['c', 'API', 'Java, Spring Boot', 'Opis']);
+    expect(splitArgs('c, "API", "Java, Spring Boot", "Opis"')).toEqual([
+      'c',
+      'API',
+      'Java, Spring Boot',
+      'Opis',
+    ]);
   });
 
   it('puste argumenty zostają puste', () => {
@@ -24,7 +34,12 @@ describe('c4: elementy', () => {
     const node = docOf(['C4Context', '    Person(klient, "Klient", "Posiada konto")']).nodes[0];
     expect(node.id).toBe('klient');
     expect(node.label).toBe('Klient');
-    expect(node.c4).toMatchObject({ kind: 'person', variant: 'plain', external: false, description: 'Posiada konto' });
+    expect(node.c4).toMatchObject({
+      kind: 'person',
+      variant: 'plain',
+      external: false,
+      description: 'Posiada konto',
+    });
   });
 
   it('rodzaj, wariant i zewnętrzność to trzy niezależne rzeczy', () => {
@@ -49,8 +64,15 @@ describe('c4: elementy', () => {
   });
 
   it('kontener ma technologię jako trzeci argument, a opis jako czwarty', () => {
-    const node = docOf(['C4Container', '    Container(api, "API", "Java, Spring", "Obsługa żądań")']).nodes[0];
-    expect(node.c4).toMatchObject({ kind: 'container', technology: 'Java, Spring', description: 'Obsługa żądań' });
+    const node = docOf([
+      'C4Container',
+      '    Container(api, "API", "Java, Spring", "Obsługa żądań")',
+    ]).nodes[0];
+    expect(node.c4).toMatchObject({
+      kind: 'container',
+      technology: 'Java, Spring',
+      description: 'Obsługa żądań',
+    });
   });
 
   it('system NIE ma technologii — trzeci argument to opis', () => {
@@ -94,7 +116,10 @@ describe('c4: granice', () => {
       '    }',
     ]);
 
-    expect(doc.groups.map((g) => [g.id, g.parentId])).toEqual([['b0', undefined], ['b1', 'b0']]);
+    expect(doc.groups.map((g) => [g.id, g.parentId])).toEqual([
+      ['b0', undefined],
+      ['b1', 'b0'],
+    ]);
     expect(doc.nodes[0].parentId).toBe('b1');
   });
 
@@ -114,13 +139,23 @@ describe('c4: granice', () => {
 
 describe('c4: relacje', () => {
   it('zwykła relacja z etykietą i technologią', () => {
-    const edge = docOf(['C4Context', '    System(a,"A")', '    System(b,"B")', '    Rel(a, b, "Używa", "HTTPS")']).edges[0];
+    const edge = docOf([
+      'C4Context',
+      '    System(a,"A")',
+      '    System(b,"B")',
+      '    Rel(a, b, "Używa", "HTTPS")',
+    ]).edges[0];
     expect(edge).toMatchObject({ source: 'a', target: 'b', label: 'Używa' });
     expect(edge.c4).toMatchObject({ technology: 'HTTPS' });
   });
 
   it('BiRel jest obustronna', () => {
-    const edge = docOf(['C4Context', '    System(a,"A")', '    System(b,"B")', '    BiRel(a, b, "Wymiana")']).edges[0];
+    const edge = docOf([
+      'C4Context',
+      '    System(a,"A")',
+      '    System(b,"B")',
+      '    BiRel(a, b, "Wymiana")',
+    ]).edges[0];
     expect(edge.c4!.bidirectional).toBe(true);
     // Obustronność rysuje się strzałką również przy źródle.
     expect(edge.meta?.startArrow).toBe('arrow');
@@ -129,8 +164,12 @@ describe('c4: relacje', () => {
   it('kierunek zapamiętuje dokładny przyrostek', () => {
     // `Rel_U` i `Rel_Up` znaczą to samo; zapis ma oddać ten, który przyszedł.
     const doc = docOf([
-      'C4Context', '    System(a,"A")', '    System(b,"B")',
-      '    Rel_U(a, b, "w górę")', '    Rel_Down(a, b, "w dół")', '    Rel_Back(a, b, "wstecz")',
+      'C4Context',
+      '    System(a,"A")',
+      '    System(b,"B")',
+      '    Rel_U(a, b, "w górę")',
+      '    Rel_Down(a, b, "w dół")',
+      '    Rel_Back(a, b, "wstecz")',
     ]);
     expect(doc.edges.map((e) => e.c4!.suffix)).toEqual(['U', 'Down', 'Back']);
   });
@@ -163,7 +202,11 @@ describe('c4: zapis', () => {
   });
 
   it('drugi zapis niczego nie zmienia', () => {
-    const once = roundTrip(['C4Container', '    Container(api, "API", "Java, Spring", "Opis")', '    ContainerDb(db, "Baza", "PostgreSQL")']);
+    const once = roundTrip([
+      'C4Container',
+      '    Container(api, "API", "Java, Spring", "Opis")',
+      '    ContainerDb(db, "Baza", "PostgreSQL")',
+    ]);
     expect(serializeC4Diagram(parseC4Diagram(once).document)).toBe(once);
   });
 

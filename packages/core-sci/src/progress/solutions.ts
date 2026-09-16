@@ -49,7 +49,7 @@ export function recordSolution<T extends ProgressWithSolutions>(
   progress: T,
   key: string,
   solution: Solution,
-  limit: number = SOLUTION_HISTORY_LIMIT,
+  limit: number = SOLUTION_HISTORY_LIMIT
 ): T {
   const solutions = progress.solutions ?? {};
   const historia = [solution, ...(solutions[key] ?? [])].slice(0, Math.max(1, limit));

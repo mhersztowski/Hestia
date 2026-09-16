@@ -63,13 +63,19 @@ describe('układanie zadań na osi', () => {
   });
 
   it('after czeka na koniec wskazanego zadania', () => {
-    const s = scheduleOf(['gantt', 'dateFormat YYYY-MM-DD', 'A :a1, 2024-01-01, 5d', 'B :b1, after a1, 2d']);
+    const s = scheduleOf([
+      'gantt',
+      'dateFormat YYYY-MM-DD',
+      'A :a1, 2024-01-01, 5d',
+      'B :b1, after a1, 2d',
+    ]);
     expect(iso(s.tasks[1].start!)).toBe('2024-01-06');
   });
 
   it('after z kilkoma zadaniami czeka na ostatnie z nich', () => {
     const s = scheduleOf([
-      'gantt', 'dateFormat YYYY-MM-DD',
+      'gantt',
+      'dateFormat YYYY-MM-DD',
       'A :a1, 2024-01-01, 5d',
       'B :b1, 2024-01-01, 12d',
       'C :c1, after a1 b1, 1d',
@@ -79,7 +85,8 @@ describe('układanie zadań na osi', () => {
 
   it('until kończy zadanie tam, gdzie rusza wskazane', () => {
     const s = scheduleOf([
-      'gantt', 'dateFormat YYYY-MM-DD',
+      'gantt',
+      'dateFormat YYYY-MM-DD',
       'A :a1, 2024-01-01, until b1',
       'B :b1, 2024-01-20, 3d',
     ]);
@@ -90,7 +97,8 @@ describe('układanie zadań na osi', () => {
     // `after` wskazujące zadanie zapisane niżej jest legalne; rozwiązujemy
     // harmonogram do skutku, a nie w jednym przebiegu od góry.
     const s = scheduleOf([
-      'gantt', 'dateFormat YYYY-MM-DD',
+      'gantt',
+      'dateFormat YYYY-MM-DD',
       'A :a1, after b1, 2d',
       'B :b1, 2024-01-10, 5d',
     ]);
@@ -98,7 +106,10 @@ describe('układanie zadań na osi', () => {
   });
 
   it('pierwsze zadanie bez daty rusza dziś', () => {
-    const s = scheduleOf(['gantt', 'dateFormat YYYY-MM-DD', 'A :5d'], new Date('2024-06-01T00:00:00Z'));
+    const s = scheduleOf(
+      ['gantt', 'dateFormat YYYY-MM-DD', 'A :5d'],
+      new Date('2024-06-01T00:00:00Z')
+    );
     expect(iso(s.tasks[0].start!)).toBe('2024-06-01');
   });
 
@@ -111,7 +122,8 @@ describe('układanie zadań na osi', () => {
 describe('harmonogram, którego nie da się ułożyć', () => {
   it('cykl zależności zostaje zgłoszony, a reszta wykresu się liczy', () => {
     const s = scheduleOf([
-      'gantt', 'dateFormat YYYY-MM-DD',
+      'gantt',
+      'dateFormat YYYY-MM-DD',
       'A :a1, after b1, 2d',
       'B :b1, after a1, 2d',
       'C :c1, 2024-03-01, 1d',
@@ -137,7 +149,8 @@ describe('harmonogram, którego nie da się ułożyć', () => {
 describe('zakres osi', () => {
   it('obejmuje wszystkie ułożone zadania', () => {
     const s = scheduleOf([
-      'gantt', 'dateFormat YYYY-MM-DD',
+      'gantt',
+      'dateFormat YYYY-MM-DD',
       'A :a1, 2024-01-01, 5d',
       'B :b1, 2024-03-01, 5d',
     ]);

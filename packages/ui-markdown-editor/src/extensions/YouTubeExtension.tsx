@@ -51,7 +51,9 @@ function extractStart(input: string): number {
   const v = t[1];
   if (/^\d+$/.test(v)) return parseInt(v, 10);
   let secs = 0;
-  const h = v.match(/(\d+)h/); const m = v.match(/(\d+)m/); const sec = v.match(/(\d+)s/);
+  const h = v.match(/(\d+)h/);
+  const m = v.match(/(\d+)m/);
+  const sec = v.match(/(\d+)s/);
   if (h) secs += parseInt(h[1], 10) * 3600;
   if (m) secs += parseInt(m[1], 10) * 60;
   if (sec) secs += parseInt(sec[1], 10);
@@ -63,7 +65,12 @@ function embedUrl(videoId: string, start: number): string {
   return `https://www.youtube.com/embed/${videoId}${params}`;
 }
 
-const YouTubeNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, deleteNode, selected }) => {
+const YouTubeNodeView: React.FC<NodeViewProps> = ({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}) => {
   const [isEditing, setIsEditing] = useState(!node.attrs.videoId);
   const [isHovered, setIsHovered] = useState(false);
   const [editUrl, setEditUrl] = useState('');
@@ -105,13 +112,19 @@ const YouTubeNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, dele
   };
 
   const handleCancel = () => {
-    if (!node.attrs.videoId) { deleteNode(); return; }
+    if (!node.attrs.videoId) {
+      deleteNode();
+      return;
+    }
     setIsEditing(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') handleCancel();
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave(); }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSave();
+    }
   };
 
   const getWidthPercent = (): number => {
@@ -133,15 +146,34 @@ const YouTubeNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, dele
   };
 
   // ── Responsywny wrapper 16:9 z iframe ──────────────────────────────────────
-  const Player: React.FC<{ videoId: string; start: number; width?: string }> = ({ videoId, start, width }) => (
+  const Player: React.FC<{ videoId: string; start: number; width?: string }> = ({
+    videoId,
+    start,
+    width,
+  }) => (
     <Box sx={{ width: width || '100%', maxWidth: '100%', mx: 'auto' }}>
-      <Box sx={{ position: 'relative', paddingTop: '56.25%', borderRadius: 1, overflow: 'hidden', bgcolor: '#000' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          paddingTop: '56.25%',
+          borderRadius: 1,
+          overflow: 'hidden',
+          bgcolor: '#000',
+        }}
+      >
         <iframe
           src={embedUrl(videoId, start)}
           title="YouTube"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            border: 0,
+          }}
         />
       </Box>
     </Box>
@@ -151,7 +183,10 @@ const YouTubeNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, dele
     return (
       <NodeViewWrapper className="youtube-node-wrapper">
         <Paper elevation={2} sx={{ p: 2, my: 1, border: '2px solid #ff0000', borderRadius: 2 }}>
-          <Typography variant="subtitle2" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, color: '#c4302b' }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, color: '#c4302b' }}
+          >
             <YouTubeIcon /> Osadź film YouTube
           </Typography>
 
@@ -176,11 +211,19 @@ const YouTubeNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, dele
               </Typography>
               <Slider
                 value={getWidthPercent()}
-                onChange={(_, v) => { const p = Array.isArray(v) ? v[0] : v; setEditWidth(p === 100 ? '' : `${p}%`); }}
+                onChange={(_, v) => {
+                  const p = Array.isArray(v) ? v[0] : v;
+                  setEditWidth(p === 100 ? '' : `${p}%`);
+                }}
                 min={20}
                 max={100}
                 step={5}
-                marks={[{ value: 25, label: '25%' }, { value: 50, label: '50%' }, { value: 75, label: '75%' }, { value: 100, label: '100%' }]}
+                marks={[
+                  { value: 25, label: '25%' },
+                  { value: 50, label: '50%' },
+                  { value: 75, label: '75%' },
+                  { value: 100, label: '100%' },
+                ]}
                 valueLabelDisplay="auto"
                 valueLabelFormat={(v) => `${v}%`}
                 sx={{ color: '#c4302b' }}
@@ -189,26 +232,61 @@ const YouTubeNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, dele
 
             {/* Wyrównanie */}
             <Box>
-              <Typography variant="body2" color="text.secondary" gutterBottom>Wyrównanie:</Typography>
-              <ToggleButtonGroup value={editAlign} exclusive size="small" onChange={(_, v) => v && setEditAlign(v)}>
-                <ToggleButton value="left"><Tooltip title="Do lewej"><FormatAlignLeftIcon /></Tooltip></ToggleButton>
-                <ToggleButton value="center"><Tooltip title="Wyśrodkowany"><FormatAlignCenterIcon /></Tooltip></ToggleButton>
-                <ToggleButton value="right"><Tooltip title="Do prawej"><FormatAlignRightIcon /></Tooltip></ToggleButton>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Wyrównanie:
+              </Typography>
+              <ToggleButtonGroup
+                value={editAlign}
+                exclusive
+                size="small"
+                onChange={(_, v) => v && setEditAlign(v)}
+              >
+                <ToggleButton value="left">
+                  <Tooltip title="Do lewej">
+                    <FormatAlignLeftIcon />
+                  </Tooltip>
+                </ToggleButton>
+                <ToggleButton value="center">
+                  <Tooltip title="Wyśrodkowany">
+                    <FormatAlignCenterIcon />
+                  </Tooltip>
+                </ToggleButton>
+                <ToggleButton value="right">
+                  <Tooltip title="Do prawej">
+                    <FormatAlignRightIcon />
+                  </Tooltip>
+                </ToggleButton>
               </ToggleButtonGroup>
             </Box>
 
             {parsedId && (
               <Box>
-                <Typography variant="caption" color="text.secondary">Podgląd:</Typography>
-                <Box sx={{ mt: 0.5 }}><Player videoId={parsedId} start={extractStart(editUrl)} width={editWidth} /></Box>
+                <Typography variant="caption" color="text.secondary">
+                  Podgląd:
+                </Typography>
+                <Box sx={{ mt: 0.5 }}>
+                  <Player videoId={parsedId} start={extractStart(editUrl)} width={editWidth} />
+                </Box>
               </Box>
             )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-              <Typography variant="caption" color="text.secondary">Enter aby zapisać, Escape aby anulować</Typography>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                Enter aby zapisać, Escape aby anulować
+              </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button size="small" onClick={handleCancel}>Anuluj</Button>
-                <Button size="small" variant="contained" onClick={handleSave} disabled={!parsedId} sx={{ bgcolor: '#c4302b', '&:hover': { bgcolor: '#a5241f' } }}>
+                <Button size="small" onClick={handleCancel}>
+                  Anuluj
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={handleSave}
+                  disabled={!parsedId}
+                  sx={{ bgcolor: '#c4302b', '&:hover': { bgcolor: '#a5241f' } }}
+                >
                   Osadź
                 </Button>
               </Box>
@@ -229,36 +307,79 @@ const YouTubeNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, dele
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         sx={{
-          display: 'inline-block', position: 'relative', width: node.attrs.width || '100%', maxWidth: '100%',
-          textAlign: 'left', borderRadius: 2,
-          outline: selected ? '2px solid #ff0000' : '2px solid transparent', transition: 'outline-color 0.2s ease',
+          display: 'inline-block',
+          position: 'relative',
+          width: node.attrs.width || '100%',
+          maxWidth: '100%',
+          textAlign: 'left',
+          borderRadius: 2,
+          outline: selected ? '2px solid #ff0000' : '2px solid transparent',
+          transition: 'outline-color 0.2s ease',
         }}
       >
         {(isHovered || selected) && (
-          <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5, zIndex: 10 }}>
+          <Box
+            sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5, zIndex: 10 }}
+          >
             <Tooltip title="Pełny ekran" arrow>
-              <IconButton size="small" onClick={goFullscreen} sx={{ backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', '&:hover': { backgroundColor: 'rgba(0,0,0,0.8)' } }}>
+              <IconButton
+                size="small"
+                onClick={goFullscreen}
+                sx={{
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  color: 'white',
+                  '&:hover': { backgroundColor: 'rgba(0,0,0,0.8)' },
+                }}
+              >
                 <FullscreenIcon fontSize="small" />
               </IconButton>
             </Tooltip>
             <Tooltip title="Edytuj" arrow>
-              <IconButton size="small" onClick={startEditing} sx={{ backgroundColor: '#c4302b', color: 'white', '&:hover': { backgroundColor: '#a5241f' } }}>
+              <IconButton
+                size="small"
+                onClick={startEditing}
+                sx={{
+                  backgroundColor: '#c4302b',
+                  color: 'white',
+                  '&:hover': { backgroundColor: '#a5241f' },
+                }}
+              >
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
             <Tooltip title="Otwórz na YouTube" arrow>
-              <IconButton size="small" onClick={openOnYouTube} sx={{ backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', '&:hover': { backgroundColor: 'rgba(0,0,0,0.8)' } }}>
+              <IconButton
+                size="small"
+                onClick={openOnYouTube}
+                sx={{
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  color: 'white',
+                  '&:hover': { backgroundColor: 'rgba(0,0,0,0.8)' },
+                }}
+              >
                 <OpenInNewIcon fontSize="small" />
               </IconButton>
             </Tooltip>
             <Tooltip title="Usuń" arrow>
-              <IconButton size="small" onClick={deleteNode} sx={{ backgroundColor: '#d32f2f', color: 'white', '&:hover': { backgroundColor: '#b71c1c' } }}>
+              <IconButton
+                size="small"
+                onClick={deleteNode}
+                sx={{
+                  backgroundColor: '#d32f2f',
+                  color: 'white',
+                  '&:hover': { backgroundColor: '#b71c1c' },
+                }}
+              >
                 <DeleteIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           </Box>
         )}
-        <Player videoId={node.attrs.videoId} start={node.attrs.start || 0} width={node.attrs.width} />
+        <Player
+          videoId={node.attrs.videoId}
+          start={node.attrs.start || 0}
+          width={node.attrs.width}
+        />
       </Box>
     </NodeViewWrapper>
   );
@@ -309,12 +430,18 @@ export const YouTubeEmbed = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const { videoId, start, width, align } = HTMLAttributes as { videoId: string; start?: number; width?: string; align?: YtAlign };
+    const { videoId, start, width, align } = HTMLAttributes as {
+      videoId: string;
+      start?: number;
+      width?: string;
+      align?: YtAlign;
+    };
     const attrs: Record<string, string> = {
       src: embedUrl(videoId, Number(start) || 0),
       class: 'md-editor-youtube',
       frameborder: '0',
-      allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+      allow:
+        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
       allowfullscreen: 'true',
       'data-youtube-id': videoId,
     };
@@ -335,9 +462,11 @@ export const YouTubeEmbed = Node.create({
 
   addCommands() {
     return {
-      setYouTube: (options: { videoId: string; start?: number; width?: string; align?: YtAlign }) => ({ commands }) => {
-        return commands.insertContent({ type: this.name, attrs: options });
-      },
+      setYouTube:
+        (options: { videoId: string; start?: number; width?: string; align?: YtAlign }) =>
+        ({ commands }) => {
+          return commands.insertContent({ type: this.name, attrs: options });
+        },
     };
   },
 });
@@ -345,7 +474,12 @@ export const YouTubeEmbed = Node.create({
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     youtube: {
-      setYouTube: (options: { videoId: string; start?: number; width?: string; align?: 'left' | 'center' | 'right' }) => ReturnType;
+      setYouTube: (options: {
+        videoId: string;
+        start?: number;
+        width?: string;
+        align?: 'left' | 'center' | 'right';
+      }) => ReturnType;
     };
   }
 }

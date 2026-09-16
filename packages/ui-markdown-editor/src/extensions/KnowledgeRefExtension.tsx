@@ -19,7 +19,10 @@ import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tip
 import { Box, CircularProgress, Popper, Paper, Button, Typography } from '@mui/material';
 import { parseTermBlock, parseFormulaBlock } from '@hestia/core-sci';
 import { FigureBlock, TableBlock } from '@hestia/ui-sci-blocks';
-import { useEditorServices, type ResolvedKnowledgeRef as RozwiazanyOdsylacz } from '../capabilities';
+import {
+  useEditorServices,
+  type ResolvedKnowledgeRef as RozwiazanyOdsylacz,
+} from '../capabilities';
 
 /** Czy urządzenie umie najeżdżać — na dotyku dymek otwiera tapnięcie. */
 function czyMysz(): boolean {
@@ -68,7 +71,8 @@ export const KnowledgeRefView: React.FC<NodeViewProps> = ({ node }) => {
   const pokaz = useCallback(() => {
     anulujZamkniecie();
     setOtwarty(true);
-    if (cel === undefined && knowledgeRefs) void knowledgeRefs.resolve(refId).then((c) => setCel(c ?? null));
+    if (cel === undefined && knowledgeRefs)
+      void knowledgeRefs.resolve(refId).then((c) => setCel(c ?? null));
   }, [anulujZamkniecie, cel, refId, knowledgeRefs]);
 
   useEffect(() => {
@@ -82,7 +86,9 @@ export const KnowledgeRefView: React.FC<NodeViewProps> = ({ node }) => {
       if (kotwica.current?.contains(cel) || dymek.current?.contains(cel)) return;
       setOtwarty(false);
     };
-    const naEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') setOtwarty(false); };
+    const naEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOtwarty(false);
+    };
     document.addEventListener('pointerdown', pozaDymkiem);
     document.addEventListener('keydown', naEscape);
     return () => {
@@ -112,10 +118,14 @@ export const KnowledgeRefView: React.FC<NodeViewProps> = ({ node }) => {
   const tablica = cel?.kind === 'table' ? cel.code : undefined;
   const paragraf = cel?.kind === 'section';
 
-  const czego = haslo ? 'hasło'
-    : rysunek ? 'rysunek'
-      : tablica ? 'tablicę'
-        : paragraf ? 'paragraf'
+  const czego = haslo
+    ? 'hasło'
+    : rysunek
+      ? 'rysunek'
+      : tablica
+        ? 'tablicę'
+        : paragraf
+          ? 'paragraf'
           : 'wzór';
 
   return (
@@ -125,7 +135,7 @@ export const KnowledgeRefView: React.FC<NodeViewProps> = ({ node }) => {
         ref={kotwica}
         onMouseEnter={mysz ? pokaz : undefined}
         onMouseLeave={mysz ? odlozZamkniecie : undefined}
-        onClick={() => (mysz ? pokaz() : (otwarty ? setOtwarty(false) : pokaz()))}
+        onClick={() => (mysz ? pokaz() : otwarty ? setOtwarty(false) : pokaz())}
         sx={{
           fontStyle: 'italic',
           color: '#4338ca',
@@ -174,9 +184,16 @@ export const KnowledgeRefView: React.FC<NodeViewProps> = ({ node }) => {
           {haslo && (
             <>
               <Typography variant="subtitle2">{haslo.term}</Typography>
-              <Typography variant="body2" sx={{ fontSize: 12, mt: 0.25 }}>{haslo.definition}</Typography>
+              <Typography variant="body2" sx={{ fontSize: 12, mt: 0.25 }}>
+                {haslo.definition}
+              </Typography>
               {haslo.source && (
-                <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                  sx={{ mt: 0.5 }}
+                >
                   {haslo.source}
                 </Typography>
               )}
@@ -184,7 +201,9 @@ export const KnowledgeRefView: React.FC<NodeViewProps> = ({ node }) => {
           )}
           {wzor && (
             <>
-              <Typography variant="caption" color="text.secondary" display="block">{refId}</Typography>
+              <Typography variant="caption" color="text.secondary" display="block">
+                {refId}
+              </Typography>
               <Typography variant="body2" sx={{ fontSize: 12, mt: 0.25 }}>
                 {wzor.target} = {wzor.chain?.join(' = ') ?? wzor.expression}
               </Typography>
@@ -192,9 +211,7 @@ export const KnowledgeRefView: React.FC<NodeViewProps> = ({ node }) => {
           )}
           {rysunek && <FigureBlock id={refId} code={rysunek} compact />}
           {tablica && <TableBlock id={refId} code={tablica} compact />}
-          {paragraf && (
-            <Typography variant="subtitle2">{cel?.documentTitle ?? refId}</Typography>
-          )}
+          {paragraf && <Typography variant="subtitle2">{cel?.documentTitle ?? refId}</Typography>}
           {cel && (
             <Button size="small" sx={{ mt: 0.75, fontSize: 11 }} onClick={przejdz}>
               {paragraf ? 'przejdź do paragrafu' : `otwórz ${czego}`}

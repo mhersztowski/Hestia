@@ -32,13 +32,17 @@ export function readBook(relativePath: string): string | null {
 }
 
 /** Every `.md` below a directory, the way the page over the VFS collects them. */
-export function collectMarkdown(dir: string, prefix = ''): Array<{ path: string; markdown: string }> {
+export function collectMarkdown(
+  dir: string,
+  prefix = ''
+): Array<{ path: string; markdown: string }> {
   if (!existsSync(dir)) return [];
   const out: Array<{ path: string; markdown: string }> = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = prefix ? `${prefix}/${entry.name}` : entry.name;
     if (entry.isDirectory()) out.push(...collectMarkdown(resolve(dir, entry.name), path));
-    else if (entry.name.endsWith('.md')) out.push({ path, markdown: readFileSync(resolve(dir, entry.name), 'utf8') });
+    else if (entry.name.endsWith('.md'))
+      out.push({ path, markdown: readFileSync(resolve(dir, entry.name), 'utf8') });
   }
   return out;
 }

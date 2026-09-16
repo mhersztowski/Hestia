@@ -13,8 +13,17 @@
 export type SceneBackgroundType = 'default' | 'solid';
 
 export type SceneEnvironmentPreset =
-  | 'none' | 'apartment' | 'city' | 'dawn' | 'forest' | 'lobby'
-  | 'night' | 'park' | 'studio' | 'sunset' | 'warehouse';
+  | 'none'
+  | 'apartment'
+  | 'city'
+  | 'dawn'
+  | 'forest'
+  | 'lobby'
+  | 'night'
+  | 'park'
+  | 'studio'
+  | 'sunset'
+  | 'warehouse';
 
 export type SceneFogType = 'none' | 'linear' | 'exp2';
 

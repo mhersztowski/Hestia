@@ -11,9 +11,21 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, IconButton, Typography, Box, List, ListItemButton,
-  ListItemIcon, ListItemText, TextField, InputAdornment, CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  TextField,
+  InputAdornment,
+  CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
@@ -42,7 +54,10 @@ function collectMdFiles(tree: DirectoryTree): string[] {
 }
 
 const MdFilePickerDialog: React.FC<MdFilePickerDialogProps> = ({
-  open, selectedPath, onClose, onSelect,
+  open,
+  selectedPath,
+  onClose,
+  onSelect,
 }) => {
   const { listDirectory } = useEditorFiles() ?? {};
   const [files, setFiles] = useState<string[]>([]);
@@ -68,15 +83,19 @@ const MdFilePickerDialog: React.FC<MdFilePickerDialogProps> = ({
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return files;
-    return files.filter(f => f.toLowerCase().includes(q));
+    return files.filter((f) => f.toLowerCase().includes(q));
   }, [files, filter]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <DescriptionIcon color="primary" />
-        <Typography variant="h6" sx={{ flex: 1 }}>Wybierz plik MD</Typography>
-        <IconButton size="small" onClick={onClose}><CloseIcon /></IconButton>
+        <Typography variant="h6" sx={{ flex: 1 }}>
+          Wybierz plik MD
+        </Typography>
+        <IconButton size="small" onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
 
       <DialogContent dividers sx={{ p: 0 }}>
@@ -86,13 +105,17 @@ const MdFilePickerDialog: React.FC<MdFilePickerDialogProps> = ({
             we'd add fuzzy / path-segment match. */}
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
           <TextField
-            fullWidth size="small" autoFocus
+            fullWidth
+            size="small"
+            autoFocus
             placeholder="Szukaj (po nazwie lub ścieżce)…"
             value={filter}
-            onChange={e => setFilter(e.target.value)}
+            onChange={(e) => setFilter(e.target.value)}
             InputProps={{
               startAdornment: (
-                <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
               ),
             }}
           />
@@ -104,20 +127,24 @@ const MdFilePickerDialog: React.FC<MdFilePickerDialogProps> = ({
           </Box>
         ) : filtered.length === 0 ? (
           <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-            {files.length === 0
-              ? 'Brak plików .md w drive.'
-              : 'Brak dopasowań do filtru.'}
+            {files.length === 0 ? 'Brak plików .md w drive.' : 'Brak dopasowań do filtru.'}
           </Box>
         ) : (
           <List sx={{ maxHeight: 400, overflow: 'auto' }} dense>
-            {filtered.map(f => (
+            {filtered.map((f) => (
               <ListItemButton
                 key={f}
                 selected={f === selectedPath}
-                onClick={() => { onSelect(f); onClose(); }}
+                onClick={() => {
+                  onSelect(f);
+                  onClose();
+                }}
               >
                 <ListItemIcon sx={{ minWidth: 36 }}>
-                  <DescriptionIcon fontSize="small" color={f === selectedPath ? 'primary' : 'action'} />
+                  <DescriptionIcon
+                    fontSize="small"
+                    color={f === selectedPath ? 'primary' : 'action'}
+                  />
                 </ListItemIcon>
                 {/* Primary = filename (visual scan target). Secondary =
                     full path so two files with the same name in different

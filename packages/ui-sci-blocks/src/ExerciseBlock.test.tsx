@@ -6,22 +6,20 @@
  * markdownem z matematyką, sprawdzanie działa bez modelu, a samoocena zgłasza
  * próbę do powtórek nawet wtedy, gdy nie ma czego sprawdzać.
  */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { ExerciseBlock } from './ExerciseBlock';
 
-const zadanie = (code: string, onAttempt?: (a: { id: string; quality: string; hintsUsed: number }) => void) =>
-  render(<ExerciseBlock id="z1" code={code} formulas={[]} onAttempt={onAttempt as never} />);
+const zadanie = (
+  code: string,
+  onAttempt?: (a: { id: string; quality: string; hintsUsed: number }) => void
+) => render(<ExerciseBlock id="z1" code={code} formulas={[]} onAttempt={onAttempt as never} />);
 
 describe('treść zadania', () => {
   it('jest markdownem — akapity, lista i wyróżnienia', () => {
-    const { container } = zadanie([
-      'Pierwszy akapit.',
-      '',
-      '- punkt jeden',
-      '- punkt dwa',
-      '@expected 6 m',
-    ].join('\n'));
+    const { container } = zadanie(
+      ['Pierwszy akapit.', '', '- punkt jeden', '- punkt dwa', '@expected 6 m'].join('\n')
+    );
 
     expect(container.querySelectorAll('li')).toHaveLength(2);
     expect(container.textContent).toContain('Pierwszy akapit.');
@@ -69,7 +67,9 @@ describe('sprawdzanie bez żadnych obliczeń', () => {
 describe('powtórki', () => {
   it('samoocena zgłasza próbę, także w zadaniu jakościowym', () => {
     const proby: Array<{ quality: string }> = [];
-    const { getByText } = zadanie('Co można powiedzieć o wektorach $a$ i $b$?', (a) => proby.push(a));
+    const { getByText } = zadanie('Co można powiedzieć o wektorach $a$ i $b$?', (a) =>
+      proby.push(a)
+    );
 
     // Dokładne dopasowanie: „umiem" jest też częścią „nie umiem".
     fireEvent.click(getByText('umiem'));

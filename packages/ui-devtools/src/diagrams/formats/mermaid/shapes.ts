@@ -41,8 +41,9 @@ export const FLOWCHART_SHAPES: ShapeSyntax[] = [
 
 /** Składnia zapisu dla kształtu; prostokąt jest zapasem dla kształtów spoza flowchartu. */
 export function syntaxForShape(shape: NodeShape): ShapeSyntax {
-  return FLOWCHART_SHAPES.find((s) => s.shape === shape)
-    ?? { open: '[', close: ']', shape: 'rectangle' };
+  return (
+    FLOWCHART_SHAPES.find((s) => s.shape === shape) ?? { open: '[', close: ']', shape: 'rectangle' }
+  );
 }
 
 /** Znaki, przy których etykietę trzeba ująć w cudzysłów. */

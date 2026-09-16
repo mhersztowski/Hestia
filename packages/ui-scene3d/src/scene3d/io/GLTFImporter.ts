@@ -43,7 +43,7 @@ export interface GLTFImportResult {
 export function opiszMaterial(
   mat: THREE.Material | null | undefined,
   opcje: OpcjeTekstury,
-  ostrzez: (tekst: string) => void,
+  ostrzez: (tekst: string) => void
 ): Partial<MaterialDescriptor> {
   if (!mat) return { color: '#cccccc', opacity: 1, wireframe: false };
 
@@ -62,11 +62,19 @@ export function opiszMaterial(
   let lacznieKb = 0;
 
   /** Przepisuje jedną mapę; `undefined`, gdy jej nie ma albo się nie udało. */
-  const przepisz = (tekstura: THREE.Texture | null | undefined, opis: string): string | undefined => {
+  const przepisz = (
+    tekstura: THREE.Texture | null | undefined,
+    opis: string
+  ): string | undefined => {
     if (!tekstura) return undefined;
-    const wynik = dataUrlZObrazu(tekstura.image as { width?: number; height?: number } | undefined, opcje);
+    const wynik = dataUrlZObrazu(
+      tekstura.image as { width?: number; height?: number } | undefined,
+      opcje
+    );
     if (!wynik.dataUrl) {
-      ostrzez(`Nie udało się przenieść mapy ${opis} materiału „${nazwaMat}": ${wynik.powod ?? 'nieznany powód'}`);
+      ostrzez(
+        `Nie udało się przenieść mapy ${opis} materiału „${nazwaMat}": ${wynik.powod ?? 'nieznany powód'}`
+      );
       return undefined;
     }
     lacznieKb += wynik.kb;
@@ -93,13 +101,14 @@ export function opiszMaterial(
   // potrafi zamienić scenę w plik, którego nie da się otworzyć.
   if (lacznieKb > 2048) {
     ostrzez(
-      `Materiał „${nazwaMat}" wnosi ${Math.round(lacznieKb / 1024)} MB tekstur do zapisu sceny. `
-      + 'Rozważ mniejsze obrazy albo tekstury z plików na dysku.',
+      `Materiał „${nazwaMat}" wnosi ${Math.round(lacznieKb / 1024)} MB tekstur do zapisu sceny. ` +
+        'Rozważ mniejsze obrazy albo tekstury z plików na dysku.'
     );
   }
   // `getHexString()` zwraca „ff0000" bez krzyżyka — bez niego CSS i edytor
   // barwy w inspektorze dostają wartość, której nie rozumieją.
-  const kolor = standard.color instanceof THREE.Color ? `#${standard.color.getHexString()}` : '#cccccc';
+  const kolor =
+    standard.color instanceof THREE.Color ? `#${standard.color.getHexString()}` : '#cccccc';
 
   return {
     color: kolor,
@@ -150,7 +159,7 @@ function opiszGeometrie(mesh: THREE.Mesh): BufferGeometryData | null {
 function zbuduj(
   gltf: { scene: THREE.Object3D; animations?: THREE.AnimationClip[] },
   fileName: string,
-  opcjeTekstur: OpcjeTekstury = {},
+  opcjeTekstur: OpcjeTekstury = {}
 ): GLTFImportResult {
   const graph = new SceneGraph();
   const warnings: string[] = [];
@@ -180,7 +189,7 @@ function zbuduj(
 
       if (Array.isArray(mesh.material) && mesh.material.length > 1) {
         warnings.push(
-          `Siatka „${obj.name || '(bez nazwy)'}" ma ${mesh.material.length} materiałów; wzięty został pierwszy.`,
+          `Siatka „${obj.name || '(bez nazwy)'}" ma ${mesh.material.length} materiałów; wzięty został pierwszy.`
         );
       }
 
@@ -202,10 +211,14 @@ function zbuduj(
 
     if ((obj as THREE.Light).isLight) {
       const light = obj as THREE.Light;
-      const lightType = light.type === 'AmbientLight' ? 'ambient'
-        : light.type === 'PointLight' ? 'point'
-          : light.type === 'SpotLight' ? 'spot'
-            : 'directional';
+      const lightType =
+        light.type === 'AmbientLight'
+          ? 'ambient'
+          : light.type === 'PointLight'
+            ? 'point'
+            : light.type === 'SpotLight'
+              ? 'spot'
+              : 'directional';
 
       const node = new LightNode({
         name: obj.name || 'Światło',
@@ -233,11 +246,11 @@ function zbuduj(
 
   if (meshCount === 0) {
     warnings.push(
-      `W pliku „${fileName}" nie ma ani jednej siatki. `
-      + (fileName.toLowerCase().endsWith('.gltf')
-        ? 'Wariant tekstowy glTF trzyma geometrię w osobnym pliku „.bin" obok — '
-          + 'zaimportuj „.glb", który niesie wszystko w sobie.'
-        : 'Model może zawierać wyłącznie światła albo puste węzły.'),
+      `W pliku „${fileName}" nie ma ani jednej siatki. ` +
+        (fileName.toLowerCase().endsWith('.gltf')
+          ? 'Wariant tekstowy glTF trzyma geometrię w osobnym pliku „.bin" obok — ' +
+            'zaimportuj „.glb", który niesie wszystko w sobie.'
+          : 'Model może zawierać wyłącznie światła albo puste węzły.')
     );
   }
 
@@ -261,7 +274,7 @@ export class GLTFImporter {
   static importFromBuffer(
     buffer: ArrayBuffer,
     fileName = 'model.glb',
-    opcjeTekstur: OpcjeTekstury = {},
+    opcjeTekstur: OpcjeTekstury = {}
   ): Promise<GLTFImportResult> {
     const loader = new GLTFLoader();
 
@@ -272,15 +285,21 @@ export class GLTFImporter {
         // odwołania do sąsiednich plików i tak nie mają dokąd trafić.
         '',
         (gltf) => resolve(zbuduj(gltf, fileName, opcjeTekstur)),
-        (error) => reject(new Error(
-          `Nie udało się wczytać glTF „${fileName}": ${(error as { message?: string })?.message ?? String(error)}`,
-        )),
+        (error) =>
+          reject(
+            new Error(
+              `Nie udało się wczytać glTF „${fileName}": ${(error as { message?: string })?.message ?? String(error)}`
+            )
+          )
       );
     });
   }
 
   /** Wariant dla modelu spod adresu — zasoby zewnętrzne rozwiązują się względem niego. */
-  static async importFromUrl(url: string, opcjeTekstur: OpcjeTekstury = {}): Promise<GLTFImportResult> {
+  static async importFromUrl(
+    url: string,
+    opcjeTekstur: OpcjeTekstury = {}
+  ): Promise<GLTFImportResult> {
     const loader = new GLTFLoader();
     const gltf = await loader.loadAsync(url);
     return zbuduj(gltf, url.split('/').pop() ?? url, opcjeTekstur);

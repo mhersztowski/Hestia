@@ -18,7 +18,9 @@ describe('PersonNode', () => {
 
   describe('getDisplayName', () => {
     it('uses full name parts when present', () => {
-      expect(new PersonNode(make({ firstName: 'Alice', secondName: 'Smith' })).getDisplayName()).toBe('Alice Smith');
+      expect(
+        new PersonNode(make({ firstName: 'Alice', secondName: 'Smith' })).getDisplayName()
+      ).toBe('Alice Smith');
     });
     it('uses just first name when only one part', () => {
       expect(new PersonNode(make({ firstName: 'Alice' })).getDisplayName()).toBe('Alice');
@@ -30,7 +32,9 @@ describe('PersonNode', () => {
 
   describe('getFullName', () => {
     it('joins both names', () => {
-      expect(new PersonNode(make({ firstName: 'Alice', secondName: 'Smith' })).getFullName()).toBe('Alice Smith');
+      expect(new PersonNode(make({ firstName: 'Alice', secondName: 'Smith' })).getFullName()).toBe(
+        'Alice Smith'
+      );
     });
     it('returns single name when only one', () => {
       expect(new PersonNode(make({ secondName: 'Smith' })).getFullName()).toBe('Smith');
@@ -42,7 +46,9 @@ describe('PersonNode', () => {
 
   describe('getInitials', () => {
     it('combines first letters of both names', () => {
-      expect(new PersonNode(make({ firstName: 'Alice', secondName: 'Smith' })).getInitials()).toBe('AS');
+      expect(new PersonNode(make({ firstName: 'Alice', secondName: 'Smith' })).getInitials()).toBe(
+        'AS'
+      );
     });
     it('uses two letters of first name only', () => {
       expect(new PersonNode(make({ firstName: 'Bob' })).getInitials()).toBe('BO');
@@ -58,7 +64,9 @@ describe('PersonNode', () => {
   });
 
   describe('matches', () => {
-    const node = new PersonNode(make({ firstName: 'Alice', secondName: 'Smith', description: 'best friend' }));
+    const node = new PersonNode(
+      make({ firstName: 'Alice', secondName: 'Smith', description: 'best friend' })
+    );
     it('matches across fields, case-insensitive', () => {
       expect(node.matches('ALICE')).toBe(true);
       expect(node.matches('smith')).toBe(true);

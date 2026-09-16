@@ -35,7 +35,9 @@ function resolveToken(propToken?: string, wsUrl?: string): string {
       const parsed = JSON.parse(stored);
       if (parsed.token) return parsed.token;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return '';
 }
 
@@ -48,7 +50,9 @@ function ticketUrl(wsUrl?: string): string {
       const u = new URL(wsUrl);
       const proto = u.protocol === 'wss:' ? 'https:' : 'http:';
       return `${proto}//${u.host}/api/terminal/ticket`;
-    } catch { /* relative URL or invalid — fall through */ }
+    } catch {
+      /* relative URL or invalid — fall through */
+    }
   }
   return '/api/terminal/ticket';
 }
@@ -57,7 +61,7 @@ async function fetchTicket(authToken: string, wsUrl?: string): Promise<string> {
   const res = await fetch(ticketUrl(wsUrl), {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${authToken}`,
+      Authorization: `Bearer ${authToken}`,
       'Content-Type': 'application/json',
     },
   });
@@ -89,7 +93,13 @@ export function TerminalPanel({ wsUrl, token, onConfigRequest }: TerminalPanelPr
       reconnectRef.current = null;
       if (reconnectTimer) clearTimeout(reconnectTimer);
       observer?.disconnect();
-      if (ws) { ws.onclose = null; ws.onerror = null; ws.onmessage = null; ws.onopen = null; ws.close(); }
+      if (ws) {
+        ws.onclose = null;
+        ws.onerror = null;
+        ws.onmessage = null;
+        ws.onopen = null;
+        ws.close();
+      }
       ws = null;
       term?.dispose();
       term = null;
@@ -128,7 +138,10 @@ export function TerminalPanel({ wsUrl, token, onConfigRequest }: TerminalPanelPr
       ws = socket;
 
       socket.onopen = () => {
-        if (disposed) { socket.close(); return; }
+        if (disposed) {
+          socket.close();
+          return;
+        }
         socket.send(JSON.stringify({ type: 'auth', ticket }));
       };
 
@@ -159,8 +172,12 @@ export function TerminalPanel({ wsUrl, token, onConfigRequest }: TerminalPanelPr
         if (reconnectAttempt < MAX_RECONNECT_ATTEMPTS) {
           const delay = RECONNECT_DELAYS[reconnectAttempt] ?? 4000;
           reconnectAttempt++;
-          term?.write(`\r\n\x1b[33m--- Disconnected. Reconnecting in ${delay / 1000}s... ---\x1b[0m\r\n`);
-          reconnectTimer = setTimeout(() => { connect(); }, delay);
+          term?.write(
+            `\r\n\x1b[33m--- Disconnected. Reconnecting in ${delay / 1000}s... ---\x1b[0m\r\n`
+          );
+          reconnectTimer = setTimeout(() => {
+            connect();
+          }, delay);
         } else {
           term?.write('\r\n\x1b[31m--- Connection lost. Click to reconnect. ---\x1b[0m\r\n');
           reconnectRef.current = () => {
@@ -199,7 +216,9 @@ export function TerminalPanel({ wsUrl, token, onConfigRequest }: TerminalPanelPr
         fitAddon = new fitMod.FitAddon();
         term.loadAddon(fitAddon);
         term.open(container);
-        requestAnimationFrame(() => { if (!disposed) fitAddon?.fit(); });
+        requestAnimationFrame(() => {
+          if (!disposed) fitAddon?.fit();
+        });
 
         observer = new ResizeObserver(() => {
           if (disposed) return;
@@ -238,49 +257,68 @@ export function TerminalPanel({ wsUrl, token, onConfigRequest }: TerminalPanelPr
     reconnectRef.current?.();
   }, []);
 
-  const statusColor = status === 'connected' ? '#4ec94e' : status === 'connecting' ? '#e8ab3a' : '#888';
+  const statusColor =
+    status === 'connected' ? '#4ec94e' : status === 'connecting' ? '#e8ab3a' : '#888';
 
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      bgcolor: '#1e1e1e',
-      overflow: 'hidden',
-    }}>
-      {/* Terminal header */}
-      <Box sx={{
+    <Box
+      sx={{
         display: 'flex',
-        alignItems: 'center',
-        px: 1,
-        py: 0.25,
-        bgcolor: '#252526',
-        borderBottom: '1px solid #3c3c3c',
-        flexShrink: 0,
-        gap: 0.75,
-        minHeight: 26,
-      }}>
-        <Typography sx={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, color: '#bbb' }}>
+        flexDirection: 'column',
+        height: '100%',
+        bgcolor: '#1e1e1e',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Terminal header */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          px: 1,
+          py: 0.25,
+          bgcolor: '#252526',
+          borderBottom: '1px solid #3c3c3c',
+          flexShrink: 0,
+          gap: 0.75,
+          minHeight: 26,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: 0.8,
+            color: '#bbb',
+          }}
+        >
           Terminal
         </Typography>
-        <Box sx={{
-          width: 7,
-          height: 7,
-          borderRadius: '50%',
-          bgcolor: statusColor,
-          flexShrink: 0,
-        }} />
-        <Typography sx={{ fontSize: 10, color: '#888' }}>
-          {status}
-        </Typography>
+        <Box
+          sx={{
+            width: 7,
+            height: 7,
+            borderRadius: '50%',
+            bgcolor: statusColor,
+            flexShrink: 0,
+          }}
+        />
+        <Typography sx={{ fontSize: 10, color: '#888' }}>{status}</Typography>
         {onConfigRequest && (
           <Box
             component="button"
             onClick={onConfigRequest}
             title="Configure terminal connection"
             sx={{
-              all: 'unset', ml: 'auto', cursor: 'pointer', color: '#555',
-              fontSize: 13, lineHeight: 1, px: 0.5, borderRadius: 0.5,
+              all: 'unset',
+              ml: 'auto',
+              cursor: 'pointer',
+              color: '#555',
+              fontSize: 13,
+              lineHeight: 1,
+              px: 0.5,
+              borderRadius: 0.5,
               '&:hover': { color: '#ccc' },
             }}
           >

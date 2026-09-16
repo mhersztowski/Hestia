@@ -38,16 +38,25 @@ const TREND_COLOR: Record<InvariantTrend, string> = {
 };
 
 const box: CSSProperties = {
-  display: 'flex', flexDirection: 'column', gap: 3,
-  fontSize: 11, color: '#475569',
-  background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 4,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 3,
+  fontSize: 11,
+  color: '#475569',
+  background: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  borderRadius: 4,
   padding: '5px 8px',
 };
 
 const row: CSSProperties = { display: 'flex', gap: 6, alignItems: 'baseline' };
 
 const dot = (color: string): CSSProperties => ({
-  width: 6, height: 6, borderRadius: 3, background: color, flex: '0 0 auto',
+  width: 6,
+  height: 6,
+  borderRadius: 3,
+  background: color,
+  flex: '0 0 auto',
   // Kropka jest ozdobą przy zdaniu, które i tak wszystko mówi.
   alignSelf: 'center',
 });
@@ -65,7 +74,10 @@ export function QualityPanel({ invariants, error }: QualityPanelProps) {
           <span>
             błąd całkowania ≈ <strong>{(error.relative * 100).toPrecision(2)} %</strong>
             {error.order !== undefined && (
-              <span style={{ color: '#64748b' }}> · zmierzony rząd metody {error.order.toFixed(2)}</span>
+              <span style={{ color: '#64748b' }}>
+                {' '}
+                · zmierzony rząd metody {error.order.toFixed(2)}
+              </span>
             )}
           </span>
         </div>
@@ -76,7 +88,9 @@ export function QualityPanel({ invariants, error }: QualityPanelProps) {
           <span style={dot(TREND_COLOR[report.trend])} />
           <span>{describeInvariant(report)}</span>
           {report.issues.map((issue) => (
-            <span key={issue} style={{ color: '#b91c1c', width: '100%' }}>{issue}</span>
+            <span key={issue} style={{ color: '#b91c1c', width: '100%' }}>
+              {issue}
+            </span>
           ))}
         </div>
       ))}

@@ -49,7 +49,12 @@ const MIN_ODSTEP = 0.02;
 const PROMIEN = 0.045;
 
 export function StrokeCanvas({
-  width, height, top = 0, domainX, domainY, onChange,
+  width,
+  height,
+  top = 0,
+  domainX,
+  domainY,
+  onChange,
 }: StrokeCanvasProps) {
   const ref = useRef<HTMLDivElement>(null);
   /**
@@ -63,48 +68,54 @@ export function StrokeCanvas({
   /** Ostatni zapisany punkt — do przerzedzania. */
   const ostatniRef = useRef<{ x: number; y: number } | null>(null);
 
-  const naDziedzine = useCallback((event: ReactPointerEvent) => {
-    const prostokat = ref.current?.getBoundingClientRect();
-    if (!prostokat) return null;
+  const naDziedzine = useCallback(
+    (event: ReactPointerEvent) => {
+      const prostokat = ref.current?.getBoundingClientRect();
+      if (!prostokat) return null;
 
-    const u = (event.clientX - prostokat.left) / prostokat.width;
-    // Oś Y płótna rośnie w dół, oś dziedziny w górę — bez odwrócenia rysunek
-    // pojawiałby się odbity względem tego, co widać pod kursorem.
-    const v = (event.clientY - prostokat.top) / prostokat.height;
-    if (u < 0 || u > 1 || v < 0 || v > 1) return null;
+      const u = (event.clientX - prostokat.left) / prostokat.width;
+      // Oś Y płótna rośnie w dół, oś dziedziny w górę — bez odwrócenia rysunek
+      // pojawiałby się odbity względem tego, co widać pod kursorem.
+      const v = (event.clientY - prostokat.top) / prostokat.height;
+      if (u < 0 || u > 1 || v < 0 || v > 1) return null;
 
-    return {
-      x: domainX[0] + u * (domainX[1] - domainX[0]),
-      y: domainY[0] + v * (domainY[1] - domainY[0]),
-    };
-  }, [domainX, domainY]);
+      return {
+        x: domainX[0] + u * (domainX[1] - domainX[0]),
+        y: domainY[0] + v * (domainY[1] - domainY[0]),
+      };
+    },
+    [domainX, domainY]
+  );
 
-  const dodaj = useCallback((event: ReactPointerEvent) => {
-    const punkt = naDziedzine(event);
-    if (!punkt) return;
+  const dodaj = useCallback(
+    (event: ReactPointerEvent) => {
+      const punkt = naDziedzine(event);
+      if (!punkt) return;
 
-    const poprzedni = ostatniRef.current;
-    const zasieg = Math.max(domainX[1] - domainX[0], domainY[1] - domainY[0]);
-    if (poprzedni) {
-      const odleglosc = Math.hypot(punkt.x - poprzedni.x, punkt.y - poprzedni.y);
-      if (odleglosc < MIN_ODSTEP * zasieg) return;
-    }
-    ostatniRef.current = punkt;
+      const poprzedni = ostatniRef.current;
+      const zasieg = Math.max(domainX[1] - domainX[0], domainY[1] - domainY[0]);
+      if (poprzedni) {
+        const odleglosc = Math.hypot(punkt.x - poprzedni.x, punkt.y - poprzedni.y);
+        if (odleglosc < MIN_ODSTEP * zasieg) return;
+      }
+      ostatniRef.current = punkt;
 
-    // Mysz melduje nacisk 0 albo 0.5 — bez podstawienia rysowałaby plamki o
-    // zerowej wysokości, czyli nic.
-    const nacisk = event.pressure > 0 && event.pointerType === 'pen' ? event.pressure : 0.7;
-    // Gumka pióra i prawy przycisk myszy robią to samo: rysują dołek.
-    const odwrocone = event.buttons === 32 || event.buttons === 2;
+      // Mysz melduje nacisk 0 albo 0.5 — bez podstawienia rysowałaby plamki o
+      // zerowej wysokości, czyli nic.
+      const nacisk = event.pressure > 0 && event.pointerType === 'pen' ? event.pressure : 0.7;
+      // Gumka pióra i prawy przycisk myszy robią to samo: rysują dołek.
+      const odwrocone = event.buttons === 32 || event.buttons === 2;
 
-    const nowe: Stroke = {
-      x: Number(punkt.x.toFixed(3)),
-      y: Number(punkt.y.toFixed(3)),
-      radius: Number((PROMIEN * zasieg).toFixed(3)),
-      amplitude: Number(((odwrocone ? -1 : 1) * nacisk).toFixed(3)),
-    };
-    onChange((poprzednie) => [...poprzednie, nowe]);
-  }, [naDziedzine, onChange, domainX, domainY]);
+      const nowe: Stroke = {
+        x: Number(punkt.x.toFixed(3)),
+        y: Number(punkt.y.toFixed(3)),
+        radius: Number((PROMIEN * zasieg).toFixed(3)),
+        amplitude: Number(((odwrocone ? -1 : 1) * nacisk).toFixed(3)),
+      };
+      onChange((poprzednie) => [...poprzednie, nowe]);
+    },
+    [naDziedzine, onChange, domainX, domainY]
+  );
 
   return (
     <div
@@ -117,12 +128,16 @@ export function StrokeCanvas({
         ostatniRef.current = null;
         dodaj(e);
       }}
-      onPointerMove={(e) => { if (rysujeRef.current) dodaj(e); }}
+      onPointerMove={(e) => {
+        if (rysujeRef.current) dodaj(e);
+      }}
       onPointerUp={(e) => {
         e.currentTarget.releasePointerCapture(e.pointerId);
         rysujeRef.current = false;
       }}
-      onPointerCancel={() => { rysujeRef.current = false; }}
+      onPointerCancel={() => {
+        rysujeRef.current = false;
+      }}
       onContextMenu={(e) => e.preventDefault()}
       style={{
         position: 'absolute',

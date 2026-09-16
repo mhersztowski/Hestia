@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { isNodeBuiltin, needsNodeTypes, extractReferencePaths, resolveReference } from './nodeTypes';
+import {
+  isNodeBuiltin,
+  needsNodeTypes,
+  extractReferencePaths,
+  resolveReference,
+} from './nodeTypes';
 
 describe('rozpoznanie modułów Node', () => {
   it('moduły wbudowane, także z prefiksem', () => {
@@ -29,7 +34,8 @@ describe('czy plik potrzebuje typów Node', () => {
   // Bez tego każdy plik z `fetch` czy `console` ściągałby kilkadziesiąt
   // deklaracji, których nigdy nie użyje.
   it('plik przeglądarkowy nie potrzebuje', () => {
-    const kod = 'const r = await fetch("/api"); console.log(document.title); setTimeout(() => {}, 10);';
+    const kod =
+      'const r = await fetch("/api"); console.log(document.title); setTimeout(() => {}, 10);';
     expect(needsNodeTypes(kod, ['phaser'])).toBe(false);
   });
 
@@ -46,18 +52,23 @@ describe('czy plik potrzebuje typów Node', () => {
 
 describe('dyrektywy referencji', () => {
   it('czyta ścieżki, którymi spięte są typy Node', () => {
-    const kod = '/// <reference path="fs.d.ts" />\n/// <reference path="./globals.d.ts" />\n/// <reference types="undici" />';
+    const kod =
+      '/// <reference path="fs.d.ts" />\n/// <reference path="./globals.d.ts" />\n/// <reference types="undici" />';
     expect(extractReferencePaths(kod)).toEqual(['fs.d.ts', './globals.d.ts']);
   });
 
   it('powtórzenia znikają', () => {
-    expect(extractReferencePaths('/// <reference path="a.d.ts" />\n/// <reference path="a.d.ts" />')).toEqual(['a.d.ts']);
+    expect(
+      extractReferencePaths('/// <reference path="a.d.ts" />\n/// <reference path="a.d.ts" />')
+    ).toEqual(['a.d.ts']);
   });
 
   it('skleja ścieżkę względem pliku, w którym stała', () => {
-    expect(resolveReference('/node_modules/@types/node/index.d.ts', 'fs.d.ts'))
-      .toBe('/node_modules/@types/node/fs.d.ts');
-    expect(resolveReference('/node_modules/@types/node/ts5.6/index.d.ts', '../globals.d.ts'))
-      .toBe('/node_modules/@types/node/globals.d.ts');
+    expect(resolveReference('/node_modules/@types/node/index.d.ts', 'fs.d.ts')).toBe(
+      '/node_modules/@types/node/fs.d.ts'
+    );
+    expect(resolveReference('/node_modules/@types/node/ts5.6/index.d.ts', '../globals.d.ts')).toBe(
+      '/node_modules/@types/node/globals.d.ts'
+    );
   });
 });

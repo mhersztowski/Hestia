@@ -31,7 +31,11 @@ const PROJEKT = {
           id: 'n1',
           type: 'umlClass',
           position: { x: 40, y: 20 },
-          data: { kind: 'class', name: 'Pies', members: [{ id: 'm1', kind: 'method', text: '+ glos(): string' }] },
+          data: {
+            kind: 'class',
+            name: 'Pies',
+            members: [{ id: 'm1', kind: 'method', text: '+ glos(): string' }],
+          },
         },
         {
           id: 'n2',
@@ -40,11 +44,21 @@ const PROJEKT = {
           data: { kind: 'abstract', name: 'Zwierze', members: [] },
         },
       ],
-      edges: [{ id: 'e1', source: 'n1', target: 'n2', type: 'uml', data: { relType: 'generalization' } }],
+      edges: [
+        { id: 'e1', source: 'n1', target: 'n2', type: 'uml', data: { relType: 'generalization' } },
+      ],
     },
   ],
   history: {
-    commits: { c1: { id: 'c1', message: 'Wygenerowano z kodu', at: 1, parents: [], snapshot: { diagrams: [] } } },
+    commits: {
+      c1: {
+        id: 'c1',
+        message: 'Wygenerowano z kodu',
+        at: 1,
+        parents: [],
+        snapshot: { diagrams: [] },
+      },
+    },
     branches: { main: 'c1' },
     head: 'main',
   },
@@ -139,7 +153,9 @@ describe('zapis', () => {
     doc.nodes.push({ id: 'Kot', label: 'Kot', shape: 'rectangle', members: [] });
 
     const zapis = JSON.parse(umlProjectFormat.serialize(doc));
-    expect(zapis.diagrams[0].nodes.map((n: { data: { name: string } }) => n.data.name)).toContain('Kot');
+    expect(zapis.diagrams[0].nodes.map((n: { data: { name: string } }) => n.data.name)).toContain(
+      'Kot'
+    );
   });
 
   it('zachowuje pozostałe diagramy projektu', () => {

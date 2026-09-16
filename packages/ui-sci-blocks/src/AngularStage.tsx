@@ -19,7 +19,13 @@ export interface AngularStageProps {
   trail?: number[];
 }
 
-export function AngularStage({ theta, length, width = 240, height = 200, trail = [] }: AngularStageProps) {
+export function AngularStage({
+  theta,
+  length,
+  width = 240,
+  height = 200,
+  trail = [],
+}: AngularStageProps) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -85,7 +91,7 @@ export function AngularStage({ theta, length, width = 240, height = 200, trail =
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '10px system-ui, sans-serif';
-    ctx.fillText(`θ = ${(theta * 180 / Math.PI).toFixed(1)}°`, 6, height - 8);
+    ctx.fillText(`θ = ${((theta * 180) / Math.PI).toFixed(1)}°`, 6, height - 8);
   }, [theta, length, width, height, trail]);
 
   return <canvas ref={ref} style={{ display: 'block' }} />;

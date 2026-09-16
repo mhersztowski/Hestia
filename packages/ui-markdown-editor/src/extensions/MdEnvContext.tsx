@@ -45,7 +45,10 @@ function resolveEnvName(store: Map<string, unknown>, name: string): unknown {
   return cur;
 }
 
-export const MdEnvProvider: React.FC<{ children: React.ReactNode; docPath?: string }> = ({ children, docPath }) => {
+export const MdEnvProvider: React.FC<{ children: React.ReactNode; docPath?: string }> = ({
+  children,
+  docPath,
+}) => {
   const storeRef = useRef<Map<string, unknown>>(new Map());
   const subsRef = useRef<Set<() => void>>(new Set());
   const [version, setVersion] = useState(0);
@@ -64,17 +67,22 @@ export const MdEnvProvider: React.FC<{ children: React.ReactNode; docPath?: stri
   // Stable across renders so useSyncExternalStore doesn't resubscribe each time.
   const subscribe = useCallback((cb: () => void) => {
     subsRef.current.add(cb);
-    return () => { subsRef.current.delete(cb); };
+    return () => {
+      subsRef.current.delete(cb);
+    };
   }, []);
 
-  const api = useMemo<MdEnvApi>(() => ({
-    get: (name: string) => resolveEnvName(storeRef.current, name),
-    all: () => Object.fromEntries(storeRef.current),
-    set,
-    version,
-    subscribe,
-    docPath,
-  }), [set, subscribe, version, docPath]);
+  const api = useMemo<MdEnvApi>(
+    () => ({
+      get: (name: string) => resolveEnvName(storeRef.current, name),
+      all: () => Object.fromEntries(storeRef.current),
+      set,
+      version,
+      subscribe,
+      docPath,
+    }),
+    [set, subscribe, version, docPath]
+  );
 
   return <MdEnvContext.Provider value={api}>{children}</MdEnvContext.Provider>;
 };
@@ -85,4 +93,10 @@ export function useMdEnv(): MdEnvApi {
   return ctx ?? NOOP_ENV;
 }
 
-const NOOP_ENV: MdEnvApi = { get: () => undefined, all: () => ({}), set: () => {}, version: 0, subscribe: () => () => {} };
+const NOOP_ENV: MdEnvApi = {
+  get: () => undefined,
+  all: () => ({}),
+  set: () => {},
+  version: 0,
+  subscribe: () => () => {},
+};

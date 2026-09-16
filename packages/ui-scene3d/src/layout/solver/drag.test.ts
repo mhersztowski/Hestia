@@ -9,7 +9,11 @@ import { lit, type LayoutDoc } from '../model/types';
 import { dragShape } from './drag';
 
 const DOK = (d: Partial<LayoutDoc>): LayoutDoc => ({
-  vars: {}, shapes: [], mode: 'constraint', viewport: { width: 800, height: 600 }, ...d,
+  vars: {},
+  shapes: [],
+  mode: 'constraint',
+  viewport: { width: 800, height: 600 },
+  ...d,
 });
 
 const a = { id: 'a', x: lit(0), y: lit(0), w: lit(100), h: lit(40) };

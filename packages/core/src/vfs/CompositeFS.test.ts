@@ -23,10 +23,12 @@ describe('CompositeFS', () => {
     it('should list mount points at root', async () => {
       const { composite } = setup();
       const entries = await composite.readDirectory('/');
-      expect(entries).toEqual(expect.arrayContaining([
-        { name: 'mem1', type: FileType.Directory },
-        { name: 'mem2', type: FileType.Directory },
-      ]));
+      expect(entries).toEqual(
+        expect.arrayContaining([
+          { name: 'mem1', type: FileType.Directory },
+          { name: 'mem2', type: FileType.Directory },
+        ])
+      );
     });
 
     it('should unmount', () => {
@@ -79,8 +81,9 @@ describe('CompositeFS', () => {
 
     it('should throw FileNotFound for unknown mount', async () => {
       const { composite } = setup();
-      await expect(composite.readFile('/unknown/file.txt'))
-        .rejects.toMatchObject({ code: VfsErrorCode.FileNotFound });
+      await expect(composite.readFile('/unknown/file.txt')).rejects.toMatchObject({
+        code: VfsErrorCode.FileNotFound,
+      });
     });
   });
 
@@ -103,8 +106,9 @@ describe('CompositeFS', () => {
       const { composite, mem1 } = setup();
       await mem1.writeFile!('/del.txt', encodeText(''));
       await composite.delete!('/mem1/del.txt');
-      await expect(composite.stat('/mem1/del.txt'))
-        .rejects.toMatchObject({ code: VfsErrorCode.FileNotFound });
+      await expect(composite.stat('/mem1/del.txt')).rejects.toMatchObject({
+        code: VfsErrorCode.FileNotFound,
+      });
     });
 
     it('should rename within same mount', async () => {
@@ -117,8 +121,9 @@ describe('CompositeFS', () => {
     it('should reject rename across mounts', async () => {
       const { composite, mem1 } = setup();
       await mem1.writeFile!('/f.txt', encodeText(''));
-      await expect(composite.rename!('/mem1/f.txt', '/mem2/f.txt'))
-        .rejects.toThrow('Cannot rename across mount points');
+      await expect(composite.rename!('/mem1/f.txt', '/mem2/f.txt')).rejects.toThrow(
+        'Cannot rename across mount points'
+      );
     });
   });
 

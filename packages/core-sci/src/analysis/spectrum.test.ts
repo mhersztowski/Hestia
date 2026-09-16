@@ -32,10 +32,9 @@ describe('widmo amplitudowe', () => {
   });
 
   it('suma dwóch drgań daje dwa prążki', () => {
-    const s = spectrum(sample(
-      (t) => Math.sin(2 * Math.PI * 2 * t) + 0.5 * Math.sin(2 * Math.PI * 7 * t),
-      8, 2048,
-    ));
+    const s = spectrum(
+      sample((t) => Math.sin(2 * Math.PI * 2 * t) + 0.5 * Math.sin(2 * Math.PI * 7 * t), 8, 2048)
+    );
 
     const prążki = s.freq
       .map((f, i) => ({ f, a: s.amplitude[i] }))
@@ -55,7 +54,10 @@ describe('widmo amplitudowe', () => {
   });
 
   it('zostawia składową stałą, gdy autor o nią prosi', () => {
-    const s = spectrum(sample((t) => 5 + Math.sin(2 * Math.PI * 4 * t), 4, 512), { removeMean: false });
+    const s = spectrum(
+      sample((t) => 5 + Math.sin(2 * Math.PI * 4 * t), 4, 512),
+      { removeMean: false }
+    );
     expect(s.amplitude[0]).toBeGreaterThan(4);
   });
 
@@ -126,7 +128,8 @@ describe('okres — wybór metody', () => {
   it('dla przebiegu złożonego wraca do widma', () => {
     const próbki = sample(
       (t) => Math.sin(2 * Math.PI * 2 * t) + 0.9 * Math.sin(2 * Math.PI * 9 * t + 1),
-      8, 4096,
+      8,
+      4096
     );
     const wynik = periodOf(próbki)!;
 

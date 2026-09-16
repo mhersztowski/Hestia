@@ -4,7 +4,7 @@
  * Zadanie 5 z rozdziału 2 Resnicka: markdown z matematyką, odpowiedź podana
  * w książce zdaniem („6 m, o kąt 20,5°…"), zero danych do wyliczenia.
  */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { ExerciseBlock } from './ExerciseBlock';
 
@@ -24,7 +24,9 @@ aby wpadła ona do dołka po pierwszym uderzeniu?
 
 describe('zadanie 2-5 z Resnicka', () => {
   const widok = (onAttempt?: (a: unknown) => void) =>
-    render(<ExerciseBlock id="rh1-zad-2-5" code={KOD} formulas={[]} onAttempt={onAttempt as never} />);
+    render(
+      <ExerciseBlock id="rh1-zad-2-5" code={KOD} formulas={[]} onAttempt={onAttempt as never} />
+    );
 
   it('treść jest markdownem z matematyką', () => {
     const { container } = widok();

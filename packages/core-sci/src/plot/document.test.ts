@@ -8,7 +8,11 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  createPlotDocument, parsePlotDocument, serializePlotDocument, addRow, updateRow,
+  createPlotDocument,
+  parsePlotDocument,
+  serializePlotDocument,
+  addRow,
+  updateRow,
   DEFAULT_VIEWPORT,
 } from './document';
 
@@ -51,7 +55,9 @@ describe('zapis i odczyt', () => {
   });
 
   it('odtwarza rozpoznanie przy wczytaniu', () => {
-    const wrocil = parsePlotDocument(serializePlotDocument(addRow(createPlotDocument(), 'x^2 + y^2 = 4')));
+    const wrocil = parsePlotDocument(
+      serializePlotDocument(addRow(createPlotDocument(), 'x^2 + y^2 = 4'))
+    );
     expect(wrocil.rows[1].parsed.kind).toBe('implicit');
   });
 

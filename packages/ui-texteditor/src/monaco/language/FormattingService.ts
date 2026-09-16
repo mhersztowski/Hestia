@@ -40,9 +40,7 @@ export class FormattingService implements Disposable {
   /**
    * Formats the entire document
    */
-  async formatDocument(
-    editor: monaco.editor.ICodeEditor
-  ): Promise<boolean> {
+  async formatDocument(editor: monaco.editor.ICodeEditor): Promise<boolean> {
     const model = editor.getModel();
     if (!model) {
       return false;
@@ -60,9 +58,7 @@ export class FormattingService implements Disposable {
   /**
    * Formats the selected range
    */
-  async formatSelection(
-    editor: monaco.editor.ICodeEditor
-  ): Promise<boolean> {
+  async formatSelection(editor: monaco.editor.ICodeEditor): Promise<boolean> {
     const model = editor.getModel();
     const selection = editor.getSelection();
 
@@ -82,7 +78,9 @@ export class FormattingService implements Disposable {
   /**
    * Applies post-formatting fixes (trailing whitespace, final newline)
    */
-  applyPostFormatFixes(model: monaco.editor.ITextModel): monaco.editor.IIdentifiedSingleEditOperation[] {
+  applyPostFormatFixes(
+    model: monaco.editor.ITextModel
+  ): monaco.editor.IIdentifiedSingleEditOperation[] {
     const edits: monaco.editor.IIdentifiedSingleEditOperation[] = [];
     const lineCount = model.getLineCount();
 
@@ -121,7 +119,9 @@ export class FormattingService implements Disposable {
   /**
    * Converts tabs to spaces in the model
    */
-  convertTabsToSpaces(model: monaco.editor.ITextModel): monaco.editor.IIdentifiedSingleEditOperation[] {
+  convertTabsToSpaces(
+    model: monaco.editor.ITextModel
+  ): monaco.editor.IIdentifiedSingleEditOperation[] {
     const edits: monaco.editor.IIdentifiedSingleEditOperation[] = [];
     const spaces = ' '.repeat(this.options.tabSize);
     const lineCount = model.getLineCount();
@@ -147,7 +147,9 @@ export class FormattingService implements Disposable {
   /**
    * Converts spaces to tabs in the model
    */
-  convertSpacesToTabs(model: monaco.editor.ITextModel): monaco.editor.IIdentifiedSingleEditOperation[] {
+  convertSpacesToTabs(
+    model: monaco.editor.ITextModel
+  ): monaco.editor.IIdentifiedSingleEditOperation[] {
     const edits: monaco.editor.IIdentifiedSingleEditOperation[] = [];
     const tabSize = this.options.tabSize;
     const lineCount = model.getLineCount();

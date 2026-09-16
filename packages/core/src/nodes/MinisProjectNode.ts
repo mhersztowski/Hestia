@@ -20,8 +20,12 @@ export class MinisProjectNode extends NodeBase<MinisProjectModel> {
     this.boardProfileKey = model.boardProfileKey;
   }
 
-  static fromModel(model: MinisProjectModel): MinisProjectNode { return new MinisProjectNode(model); }
-  static fromModels(models: MinisProjectModel[]): MinisProjectNode[] { return models.map(m => new MinisProjectNode(m)); }
+  static fromModel(model: MinisProjectModel): MinisProjectNode {
+    return new MinisProjectNode(model);
+  }
+  static fromModels(models: MinisProjectModel[]): MinisProjectNode[] {
+    return models.map((m) => new MinisProjectNode(m));
+  }
 
   getDisplayName(): string {
     return this.name;
@@ -29,10 +33,7 @@ export class MinisProjectNode extends NodeBase<MinisProjectModel> {
 
   matches(query: string): boolean {
     const q = query.toLowerCase();
-    return (
-      this.name.toLowerCase().includes(q) ||
-      this.githubProjectId.toLowerCase().includes(q)
-    );
+    return this.name.toLowerCase().includes(q) || this.githubProjectId.toLowerCase().includes(q);
   }
 
   toModel(): MinisProjectModel {

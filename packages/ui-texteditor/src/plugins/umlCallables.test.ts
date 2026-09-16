@@ -7,45 +7,75 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  parseMemberLine, extractCallables, importSpecifierFor, callExpression,
-  blockTypeFor, categoryFor, returnsValue, groupByCategory, extractTypes, hasDoc, docSections,
+  parseMemberLine,
+  extractCallables,
+  importSpecifierFor,
+  callExpression,
+  blockTypeFor,
+  categoryFor,
+  returnsValue,
+  groupByCategory,
+  extractTypes,
+  hasDoc,
+  docSections,
   type UmlProjectLike,
 } from './umlCallables';
 
 const PROJECT: UmlProjectLike = {
   name: 'Core',
-  diagrams: [{
-    nodes: [
-      {
-        data: {
-          kind: 'module', name: 'helpers', linkedFile: 'drive/src/utils/helpers.ts',
-          members: [
-            { kind: 'method', text: '+ formatDate(d: Date): string' },
-            { kind: 'method', text: '+ async loadConfig(path: string): Promise<Config>', category: 'async' },
-            { kind: 'field', text: '+ VERSION: string' },
-          ],
+  diagrams: [
+    {
+      nodes: [
+        {
+          data: {
+            kind: 'module',
+            name: 'helpers',
+            linkedFile: 'drive/src/utils/helpers.ts',
+            members: [
+              { kind: 'method', text: '+ formatDate(d: Date): string' },
+              {
+                kind: 'method',
+                text: '+ async loadConfig(path: string): Promise<Config>',
+                category: 'async',
+              },
+              { kind: 'field', text: '+ VERSION: string' },
+            ],
+          },
         },
-      },
-      {
-        data: {
-          kind: 'class', name: 'Api', linkedFile: 'drive/src/api/Api.ts',
-          members: [
-            { kind: 'method', text: '+ static async fetchOne(id: string): Promise<string>', category: 'async' },
-            { kind: 'method', text: '+ static create(): Api' },
-            { kind: 'method', text: '+ send(payload: Map<string, number>, retries: number): void' },
-            { kind: 'method', text: '+ constructor(url: string)' },
-          ],
+        {
+          data: {
+            kind: 'class',
+            name: 'Api',
+            linkedFile: 'drive/src/api/Api.ts',
+            members: [
+              {
+                kind: 'method',
+                text: '+ static async fetchOne(id: string): Promise<string>',
+                category: 'async',
+              },
+              { kind: 'method', text: '+ static create(): Api' },
+              {
+                kind: 'method',
+                text: '+ send(payload: Map<string, number>, retries: number): void',
+              },
+              { kind: 'method', text: '+ constructor(url: string)' },
+            ],
+          },
         },
-      },
-    ],
-  }],
+      ],
+    },
+  ],
 };
 
 describe('parseMemberLine', () => {
   it('rozkłada sygnaturę na części', () => {
     expect(parseMemberLine('+ static async fetchOne(id: string): Promise<string>')).toEqual({
-      name: 'fetchOne', params: ['id'], paramTypes: ['string'],
-      returnType: 'Promise<string>', isStatic: true, isAsync: true,
+      name: 'fetchOne',
+      params: ['id'],
+      paramTypes: ['string'],
+      returnType: 'Promise<string>',
+      isStatic: true,
+      isAsync: true,
     });
   });
 
@@ -55,8 +85,9 @@ describe('parseMemberLine', () => {
   });
 
   it('nie tnie parametrów po przecinku wewnątrz typu generycznego', () => {
-    expect(parseMemberLine('+ send(payload: Map<string, number>, retries: number): void')?.params)
-      .toEqual(['payload', 'retries']);
+    expect(
+      parseMemberLine('+ send(payload: Map<string, number>, retries: number): void')?.params
+    ).toEqual(['payload', 'retries']);
   });
 
   it('pola i śmieci odrzuca', () => {
@@ -70,8 +101,12 @@ describe('extractCallables', () => {
   const byName = (n: string) => found.find((c) => c.name === n);
 
   it('bierze funkcje globalne z modułów i metody statyczne z klas', () => {
-    expect(found.map((c) => c.callee).sort())
-      .toEqual(['Api.create', 'Api.fetchOne', 'formatDate', 'loadConfig']);
+    expect(found.map((c) => c.callee).sort()).toEqual([
+      'Api.create',
+      'Api.fetchOne',
+      'formatDate',
+      'loadConfig',
+    ]);
   });
 
   it('pomija metody instancyjne i konstruktor — slot nie ma na czym ich wywołać', () => {
@@ -142,7 +177,9 @@ describe('bloczki i kategorie', () => {
   it('typ bloczka jest stabilny i bezpieczny jako identyfikator', () => {
     expect(blockTypeFor(byName('fetchOne'))).toBe('uml_Api_fetchOne');
     expect(blockTypeFor(byName('formatDate'))).toBe('uml_helpers_formatDate');
-    expect(blockTypeFor({ ...byName('fetchOne'), owner: 'My Class!', name: 'do-it' })).toBe('uml_My_Class__do_it');
+    expect(blockTypeFor({ ...byName('fetchOne'), owner: 'My Class!', name: 'do-it' })).toBe(
+      'uml_My_Class__do_it'
+    );
   });
 
   it('kategoria to klasa dla statycznych, a plik dla globalnych', () => {
@@ -151,8 +188,8 @@ describe('bloczki i kategorie', () => {
   });
 
   it('bloczek ma wyjście tylko dla funkcji zwracających wartość', () => {
-    expect(returnsValue(byName('fetchOne'))).toBe(true);          // Promise<string>
-    expect(returnsValue(byName('formatDate'))).toBe(true);        // string
+    expect(returnsValue(byName('fetchOne'))).toBe(true); // Promise<string>
+    expect(returnsValue(byName('formatDate'))).toBe(true); // string
     expect(returnsValue({ ...byName('formatDate'), returnType: 'void' })).toBe(false);
     expect(returnsValue({ ...byName('formatDate'), returnType: 'Promise<void>' })).toBe(false);
     expect(returnsValue({ ...byName('formatDate'), returnType: undefined })).toBe(false);
@@ -169,7 +206,11 @@ describe('extractTypes', () => {
   it('bierze klasy i interfejsy, pomija moduły (to pliki, nie typy)', () => {
     const types = extractTypes(PROJECT, 'core.umlproj.json');
     expect(types.map((t) => t.name)).toEqual(['Api']);
-    expect(types[0]).toMatchObject({ kind: 'class', project: 'Core', file: 'drive/src/api/Api.ts' });
+    expect(types[0]).toMatchObject({
+      kind: 'class',
+      project: 'Core',
+      file: 'drive/src/api/Api.ts',
+    });
   });
 
   it('nie duplikuje typu występującego na kilku diagramach', () => {
@@ -177,7 +218,12 @@ describe('extractTypes', () => {
       name: 'X',
       diagrams: [
         { nodes: [{ data: { kind: 'class', name: 'Same' } }] },
-        { nodes: [{ data: { kind: 'class', name: 'Same' } }, { data: { kind: 'interface', name: 'Other' } }] },
+        {
+          nodes: [
+            { data: { kind: 'class', name: 'Same' } },
+            { data: { kind: 'interface', name: 'Other' } },
+          ],
+        },
       ],
     };
     expect(extractTypes(twice, 'x').map((t) => t.name)).toEqual(['Other', 'Same']);
@@ -192,8 +238,10 @@ describe('typy parametrów', () => {
   });
 
   it('parametr opcjonalny dopuszcza undefined', () => {
-    expect(parseMemberLine('+ log(msg: string, level?: number)')!.paramTypes)
-      .toEqual(['string', 'number | undefined']);
+    expect(parseMemberLine('+ log(msg: string, level?: number)')!.paramTypes).toEqual([
+      'string',
+      'number | undefined',
+    ]);
   });
 
   it('brak adnotacji zostawia typ nieznany', () => {
@@ -209,31 +257,37 @@ describe('typy parametrów', () => {
 describe('dokumentacja funkcji', () => {
   const DOCUMENTED: UmlProjectLike = {
     name: 'Core',
-    diagrams: [{
-      nodes: [{
-        data: {
-          kind: 'class', name: 'Api', linkedFile: 'drive/src/Api.ts',
-          doc: { summary: 'Klient REST backendu.' },
-          members: [
-            {
-              kind: 'method',
-              text: '+ static async fetchOne(id: string, retries: number): Promise<string>',
-              category: 'async',
-              doc: {
-                summary: 'Pobiera zasób po identyfikatorze.',
-                remarks: 'Wynik jest cache’owany.',
-                params: { id: 'Identyfikator zasobu.' },
-                returns: 'Treść zasobu.',
-                examples: ["await Api.fetchOne('42');"],
-                deprecated: 'Użyj fetchMany.',
-                see: ['https://example.test'],
-              },
+    diagrams: [
+      {
+        nodes: [
+          {
+            data: {
+              kind: 'class',
+              name: 'Api',
+              linkedFile: 'drive/src/Api.ts',
+              doc: { summary: 'Klient REST backendu.' },
+              members: [
+                {
+                  kind: 'method',
+                  text: '+ static async fetchOne(id: string, retries: number): Promise<string>',
+                  category: 'async',
+                  doc: {
+                    summary: 'Pobiera zasób po identyfikatorze.',
+                    remarks: 'Wynik jest cache’owany.',
+                    params: { id: 'Identyfikator zasobu.' },
+                    returns: 'Treść zasobu.',
+                    examples: ["await Api.fetchOne('42');"],
+                    deprecated: 'Użyj fetchMany.',
+                    see: ['https://example.test'],
+                  },
+                },
+                { kind: 'method', text: '+ static plain(): void' },
+              ],
             },
-            { kind: 'method', text: '+ static plain(): void' },
-          ],
-        },
-      }],
-    }],
+          },
+        ],
+      },
+    ],
   };
 
   const found = extractCallables(DOCUMENTED, 'core');
@@ -253,7 +307,15 @@ describe('dokumentacja funkcji', () => {
 
   it('sekcje idą w kolejności czytania dokumentacji', () => {
     const titles = docSections(documented).map((s) => s.title);
-    expect(titles).toEqual(['⚠ Przestarzałe', '', 'Uwagi', 'Argumenty', 'Zwraca', 'Przykład', 'Zobacz']);
+    expect(titles).toEqual([
+      '⚠ Przestarzałe',
+      '',
+      'Uwagi',
+      'Argumenty',
+      'Zwraca',
+      'Przykład',
+      'Zobacz',
+    ]);
   });
 
   it('argument bez opisu też jest na liście — z samym typem', () => {
@@ -265,7 +327,9 @@ describe('dokumentacja funkcji', () => {
 
   it('sekcja „Zwraca" łączy typ z opisem, a przykład jest oznaczony jako kod', () => {
     const sections = docSections(documented);
-    expect(sections.find((s) => s.title === 'Zwraca')!.lines[0]).toBe('Promise<string> — Treść zasobu.');
+    expect(sections.find((s) => s.title === 'Zwraca')!.lines[0]).toBe(
+      'Promise<string> — Treść zasobu.'
+    );
     expect(sections.find((s) => s.title === 'Przykład')!.code).toBe(true);
   });
 

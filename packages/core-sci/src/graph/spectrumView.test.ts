@@ -12,14 +12,22 @@ import { buildGraph } from './formulaGraph';
 import { compileGraph } from './compileGraph';
 import { suggestViews } from './visualization';
 
-const model = () => compileGraph(buildGraph([parseFormulaBlock('osc', [
-  '@ode',
-  '@state x, v',
-  '@d x = v',
-  '@d v = -x',
-  '@init x = 1, v = 0',
-  '@vars x: m, v: m/s',
-].join('\n'))]));
+const model = () =>
+  compileGraph(
+    buildGraph([
+      parseFormulaBlock(
+        'osc',
+        [
+          '@ode',
+          '@state x, v',
+          '@d x = v',
+          '@d v = -x',
+          '@init x = 1, v = 0',
+          '@vars x: m, v: m/s',
+        ].join('\n')
+      ),
+    ])
+  );
 
 describe('widmo na żądanie', () => {
   it('nie pojawia się samo z siebie', () => {
@@ -37,15 +45,20 @@ describe('widmo na żądanie', () => {
     const czasowy = suggestViews(model(), ['timeseries'])[0];
     const widmowy = suggestViews(model(), ['spectrum'])[0];
 
-    expect(widmowy.kind === 'spectrum' && czasowy.kind === 'timeseries'
-      && widmowy.names).toEqual(czasowy.kind === 'timeseries' ? czasowy.names : []);
+    expect(widmowy.kind === 'spectrum' && czasowy.kind === 'timeseries' && widmowy.names).toEqual(
+      czasowy.kind === 'timeseries' ? czasowy.names : []
+    );
   });
 
   it('model bez przebiegów nie dostaje widma, choćby prosił', () => {
-    const statyczny = compileGraph(buildGraph([parseFormulaBlock('okres', [
-      'T = 2\\pi\\sqrt{\\frac{m}{k}}',
-      '@vars T: s, m: kg, k: N/m',
-    ].join('\n'))]));
+    const statyczny = compileGraph(
+      buildGraph([
+        parseFormulaBlock(
+          'okres',
+          ['T = 2\\pi\\sqrt{\\frac{m}{k}}', '@vars T: s, m: kg, k: N/m'].join('\n')
+        ),
+      ])
+    );
 
     expect(suggestViews(statyczny, ['spectrum'])).toEqual([]);
   });

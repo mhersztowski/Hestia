@@ -42,7 +42,14 @@ export { ConstraintSymbolsOverlay } from './ui/ConstraintSymbolsOverlay';
 export type { SketchConstraintLite } from './ui/ConstraintSymbolsOverlay';
 
 // Tools — the same instances the canvas uses, so a host can drive them
-export type { Tool, ToolName, ToolContext, PreviewGeometry, DimensionLabel, PenInput } from './tools/types';
+export type {
+  Tool,
+  ToolName,
+  ToolContext,
+  PreviewGeometry,
+  DimensionLabel,
+  PenInput,
+} from './tools/types';
 export { DEFAULT_PEN_INPUT } from './tools/types';
 export { pickSub, subElementsInRect } from './tools/sketchPick';
 export { translateEntity } from './tools/entityTransform';
@@ -53,14 +60,28 @@ export { dimRefs, measuredValue, applyDimensionValue } from './tools/dimensionDr
 
 // Rendering (three.js) — the 3D modeller draws with the same renderer
 export { CadRenderer } from './renderer/CadRenderer';
-export { buildEntityObject, build3dEntityObject, buildPreviewObject } from './renderer/EntityMeshBuilder';
+export {
+  buildEntityObject,
+  build3dEntityObject,
+  buildPreviewObject,
+} from './renderer/EntityMeshBuilder';
 
 // Files: JSON, DXF, SVG, OBJ, glTF, STL. STEP export needs OpenCascade and
 // lives in `cad3d/`.
 export {
-  exportJSON, importJSON, loadProjectFromText, mergeProjectFromText,
-  exportDXF, importDXF, exportSVG, buildSVGString, exportOBJ, exportGLTF, exportSTL,
-  shiftEntity, computeEntitiesCentroid,
+  exportJSON,
+  importJSON,
+  loadProjectFromText,
+  mergeProjectFromText,
+  exportDXF,
+  importDXF,
+  exportSVG,
+  buildSVGString,
+  exportOBJ,
+  exportGLTF,
+  exportSTL,
+  shiftEntity,
+  computeEntitiesCentroid,
 } from './io/CadExporter';
 
 // The FreeCAD icons the toolbar draws — see `assets/freecadIcons.ts`

@@ -12,10 +12,16 @@ const z = (...wpisy: string[]) => `${wpisy.join('\0')}\0`;
 describe('odczyt stanu', () => {
   it('modyfikacja tylko w katalogu roboczym', () => {
     const [zmiana] = parsePorcelain(z(' M src/a.ts'));
-    expect(zmiana).toMatchObject({ path: 'src/a.ts', index: 'unmodified', workTree: 'modified', staged: false, unstaged: true });
+    expect(zmiana).toMatchObject({
+      path: 'src/a.ts',
+      index: 'unmodified',
+      workTree: 'modified',
+      staged: false,
+      unstaged: true,
+    });
   });
 
-  it('modyfikacja zastage\'owana', () => {
+  it("modyfikacja zastage'owana", () => {
     const [zmiana] = parsePorcelain(z('M  src/a.ts'));
     expect(zmiana).toMatchObject({ staged: true, unstaged: false });
   });

@@ -76,7 +76,7 @@ const DISCONTINUITY_RATIO = 100;
 export function marchImplicit(
   f: (x: number, y: number) => number,
   window: ImplicitWindow,
-  options: ImplicitOptions = {},
+  options: ImplicitOptions = {}
 ): ImplicitResult {
   const xMin = Math.min(window.xMin, window.xMax);
   const xMax = Math.max(window.xMin, window.xMax);
@@ -101,8 +101,12 @@ export function marchImplicit(
 
   /** Punkt przecięcia krawędzi z zerem — z proporcji wartości w końcach. */
   const crossing = (
-    ax: number, ay: number, av: number,
-    bx: number, by: number, bv: number,
+    ax: number,
+    ay: number,
+    av: number,
+    bx: number,
+    by: number,
+    bv: number
   ): [number, number] => {
     const t = av / (av - bv);
     return [ax + (bx - ax) * t, ay + (by - ay) * t];
@@ -134,9 +138,15 @@ export function marchImplicit(
    * i nie ma powodu jej oglądać dokładniej.
    */
   const cell = (
-    x0: number, y0: number, x1: number, y1: number,
-    v00: number, v10: number, v01: number, v11: number,
-    depth: number,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    v00: number,
+    v10: number,
+    v01: number,
+    v11: number,
+    depth: number
   ): void => {
     const values = [v00, v10, v01, v11];
     const nieokreslone = values.some((v) => Number.isNaN(v));
@@ -184,10 +194,10 @@ export function marchImplicit(
      * dwa odcinki zamiast krzyża.
      */
     const cross: Array<[number, number]> = [];
-    if ((v00 > 0) !== (v10 > 0)) cross.push(crossing(x0, y0, v00, x1, y0, v10));
-    if ((v10 > 0) !== (v11 > 0)) cross.push(crossing(x1, y0, v10, x1, y1, v11));
-    if ((v01 > 0) !== (v11 > 0)) cross.push(crossing(x0, y1, v01, x1, y1, v11));
-    if ((v00 > 0) !== (v01 > 0)) cross.push(crossing(x0, y0, v00, x0, y1, v01));
+    if (v00 > 0 !== v10 > 0) cross.push(crossing(x0, y0, v00, x1, y0, v10));
+    if (v10 > 0 !== v11 > 0) cross.push(crossing(x1, y0, v10, x1, y1, v11));
+    if (v01 > 0 !== v11 > 0) cross.push(crossing(x0, y1, v01, x1, y1, v11));
+    if (v00 > 0 !== v01 > 0) cross.push(crossing(x0, y0, v00, x0, y1, v01));
 
     for (let i = 0; i + 1 < cross.length; i += 2) {
       segments.push([cross[i], cross[i + 1]]);
@@ -223,9 +233,15 @@ export function marchImplicit(
 
     for (let i = 0; i < nx; i += 1) {
       cell(
-        xMin + i * dx, y - dy, xMin + (i + 1) * dx, y,
-        previousRow[i], previousRow[i + 1], row[i], row[i + 1],
-        0,
+        xMin + i * dx,
+        y - dy,
+        xMin + (i + 1) * dx,
+        y,
+        previousRow[i],
+        previousRow[i + 1],
+        row[i],
+        row[i + 1],
+        0
       );
     }
     previousRow = row;

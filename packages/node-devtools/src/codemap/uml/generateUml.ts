@@ -22,7 +22,8 @@ export interface GenerateOptions {
 /** Build a single UML diagram from a parsed model. */
 export function modelToDiagram(model: CodeModel, opts: GenerateOptions = {}): UmlDiagram {
   const auto = layoutSymbols(model.symbols, model.relations);
-  const posOf = (symId: string): XY => opts.positions?.get(nodeId(symId)) ?? auto.get(symId) ?? { x: 0, y: 0 };
+  const posOf = (symId: string): XY =>
+    opts.positions?.get(nodeId(symId)) ?? auto.get(symId) ?? { x: 0, y: 0 };
 
   const nodes: UmlNode[] = model.symbols.map((s) => ({
     id: nodeId(s.id),
@@ -34,7 +35,9 @@ export function modelToDiagram(model: CodeModel, opts: GenerateOptions = {}): Um
       // `category` feeds the coloured dot and the category filter in the UML
       // editor — that is what lets async methods be filtered out in one click.
       members: s.members.map((m) => ({
-        id: umlMemberId(m.id), kind: m.kind, text: m.text,
+        id: umlMemberId(m.id),
+        kind: m.kind,
+        text: m.text,
         ...(m.isAsync ? { category: 'async' } : {}),
         // Documentation travels with the structure — after "From code" the TSDoc
         // descriptions are visible in the editor without opening the sources.
@@ -47,10 +50,23 @@ export function modelToDiagram(model: CodeModel, opts: GenerateOptions = {}): Um
 
   const edges: UmlEdge[] = model.relations.map((r) => {
     const h = handlesFor(posOf(r.fromId), posOf(r.toId));
-    return { id: edgeId(r.id), source: nodeId(r.fromId), target: nodeId(r.toId), sourceHandle: h.sourceHandle, targetHandle: h.targetHandle, type: 'uml', data: { relType: relToUml(r.type) } };
+    return {
+      id: edgeId(r.id),
+      source: nodeId(r.fromId),
+      target: nodeId(r.toId),
+      sourceHandle: h.sourceHandle,
+      targetHandle: h.targetHandle,
+      type: 'uml',
+      data: { relType: relToUml(r.type) },
+    };
   });
 
-  return { id: diagramId(opts.diagramName ?? 'model'), name: opts.diagramName ?? 'Model', nodes, edges };
+  return {
+    id: diagramId(opts.diagramName ?? 'model'),
+    name: opts.diagramName ?? 'Model',
+    nodes,
+    edges,
+  };
 }
 
 export { kindToUml };

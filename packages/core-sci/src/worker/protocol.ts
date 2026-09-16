@@ -104,15 +104,29 @@ export function modelFromSource(source: ModelSource): { model?: PhenomenonModel;
  * błąd ginie w `onerror` bez numeru żądania, więc strona nie wiedziałaby,
  * na które pytanie nie ma odpowiedzi.
  */
-export function computeRequest(request: ComputeRequest, now: () => number = () => Date.now()): ComputeResponse {
+export function computeRequest(
+  request: ComputeRequest,
+  now: () => number = () => Date.now()
+): ComputeResponse {
   const started = now();
   const pusty: ComputeResponse['meta'] = {
-    parameters: [], observables: [], derivativePairs: [], dynamic: false, issues: [],
+    parameters: [],
+    observables: [],
+    derivativePairs: [],
+    dynamic: false,
+    issues: [],
   };
 
   const { model, error } = modelFromSource(request.source);
   if (!model) {
-    return { id: request.id, scalars: {}, series: {}, meta: pusty, elapsedMs: now() - started, error };
+    return {
+      id: request.id,
+      scalars: {},
+      series: {},
+      meta: pusty,
+      elapsedMs: now() - started,
+      error,
+    };
   }
 
   const meta: ComputeResponse['meta'] = {
@@ -131,11 +145,11 @@ export function computeRequest(request: ComputeRequest, now: () => number = () =
       series: result.series,
       trajectory: result.trajectory
         ? {
-          samples: result.trajectory.samples,
-          stateNames: result.trajectory.stateNames,
-          interpolants: result.trajectory.interpolants,
-          events: result.trajectory.events,
-        }
+            samples: result.trajectory.samples,
+            stateNames: result.trajectory.stateNames,
+            interpolants: result.trajectory.interpolants,
+            events: result.trajectory.events,
+          }
         : undefined,
       invariants: result.invariants,
       meta,
@@ -163,11 +177,11 @@ export function restoreResult(response: ComputeResponse): PhenomenonResult {
     series: response.series,
     trajectory: response.trajectory
       ? new Trajectory(
-        response.trajectory.samples,
-        response.trajectory.stateNames,
-        response.trajectory.interpolants,
-        response.trajectory.events,
-      )
+          response.trajectory.samples,
+          response.trajectory.stateNames,
+          response.trajectory.interpolants,
+          response.trajectory.events
+        )
       : undefined,
     invariants: response.invariants ?? [],
     error: response.error,

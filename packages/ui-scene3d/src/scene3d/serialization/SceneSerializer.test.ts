@@ -20,14 +20,28 @@ function buildRichGraph(): SceneGraph {
   const graph = new SceneGraph();
   const group = new GroupNode({ id: 'grp', name: 'Container', position: [1, 2, 3] });
   graph.addNode(group);
-  graph.addNode(new MeshNode({ id: 'mesh', geometry: { type: 'sphere', params: { radius: 2 } }, material: { color: '#ff0000', opacity: 0.5, wireframe: true } }), 'grp');
-  graph.addNode(new LightNode({ id: 'light', lightType: 'spot', color: '#00ff00', intensity: 2.5 }), 'grp');
-  graph.addNode(new CameraNode({ id: 'cam', cameraType: 'orthographic', fov: 60, near: 0.5, far: 500 }));
+  graph.addNode(
+    new MeshNode({
+      id: 'mesh',
+      geometry: { type: 'sphere', params: { radius: 2 } },
+      material: { color: '#ff0000', opacity: 0.5, wireframe: true },
+    }),
+    'grp'
+  );
+  graph.addNode(
+    new LightNode({ id: 'light', lightType: 'spot', color: '#00ff00', intensity: 2.5 }),
+    'grp'
+  );
+  graph.addNode(
+    new CameraNode({ id: 'cam', cameraType: 'orthographic', fov: 60, near: 0.5, far: 500 })
+  );
   graph.addNode(new AudioNode({ id: 'audio', src: 's.mp3', volume: 0.4 }));
   graph.addNode(new GeometryPointNode({ id: 'gp', label: 'P' }));
   graph.addNode(new GeometrySegmentNode({ id: 'gs', start: [0, 0, 0], end: [1, 1, 1] }));
   graph.addNode(new GeometryLineNode({ id: 'gl', origin: [1, 0, 0], direction: [0, 1, 0] }));
-  graph.addNode(new GeometryAngleNode({ id: 'ga', vertex: [0, 0, 0], p1: [1, 0, 0], p2: [0, 1, 0] }));
+  graph.addNode(
+    new GeometryAngleNode({ id: 'ga', vertex: [0, 0, 0], p1: [1, 0, 0], p2: [0, 1, 0] })
+  );
   return graph;
 }
 

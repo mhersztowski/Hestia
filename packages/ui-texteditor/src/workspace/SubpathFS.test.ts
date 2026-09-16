@@ -3,7 +3,12 @@ import type { FileSystemProvider } from '@hestia/core';
 
 function makeInner() {
   const calls: Array<{ op: string; args: unknown[] }> = [];
-  const rec = (op: string) => (...args: unknown[]) => { calls.push({ op, args }); return Promise.resolve(`${op}-result`); };
+  const rec =
+    (op: string) =>
+    (...args: unknown[]) => {
+      calls.push({ op, args });
+      return Promise.resolve(`${op}-result`);
+    };
   const inner = {
     scheme: 'mock',
     capabilities: { readOnly: false } as unknown,

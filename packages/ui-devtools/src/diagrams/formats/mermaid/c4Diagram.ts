@@ -15,10 +15,22 @@
  *  • **Przecinek bywa w treści.** „Java, Spring Boot" to jeden argument, więc
  *    dzielenia nie da się zrobić zwykłym `split(',')`.
  */
-import { emptyDiagram, type DiagramDocument, type DiagramEdge, type DiagramNode, type UnknownLine } from '../../model/diagram';
 import {
-  c4BoundaryCallName, c4CallName, hasTechnology,
-  type C4BoundaryInfo, type C4ElementKind, type C4NodeInfo, type C4Variant, type C4Variant4,
+  emptyDiagram,
+  type DiagramDocument,
+  type DiagramEdge,
+  type DiagramNode,
+  type UnknownLine,
+} from '../../model/diagram';
+import {
+  c4BoundaryCallName,
+  c4CallName,
+  hasTechnology,
+  type C4BoundaryInfo,
+  type C4ElementKind,
+  type C4NodeInfo,
+  type C4Variant,
+  type C4Variant4,
 } from '../../model/c4';
 import type { ParseIssue, ParseResult } from '../../model/format';
 import { splitFrontMatter, withFrontMatter } from './frontMatter';
@@ -30,14 +42,19 @@ const CALL = /^\s*(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*\((?<args>[\s\S]*)\)\s*(?<op
 const BLOCK_CLOSE = /^\s*\}\s*$/;
 
 /** Element: rodzaj + wariant + zewnętrzność, sklejone w jedną nazwę. */
-const ELEMENT = /^(?<base>Person|System|Container|Component|Node)(?<variant>Db|Queue)?(?:_(?<placement>[LR]))?(?<ext>_Ext)?$/;
+const ELEMENT =
+  /^(?<base>Person|System|Container|Component|Node)(?<variant>Db|Queue)?(?:_(?<placement>[LR]))?(?<ext>_Ext)?$/;
 /** Granica: `Enterprise_Boundary`, `System_Boundary`, `Container_Boundary`, `Boundary`. */
 const BOUNDARY = /^(?:(?<prefix>Enterprise|System|Container)_)?Boundary$/;
 /** Relacja z opcjonalnym przyrostkiem kierunku. */
 const REL = /^(?<bi>Bi)?Rel(?:_(?<suffix>U|Up|D|Down|L|Left|R|Right|Back))?$/;
 
 const BASE_KIND: Record<string, C4ElementKind> = {
-  Person: 'person', System: 'system', Container: 'container', Component: 'component', Node: 'node',
+  Person: 'person',
+  System: 'system',
+  Container: 'container',
+  Component: 'component',
+  Node: 'node',
 };
 
 /** Który nagłówek zapisać — ten, który przyszedł w źródle. */
@@ -55,8 +72,16 @@ export function splitArgs(text: string): string[] {
   let inQuotes = false;
 
   for (const char of text) {
-    if (char === '"') { inQuotes = !inQuotes; current += char; continue; }
-    if (char === ',' && !inQuotes) { parts.push(current); current = ''; continue; }
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      current += char;
+      continue;
+    }
+    if (char === ',' && !inQuotes) {
+      parts.push(current);
+      current = '';
+      continue;
+    }
     current += char;
   }
   parts.push(current);
@@ -91,7 +116,9 @@ export function parseC4Diagram(text: string): ParseResult {
     const existing = doc.nodes.find((n) => n.id === id);
     if (existing) return existing;
     const node: DiagramNode = {
-      id, label: id, shape: 'rectangle',
+      id,
+      label: id,
+      shape: 'rectangle',
       c4: { kind: 'system', variant: 'plain', external: false },
     };
     doc.nodes.push(node);
@@ -103,15 +130,27 @@ export function parseC4Diagram(text: string): ParseResult {
     if (!trimmed) return;
 
     const header = HEADER.exec(trimmed);
-    if (header) { doc.meta = { ...doc.meta, [HEADER_KEY]: header[1] }; return; }
+    if (header) {
+      doc.meta = { ...doc.meta, [HEADER_KEY]: header[1] };
+      return;
+    }
 
     const title = TITLE.exec(trimmed);
-    if (title) { doc.meta = { ...doc.meta, title: title[1] }; return; }
+    if (title) {
+      doc.meta = { ...doc.meta, title: title[1] };
+      return;
+    }
 
-    if (BLOCK_CLOSE.test(trimmed)) { open.pop(); return; }
+    if (BLOCK_CLOSE.test(trimmed)) {
+      open.pop();
+      return;
+    }
 
     const call = trimmed.startsWith('%%') ? null : CALL.exec(trimmed);
-    if (!call?.groups) { pending.push({ index, text: line }); return; }
+    if (!call?.groups) {
+      pending.push({ index, text: line });
+      return;
+    }
 
     const { name, args, open: opensBlock } = call.groups;
     const parts = splitArgs(args);
@@ -125,7 +164,8 @@ export function parseC4Diagram(text: string): ParseResult {
 
     if (isBoundary) {
       const kind: C4BoundaryInfo['kind'] = boundary
-        ? (boundary.groups?.prefix?.toLowerCase() as C4BoundaryInfo['kind'] | undefined) ?? 'generic'
+        ? ((boundary.groups?.prefix?.toLowerCase() as C4BoundaryInfo['kind'] | undefined) ??
+          'generic')
         : 'node';
       const info: C4BoundaryInfo = { kind };
       if (kind === 'node') {
@@ -146,10 +186,15 @@ export function parseC4Diagram(text: string): ParseResult {
 
     if (element?.groups) {
       const kind = BASE_KIND[element.groups.base];
-      const variant: C4Variant = element.groups.variant === 'Db' ? 'db'
-        : element.groups.variant === 'Queue' ? 'queue' : 'plain';
+      const variant: C4Variant =
+        element.groups.variant === 'Db'
+          ? 'db'
+          : element.groups.variant === 'Queue'
+            ? 'queue'
+            : 'plain';
       const info: C4NodeInfo = { kind, variant, external: !!element.groups.ext };
-      if (element.groups.placement) info.placement = element.groups.placement === 'L' ? 'left' : 'right';
+      if (element.groups.placement)
+        info.placement = element.groups.placement === 'L' ? 'left' : 'right';
 
       // Tu rozstrzyga się różnica między `System` a `Container`.
       if (hasTechnology(kind)) {
@@ -211,7 +256,10 @@ export function serializeC4Diagram(doc: DiagramDocument): string {
   const byAnchor = new Map<string, UnknownLine[]>();
   const tail: UnknownLine[] = [];
   for (const line of [...doc.unknown].sort((a, b) => a.index - b.index)) {
-    if (!line.anchor) { tail.push(line); continue; }
+    if (!line.anchor) {
+      tail.push(line);
+      continue;
+    }
     const bucket = byAnchor.get(line.anchor);
     if (bucket) bucket.push(line);
     else byAnchor.set(line.anchor, [line]);
@@ -274,7 +322,8 @@ export function serializeC4Diagram(doc: DiagramDocument): string {
     out.push(`    ${name}(${args.join(', ')})`);
   }
 
-  for (const bucket of byAnchor.values()) for (const line of bucket) out.push(`    ${line.text.trim()}`);
+  for (const bucket of byAnchor.values())
+    for (const line of bucket) out.push(`    ${line.text.trim()}`);
   for (const line of tail) out.push(`    ${line.text.trim()}`);
 
   return withFrontMatter(doc.meta?.frontMatter, out.join('\n'));

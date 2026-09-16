@@ -40,7 +40,12 @@ describe('IotDeviceVfsExtension', () => {
   });
 
   it('writefile then readfile round-trips content via base64', async () => {
-    await ext.handleRequest({ id: 'w1', op: 'writefile', path: '/hello.txt', data: b64('hi there') });
+    await ext.handleRequest({
+      id: 'w1',
+      op: 'writefile',
+      path: '/hello.txt',
+      data: b64('hi there'),
+    });
     let res = lastRes();
     expect(res).toEqual({ id: 'w1', ok: true, data: {} });
     expect(published[published.length - 1].topic).toBe(RES_TOPIC);

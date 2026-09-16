@@ -87,7 +87,12 @@ describe('ProjectNode', () => {
     });
     it('flattens all tasks and projects', () => {
       const p = new ProjectNode(model);
-      expect(p.getAllTasks().map((t) => t.id).sort()).toEqual(['t1', 't2', 't3']);
+      expect(
+        p
+          .getAllTasks()
+          .map((t) => t.id)
+          .sort()
+      ).toEqual(['t1', 't2', 't3']);
       expect(p.getAllProjects().map((c) => c.id)).toEqual(['child']);
     });
     it('formats cost', () => {

@@ -19,14 +19,24 @@ function emit() {
 
 export const editorOverlay = {
   /** Zgłoś otwarcie nakładki. */
-  enter(): void { count += 1; if (count === 1) emit(); },
+  enter(): void {
+    count += 1;
+    if (count === 1) emit();
+  },
   /** Zgłoś zamknięcie nakładki. */
-  exit(): void { count = Math.max(0, count - 1); if (count === 0) emit(); },
+  exit(): void {
+    count = Math.max(0, count - 1);
+    if (count === 0) emit();
+  },
   /** Czy jakakolwiek nakładka jest otwarta. */
-  get active(): boolean { return count > 0; },
+  get active(): boolean {
+    return count > 0;
+  },
   /** Subskrypcja zmian stanu. Zwraca funkcję odsubskrybowania. */
   subscribe(fn: (active: boolean) => void): () => void {
     listeners.add(fn);
-    return () => { listeners.delete(fn); };
+    return () => {
+      listeners.delete(fn);
+    };
   },
 };

@@ -41,13 +41,19 @@ describe('mqtt topic registry', () => {
     });
 
     it('commandAck restricts status to the allowed enum', () => {
-      expect(mqttTopics.commandAck.payloadSchema.safeParse({ id: '1', status: 'ACKNOWLEDGED' }).success).toBe(true);
-      expect(mqttTopics.commandAck.payloadSchema.safeParse({ id: '1', status: 'DONE' }).success).toBe(false);
+      expect(
+        mqttTopics.commandAck.payloadSchema.safeParse({ id: '1', status: 'ACKNOWLEDGED' }).success
+      ).toBe(true);
+      expect(
+        mqttTopics.commandAck.payloadSchema.safeParse({ id: '1', status: 'DONE' }).success
+      ).toBe(false);
     });
 
     it('status requires lastSeenAt', () => {
       expect(mqttTopics.status.payloadSchema.safeParse({ status: 'ONLINE' }).success).toBe(false);
-      expect(mqttTopics.status.payloadSchema.safeParse({ status: 'ONLINE', lastSeenAt: 1 }).success).toBe(true);
+      expect(
+        mqttTopics.status.payloadSchema.safeParse({ status: 'ONLINE', lastSeenAt: 1 }).success
+      ).toBe(true);
     });
 
     it('hello validates entity types', () => {
@@ -63,12 +69,16 @@ describe('mqtt topic registry', () => {
     });
 
     it('extReq requires id and op', () => {
-      expect(mqttTopics.extReq.payloadSchema.safeParse({ id: '1', op: 'stat', path: '/a' }).success).toBe(true);
+      expect(
+        mqttTopics.extReq.payloadSchema.safeParse({ id: '1', op: 'stat', path: '/a' }).success
+      ).toBe(true);
       expect(mqttTopics.extReq.payloadSchema.safeParse({ op: 'stat' }).success).toBe(false);
     });
 
     it('twinDesired accepts arbitrary record payloads', () => {
-      expect(mqttTopics.twinDesired.payloadSchema.safeParse({ any: 1, thing: 'x' }).success).toBe(true);
+      expect(mqttTopics.twinDesired.payloadSchema.safeParse({ any: 1, thing: 'x' }).success).toBe(
+        true
+      );
     });
   });
 

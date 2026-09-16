@@ -25,11 +25,11 @@ import type { DriveStore } from './store';
 
 /** A file the drive is handing over, with the store it came from. */
 export interface DriveFileRef {
-    /** Path in the store, `/` between segments, no leading slash. */
-    path: string;
-    name: string;
-    /** The store the path belongs to — an editor or an assistant reads and writes through it. */
-    store: DriveStore;
+  /** Path in the store, `/` between segments, no leading slash. */
+  path: string;
+  name: string;
+  /** The store the path belongs to — an editor or an assistant reads and writes through it. */
+  store: DriveStore;
 }
 
 /**
@@ -39,50 +39,50 @@ export interface DriveFileRef {
  * to put in the right-hand side when it does.
  */
 export interface DriveEditor {
-    /**
-     * Whether this file opens in the editor. The drive asks before drawing the
-     * "Edit" entry, so a file the editor would refuse never offers it.
-     */
-    canEdit(file: DriveFileRef): boolean;
-    /**
-     * The editor itself, for the panel. `onClose` returns the drive to its
-     * preview; `onSaved` tells the listing the file changed, so the row's size
-     * and date stop being the ones from before the edit; `view` holds whatever
-     * the reader switched on in `viewOptions`.
-     */
-    render(
-        file: DriveFileRef,
-        opts: { onClose: () => void; onSaved: () => void; view: Readonly<Record<string, boolean>> },
-    ): ReactNode;
-    /**
-     * Switches this editor offers for how a document is shown — a narrower
-     * margin, a smaller font, whatever it has.
-     *
-     * The drive draws them and remembers them **per file**, because that is the
-     * same bookkeeping for any editor; what each one means is the editor's
-     * business, and the page never learns that one of them is about Markdown.
-     * An editor with nothing to offer gets no settings button.
-     */
-    viewOptions?: ReadonlyArray<EditorViewOption>;
-    /**
-     * The file as JavaScript, ready to run — for the "run in the browser"
-     * button.
-     *
-     * The editor is asked because it holds two things the page does not: the
-     * **unsaved** buffer, which is what the reader means by "run this", and a
-     * compiler for TypeScript. Without it the page runs what is on the disk,
-     * which is right for `.js` and wrong for `.ts` — so a host with no
-     * compiler should decline a `.ts` rather than hand back its source.
-     */
-    prepareScript?(file: DriveFileRef): Promise<string>;
+  /**
+   * Whether this file opens in the editor. The drive asks before drawing the
+   * "Edit" entry, so a file the editor would refuse never offers it.
+   */
+  canEdit(file: DriveFileRef): boolean;
+  /**
+   * The editor itself, for the panel. `onClose` returns the drive to its
+   * preview; `onSaved` tells the listing the file changed, so the row's size
+   * and date stop being the ones from before the edit; `view` holds whatever
+   * the reader switched on in `viewOptions`.
+   */
+  render(
+    file: DriveFileRef,
+    opts: { onClose: () => void; onSaved: () => void; view: Readonly<Record<string, boolean>> }
+  ): ReactNode;
+  /**
+   * Switches this editor offers for how a document is shown — a narrower
+   * margin, a smaller font, whatever it has.
+   *
+   * The drive draws them and remembers them **per file**, because that is the
+   * same bookkeeping for any editor; what each one means is the editor's
+   * business, and the page never learns that one of them is about Markdown.
+   * An editor with nothing to offer gets no settings button.
+   */
+  viewOptions?: ReadonlyArray<EditorViewOption>;
+  /**
+   * The file as JavaScript, ready to run — for the "run in the browser"
+   * button.
+   *
+   * The editor is asked because it holds two things the page does not: the
+   * **unsaved** buffer, which is what the reader means by "run this", and a
+   * compiler for TypeScript. Without it the page runs what is on the disk,
+   * which is right for `.js` and wrong for `.ts` — so a host with no
+   * compiler should decline a `.ts` rather than hand back its source.
+   */
+  prepareScript?(file: DriveFileRef): Promise<string>;
 }
 
 export interface EditorViewOption {
-    /** Stable key — it is what lands in the file of saved settings. */
-    key: string;
-    label: string;
-    /** One line under the label, saying what it does. */
-    description?: string;
+  /** Stable key — it is what lands in the file of saved settings. */
+  key: string;
+  label: string;
+  /** One line under the label, saying what it does. */
+  description?: string;
 }
 
 /**
@@ -92,25 +92,25 @@ export interface EditorViewOption {
  * work where the user is, and a file when one is open.
  */
 export interface DriveAssistant {
-    /**
-     * The panel. The drive draws the button that opens it and nothing else.
-     *
-     * `onFileOpen` and `onFileWritten` are the drive's: a file the assistant
-     * opens shows in the panel beside it, and a file it writes stops the
-     * listing from showing what was there before.
-     */
-    render(
-        context: {
-            store: DriveStore;
-            dir: string;
-            file: DriveFileRef | null;
-            onFileOpen?: (path: string) => void;
-            onFileWritten?: (paths: string[]) => void;
-        },
-        opts: { onClose: () => void },
-    ): ReactNode;
-    /** What the button says; the drive has a default. */
-    label?: string;
+  /**
+   * The panel. The drive draws the button that opens it and nothing else.
+   *
+   * `onFileOpen` and `onFileWritten` are the drive's: a file the assistant
+   * opens shows in the panel beside it, and a file it writes stops the
+   * listing from showing what was there before.
+   */
+  render(
+    context: {
+      store: DriveStore;
+      dir: string;
+      file: DriveFileRef | null;
+      onFileOpen?: (path: string) => void;
+      onFileWritten?: (paths: string[]) => void;
+    },
+    opts: { onClose: () => void }
+  ): ReactNode;
+  /** What the button says; the drive has a default. */
+  label?: string;
 }
 
 /**
@@ -121,9 +121,9 @@ export interface DriveAssistant {
  * the drive promise DjVu.
  */
 export interface DriveViewers {
-    /** Which files this can show, by the drive's own kinds plus its own names. */
-    canView(file: DriveFileRef): boolean;
-    render(file: DriveFileRef): ReactNode;
+  /** Which files this can show, by the drive's own kinds plus its own names. */
+  canView(file: DriveFileRef): boolean;
+  render(file: DriveFileRef): ReactNode;
 }
 
 /**
@@ -133,12 +133,12 @@ export interface DriveViewers {
  * says "a file list is all I want here".
  */
 export interface DriveCapabilities {
-    editor?: DriveEditor | null;
-    assistant?: DriveAssistant | null;
-    viewers?: DriveViewers | null;
+  editor?: DriveEditor | null;
+  assistant?: DriveAssistant | null;
+  viewers?: DriveViewers | null;
 }
 
 /** Whether a capability is there to be used — one place, so every check reads the same. */
 export function has<T>(capability: T | null | undefined): capability is T {
-    return capability !== null && capability !== undefined;
+  return capability !== null && capability !== undefined;
 }

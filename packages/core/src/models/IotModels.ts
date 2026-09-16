@@ -81,8 +81,13 @@ export interface IotSelectEntity extends IotEntityBase {
   options: string[];
 }
 
-export type IotEntity = IotSensorEntity | IotBinarySensorEntity | IotSwitchEntity
-  | IotNumberEntity | IotButtonEntity | IotSelectEntity;
+export type IotEntity =
+  | IotSensorEntity
+  | IotBinarySensorEntity
+  | IotSwitchEntity
+  | IotNumberEntity
+  | IotButtonEntity
+  | IotSelectEntity;
 
 // --- Telemetry ---
 
@@ -216,10 +221,21 @@ export interface NotificationChannel {
 
 export type IotAutomationTrigger =
   | { type: 'cron'; expression: string; timezone?: string }
-  | { type: 'telemetry'; deviceId?: string; metricKey: string; op: '>' | '<' | '>=' | '<=' | '==' | '!='; value: number };
+  | {
+      type: 'telemetry';
+      deviceId?: string;
+      metricKey: string;
+      op: '>' | '<' | '>=' | '<=' | '==' | '!=';
+      value: number;
+    };
 
 export type IotAutomationAction =
-  | { type: 'send_command'; deviceId: string; commandName: string; payload?: Record<string, unknown> }
+  | {
+      type: 'send_command';
+      deviceId: string;
+      commandName: string;
+      payload?: Record<string, unknown>;
+    }
   | { type: 'notify'; channelId: string; message: string };
 
 export interface IotAutomation {

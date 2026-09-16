@@ -11,8 +11,14 @@
  * czas na indeks wzorów z sekcji 3.6.
  */
 import {
-  applyOverrides, buildGraph, buildModel, compileGraph, modelOptionNames, parseFormulaBlock,
-  type FormulaBlock, type PhenomenonModel,
+  applyOverrides,
+  buildGraph,
+  buildModel,
+  compileGraph,
+  modelOptionNames,
+  parseFormulaBlock,
+  type FormulaBlock,
+  type PhenomenonModel,
 } from '@hestia/core-sci';
 
 /** Ustawienia bloku `sim` — treść bloku jest zwykłym JSON-em. */
@@ -104,7 +110,10 @@ export function buildSimSetup(source: string | FormulaBlock[], simBody: string):
 
   if (spec.model) return fromLibrary(spec, issues);
 
-  if (!wszystkie.length) issues.push('W dokumencie nie ma żadnego bloku ```formula — nie ma z czego zbudować symulacji.');
+  if (!wszystkie.length)
+    issues.push(
+      'W dokumencie nie ma żadnego bloku ```formula — nie ma z czego zbudować symulacji.'
+    );
 
   // Nieznany identyfikator zgłaszamy, zamiast po cichu pominąć: literówka
   // dałaby model z mniejszej liczby wzorów, więc symulacja ruszyłaby i
@@ -121,13 +130,18 @@ export function buildSimSetup(source: string | FormulaBlock[], simBody: string):
 
   // Pełna lista identyfikatorów dokumentu: przy wyborze podzbioru
   // `@derivedFrom` nadal może wskazywać na wzory poza nim i to nie jest błąd.
-  const model = compileGraph(buildGraph(formulas, wszystkie.map((f) => f.id)));
+  const model = compileGraph(
+    buildGraph(
+      formulas,
+      wszystkie.map((f) => f.id)
+    )
+  );
   issues.push(...model.issues);
 
   // Wszystko, co nie jest znanym ustawieniem, jest nadpisaniem parametru.
   const reserved = new Set(['view', 'expose', 'duration', 'formulas', 'model']);
   const overrides = Object.fromEntries(
-    Object.entries(spec).filter(([key]) => !reserved.has(key)),
+    Object.entries(spec).filter(([key]) => !reserved.has(key))
   ) as Record<string, string | number>;
 
   const applied = applyOverrides(model, overrides);
@@ -142,7 +156,11 @@ export function buildSimSetup(source: string | FormulaBlock[], simBody: string):
 
 /** Pusty model — gdy zjawiska nie udało się zbudować, blok ma co renderować. */
 const PUSTY_MODEL: PhenomenonModel = {
-  parameters: [], observables: [], dynamic: false, derivativePairs: [], issues: [],
+  parameters: [],
+  observables: [],
+  dynamic: false,
+  derivativePairs: [],
+  issues: [],
   run: () => ({ scalars: {}, series: {}, invariants: [] }),
 };
 
@@ -156,9 +174,7 @@ const PUSTY_MODEL: PhenomenonModel = {
  */
 function fromLibrary(spec: SimSpec, issues: string[]): SimSetup {
   const opcjeNazwy = new Set(modelOptionNames(spec.model!));
-  const opcje = Object.fromEntries(
-    Object.entries(spec).filter(([key]) => opcjeNazwy.has(key)),
-  );
+  const opcje = Object.fromEntries(Object.entries(spec).filter(([key]) => opcjeNazwy.has(key)));
 
   const zbudowany = buildModel(spec.model!, opcje);
   issues.push(...zbudowany.issues);
@@ -168,7 +184,7 @@ function fromLibrary(spec: SimSpec, issues: string[]): SimSetup {
   // więc literówka nadal zostanie zgłoszona.
   const reserved = new Set(['view', 'expose', 'duration', 'formulas', 'model', ...opcjeNazwy]);
   const overrides = Object.fromEntries(
-    Object.entries(spec).filter(([key]) => !reserved.has(key)),
+    Object.entries(spec).filter(([key]) => !reserved.has(key))
   ) as Record<string, string | number>;
 
   const applied = applyOverrides(model, overrides);

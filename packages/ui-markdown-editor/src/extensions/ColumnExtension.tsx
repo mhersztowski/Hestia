@@ -13,8 +13,8 @@ export const Column = Node.create({
     return {
       width: {
         default: '50%',
-        parseHTML: element => element.getAttribute('data-width') || element.style.width || '50%',
-        renderHTML: attributes => ({
+        parseHTML: (element) => element.getAttribute('data-width') || element.style.width || '50%',
+        renderHTML: (attributes) => ({
           'data-width': attributes.width,
           style: `width: ${attributes.width}; flex-shrink: 0; min-width: 0; padding: 12px; box-sizing: border-box;`,
         }),
@@ -46,10 +46,14 @@ export const ColumnLayout = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, {
-      'data-column-layout': '',
-      class: 'column-layout-container',
-    }), 0];
+    return [
+      'div',
+      mergeAttributes(HTMLAttributes, {
+        'data-column-layout': '',
+        class: 'column-layout-container',
+      }),
+      0,
+    ];
   },
 
   addNodeView() {
@@ -93,7 +97,7 @@ export const ColumnLayout = Node.create({
       const createPresetButton = (widths: number[]): HTMLButtonElement => {
         const btn = document.createElement('button');
         btn.className = 'column-preset-btn';
-        btn.title = widths.map(w => Math.round(w)).join('/');
+        btn.title = widths.map((w) => Math.round(w)).join('/');
 
         // Create visual representation
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -127,7 +131,8 @@ export const ColumnLayout = Node.create({
 
       const addBtn = document.createElement('button');
       addBtn.className = 'column-btn column-btn-add';
-      addBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
+      addBtn.innerHTML =
+        '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
       addBtn.title = 'Add column';
       addBtn.onclick = (e) => {
         e.preventDefault();
@@ -137,7 +142,8 @@ export const ColumnLayout = Node.create({
 
       const removeBtn = document.createElement('button');
       removeBtn.className = 'column-btn column-btn-remove';
-      removeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+      removeBtn.innerHTML =
+        '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
       removeBtn.title = 'Remove column';
       removeBtn.onclick = (e) => {
         e.preventDefault();
@@ -220,13 +226,11 @@ export const ColumnLayout = Node.create({
         const presets = columnCount === 2 ? presets2Col : presets3Col;
         const currentWidths = getColumnWidthsFromEditor();
 
-        presets.forEach(preset => {
+        presets.forEach((preset) => {
           const btn = createPresetButton(preset.widths);
 
           // Mark active preset
-          const isActive = preset.widths.every((w, i) =>
-            Math.abs(w - currentWidths[i]) < 1
-          );
+          const isActive = preset.widths.every((w, i) => Math.abs(w - currentWidths[i]) < 1);
           if (isActive) {
             btn.classList.add('active');
           }
@@ -240,7 +244,7 @@ export const ColumnLayout = Node.create({
         const columnCount = node.content.childCount;
         if (typeof pos !== 'number' || columnCount >= 3) return;
 
-        const newWidth = Math.round(100 / (columnCount + 1) * 10) / 10;
+        const newWidth = Math.round((100 / (columnCount + 1)) * 10) / 10;
 
         // Update existing columns
         let currentPos = pos + 1;
@@ -255,7 +259,8 @@ export const ColumnLayout = Node.create({
         });
 
         // Insert new column
-        editor.chain()
+        editor
+          .chain()
           .insertContentAt(pos + node.nodeSize - 1, {
             type: 'column',
             attrs: { width: `${newWidth}%` },
@@ -272,14 +277,15 @@ export const ColumnLayout = Node.create({
 
         if (columnCount <= 2) {
           // Delete entire layout
-          editor.chain()
+          editor
+            .chain()
             .deleteRange({ from: pos, to: pos + node.nodeSize })
             .focus()
             .run();
           return;
         }
 
-        const newWidth = Math.round(100 / (columnCount - 1) * 10) / 10;
+        const newWidth = Math.round((100 / (columnCount - 1)) * 10) / 10;
 
         // Find last column position
         let lastColumnPos = pos + 1;
@@ -289,7 +295,8 @@ export const ColumnLayout = Node.create({
         const lastColumnSize = node.content.child(columnCount - 1).nodeSize;
 
         // Delete last column
-        editor.chain()
+        editor
+          .chain()
           .deleteRange({ from: lastColumnPos, to: lastColumnPos + lastColumnSize })
           .run();
 
@@ -332,19 +339,21 @@ export const ColumnLayout = Node.create({
 
   addCommands() {
     return {
-      setColumns: (columnCount: 2 | 3) => ({ commands }) => {
-        const width = Math.round(100 / columnCount * 10) / 10;
-        const columns = Array.from({ length: columnCount }, () => ({
-          type: 'column',
-          attrs: { width: `${width}%` },
-          content: [{ type: 'paragraph' }],
-        }));
+      setColumns:
+        (columnCount: 2 | 3) =>
+        ({ commands }) => {
+          const width = Math.round((100 / columnCount) * 10) / 10;
+          const columns = Array.from({ length: columnCount }, () => ({
+            type: 'column',
+            attrs: { width: `${width}%` },
+            content: [{ type: 'paragraph' }],
+          }));
 
-        return commands.insertContent({
-          type: 'columnLayout',
-          content: columns,
-        });
-      },
+          return commands.insertContent({
+            type: 'columnLayout',
+            content: columns,
+          });
+        },
     };
   },
 });

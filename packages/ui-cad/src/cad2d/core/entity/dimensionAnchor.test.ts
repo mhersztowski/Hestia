@@ -13,12 +13,59 @@ const base = {
 };
 
 const line: Entity = { ...base, id: 'L', type: 'line', x1: 0, y1: 0, x2: 10, y2: 0 } as Entity;
-const rect: Entity = { ...base, id: 'R', type: 'rect', x: 0, y: 0, width: 10, height: 10 } as Entity;
+const rect: Entity = {
+  ...base,
+  id: 'R',
+  type: 'rect',
+  x: 0,
+  y: 0,
+  width: 10,
+  height: 10,
+} as Entity;
 const circle: Entity = { ...base, id: 'C', type: 'circle', cx: 0, cy: 0, radius: 5 } as Entity;
-const arc: Entity = { ...base, id: 'A', type: 'arc', cx: 0, cy: 0, radius: 5, startAngle: 0, endAngle: Math.PI } as Entity;
-const poly: Entity = { ...base, id: 'P', type: 'polyline', closed: false, points: [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }] } as Entity;
-const closedPoly: Entity = { ...base, id: 'PC', type: 'polyline', closed: true, points: [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }] } as Entity;
-const freehand: Entity = { ...base, id: 'F', type: 'freehand', strokeWidth: 1, smooth: false, points: [{ x: 0, y: 0 }, { x: 4, y: 0 }] } as Entity;
+const arc: Entity = {
+  ...base,
+  id: 'A',
+  type: 'arc',
+  cx: 0,
+  cy: 0,
+  radius: 5,
+  startAngle: 0,
+  endAngle: Math.PI,
+} as Entity;
+const poly: Entity = {
+  ...base,
+  id: 'P',
+  type: 'polyline',
+  closed: false,
+  points: [
+    { x: 0, y: 0 },
+    { x: 10, y: 0 },
+    { x: 10, y: 10 },
+  ],
+} as Entity;
+const closedPoly: Entity = {
+  ...base,
+  id: 'PC',
+  type: 'polyline',
+  closed: true,
+  points: [
+    { x: 0, y: 0 },
+    { x: 10, y: 0 },
+    { x: 10, y: 10 },
+  ],
+} as Entity;
+const freehand: Entity = {
+  ...base,
+  id: 'F',
+  type: 'freehand',
+  strokeWidth: 1,
+  smooth: false,
+  points: [
+    { x: 0, y: 0 },
+    { x: 4, y: 0 },
+  ],
+} as Entity;
 
 describe('makeDimAnchor', () => {
   it('returns a center anchor when snap reports center', () => {
@@ -86,7 +133,14 @@ describe('makeDimAnchor', () => {
 
   it('picks the closest of multiple candidates', () => {
     // Point sits on the line but far from the (radius-5) circle's outline.
-    const bigCircle: Entity = { ...base, id: 'BC', type: 'circle', cx: 0, cy: 0, radius: 20 } as Entity;
+    const bigCircle: Entity = {
+      ...base,
+      id: 'BC',
+      type: 'circle',
+      cx: 0,
+      cy: 0,
+      radius: 20,
+    } as Entity;
     const a = makeDimAnchor({ x: 5, y: 0.2 }, [line, bigCircle], 3);
     expect(a?.entityId).toBe('L');
   });
@@ -104,7 +158,10 @@ describe('resolveDimAnchor', () => {
   });
 
   it('resolves endpoint anchor', () => {
-    expect(resolveDimAnchor({ entityId: 'L', kind: 'endpoint', index: 1 }, line)).toEqual({ x: 10, y: 0 });
+    expect(resolveDimAnchor({ entityId: 'L', kind: 'endpoint', index: 1 }, line)).toEqual({
+      x: 10,
+      y: 0,
+    });
   });
 
   it('resolves endpoint anchor with default index 0', () => {
@@ -116,7 +173,10 @@ describe('resolveDimAnchor', () => {
   });
 
   it('resolves midpoint anchor', () => {
-    expect(resolveDimAnchor({ entityId: 'L', kind: 'midpoint', index: 0 }, line)).toEqual({ x: 5, y: 0 });
+    expect(resolveDimAnchor({ entityId: 'L', kind: 'midpoint', index: 0 }, line)).toEqual({
+      x: 5,
+      y: 0,
+    });
   });
 
   it('resolves center anchor', () => {
@@ -124,7 +184,10 @@ describe('resolveDimAnchor', () => {
   });
 
   it('resolves point-on for a line using t', () => {
-    expect(resolveDimAnchor({ entityId: 'L', kind: 'point-on', t: 0.5 }, line)).toEqual({ x: 5, y: 0 });
+    expect(resolveDimAnchor({ entityId: 'L', kind: 'point-on', t: 0.5 }, line)).toEqual({
+      x: 5,
+      y: 0,
+    });
   });
 
   it('point-on line uses default t=0.5', () => {
@@ -132,11 +195,16 @@ describe('resolveDimAnchor', () => {
   });
 
   it('resolves point-on for a polyline segment', () => {
-    expect(resolveDimAnchor({ entityId: 'P', kind: 'point-on', index: 0, t: 0.5 }, poly)).toEqual({ x: 5, y: 0 });
+    expect(resolveDimAnchor({ entityId: 'P', kind: 'point-on', index: 0, t: 0.5 }, poly)).toEqual({
+      x: 5,
+      y: 0,
+    });
   });
 
   it('returns null for point-on polyline with bad index', () => {
-    expect(resolveDimAnchor({ entityId: 'P', kind: 'point-on', index: 99, t: 0.5 }, poly)).toBeNull();
+    expect(
+      resolveDimAnchor({ entityId: 'P', kind: 'point-on', index: 99, t: 0.5 }, poly)
+    ).toBeNull();
   });
 
   it('resolves point-on for a rect edge', () => {
@@ -162,7 +230,17 @@ describe('resolveDimAnchor', () => {
   });
 
   it('returns null for point-on on an unsupported entity type', () => {
-    const text = { ...base, id: 'T', type: 'text', x: 0, y: 0, content: 'a', fontSize: 10, fontFamily: 'Arial', angle: 0 } as Entity;
+    const text = {
+      ...base,
+      id: 'T',
+      type: 'text',
+      x: 0,
+      y: 0,
+      content: 'a',
+      fontSize: 10,
+      fontFamily: 'Arial',
+      angle: 0,
+    } as Entity;
     expect(resolveDimAnchor({ entityId: 'T', kind: 'point-on' }, text)).toBeNull();
   });
 
@@ -175,7 +253,10 @@ describe('resolveDimAnchor', () => {
   });
 
   it('resolves endpoints for a rect', () => {
-    expect(resolveDimAnchor({ entityId: 'R', kind: 'endpoint', index: 2 }, rect)).toEqual({ x: 10, y: 10 });
+    expect(resolveDimAnchor({ entityId: 'R', kind: 'endpoint', index: 2 }, rect)).toEqual({
+      x: 10,
+      y: 10,
+    });
   });
 
   it('resolves endpoints for an arc', () => {
@@ -186,13 +267,33 @@ describe('resolveDimAnchor', () => {
 
   it('resolves a midpoint on a polyline', () => {
     // polyline P: (0,0)-(10,0)-(10,10); midpoint of segment 1 = (10,5)
-    expect(resolveDimAnchor({ entityId: 'P', kind: 'midpoint', index: 1 }, poly)).toEqual({ x: 10, y: 5 });
+    expect(resolveDimAnchor({ entityId: 'P', kind: 'midpoint', index: 1 }, poly)).toEqual({
+      x: 10,
+      y: 5,
+    });
   });
 
   it('resolves center for 3D primitives (cylinder/sphere/box)', () => {
-    const cyl: Entity = { ...base, id: 'CY', type: 'cylinder3d', cx: 3, cy: 4, radius: 2, height: 5 } as Entity;
+    const cyl: Entity = {
+      ...base,
+      id: 'CY',
+      type: 'cylinder3d',
+      cx: 3,
+      cy: 4,
+      radius: 2,
+      height: 5,
+    } as Entity;
     const sph: Entity = { ...base, id: 'SP', type: 'sphere3d', cx: 7, cy: 8, radius: 2 } as Entity;
-    const box: Entity = { ...base, id: 'BX', type: 'box3d', cx: 1, cy: 2, width: 4, depth: 6, height: 3 } as Entity;
+    const box: Entity = {
+      ...base,
+      id: 'BX',
+      type: 'box3d',
+      cx: 1,
+      cy: 2,
+      width: 4,
+      depth: 6,
+      height: 3,
+    } as Entity;
     expect(resolveDimAnchor({ entityId: 'CY', kind: 'center' }, cyl)).toEqual({ x: 3, y: 4 });
     expect(resolveDimAnchor({ entityId: 'SP', kind: 'center' }, sph)).toEqual({ x: 7, y: 8 });
     expect(resolveDimAnchor({ entityId: 'BX', kind: 'center' }, box)).toEqual({ x: 1, y: 2 });
@@ -201,7 +302,17 @@ describe('resolveDimAnchor', () => {
 
 describe('makeDimAnchor — unsupported outline types', () => {
   it('ignores entities with no closest-point support (text)', () => {
-    const text: Entity = { ...base, id: 'T', type: 'text', x: 0, y: 0, content: 'hi', fontSize: 10, fontFamily: 'Arial', angle: 0 } as Entity;
+    const text: Entity = {
+      ...base,
+      id: 'T',
+      type: 'text',
+      x: 0,
+      y: 0,
+      content: 'hi',
+      fontSize: 10,
+      fontFamily: 'Arial',
+      angle: 0,
+    } as Entity;
     // Only a text entity nearby → closestPointOn returns null → overall null.
     expect(makeDimAnchor({ x: 0, y: 0 }, [text], 5)).toBeNull();
   });
@@ -213,9 +324,18 @@ describe('makeDimAnchor — unsupported outline types', () => {
   });
 
   it('snap endpoint on an empty polyline yields no endpoint anchor, falls through', () => {
-    const emptyPoly: Entity = { ...base, id: 'EP', type: 'polyline', closed: false, points: [] } as Entity;
+    const emptyPoly: Entity = {
+      ...base,
+      id: 'EP',
+      type: 'polyline',
+      closed: false,
+      points: [],
+    } as Entity;
     // endpoints([]) → [] → nearestIndex returns -1 → no endpoint anchor; nothing else near.
-    const a = makeDimAnchor({ x: 100, y: 100 }, [emptyPoly], 1, { entityId: 'EP', mode: 'endpoint' });
+    const a = makeDimAnchor({ x: 100, y: 100 }, [emptyPoly], 1, {
+      entityId: 'EP',
+      mode: 'endpoint',
+    });
     expect(a).toBeNull();
   });
 

@@ -57,7 +57,9 @@ describe('na urządzeniu z myszą', () => {
 
   it('kliknięcie przenosi od razu', () => {
     const przejdz = vi.fn();
-    render(<ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={przejdz} />);
+    render(
+      <ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={przejdz} />
+    );
 
     fireEvent.click(screen.getByText('Częstością'));
     expect(przejdz).toHaveBeenCalledWith('rh1-poj-czestosc');
@@ -70,7 +72,9 @@ describe('na dotyku', () => {
   it('tapnięcie pokazuje dymek i NIE przenosi', () => {
     // Sedno usterki: dotąd tap przenosił, zanim dało się cokolwiek przeczytać.
     const przejdz = vi.fn();
-    render(<ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={przejdz} />);
+    render(
+      <ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={przejdz} />
+    );
 
     fireEvent.click(screen.getByText('Częstością'));
     expect(screen.getByText(/Liczba drgań/)).toBeTruthy();
@@ -79,7 +83,9 @@ describe('na dotyku', () => {
 
   it('przejście jest przyciskiem w dymku', () => {
     const przejdz = vi.fn();
-    render(<ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={przejdz} />);
+    render(
+      <ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={przejdz} />
+    );
 
     fireEvent.click(screen.getByText('Częstością'));
     fireEvent.click(screen.getByRole('button', { name: /otwórz/i }));
@@ -100,7 +106,7 @@ describe('na dotyku', () => {
       <div>
         <ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} />
         <p>gdzie indziej</p>
-      </div>,
+      </div>
     );
     fireEvent.click(screen.getByText('Częstością'));
     expect(screen.getByText(/Liczba drgań/)).toBeTruthy();
@@ -132,13 +138,18 @@ describe('cel, którego nie ma', () => {
 });
 
 describe('dojazd kursorem do dymka', () => {
-  beforeEach(() => { ustawHover(true); vi.useFakeTimers(); });
+  beforeEach(() => {
+    ustawHover(true);
+    vi.useFakeTimers();
+  });
   afterEach(() => vi.useRealTimers());
 
   it('dymek nie znika w chwili zjechania z odsyłacza', () => {
     // Między słowem a dymkiem jest odstęp; kursor po drodze opuszcza kotwicę.
     // Natychmiastowe zamknięcie sprawiało, że nie dało się kliknąć „otwórz".
-    render(<ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={vi.fn()} />);
+    render(
+      <ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={vi.fn()} />
+    );
 
     fireEvent.mouseEnter(screen.getByText('Częstością'));
     fireEvent.mouseLeave(screen.getByText('Częstością'));
@@ -147,18 +158,24 @@ describe('dojazd kursorem do dymka', () => {
   });
 
   it('wejście kursorem w dymek anuluje zamknięcie', () => {
-    render(<ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={vi.fn()} />);
+    render(
+      <ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={vi.fn()} />
+    );
     fireEvent.mouseEnter(screen.getByText('Częstością'));
     fireEvent.mouseLeave(screen.getByText('Częstością'));
     fireEvent.mouseEnter(screen.getByRole('dialog'));
 
-    act(() => { vi.advanceTimersByTime(2000); });
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
 
   it('da się kliknąć „otwórz" po przejechaniu do dymka', () => {
     const przejdz = vi.fn();
-    render(<ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={przejdz} />);
+    render(
+      <ReferenceLink id="rh1-poj-czestosc" label="Częstością" target={CEL} onNavigate={przejdz} />
+    );
 
     fireEvent.mouseEnter(screen.getByText('Częstością'));
     fireEvent.mouseLeave(screen.getByText('Częstością'));
@@ -176,7 +193,9 @@ describe('dojazd kursorem do dymka', () => {
 
     // Upływ czasu w `act`, bo zamknięcie idzie z timera — bez tego React nie
     // przetworzy aktualizacji stanu.
-    act(() => { vi.advanceTimersByTime(500); });
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
@@ -194,7 +213,13 @@ describe('duży cel nie wychodzi poza ekran', () => {
   });
 
   it('obraz w podglądzie jest przycięty do rozsądnej wysokości', () => {
-    render(<ReferenceLink id="r" label="rys" target={{ kind: 'figure', code: RYSUNEK, sameDocument: true }} />);
+    render(
+      <ReferenceLink
+        id="r"
+        label="rys"
+        target={{ kind: 'figure', code: RYSUNEK, sameDocument: true }}
+      />
+    );
     fireEvent.mouseEnter(screen.getByText('rys'));
 
     const img = screen.getByRole('img');

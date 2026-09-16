@@ -42,7 +42,14 @@
  * osobnej ścieżki: jakobian liczony z rozszerzonego stanu **sam** zawiera
  * kolumnę ∂f/∂t.
  */
-import { Trajectory, hermiteInterpolant, type Derivative, type Interpolant, type Sample, type State } from './trajectory';
+import {
+  Trajectory,
+  hermiteInterpolant,
+  type Derivative,
+  type Interpolant,
+  type Sample,
+  type State,
+} from './trajectory';
 import { solveLinear } from './linsolve';
 import { IntegrationError, type AdaptiveOptions } from './dopri5';
 
@@ -66,9 +73,18 @@ const GAMMA = 0.5;
  * obliczeń, tylko po cichu obniża rząd — a tego nie widać w żadnym pojedynczym
  * wyniku.
  */
-const A31 = 2, A41 = 2, A43 = 1;
-const C21 = 4, C31 = 1, C32 = -1, C41 = 1, C42 = -1, C43 = -8 / 3;
-const M1 = 2, M3 = 1, M4 = 1;
+const A31 = 2,
+  A41 = 2,
+  A43 = 1;
+const C21 = 4,
+  C31 = 1,
+  C32 = -1,
+  C41 = 1,
+  C42 = -1,
+  C43 = -8 / 3;
+const M1 = 2,
+  M3 = 1,
+  M4 = 1;
 
 const SAFETY = 0.9;
 const MIN_FACTOR = 0.2;
@@ -123,7 +139,7 @@ export function rosenbrock(
   f: Derivative,
   y0: State,
   tSpan: [number, number],
-  options: RosenbrockOptions = {},
+  options: RosenbrockOptions = {}
 ): Trajectory {
   const { rtol = 1e-6, atol = 1e-9, maxSteps = 1_000_000, dense = true, onStep } = options;
 
@@ -152,14 +168,14 @@ export function rosenbrock(
     steps += 1;
     if (steps > maxSteps) {
       throw new IntegrationError(
-        `Przekroczono limit ${maxSteps} kroków metody niejawnej na przedziale [${t0}, ${tEnd}] `
-        + `(doszedłem do t = ${t.toPrecision(4)}). Skoro nie pomogła nawet metoda bez ograniczenia `
-        + 'stabilnościowego, problem leży w samym rozwiązaniu — sprawdź, czy nie ma osobliwości.',
+        `Przekroczono limit ${maxSteps} kroków metody niejawnej na przedziale [${t0}, ${tEnd}] ` +
+          `(doszedłem do t = ${t.toPrecision(4)}). Skoro nie pomogła nawet metoda bez ograniczenia ` +
+          'stabilnościowego, problem leży w samym rozwiązaniu — sprawdź, czy nie ma osobliwości.'
       );
     }
     if (h < minStep) {
       throw new IntegrationError(
-        `Krok metody niejawnej zszedł poniżej ${minStep.toPrecision(3)} przy t = ${t.toPrecision(4)}.`,
+        `Krok metody niejawnej zszedł poniżej ${minStep.toPrecision(3)} przy t = ${t.toPrecision(4)}.`
       );
     }
 
@@ -179,23 +195,27 @@ export function rosenbrock(
      */
     const J = options.jacobian
       ? (() => {
-        const podany = options.jacobian!(t, y);
-        const dt = Math.max(Math.abs(t), 1e-8) * 1.49e-8;
-        const fShift = f(t + dt, y);
-        return [
-          ...podany.map((row, i) => [...row, (fShift[i] - f0[i]) / dt]),
-          new Array<number>(n + 1).fill(0),
-        ];
-      })()
+          const podany = options.jacobian!(t, y);
+          const dt = Math.max(Math.abs(t), 1e-8) * 1.49e-8;
+          const fShift = f(t + dt, y);
+          return [
+            ...podany.map((row, i) => [...row, (fShift[i] - f0[i]) / dt]),
+            new Array<number>(n + 1).fill(0),
+          ];
+        })()
       : numericJacobian(F, Y, F0);
 
     // Macierz układu: I − γhJ. Ta sama dla obu stopni, więc rozkład można by
     // policzyć raz — przy rozmiarach modeli z dokumentu nie ma to znaczenia,
     // a osobne wywołania czytają się jaśniej.
-    const W: number[][] = Array.from({ length: n + 1 }, (_, i) => Array.from({ length: n + 1 },
-      (_unused, j) => (i === j ? 1 : 0) - GAMMA * h * J[i][j]));
+    const W: number[][] = Array.from({ length: n + 1 }, (_, i) =>
+      Array.from({ length: n + 1 }, (_unused, j) => (i === j ? 1 : 0) - GAMMA * h * J[i][j])
+    );
 
-    const k1 = solveLinear(W, F0.map((v) => GAMMA * h * v));
+    const k1 = solveLinear(
+      W,
+      F0.map((v) => GAMMA * h * v)
+    );
     if (!k1) {
       // Macierz osobliwa: krótszy krok zwykle ją poprawia, bo `I` zaczyna
       // dominować nad `γhJ`.
@@ -205,18 +225,36 @@ export function rosenbrock(
 
     // Drugi stopień liczy prawą stronę w tym samym punkcie co pierwszy (a₂ⱼ = 0);
     // cała jego treść siedzi w członie z k₁.
-    const k2 = solveLinear(W, F0.map((v, i) => GAMMA * (h * v + C21 * k1[i])));
-    if (!k2) { h *= MIN_FACTOR; continue; }
+    const k2 = solveLinear(
+      W,
+      F0.map((v, i) => GAMMA * (h * v + C21 * k1[i]))
+    );
+    if (!k2) {
+      h *= MIN_FACTOR;
+      continue;
+    }
 
     const Y3 = Y.map((v, i) => v + A31 * k1[i]);
     const F3 = F(Y3);
-    const k3 = solveLinear(W, F3.map((v, i) => GAMMA * (h * v + C31 * k1[i] + C32 * k2[i])));
-    if (!k3) { h *= MIN_FACTOR; continue; }
+    const k3 = solveLinear(
+      W,
+      F3.map((v, i) => GAMMA * (h * v + C31 * k1[i] + C32 * k2[i]))
+    );
+    if (!k3) {
+      h *= MIN_FACTOR;
+      continue;
+    }
 
     const Y4 = Y.map((v, i) => v + A41 * k1[i] + A43 * k3[i]);
     const F4 = F(Y4);
-    const k4 = solveLinear(W, F4.map((v, i) => GAMMA * (h * v + C41 * k1[i] + C42 * k2[i] + C43 * k3[i])));
-    if (!k4) { h *= MIN_FACTOR; continue; }
+    const k4 = solveLinear(
+      W,
+      F4.map((v, i) => GAMMA * (h * v + C41 * k1[i] + C42 * k2[i] + C43 * k3[i]))
+    );
+    if (!k4) {
+      h *= MIN_FACTOR;
+      continue;
+    }
 
     const yNext = y.map((v, i) => v + M1 * k1[i] + M3 * k3[i] + M4 * k4[i]);
 
@@ -249,9 +287,9 @@ export function rosenbrock(
      */
     const factor = !Number.isFinite(err)
       ? MIN_FACTOR
-      : (err === 0
+      : err === 0
         ? MAX_FACTOR
-        : Math.min(MAX_FACTOR, Math.max(MIN_FACTOR, SAFETY * err ** (-1 / 3))));
+        : Math.min(MAX_FACTOR, Math.max(MIN_FACTOR, SAFETY * err ** (-1 / 3)));
 
     if (!dobry) {
       h = Math.max(minStep / 2, h * Math.min(1, factor));

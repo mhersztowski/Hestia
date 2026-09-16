@@ -10,8 +10,12 @@
  * piksela i użyć zarówno w SVG, jak i przy eksporcie.
  */
 import {
-  isBlock, participantsInSteps,
-  type SequenceBlockKind, type SequenceScript, type SequenceStep, type StepPath,
+  isBlock,
+  participantsInSteps,
+  type SequenceBlockKind,
+  type SequenceScript,
+  type SequenceStep,
+  type StepPath,
 } from './sequence';
 
 export interface SequenceLayoutOptions {
@@ -128,14 +132,17 @@ const BLOCK_NEST = 12;
 export function shouldPinHeads(
   layout: Pick<SequenceLayout, 'headHeight' | 'footerY'>,
   scrollTop: number,
-  viewportHeight: number,
+  viewportHeight: number
 ): boolean {
   const topVisible = scrollTop < layout.headHeight;
   const footerVisible = scrollTop + viewportHeight > layout.footerY;
   return !topVisible && !footerVisible;
 }
 
-export function layoutSequence(script: SequenceScript, options: SequenceLayoutOptions = {}): SequenceLayout {
+export function layoutSequence(
+  script: SequenceScript,
+  options: SequenceLayoutOptions = {}
+): SequenceLayout {
   const { columnGap = 160, rowGap = 44, headWidth = 120 } = options;
 
   const participants: LaidOutParticipant[] = script.participants.map((p, index) => ({
@@ -198,8 +205,14 @@ export function layoutSequence(script: SequenceScript, options: SequenceLayoutOp
         return;
       }
 
-      if (step.kind === 'activate') { openActivation(step.participant, y); return; }
-      if (step.kind === 'deactivate') { closeActivation(step.participant, y); return; }
+      if (step.kind === 'activate') {
+        openActivation(step.participant, y);
+        return;
+      }
+      if (step.kind === 'deactivate') {
+        closeActivation(step.participant, y);
+        return;
+      }
 
       if (step.kind === 'create') {
         // Pudełko powstaje w tym miejscu, więc kolejny krok musi zaczynać się
@@ -224,10 +237,14 @@ export function layoutSequence(script: SequenceScript, options: SequenceLayoutOp
         // sugerowała, że notatka dotyczy także sąsiadów.
         const spanning = step.placement === 'over' && xs.length > 1;
         const width = spanning ? right - left + NOTE_PAD * 2 : NOTE_WIDTH;
-        const x = step.placement === 'left of' ? Math.max(left - width - 12, 0)
-          : step.placement === 'right of' ? left + 12
-            : spanning ? Math.max(left - NOTE_PAD, 0)
-              : left - NOTE_WIDTH / 2;
+        const x =
+          step.placement === 'left of'
+            ? Math.max(left - width - 12, 0)
+            : step.placement === 'right of'
+              ? left + 12
+              : spanning
+                ? Math.max(left - NOTE_PAD, 0)
+                : left - NOTE_WIDTH / 2;
         notes.push({ path: stepPath, x, y: y - 14, width, text: step.text });
         y += rowGap;
         return;

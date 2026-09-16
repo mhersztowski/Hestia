@@ -4,19 +4,35 @@ import { buildIndex, resolveReference } from '@hestia/core-sci';
 import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
-const pliki = ['2-4-mnozenie.md', '2-1-wektory.md', '2-2-dodawanie.md', '2-3-skladowe.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [
+  '2-4-mnozenie.md',
+  '2-1-wektory.md',
+  '2-2-dodawanie.md',
+  '2-3-skladowe.md',
+  'Slownik.md',
+].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
-  const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, '2-4-mnozenie.md');
+  const cel = resolveReference(
+    id,
+    { anchors: index.anchors, formulaHome: index.formulaHome },
+    '2-4-mnozenie.md'
+  );
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies['2-4-mnozenie.md']} path="2-4-mnozenie.md" resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(
+    <ReaderView
+      markdown={bodies['2-4-mnozenie.md']}
+      path="2-4-mnozenie.md"
+      resolveRef={resolveRef}
+    />
+  );
 const dokument = () => index.documents.find((d) => d.path === '2-4-mnozenie.md');
 
 describe('2-4 w czytniku', () => {
@@ -45,7 +61,11 @@ describe('2-4 w czytniku', () => {
   it('trzy rysunki, w tym trzypanelowy 2-12', () => {
     const { container } = widok();
     expect(container.querySelectorAll('img')).toHaveLength(3);
-    expect(dokument()?.figures.find((f) => f.id === 'rh1-2-rys12')?.panels).toEqual(['a', 'b', 'c']);
+    expect(dokument()?.figures.find((f) => f.id === 'rh1-2-rys12')?.panels).toEqual([
+      'a',
+      'b',
+      'c',
+    ]);
   });
 
   it('trzy przypisy jako cytaty blokowe', () => {
@@ -58,11 +78,15 @@ describe('2-4 w czytniku', () => {
   });
 
   it('cztery nowe hasła; trzy z odsyłaczem z tekstu', () => {
-    for (const id of ['rh1-poj-iloczyn-skalarny', 'rh1-poj-iloczyn-wektorowy',
-      'rh1-poj-tensor', 'rh1-poj-mnozenie-wektorow']) {
+    for (const id of [
+      'rh1-poj-iloczyn-skalarny',
+      'rh1-poj-iloczyn-wektorowy',
+      'rh1-poj-tensor',
+      'rh1-poj-mnozenie-wektorow',
+    ]) {
       expect(index.anchors.get(id)?.kind, id).toBe('term');
     }
-    expect((bodies['2-4-mnozenie.md'].match(/\(\(rh1-poj-/g) ?? [])).toHaveLength(3);
+    expect(bodies['2-4-mnozenie.md'].match(/\(\(rh1-poj-/g) ?? []).toHaveLength(3);
   });
 
   it('2-3 dostało brakujący koniec: rysunek 2-10', () => {

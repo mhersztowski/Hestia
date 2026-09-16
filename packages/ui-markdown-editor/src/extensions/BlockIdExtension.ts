@@ -2,7 +2,15 @@ import { Extension } from '@tiptap/core';
 import { Plugin } from '@tiptap/pm/state';
 
 // Types that get blockId via addGlobalAttributes (standard Tiptap nodes without own blockId attr)
-const STANDARD_BLOCK_TYPES = ['heading', 'paragraph', 'blockquote', 'bulletList', 'orderedList', 'codeBlock', 'table'];
+const STANDARD_BLOCK_TYPES = [
+  'heading',
+  'paragraph',
+  'blockquote',
+  'bulletList',
+  'orderedList',
+  'codeBlock',
+  'table',
+];
 
 // Additional custom node types that manage their own blockId attr but still need auto-UUID assignment
 const CUSTOM_BLOCK_TYPES = ['rawMarkdownBlock', 'tableView'];
@@ -32,7 +40,7 @@ export const BlockIdExtension = Extension.create({
           blockId: {
             default: null,
             parseHTML: (el) => el.getAttribute('data-block-id') || null,
-            renderHTML: (attrs) => attrs.blockId ? { 'data-block-id': attrs.blockId } : {},
+            renderHTML: (attrs) => (attrs.blockId ? { 'data-block-id': attrs.blockId } : {}),
           },
         },
       },

@@ -20,8 +20,12 @@ export class MinisLocalizationNode extends NodeBase<MinisLocalizationModel> {
     this.device = model.device;
   }
 
-  static fromModel(model: MinisLocalizationModel): MinisLocalizationNode { return new MinisLocalizationNode(model); }
-  static fromModels(models: MinisLocalizationModel[]): MinisLocalizationNode[] { return models.map(m => new MinisLocalizationNode(m)); }
+  static fromModel(model: MinisLocalizationModel): MinisLocalizationNode {
+    return new MinisLocalizationNode(model);
+  }
+  static fromModels(models: MinisLocalizationModel[]): MinisLocalizationNode[] {
+    return models.map((m) => new MinisLocalizationNode(m));
+  }
 
   getDisplayName(): string {
     return this.name;

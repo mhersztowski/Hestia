@@ -60,7 +60,9 @@ describe('EventNode', () => {
       expect(new EventNode(make()).getDurationFormatted()).toBeNull();
     });
     it('formats sub-hour durations', () => {
-      const e = new EventNode(make({ startTime: '2024-01-15T10:00:00', endTime: '2024-01-15T10:45:00' }));
+      const e = new EventNode(
+        make({ startTime: '2024-01-15T10:00:00', endTime: '2024-01-15T10:45:00' })
+      );
       expect(e.getDurationFormatted()).toBe('45m');
     });
     it('hasEndTime reflects end time', () => {
@@ -109,7 +111,9 @@ describe('EventNode', () => {
       expect(e.getDateTimeFormatted()).toBe('2024-01-15 10:30');
     });
     it('getRelativeTime returns a string', () => {
-      const e = new EventNode(make({ startTime: dayjs().add(2, 'hour').format('YYYY-MM-DDTHH:mm:ss') }));
+      const e = new EventNode(
+        make({ startTime: dayjs().add(2, 'hour').format('YYYY-MM-DDTHH:mm:ss') })
+      );
       expect(e.getRelativeTime()).toContain('in');
     });
   });
@@ -155,24 +159,32 @@ describe('EventNode', () => {
      * compared by absolute date, beat everything freshly added, so a new entry
      * landed at the end of the list whatever the hour.
      */
-    it('sortByTimeOn orders one day\'s occurrences by time of day', () => {
-      const repeating = new EventNode(make({
-        name: 'Repeating 14:00',
-        startTime: '2024-01-15T14:00:00',
-        endTime: '2024-01-15T15:00:00',
-        recurrence: { freq: 'daily' },
-      }));
-      const fresh = new EventNode(make({
-        name: 'Fresh 08:00',
-        startTime: '2024-03-20T08:00:00',
-        endTime: '2024-03-20T09:00:00',
-      }));
+    it("sortByTimeOn orders one day's occurrences by time of day", () => {
+      const repeating = new EventNode(
+        make({
+          name: 'Repeating 14:00',
+          startTime: '2024-01-15T14:00:00',
+          endTime: '2024-01-15T15:00:00',
+          recurrence: { freq: 'daily' },
+        })
+      );
+      const fresh = new EventNode(
+        make({
+          name: 'Fresh 08:00',
+          startTime: '2024-03-20T08:00:00',
+          endTime: '2024-03-20T09:00:00',
+        })
+      );
 
       const day = dayjs('2024-03-20T00:00:00');
-      expect(EventNode.sortByTime([repeating, fresh]).map((e) => e.name))
-        .toEqual(['Repeating 14:00', 'Fresh 08:00']);
-      expect(EventNode.sortByTimeOn([repeating, fresh], day).map((e) => e.name))
-        .toEqual(['Fresh 08:00', 'Repeating 14:00']);
+      expect(EventNode.sortByTime([repeating, fresh]).map((e) => e.name)).toEqual([
+        'Repeating 14:00',
+        'Fresh 08:00',
+      ]);
+      expect(EventNode.sortByTimeOn([repeating, fresh], day).map((e) => e.name)).toEqual([
+        'Fresh 08:00',
+        'Repeating 14:00',
+      ]);
     });
 
     it('sortByTimeOn leaves entries with an unreadable start date at the end', () => {

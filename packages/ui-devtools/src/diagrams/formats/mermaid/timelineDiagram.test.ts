@@ -23,26 +23,32 @@ describe('timeline: okresy i wydarzenia', () => {
   });
 
   it('linia zaczynająca się od dwukropka dokłada wydarzenia do poprzedniego okresu', () => {
-    const t = timelineOf(['timeline', '    2021 : Koronawirus', '         : Zoom', '         : Teams'].join('\n'));
+    const t = timelineOf(
+      ['timeline', '    2021 : Koronawirus', '         : Zoom', '         : Teams'].join('\n')
+    );
     expect(t.sections[0].periods).toHaveLength(1);
     expect(t.sections[0].periods[0].events).toEqual(['Koronawirus', 'Zoom', 'Teams']);
   });
 
   it('czyta tytuł', () => {
-    expect(timelineOf(['timeline', '    title Dzieje sieci', '    2002 : LinkedIn'].join('\n')).title).toBe('Dzieje sieci');
+    expect(
+      timelineOf(['timeline', '    title Dzieje sieci', '    2002 : LinkedIn'].join('\n')).title
+    ).toBe('Dzieje sieci');
   });
 });
 
 describe('timeline: sekcje', () => {
   it('grupuje okresy', () => {
-    const t = timelineOf([
-      'timeline',
-      '    section Początki',
-      '        2002 : LinkedIn',
-      '        2004 : Facebook',
-      '    section Rozkwit',
-      '        2005 : YouTube',
-    ].join('\n'));
+    const t = timelineOf(
+      [
+        'timeline',
+        '    section Początki',
+        '        2002 : LinkedIn',
+        '        2004 : Facebook',
+        '    section Rozkwit',
+        '        2005 : YouTube',
+      ].join('\n')
+    );
 
     expect(t.sections.map((s) => s.label)).toEqual(['Początki', 'Rozkwit']);
     expect(t.sections[0].periods).toHaveLength(2);
@@ -50,13 +56,17 @@ describe('timeline: sekcje', () => {
   });
 
   it('okresy przed pierwszą sekcją trafiają do sekcji bez nazwy', () => {
-    const t = timelineOf(['timeline', '    2002 : LinkedIn', '    section Dalej', '        2005 : YouTube'].join('\n'));
+    const t = timelineOf(
+      ['timeline', '    2002 : LinkedIn', '    section Dalej', '        2005 : YouTube'].join('\n')
+    );
     expect(t.sections[0].label).toBeUndefined();
     expect(t.sections[0].periods[0].label).toBe('2002');
   });
 
   it('pusta sekcja zostaje', () => {
-    const t = timelineOf(['timeline', '    section Pusta', '    section Druga', '        2005 : YouTube'].join('\n'));
+    const t = timelineOf(
+      ['timeline', '    section Pusta', '    section Druga', '        2005 : YouTube'].join('\n')
+    );
     expect(t.sections.map((s) => s.label)).toEqual(['Pusta', 'Druga']);
     expect(t.sections[0].periods).toEqual([]);
   });
@@ -86,16 +96,21 @@ describe('timeline: zapis', () => {
   it('kontynuacja z osobnej linii wraca jako jeden wiersz', () => {
     // Model nie pamięta, w ilu liniach zapisano wydarzenia — a jeden wiersz
     // znaczy dokładnie to samo i czyta się prościej.
-    expect(roundTrip(['timeline', '    2021 : Koronawirus', '         : Zoom'].join('\n')))
-      .toBe(['timeline', '    2021 : Koronawirus : Zoom'].join('\n'));
+    expect(roundTrip(['timeline', '    2021 : Koronawirus', '         : Zoom'].join('\n'))).toBe(
+      ['timeline', '    2021 : Koronawirus : Zoom'].join('\n')
+    );
   });
 
   it('okres bez wydarzeń zapisuje samą etykietę', () => {
-    expect(roundTrip(['timeline', '    2002'].join('\n'))).toBe(['timeline', '    2002'].join('\n'));
+    expect(roundTrip(['timeline', '    2002'].join('\n'))).toBe(
+      ['timeline', '    2002'].join('\n')
+    );
   });
 
   it('sekcja bez nazwy nie zapisuje nagłówka section', () => {
-    const written = roundTrip(['timeline', '    2002 : A', '    section Dalej', '        2005 : B'].join('\n'));
+    const written = roundTrip(
+      ['timeline', '    2002 : A', '    section Dalej', '        2005 : B'].join('\n')
+    );
     expect(written.indexOf('2002 : A')).toBeLessThan(written.indexOf('section Dalej'));
     expect(written).not.toMatch(/^\s*section\s*$/m);
   });

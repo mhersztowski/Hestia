@@ -6,14 +6,25 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import {
-  groupChanges, statusLetter, statusColor, splitPath,
-  commitBlocker, syncLabel, toRepoRelative, workingContent, liczbaPlikow,
+  groupChanges,
+  statusLetter,
+  statusColor,
+  splitPath,
+  commitBlocker,
+  syncLabel,
+  toRepoRelative,
+  workingContent,
+  liczbaPlikow,
 } from './model';
 import type { GitChange } from './gitApi';
 
 const zmiana = (p: Partial<GitChange> & { path: string }): GitChange => ({
-  index: 'unmodified', workTree: 'unmodified',
-  staged: false, unstaged: false, conflicted: false, ...p,
+  index: 'unmodified',
+  workTree: 'unmodified',
+  staged: false,
+  unstaged: false,
+  conflicted: false,
+  ...p,
 });
 
 describe('sekcje listy', () => {
@@ -31,21 +42,31 @@ describe('sekcje listy', () => {
   // Jeden plik w dwóch stanach. Pokazanie go raz znaczyłoby, że użytkownik
   // commituje mniej, niż widzi.
   it('zmiana po obu stronach jest w dwóch sekcjach', () => {
-    const grupy = groupChanges([zmiana({
-      path: 'a.ts', index: 'modified', workTree: 'modified', staged: true, unstaged: true,
-    })]);
+    const grupy = groupChanges([
+      zmiana({
+        path: 'a.ts',
+        index: 'modified',
+        workTree: 'modified',
+        staged: true,
+        unstaged: true,
+      }),
+    ]);
     expect(grupy.staged).toHaveLength(1);
     expect(grupy.changes).toHaveLength(1);
   });
 
   it('nieśledzony ma własną sekcję, nie miesza się ze zmianami', () => {
-    const grupy = groupChanges([zmiana({ path: 'nowy.ts', index: 'untracked', workTree: 'untracked', unstaged: true })]);
+    const grupy = groupChanges([
+      zmiana({ path: 'nowy.ts', index: 'untracked', workTree: 'untracked', unstaged: true }),
+    ]);
     expect(grupy.untracked.map((z) => z.path)).toEqual(['nowy.ts']);
     expect(grupy.changes).toHaveLength(0);
   });
 
   it('konflikt wypada ze zwykłych sekcji', () => {
-    const grupy = groupChanges([zmiana({ path: 'sporny.ts', conflicted: true, index: 'conflicted', workTree: 'conflicted' })]);
+    const grupy = groupChanges([
+      zmiana({ path: 'sporny.ts', conflicted: true, index: 'conflicted', workTree: 'conflicted' }),
+    ]);
     expect(grupy.conflicts).toHaveLength(1);
     expect(grupy.staged.concat(grupy.changes, grupy.untracked)).toHaveLength(0);
   });
@@ -54,7 +75,13 @@ describe('sekcje listy', () => {
 describe('znaczniki', () => {
   it('sekcja decyduje, którą stronę pokazać', () => {
     // `AM` — dodany do indeksu, potem jeszcze zmieniony w katalogu roboczym.
-    const z = zmiana({ path: 'a.ts', index: 'added', workTree: 'modified', staged: true, unstaged: true });
+    const z = zmiana({
+      path: 'a.ts',
+      index: 'added',
+      workTree: 'modified',
+      staged: true,
+      unstaged: true,
+    });
     expect(statusLetter(z, 'staged')).toBe('A');
     expect(statusLetter(z, 'changes')).toBe('M');
   });
@@ -65,7 +92,9 @@ describe('znaczniki', () => {
   });
 
   it('kolory rozróżniają dodanie, usunięcie i zmianę nazwy', () => {
-    expect(new Set([statusColor('A'), statusColor('D'), statusColor('R'), statusColor('M')]).size).toBe(4);
+    expect(
+      new Set([statusColor('A'), statusColor('D'), statusColor('R'), statusColor('M')]).size
+    ).toBe(4);
   });
 
   it('nazwa i katalog rozdzielają się', () => {
@@ -197,7 +226,9 @@ describe('treść „po" dla widoku różnic', () => {
 describe('odmiana liczby plików', () => {
   // Potwierdzenia operacji nieodwracalnych trzeba zrozumieć w sekundę,
   // a „Usunąć 1 plików" każe czytać drugi raz.
-  it('jeden', () => { expect(liczbaPlikow(1)).toBe('1 plik'); });
+  it('jeden', () => {
+    expect(liczbaPlikow(1)).toBe('1 plik');
+  });
   it('dwa do czterech', () => {
     expect(liczbaPlikow(2)).toBe('2 pliki');
     expect(liczbaPlikow(4)).toBe('4 pliki');

@@ -28,7 +28,10 @@ describe('PrefabStore.create', () => {
   });
 
   it('honors version and author options (trimmed)', () => {
-    const entry = PrefabStore.create('P', new MeshNode(), { version: ' 2.1.0 ', author: '  Jane  ' });
+    const entry = PrefabStore.create('P', new MeshNode(), {
+      version: ' 2.1.0 ',
+      author: '  Jane  ',
+    });
     expect(entry.version).toBe('2.1.0');
     expect(entry.author).toBe('Jane');
   });
@@ -77,7 +80,10 @@ describe('PrefabStore.instantiate', () => {
   });
 
   it('produces a MeshNode instance for mesh prefabs', () => {
-    const entry = PrefabStore.create('P', new MeshNode({ id: 'm', geometry: { type: 'sphere', params: { radius: 2 } } }));
+    const entry = PrefabStore.create(
+      'P',
+      new MeshNode({ id: 'm', geometry: { type: 'sphere', params: { radius: 2 } } })
+    );
     const instance = PrefabStore.instantiate(entry);
     expect(instance).toBeInstanceOf(MeshNode);
     expect((instance as MeshNode).geometry.type).toBe('sphere');

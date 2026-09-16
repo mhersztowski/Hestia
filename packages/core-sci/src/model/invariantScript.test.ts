@@ -11,16 +11,22 @@ import { defineModel } from './defineModel';
 import { euler, verlet } from '../numeric/solvers';
 
 /** Oscylator liczony wprost, bez grafu — dokładnie tak pisze się `simscript`. */
-const model = (metoda: 'euler' | 'verlet') => defineModel({
-  parameters: [{ name: 'k', value: 1 }, { name: 'm', value: 1 }, { name: 'A', value: 1 }],
-  observables: [{ name: 'x' }, { name: 'v' }],
-  invariants: [{ name: 'E', of: ([x, v]) => 0.5 * (v * v + x * x) }],
-  run: ({ A }, tSpan, dt) => ({
-    trajectory: metoda === 'euler'
-      ? euler((_t, [x, v]) => [v, -x], [A, 0], tSpan, { dt, stateNames: ['x', 'v'] })
-      : verlet((_t, x) => x.map((xi) => -xi), [A], [0], tSpan, { dt, stateNames: ['x', 'v'] }),
-  }),
-});
+const model = (metoda: 'euler' | 'verlet') =>
+  defineModel({
+    parameters: [
+      { name: 'k', value: 1 },
+      { name: 'm', value: 1 },
+      { name: 'A', value: 1 },
+    ],
+    observables: [{ name: 'x' }, { name: 'v' }],
+    invariants: [{ name: 'E', of: ([x, v]) => 0.5 * (v * v + x * x) }],
+    run: ({ A }, tSpan, dt) => ({
+      trajectory:
+        metoda === 'euler'
+          ? euler((_t, [x, v]) => [v, -x], [A, 0], tSpan, { dt, stateNames: ['x', 'v'] })
+          : verlet((_t, x) => x.map((xi) => -xi), [A], [0], tSpan, { dt, stateNames: ['x', 'v'] }),
+    }),
+  });
 
 describe('deklaracja niezmiennika w modelu ręcznym', () => {
   it('mierzy go na trajektorii zwróconej przez skrypt', () => {

@@ -14,10 +14,14 @@ import { solveConstraint } from './constraint';
 
 export function solveLayout(doc: LayoutDoc): LayoutResult {
   switch (doc.mode) {
-    case 'anchor': return solveAnchor(doc);
-    case 'flow': return solveFlow(doc);
-    case 'constraint': return solveConstraint(doc);
-    default: return solveStatic(doc);
+    case 'anchor':
+      return solveAnchor(doc);
+    case 'flow':
+      return solveFlow(doc);
+    case 'constraint':
+      return solveConstraint(doc);
+    default:
+      return solveStatic(doc);
   }
 }
 

@@ -87,7 +87,7 @@ export interface ReadingStats {
 export function readingStats(
   progress: ProgressWithReading,
   documents: string[],
-  limit = 5,
+  limit = 5
 ): ReadingStats {
   const read = progress.read ?? {};
   const wBazie = documents.filter((path) => read[path]);

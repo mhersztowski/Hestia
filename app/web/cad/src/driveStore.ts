@@ -17,29 +17,29 @@ import type { DriveEntry, DriveStore } from '@hestia/ui-core';
 import { platform, PlatformError } from './platform';
 
 export function platformDrive(): DriveStore {
-    return {
-        startDir: '',
+  return {
+    startDir: '',
 
-        async list(dir: string): Promise<DriveEntry[]> {
-            let entries;
-            try {
-                entries = await platform.dir(dir);
-            } catch (e) {
-                // A directory that is not there yet is a normal state. An expired
-                // token is not: shown as an empty folder it would look like the
-                // files were gone.
-                if (e instanceof PlatformError && (e.status === 401 || e.status === 403)) throw e;
-                return [];
-            }
-            return entries.map((e) => ({ name: e.name, directory: e.type === 'directory' }));
-        },
+    async list(dir: string): Promise<DriveEntry[]> {
+      let entries;
+      try {
+        entries = await platform.dir(dir);
+      } catch (e) {
+        // A directory that is not there yet is a normal state. An expired
+        // token is not: shown as an empty folder it would look like the
+        // files were gone.
+        if (e instanceof PlatformError && (e.status === 401 || e.status === 403)) throw e;
+        return [];
+      }
+      return entries.map((e) => ({ name: e.name, directory: e.type === 'directory' }));
+    },
 
-        read: (path) => platform.read(path),
-        write: (path, content) => platform.write(path, content),
-        remove: (path) => platform.remove(path),
+    read: (path) => platform.read(path),
+    write: (path, content) => platform.write(path, content),
+    remove: (path) => platform.remove(path),
 
-        // No `readBytes`: the platform's VFS hands out text. Images and PDFs are
-        // listed and can be opened in a tab, but the panel does not draw them —
-        // better than a broken picture with no reason given.
-    };
+    // No `readBytes`: the platform's VFS hands out text. Images and PDFs are
+    // listed and can be opened in a tab, but the panel does not draw them —
+    // better than a broken picture with no reason given.
+  };
 }

@@ -23,8 +23,12 @@
  * ktoś go przeczyta.
  */
 import {
-  edgeId, emptyDiagram,
-  type ClassMember, type ClassRelationKind, type DiagramDocument, type DiagramNode,
+  edgeId,
+  emptyDiagram,
+  type ClassMember,
+  type ClassRelationKind,
+  type DiagramDocument,
+  type DiagramNode,
   type MemberVisibility,
 } from '../../model/diagram';
 import { setEdgeRelation } from '../../model/classRelations';
@@ -33,8 +37,13 @@ import { setEdgeRelation } from '../../model/classRelations';
 
 export type UmlKind = 'class' | 'abstract' | 'interface' | 'enum' | 'struct' | 'module';
 export type UmlRelType =
-  | 'association' | 'directed' | 'aggregation' | 'composition'
-  | 'generalization' | 'realization' | 'dependency';
+  | 'association'
+  | 'directed'
+  | 'aggregation'
+  | 'composition'
+  | 'generalization'
+  | 'realization'
+  | 'dependency';
 
 export interface UmlMemberLike {
   id: string;
@@ -134,10 +143,16 @@ const ODWRACANE: ReadonlySet<UmlRelType> = new Set<UmlRelType>(['generalization'
  */
 
 const ZNAK: Record<MemberVisibility, string> = {
-  public: '+', private: '-', protected: '#', package: '~',
+  public: '+',
+  private: '-',
+  protected: '#',
+  package: '~',
 };
 const WIDOCZNOSC: Record<string, MemberVisibility> = {
-  '+': 'public', '-': 'private', '#': 'protected', '~': 'package',
+  '+': 'public',
+  '-': 'private',
+  '#': 'protected',
+  '~': 'package',
 };
 
 /** Składowa z zapisu UML-owego (`+ nazwa(argumenty): typ`). */
@@ -146,12 +161,21 @@ export function parseUmlMember(text: string): ClassMember {
   const member: ClassMember = { raw: rest, kind: rest.includes('(') ? 'method' : 'field' };
 
   const visibility = WIDOCZNOSC[rest[0]];
-  if (visibility) { member.visibility = visibility; rest = rest.slice(1).trim(); }
-  if (rest.startsWith('static ')) { member.isStatic = true; rest = rest.slice(7).trim(); }
+  if (visibility) {
+    member.visibility = visibility;
+    rest = rest.slice(1).trim();
+  }
+  if (rest.startsWith('static ')) {
+    member.isStatic = true;
+    rest = rest.slice(7).trim();
+  }
   // `async` nie ma odpowiednika w notacji diagramu klas — zostaje w `raw`
   // i wraca przy zapisie z `category` poprzedniej wersji.
   if (rest.startsWith('async ')) rest = rest.slice(6).trim();
-  if (rest.startsWith('abstract ')) { member.isAbstract = true; rest = rest.slice(9).trim(); }
+  if (rest.startsWith('abstract ')) {
+    member.isAbstract = true;
+    rest = rest.slice(9).trim();
+  }
 
   const otwarcie = rest.indexOf('(');
   if (otwarcie >= 0) {
@@ -280,7 +304,7 @@ function nowyId(prefix: string): string {
  */
 export function documentToUmlDiagram(
   doc: DiagramDocument,
-  previous?: UmlDiagramLike,
+  previous?: UmlDiagramLike
 ): UmlDiagramLike {
   const poprzednieWezly = new Map((previous?.nodes ?? []).map((n) => [n.data.name, n]));
   const poprzednieKrawedzie = new Map((previous?.edges ?? []).map((e) => [e.id, e]));
@@ -315,7 +339,11 @@ export function documentToUmlDiagram(
             ...(stara?.category !== undefined ? { category: stara.category } : {}),
           };
         }),
-        ...(node.meta?.file ? { linkedFile: node.meta.file } : stary?.data.linkedFile ? { linkedFile: stary.data.linkedFile } : {}),
+        ...(node.meta?.file
+          ? { linkedFile: node.meta.file }
+          : stary?.data.linkedFile
+            ? { linkedFile: stary.data.linkedFile }
+            : {}),
         ...(stary?.data.doc !== undefined ? { doc: stary.data.doc } : {}),
       },
     };
@@ -333,15 +361,17 @@ export function documentToUmlDiagram(
     const staryId = edge.meta?.umlEdgeId;
     const stara = staryId ? poprzednieKrawedzie.get(staryId) : undefined;
 
-    return [{
-      id: stara?.id ?? nowyId('e'),
-      source: odwrocic ? to : from,
-      target: odwrocic ? from : to,
-      ...(stara?.sourceHandle ? { sourceHandle: stara.sourceHandle } : {}),
-      ...(stara?.targetHandle ? { targetHandle: stara.targetHandle } : {}),
-      type: 'uml',
-      data: { relType, ...(edge.label ? { label: edge.label } : {}) },
-    }];
+    return [
+      {
+        id: stara?.id ?? nowyId('e'),
+        source: odwrocic ? to : from,
+        target: odwrocic ? from : to,
+        ...(stara?.sourceHandle ? { sourceHandle: stara.sourceHandle } : {}),
+        ...(stara?.targetHandle ? { targetHandle: stara.targetHandle } : {}),
+        type: 'uml',
+        data: { relType, ...(edge.label ? { label: edge.label } : {}) },
+      },
+    ];
   });
 
   return {

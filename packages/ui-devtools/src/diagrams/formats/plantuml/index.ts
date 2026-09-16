@@ -18,8 +18,12 @@
  * (`{static}`, `{abstract}`).
  */
 import {
-  edgeId, emptyDiagram,
-  type ClassMember, type ClassRelationKind, type DiagramDocument, type DiagramNode,
+  edgeId,
+  emptyDiagram,
+  type ClassMember,
+  type ClassRelationKind,
+  type DiagramDocument,
+  type DiagramNode,
   type MemberVisibility,
 } from '../../model/diagram';
 import { setEdgeRelation } from '../../model/classRelations';
@@ -29,10 +33,12 @@ const START = /^\s*@startuml\b.*$/i;
 const END = /^\s*@enduml\s*$/i;
 
 /** `class Nazwa {`, `abstract class Nazwa`, `interface Nazwa`, `enum Nazwa` */
-const DECL = /^\s*(abstract\s+class|abstract|class|interface|enum|entity|struct)\s+("[^"]+"|[A-Za-z_][A-Za-z0-9_.]*)\s*(?:as\s+([A-Za-z_][A-Za-z0-9_]*)\s*)?(\{)?\s*$/i;
+const DECL =
+  /^\s*(abstract\s+class|abstract|class|interface|enum|entity|struct)\s+("[^"]+"|[A-Za-z_][A-Za-z0-9_.]*)\s*(?:as\s+([A-Za-z_][A-Za-z0-9_]*)\s*)?(\{)?\s*$/i;
 const BLOCK_CLOSE = /^\s*\}\s*$/;
 /** `package "Nazwa" {` albo `package Nazwa {` */
-const PACKAGE = /^\s*(package|namespace)\s+("[^"]+"|[A-Za-z_][A-Za-z0-9_.]*)\s*(?:<<[^>]*>>\s*)?\{\s*$/i;
+const PACKAGE =
+  /^\s*(package|namespace)\s+("[^"]+"|[A-Za-z_][A-Za-z0-9_.]*)\s*(?:<<[^>]*>>\s*)?\{\s*$/i;
 
 /**
  * Relacja: `A "1" <|-- "0..*" B : opis`.
@@ -41,22 +47,28 @@ const PACKAGE = /^\s*(package|namespace)\s+("[^"]+"|[A-Za-z_][A-Za-z0-9_.]*)\s*(
  * pojawić także w etykiecie — a ta zaczyna się dopiero za dwukropkiem.
  */
 const RELATION = new RegExp(
-  '^\\s*("[^"]+"|[A-Za-z_][A-Za-z0-9_.]*)\\s*'
-  + '(?:"([^"]*)"\\s*)?'
-  + '([<>|*o+#]{0,2}(?:\\.{2,}|-{2,}|-\\w+-)[<>|*o+#]{0,2})'
-  + '\\s*(?:"([^"]*)"\\s*)?'
-  + '("[^"]+"|[A-Za-z_][A-Za-z0-9_.]*)'
-  + '\\s*(?::\\s*(.*))?$',
+  '^\\s*("[^"]+"|[A-Za-z_][A-Za-z0-9_.]*)\\s*' +
+    '(?:"([^"]*)"\\s*)?' +
+    '([<>|*o+#]{0,2}(?:\\.{2,}|-{2,}|-\\w+-)[<>|*o+#]{0,2})' +
+    '\\s*(?:"([^"]*)"\\s*)?' +
+    '("[^"]+"|[A-Za-z_][A-Za-z0-9_.]*)' +
+    '\\s*(?::\\s*(.*))?$'
 );
 
 /** Składowa klasy: `+nazwa: Typ`, `-{static} licznik: int`, `+metoda(a: T): R`. */
 const MEMBER = /^\s*([+\-#~])?\s*((?:\{[a-z]+\}\s*)*)(.+?)\s*$/;
 
 const VISIBILITY: Record<string, MemberVisibility> = {
-  '+': 'public', '-': 'private', '#': 'protected', '~': 'package',
+  '+': 'public',
+  '-': 'private',
+  '#': 'protected',
+  '~': 'package',
 };
 const SIGN: Record<MemberVisibility, string> = {
-  public: '+', private: '-', protected: '#', package: '~',
+  public: '+',
+  private: '-',
+  protected: '#',
+  package: '~',
 };
 
 /**
@@ -109,7 +121,7 @@ export function parsePlantMember(raw: string): ClassMember {
   if (modyfikatory.includes('{static}')) member.isStatic = true;
   if (modyfikatory.includes('{abstract}')) member.isAbstract = true;
 
-  let rest = parts[3];
+  const rest = parts[3];
   const otwarcie = rest.indexOf('(');
   if (otwarcie >= 0) {
     const zamkniecie = rest.indexOf(')', otwarcie);
@@ -155,7 +167,9 @@ export function formatPlantMember(member: ClassMember): string {
  * dziedziczy po A", a `A --|> B` to samo z odwróconymi stronami. Model trzyma
  * nadklasę po stronie `from`, więc drugą postać normalizujemy.
  */
-export function parseRelationOperator(op: string): { kind: ClassRelationKind; swap: boolean } | undefined {
+export function parseRelationOperator(
+  op: string
+): { kind: ClassRelationKind; swap: boolean } | undefined {
   const dotted = op.includes('.');
   const lewy = /^[<*o+#|]{1,2}/.exec(op)?.[0] ?? '';
   const prawy = /[>*o+#|]{1,2}$/.exec(op)?.[0] ?? '';
@@ -196,10 +210,13 @@ export function parsePlantUml(text: string): ParseResult {
     doc.unknown = text.split('\n').map((line, index) => ({ index, text: line }));
     return {
       document: doc,
-      issues: [{
-        message: `Diagram ${nieobslugiwany} w PlantUML-u da się obejrzeć jako tekst, `
-          + 'ale nie ma jeszcze modelu w edytorze — obsługujemy diagram klas.',
-      }],
+      issues: [
+        {
+          message:
+            `Diagram ${nieobslugiwany} w PlantUML-u da się obejrzeć jako tekst, ` +
+            'ale nie ma jeszcze modelu w edytorze — obsługujemy diagram klas.',
+        },
+      ],
     };
   }
 
@@ -212,7 +229,10 @@ export function parsePlantUml(text: string): ParseResult {
     const istniejacy = doc.nodes.find((n) => n.id === id);
     if (istniejacy) return istniejacy;
     const node: DiagramNode = {
-      id, label: '', shape: 'rectangle', members: [],
+      id,
+      label: '',
+      shape: 'rectangle',
+      members: [],
       ...(stack.length ? { parentId: stack[stack.length - 1] } : {}),
     };
     doc.nodes.push(node);
@@ -226,7 +246,10 @@ export function parsePlantUml(text: string): ParseResult {
     if (trimmed.startsWith("'")) return; // komentarz PlantUML-a
 
     if (openClass) {
-      if (BLOCK_CLOSE.test(trimmed)) { openClass = undefined; return; }
+      if (BLOCK_CLOSE.test(trimmed)) {
+        openClass = undefined;
+        return;
+      }
       openClass.members = [...(openClass.members ?? []), parsePlantMember(trimmed)];
       return;
     }
@@ -236,14 +259,18 @@ export function parsePlantUml(text: string): ParseResult {
       packageCounter += 1;
       const id = `pkg${packageCounter}`;
       doc.groups.push({
-        id, label: unquote(pkg[2]),
+        id,
+        label: unquote(pkg[2]),
         ...(stack.length ? { parentId: stack[stack.length - 1] } : {}),
       });
       stack.push(id);
       return;
     }
 
-    if (BLOCK_CLOSE.test(trimmed)) { if (stack.length) stack.pop(); return; }
+    if (BLOCK_CLOSE.test(trimmed)) {
+      if (stack.length) stack.pop();
+      return;
+    }
 
     const decl = DECL.exec(trimmed);
     if (decl) {
@@ -278,7 +305,9 @@ export function parsePlantUml(text: string): ParseResult {
           arrow: 'none',
           ...(relation[6]?.trim() ? { label: relation[6].trim() } : {}),
           ...(krotnoscLewa ? { [rozbior.swap ? 'targetLabel' : 'sourceLabel']: krotnoscLewa } : {}),
-          ...(krotnoscPrawa ? { [rozbior.swap ? 'sourceLabel' : 'targetLabel']: krotnoscPrawa } : {}),
+          ...(krotnoscPrawa
+            ? { [rozbior.swap ? 'sourceLabel' : 'targetLabel']: krotnoscPrawa }
+            : {}),
         });
         Object.assign(doc, setEdgeRelation(doc, doc.edges[doc.edges.length - 1].id, rozbior.kind));
         return;
@@ -310,7 +339,10 @@ export function serializePlantUml(doc: DiagramDocument): string {
 
   const writeNode = (node: DiagramNode, indent: string) => {
     const members = node.members ?? [];
-    if (members.length === 0) { out.push(`${indent}${declaration(node)}`); return; }
+    if (members.length === 0) {
+      out.push(`${indent}${declaration(node)}`);
+      return;
+    }
     out.push(`${indent}${declaration(node)} {`);
     for (const member of members) out.push(`${indent}  ${formatPlantMember(member)}`);
     out.push(`${indent}}`);

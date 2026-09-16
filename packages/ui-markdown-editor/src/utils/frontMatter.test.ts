@@ -6,7 +6,12 @@
  * a `requires: [...]` nagłówkiem. Autosave zapisywał uszkodzoną wersję.
  */
 import { describe, it, expect } from 'vitest';
-import { splitFrontMatter, withFrontMatter, markdownToHtml, htmlToMarkdown } from './markdownConverter';
+import {
+  splitFrontMatter,
+  withFrontMatter,
+  markdownToHtml,
+  htmlToMarkdown,
+} from './markdownConverter';
 
 const DOKUMENT = [
   '---',

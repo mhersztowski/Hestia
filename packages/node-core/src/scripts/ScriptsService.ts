@@ -27,9 +27,10 @@ export class ScriptsService {
   }
 
   listScripts(): ScriptInfo[] {
-    return fs.readdirSync(this.scriptsDir)
-      .filter(f => SCRIPT_NAME_PATTERN.test(f))
-      .map(name => {
+    return fs
+      .readdirSync(this.scriptsDir)
+      .filter((f) => SCRIPT_NAME_PATTERN.test(f))
+      .map((name) => {
         const stat = fs.statSync(path.join(this.scriptsDir, name));
         return { name, size: stat.size, updatedAt: stat.mtime.toISOString() };
       });
@@ -54,7 +55,11 @@ export class ScriptsService {
     fs.unlinkSync(scriptPath);
   }
 
-  runScript(name: string, args: string[] = [], env: Record<string, string> = {}): Promise<RunResult> {
+  runScript(
+    name: string,
+    args: string[] = [],
+    env: Record<string, string> = {}
+  ): Promise<RunResult> {
     this.validateName(name);
     const scriptPath = path.join(this.scriptsDir, name);
     if (!fs.existsSync(scriptPath)) throw new Error(`Script not found: ${name}`);
@@ -73,11 +78,21 @@ export class ScriptsService {
       proc.stderr.on('data', (chunk: Buffer) => stderr.push(chunk.toString()));
 
       proc.on('close', (code) => {
-        resolve({ stdout: stdout.join(''), stderr: stderr.join(''), exitCode: code, duration: Date.now() - start });
+        resolve({
+          stdout: stdout.join(''),
+          stderr: stderr.join(''),
+          exitCode: code,
+          duration: Date.now() - start,
+        });
       });
 
       proc.on('error', (err) => {
-        resolve({ stdout: stdout.join(''), stderr: err.message, exitCode: -1, duration: Date.now() - start });
+        resolve({
+          stdout: stdout.join(''),
+          stderr: err.message,
+          exitCode: -1,
+          duration: Date.now() - start,
+        });
       });
     });
   }

@@ -55,7 +55,8 @@ export const githubFsProvider: VfsProviderDef = {
 export const writableGithubFsProvider: VfsProviderDef = {
   type: 'github-writable',
   label: 'GitHub (writable)',
-  description: 'GitHub repository with batched commits — changes staged locally, committed on demand',
+  description:
+    'GitHub repository with batched commits — changes staged locally, committed on demand',
   configFields: [
     { name: 'owner', label: 'Owner', required: true, placeholder: 'e.g. myorg' },
     { name: 'repo', label: 'Repository', required: true, placeholder: 'e.g. myrepo' },
@@ -90,7 +91,13 @@ export const remoteFsProvider: VfsProviderDef = {
   label: 'Remote Server',
   description: 'Server-side filesystem via REST API',
   configFields: [
-    { name: 'baseUrl', label: 'Base URL', required: true, placeholder: '/api/vfs', defaultValue: '/api/vfs' },
+    {
+      name: 'baseUrl',
+      label: 'Base URL',
+      required: true,
+      placeholder: '/api/vfs',
+      defaultValue: '/api/vfs',
+    },
     { name: 'token', label: 'Auth Token', type: 'password', placeholder: 'Bearer token' },
   ],
   factory: (config) =>

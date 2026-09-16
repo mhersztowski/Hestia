@@ -14,8 +14,17 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  applyM3, composeM3, detM3, eigenM3, identityM3, interpolateM3, inverseM3,
-  kernelBasis, rankM3, type Matrix3, type Vector3,
+  applyM3,
+  composeM3,
+  detM3,
+  eigenM3,
+  identityM3,
+  interpolateM3,
+  inverseM3,
+  kernelBasis,
+  rankM3,
+  type Matrix3,
+  type Vector3,
 } from './matrix3';
 
 /** Obrót wokół osi z o zadany kąt. */
@@ -25,11 +34,23 @@ const OBROT_Z = (kat: number): Matrix3 => [
   [0, 0, 1],
 ];
 
-const SKALOWANIE: Matrix3 = [[2, 0, 0], [0, 3, 0], [0, 0, 4]];
+const SKALOWANIE: Matrix3 = [
+  [2, 0, 0],
+  [0, 3, 0],
+  [0, 0, 4],
+];
 /** Rzut na płaszczyznę xy — traci jeden wymiar. */
-const RZUT_XY: Matrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, 0]];
+const RZUT_XY: Matrix3 = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 0],
+];
 /** Rzut na oś x — traci dwa wymiary. */
-const RZUT_X: Matrix3 = [[1, 0, 0], [0, 0, 0], [0, 0, 0]];
+const RZUT_X: Matrix3 = [
+  [1, 0, 0],
+  [0, 0, 0],
+  [0, 0, 0],
+];
 
 describe('operacje podstawowe', () => {
   it('macierz przekształca wektor', () => {
@@ -62,11 +83,21 @@ describe('wyznacznik i rząd', () => {
     expect(rankM3(SKALOWANIE)).toBe(3);
     expect(rankM3(RZUT_XY)).toBe(2);
     expect(rankM3(RZUT_X)).toBe(1);
-    expect(rankM3([[0, 0, 0], [0, 0, 0], [0, 0, 0]])).toBe(0);
+    expect(
+      rankM3([
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+      ])
+    ).toBe(0);
   });
 
   it('ujemny wyznacznik znaczy odwrócenie orientacji', () => {
-    const odbicie: Matrix3 = [[1, 0, 0], [0, 1, 0], [0, 0, -1]];
+    const odbicie: Matrix3 = [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, -1],
+    ];
     expect(detM3(odbicie)).toBeCloseTo(-1, 10);
   });
 });
@@ -97,7 +128,9 @@ describe('jądro — to, co ginie', () => {
 
 describe('wartości własne', () => {
   it('skalowanie ma trzy wartości własne wzdłuż osi', () => {
-    const wartosci = eigenM3(SKALOWANIE).pairs.map((p) => p.value).sort((a, b) => a - b);
+    const wartosci = eigenM3(SKALOWANIE)
+      .pairs.map((p) => p.value)
+      .sort((a, b) => a - b);
     expect(wartosci[0]).toBeCloseTo(2, 6);
     expect(wartosci[1]).toBeCloseTo(3, 6);
     expect(wartosci[2]).toBeCloseTo(4, 6);

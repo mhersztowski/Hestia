@@ -16,7 +16,12 @@
  */
 import { describe, it, expect } from 'vitest';
 import { mermaidFormat } from '@hestia/ui-devtools/diagrams';
-import { readCodeSource, writeCodeSource, describeDiff, type CodeSource } from './diagramCodeImport';
+import {
+  readCodeSource,
+  writeCodeSource,
+  describeDiff,
+  type CodeSource,
+} from './diagramCodeImport';
 
 const DIAGRAM = ['classDiagram', '  class Pies {', '    +glos() string', '  }'].join('\n');
 
@@ -96,7 +101,14 @@ describe('describeDiff', () => {
   it('liczy zmiany składowych, nie wypisując każdej z osobna', () => {
     // Odświeżenie po tygodniu pracy w kodzie dałoby setki linii — liczba mówi
     // to samo, a da się ją przeczytać.
-    const nowy = ['classDiagram', '  class A {', '    +x() int', '    +y() int', '  }', '  class B'].join('\n');
+    const nowy = [
+      'classDiagram',
+      '  class A {',
+      '    +x() int',
+      '    +y() int',
+      '  }',
+      '  class B',
+    ].join('\n');
     expect(describeDiff(dokument(stary), dokument(nowy))).toContain('A: 1 składowa więcej');
   });
 

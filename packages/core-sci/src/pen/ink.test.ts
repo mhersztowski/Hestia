@@ -2,7 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { serializeInk, parseInk, inkIsEmpty, type InkStroke } from './ink';
 
 const pismo: InkStroke[] = [
-  { width: 1.6, points: [{ x: 10, y: 20, pressure: 0.5 }, { x: 12.34, y: 20.99, pressure: 0.8 }] },
+  {
+    width: 1.6,
+    points: [
+      { x: 10, y: 20, pressure: 0.5 },
+      { x: 12.34, y: 20.99, pressure: 0.8 },
+    ],
+  },
   { width: 2, points: [{ x: 0, y: 0, pressure: 1 }] },
 ];
 
@@ -23,8 +29,9 @@ describe('pismo odręczne jako pociągnięcia', () => {
   });
 
   it('zaokrągla poniżej dziesiątych piksela', () => {
-    expect(serializeInk([{ width: 1, points: [{ x: 1.23456, y: 2, pressure: 0.5 }] }]))
-      .toContain('1.2/2/0.5');
+    expect(serializeInk([{ width: 1, points: [{ x: 1.23456, y: 2, pressure: 0.5 }] }])).toContain(
+      '1.2/2/0.5'
+    );
   });
 
   /**

@@ -5,19 +5,21 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '3-11-rownania-spadku.md';
-const pliki = [DOK, '3-8-przyspieszenie-stale.md', '3-10-spadek-swobodny.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [DOK, '3-8-przyspieszenie-stale.md', '3-10-spadek-swobodny.md', 'Slownik.md'].map(
+  (p) => ({ path: p, markdown: readDocument(p) })
+);
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const resolveRef = (id: string) => {
   const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
   if (!cel.found || !cel.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[cel.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${cel.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[cel.path] ?? ''
+  );
   return { code: m?.[1], kind: cel.kind, sameDocument: cel.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 
@@ -37,8 +39,12 @@ describe('3-11 w czytniku', () => {
 
     const latex = resolveRef('rh1-3-eq17')?.code ?? '';
     expect(latex).toContain('\\begin{aligned}');
-    for (const w of ['v_y &= v_{y0}+a_y t', 'y &= \\tfrac{1}{2}(v_{y0}+v_y)t',
-      'y &= v_{y0}t+\\tfrac{1}{2}a_y t^2', 'v_y^2 &= v_{y0}^2+2a_y y']) {
+    for (const w of [
+      'v_y &= v_{y0}+a_y t',
+      'y &= \\tfrac{1}{2}(v_{y0}+v_y)t',
+      'y &= v_{y0}t+\\tfrac{1}{2}a_y t^2',
+      'v_y^2 &= v_{y0}^2+2a_y y',
+    ]) {
       expect(latex, w).toContain(w);
     }
   });
@@ -56,14 +62,22 @@ describe('3-11 w czytniku', () => {
 
   it('przepisuje na oś y wszystkie cztery równania z 3-8', () => {
     for (const id of ['rh1-3-eq12', 'rh1-3-eq14', 'rh1-3-eq15', 'rh1-3-eq16']) {
-      const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
+      const cel = resolveReference(
+        id,
+        { anchors: index.anchors, formulaHome: index.formulaHome },
+        DOK
+      );
       expect(cel.path, id).toBe('3-8-przyspieszenie-stale.md');
     }
   });
 
   it('korzysta z haseł postawionych w 3-10 i nie stawia własnych', () => {
     for (const id of ['rh1-poj-spadek-swobodny', 'rh1-poj-przyspieszenie-ziemskie']) {
-      const cel = resolveReference(id, { anchors: index.anchors, formulaHome: index.formulaHome }, DOK);
+      const cel = resolveReference(
+        id,
+        { anchors: index.anchors, formulaHome: index.formulaHome },
+        DOK
+      );
       expect(cel.found, id).toBe(true);
       expect(cel.path, id).toBe('Slownik.md');
       expect(bodies['Slownik.md'], id).toContain('@source 3-10');

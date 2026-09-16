@@ -27,7 +27,12 @@ import MediaPickerDialog from '../components/MediaPickerDialog';
 
 type VideoAlign = 'left' | 'center' | 'right';
 
-const VideoNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, deleteNode, selected }) => {
+const VideoNodeView: React.FC<NodeViewProps> = ({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}) => {
   const [isEditing, setIsEditing] = useState(!node.attrs.src);
   const [isHovered, setIsHovered] = useState(false);
   const [editSrc, setEditSrc] = useState(node.attrs.src || '');
@@ -171,7 +176,11 @@ const VideoNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, delete
             borderRadius: 2,
           }}
         >
-          <Typography variant="subtitle2" color="error" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography
+            variant="subtitle2"
+            color="error"
+            sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}
+          >
             <VideocamIcon /> Edit video
           </Typography>
 
@@ -362,7 +371,9 @@ const VideoNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, delete
               </Box>
             )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}
+            >
               <Typography variant="caption" color="text.secondary">
                 Ctrl+Enter aby zapisać, Escape aby anulować
               </Typography>
@@ -624,22 +635,24 @@ export const VideoEmbed = Node.create({
 
   addCommands() {
     return {
-      setVideo: (options: {
-        src: string;
-        title?: string;
-        poster?: string;
-        width?: string;
-        align?: VideoAlign;
-        controls?: boolean;
-        autoplay?: boolean;
-        loop?: boolean;
-        muted?: boolean;
-      }) => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: options,
-        });
-      },
+      setVideo:
+        (options: {
+          src: string;
+          title?: string;
+          poster?: string;
+          width?: string;
+          align?: VideoAlign;
+          controls?: boolean;
+          autoplay?: boolean;
+          loop?: boolean;
+          muted?: boolean;
+        }) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: options,
+          });
+        },
     };
   },
 });

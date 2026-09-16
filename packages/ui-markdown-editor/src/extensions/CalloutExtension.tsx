@@ -11,7 +11,12 @@
  * dublowania logiki edytora.
  */
 import { Node, mergeAttributes } from '@tiptap/core';
-import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewContent, type NodeViewProps } from '@tiptap/react';
+import {
+  ReactNodeViewRenderer,
+  NodeViewWrapper,
+  NodeViewContent,
+  type NodeViewProps,
+} from '@tiptap/react';
 import { useState } from 'react';
 import { Box, Menu, MenuItem, ListItemIcon, ListItemText, Tooltip } from '@mui/material';
 import { CALLOUT_VARIANTS, isCalloutVariant, type CalloutVariant } from '../utils/callout';
@@ -41,7 +46,9 @@ function CalloutNodeView({ node, updateAttributes, editor }: NodeViewProps) {
           bgcolor: `${style.color}14`,
         }}
       >
-        <Tooltip title={editor.isEditable ? `${style.label} — kliknij, by zmienić typ` : style.label}>
+        <Tooltip
+          title={editor.isEditable ? `${style.label} — kliknij, by zmienić typ` : style.label}
+        >
           <Box
             component="span"
             contentEditable={false}
@@ -49,7 +56,10 @@ function CalloutNodeView({ node, updateAttributes, editor }: NodeViewProps) {
               if (editor.isEditable) setMenuAnchor(e.currentTarget);
             }}
             sx={{
-              flexShrink: 0, fontSize: 20, lineHeight: 1.4, userSelect: 'none',
+              flexShrink: 0,
+              fontSize: 20,
+              lineHeight: 1.4,
+              userSelect: 'none',
               cursor: editor.isEditable ? 'pointer' : 'default',
             }}
           >
@@ -66,10 +76,17 @@ function CalloutNodeView({ node, updateAttributes, editor }: NodeViewProps) {
           <MenuItem
             key={key}
             selected={key === variant}
-            onClick={() => { updateAttributes({ variant: key }); setMenuAnchor(null); }}
+            onClick={() => {
+              updateAttributes({ variant: key });
+              setMenuAnchor(null);
+            }}
           >
-            <ListItemIcon sx={{ fontSize: 18, minWidth: 32 }}>{CALLOUT_VARIANTS[key].emoji}</ListItemIcon>
-            <ListItemText primaryTypographyProps={{ fontSize: 14 }}>{CALLOUT_VARIANTS[key].label}</ListItemText>
+            <ListItemIcon sx={{ fontSize: 18, minWidth: 32 }}>
+              {CALLOUT_VARIANTS[key].emoji}
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: 14 }}>
+              {CALLOUT_VARIANTS[key].label}
+            </ListItemText>
           </MenuItem>
         ))}
       </Menu>
@@ -107,14 +124,21 @@ export const Callout = Node.create({
 
   addCommands() {
     return {
-      setCallout: (variant: CalloutVariant = DEFAULT_VARIANT) => ({ commands }) =>
-        // `wrapIn` zamiast `insertContent`: zaznaczony akapit wchodzi do środka,
-        // więc „zamień w callout" działa na istniejącym tekście, a przy pustym
-        // zaznaczeniu powstaje pusty blok gotowy do pisania.
-        commands.wrapIn(this.name, { variant }),
-      toggleCallout: (variant: CalloutVariant = DEFAULT_VARIANT) => ({ commands }) =>
-        commands.toggleWrap(this.name, { variant }),
-      unsetCallout: () => ({ commands }) => commands.lift(this.name),
+      setCallout:
+        (variant: CalloutVariant = DEFAULT_VARIANT) =>
+        ({ commands }) =>
+          // `wrapIn` zamiast `insertContent`: zaznaczony akapit wchodzi do środka,
+          // więc „zamień w callout" działa na istniejącym tekście, a przy pustym
+          // zaznaczeniu powstaje pusty blok gotowy do pisania.
+          commands.wrapIn(this.name, { variant }),
+      toggleCallout:
+        (variant: CalloutVariant = DEFAULT_VARIANT) =>
+        ({ commands }) =>
+          commands.toggleWrap(this.name, { variant }),
+      unsetCallout:
+        () =>
+        ({ commands }) =>
+          commands.lift(this.name),
     };
   },
 });

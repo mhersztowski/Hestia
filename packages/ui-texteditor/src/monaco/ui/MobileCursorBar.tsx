@@ -16,7 +16,15 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import {
-  Box, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
+  Box,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
 } from '@mui/material';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
@@ -30,7 +38,12 @@ import VerticalAlignBottomIcon from '@mui/icons-material/VerticalAlignBottom';
 import type * as monaco from 'monaco-editor';
 import { keyboardState, type KeyboardState } from './keyboardInset';
 import { CURSOR_BAR_BUTTONS, type CursorBarAction } from './cursorBarButtons';
-import { collapseForMove, normalizePastedText, withTimeout, positionAfterInsert } from './cursorBarActions';
+import {
+  collapseForMove,
+  normalizePastedText,
+  withTimeout,
+  positionAfterInsert,
+} from './cursorBarActions';
 
 const ICONS: Record<CursorBarAction, React.ReactNode> = {
   cursorTop: <VerticalAlignTopIcon fontSize="small" />,
@@ -76,10 +89,16 @@ export function MobileCursorBar({ enabled, getEditor }: MobileCursorBarProps) {
       if (base.width !== width) baselineRef.current = { width, height };
       else if (height > base.height) baselineRef.current = { width, height: height };
 
-      setKb(keyboardState(
-        { innerHeight: window.innerHeight, viewportHeight: vv?.height ?? null, offsetTop: vv?.offsetTop ?? 0 },
-        baselineRef.current.height,
-      ));
+      setKb(
+        keyboardState(
+          {
+            innerHeight: window.innerHeight,
+            viewportHeight: vv?.height ?? null,
+            offsetTop: vv?.offsetTop ?? 0,
+          },
+          baselineRef.current.height
+        )
+      );
     };
     update();
 
@@ -201,75 +220,90 @@ export function MobileCursorBar({ enabled, getEditor }: MobileCursorBarProps) {
 
   // Pasek chowamy razem z klawiaturą, ale okno wklejania musi przeżyć jej
   // zniknięcie — otwarcie dialogu zabiera fokus edytorowi i klawiatura znika.
-  const bar = !enabled || !focused || !kb.visible ? null : (
-    <Box
-      // position: fixed + bottom = wysokość nakładki klawiatury; w WebView, gdzie
-      // okno jest już skrócone, inset wynosi 0 i pasek siedzi na jego dole.
-      // `env(safe-area-inset-bottom)` trzyma go nad gestem nawigacji.
-      sx={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: kb.inset > 0 ? kb.inset : 'env(safe-area-inset-bottom, 0px)',
-        zIndex: 1400,
-        display: 'flex',
-        alignItems: 'center',
-        // Stałe, równe przyciski zamiast rozciągliwych: przy `space-between`
-        // i `flex: 1 1 auto` szerokości skakały zależnie od ikony i pasek
-        // wyglądał na rozjechany. Nadmiar chowa poziome przewijanie.
-        justifyContent: 'flex-start',
-        flexWrap: 'nowrap',
-        gap: 0.25,
-        px: 0.5,
-        py: 0.5,
-        overflowX: 'auto',
-        // Pasek przewijamy palcem w poziomie, ale bez „gumowego" odbicia strony.
-        overscrollBehaviorX: 'contain',
-        '&::-webkit-scrollbar': { display: 'none' },
-        bgcolor: '#2d2d2d',
-        borderTop: '1px solid #444',
-        boxShadow: '0 -4px 12px rgba(0,0,0,0.35)',
-        touchAction: 'none',
-      }}
-      onPointerUp={stopRepeat}
-      onPointerCancel={stopRepeat}
-      onPointerLeave={stopRepeat}
-    >
-      <Tooltip title="Wklej ze schowka">
-        <IconButton
-          onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); void paste(); }}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={(e) => e.preventDefault()}
-          sx={{
-            color: '#8ec7ff', bgcolor: '#38445a', '&:active': { bgcolor: '#4a5a78' },
-            borderRadius: 1.5, flex: '0 0 auto', width: 40, height: 36, mr: 0.75,
-          }}
-        >
-          <ContentPasteIcon fontSize="small" />
-        </IconButton>
-      </Tooltip>
-      {CURSOR_BAR_BUTTONS.map((b) => (
-        <Tooltip key={b.command} title={b.title}>
+  const bar =
+    !enabled || !focused || !kb.visible ? null : (
+      <Box
+        // position: fixed + bottom = wysokość nakładki klawiatury; w WebView, gdzie
+        // okno jest już skrócone, inset wynosi 0 i pasek siedzi na jego dole.
+        // `env(safe-area-inset-bottom)` trzyma go nad gestem nawigacji.
+        sx={{
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          bottom: kb.inset > 0 ? kb.inset : 'env(safe-area-inset-bottom, 0px)',
+          zIndex: 1400,
+          display: 'flex',
+          alignItems: 'center',
+          // Stałe, równe przyciski zamiast rozciągliwych: przy `space-between`
+          // i `flex: 1 1 auto` szerokości skakały zależnie od ikony i pasek
+          // wyglądał na rozjechany. Nadmiar chowa poziome przewijanie.
+          justifyContent: 'flex-start',
+          flexWrap: 'nowrap',
+          gap: 0.25,
+          px: 0.5,
+          py: 0.5,
+          overflowX: 'auto',
+          // Pasek przewijamy palcem w poziomie, ale bez „gumowego" odbicia strony.
+          overscrollBehaviorX: 'contain',
+          '&::-webkit-scrollbar': { display: 'none' },
+          bgcolor: '#2d2d2d',
+          borderTop: '1px solid #444',
+          boxShadow: '0 -4px 12px rgba(0,0,0,0.35)',
+          touchAction: 'none',
+        }}
+        onPointerUp={stopRepeat}
+        onPointerCancel={stopRepeat}
+        onPointerLeave={stopRepeat}
+      >
+        <Tooltip title="Wklej ze schowka">
           <IconButton
-            onPointerDown={press(b.command)}
-            // Kliknięcie już obsłużyliśmy na pointerdown; blokujemy domyślne,
-            // żeby przeglądarka nie wywołała akcji drugi raz.
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              void paste();
+            }}
             onMouseDown={(e) => e.preventDefault()}
             onClick={(e) => e.preventDefault()}
             sx={{
-              color: '#ddd', bgcolor: '#3a3a3a', '&:active': { bgcolor: '#4a4a4a' },
+              color: '#8ec7ff',
+              bgcolor: '#38445a',
+              '&:active': { bgcolor: '#4a5a78' },
               borderRadius: 1.5,
-              // Kciuk potrzebuje ~40 px celu — stała szerokość trzyma równy rytm
-              // paska niezależnie od tego, jak szeroka jest ikona.
-              flex: '0 0 auto', width: 40, height: 36,
+              flex: '0 0 auto',
+              width: 40,
+              height: 36,
+              mr: 0.75,
             }}
           >
-            {ICONS[b.command]}
+            <ContentPasteIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-      ))}
-    </Box>
-  );
+        {CURSOR_BAR_BUTTONS.map((b) => (
+          <Tooltip key={b.command} title={b.title}>
+            <IconButton
+              onPointerDown={press(b.command)}
+              // Kliknięcie już obsłużyliśmy na pointerdown; blokujemy domyślne,
+              // żeby przeglądarka nie wywołała akcji drugi raz.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={(e) => e.preventDefault()}
+              sx={{
+                color: '#ddd',
+                bgcolor: '#3a3a3a',
+                '&:active': { bgcolor: '#4a4a4a' },
+                borderRadius: 1.5,
+                // Kciuk potrzebuje ~40 px celu — stała szerokość trzyma równy rytm
+                // paska niezależnie od tego, jak szeroka jest ikona.
+                flex: '0 0 auto',
+                width: 40,
+                height: 36,
+              }}
+            >
+              {ICONS[b.command]}
+            </IconButton>
+          </Tooltip>
+        ))}
+      </Box>
+    );
 
   return (
     <>
@@ -278,18 +312,34 @@ export function MobileCursorBar({ enabled, getEditor }: MobileCursorBarProps) {
       {/* Zapasowa droga wklejania: WebView bez uprawnienia do schowka nie odda
           tekstu przez `navigator.clipboard`, ale systemowe „Wklej" w zwykłym
           polu działa zawsze. Stąd tekst wchodzi do edytora jedną edycją. */}
-      <Dialog open={pastePromptOpen} onClose={() => setPastePromptOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={pastePromptOpen}
+        onClose={() => setPastePromptOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle sx={{ fontSize: '0.95rem' }}>Wklej tekst</DialogTitle>
         <DialogContent>
           <TextField
-            autoFocus multiline minRows={4} fullWidth value={pasteDraft}
+            autoFocus
+            multiline
+            minRows={4}
+            fullWidth
+            value={pasteDraft}
             onChange={(e) => setPasteDraft(e.target.value)}
             placeholder="Przytrzymaj i wybierz „Wklej”, potem zatwierdź."
             slotProps={{ input: { sx: { fontFamily: 'monospace', fontSize: 13 } } }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setPastePromptOpen(false); setPasteDraft(''); }}>Anuluj</Button>
+          <Button
+            onClick={() => {
+              setPastePromptOpen(false);
+              setPasteDraft('');
+            }}
+          >
+            Anuluj
+          </Button>
           <Button
             variant="contained"
             disabled={!pasteDraft}

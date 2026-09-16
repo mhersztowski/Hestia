@@ -2,7 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { AnimationEngine } from './AnimationEngine';
 import type { AnimationClip, AnimationTrack, Keyframe } from './types';
 
-const kf = (id: string, time: number, value: number | string | boolean, easing: Keyframe['easing'] = 'linear'): Keyframe => ({
+const kf = (
+  id: string,
+  time: number,
+  value: number | string | boolean,
+  easing: Keyframe['easing'] = 'linear'
+): Keyframe => ({
   id,
   time,
   value,
@@ -35,12 +40,16 @@ describe('AnimationEngine.evaluateTrack', () => {
 
   it('applies ease-in easing', () => {
     // t=0.5 => 0.5*0.5 = 0.25 => value = 0 + 100*0.25 = 25
-    expect(AnimationEngine.evaluateTrack(track([kf('a', 0, 0, 'ease-in'), kf('b', 1, 100)]), 0.5)).toBeCloseTo(25);
+    expect(
+      AnimationEngine.evaluateTrack(track([kf('a', 0, 0, 'ease-in'), kf('b', 1, 100)]), 0.5)
+    ).toBeCloseTo(25);
   });
 
   it('applies ease-out easing', () => {
     // t=0.5 => 1-(0.5)^2 = 0.75 => 75
-    expect(AnimationEngine.evaluateTrack(track([kf('a', 0, 0, 'ease-out'), kf('b', 1, 100)]), 0.5)).toBeCloseTo(75);
+    expect(
+      AnimationEngine.evaluateTrack(track([kf('a', 0, 0, 'ease-out'), kf('b', 1, 100)]), 0.5)
+    ).toBeCloseTo(75);
   });
 
   it('ease-in-out is symmetric around midpoint', () => {
@@ -49,11 +58,16 @@ describe('AnimationEngine.evaluateTrack', () => {
   });
 
   it('step easing holds the earlier keyframe value', () => {
-    expect(AnimationEngine.evaluateTrack(track([kf('a', 0, 10, 'step'), kf('b', 1, 20)]), 0.9)).toBe(10);
+    expect(
+      AnimationEngine.evaluateTrack(track([kf('a', 0, 10, 'step'), kf('b', 1, 20)]), 0.9)
+    ).toBe(10);
   });
 
   it('interpolates hex color strings', () => {
-    const result = AnimationEngine.evaluateTrack(track([kf('a', 0, '#000000'), kf('b', 1, '#ffffff')]), 0.5);
+    const result = AnimationEngine.evaluateTrack(
+      track([kf('a', 0, '#000000'), kf('b', 1, '#ffffff')]),
+      0.5
+    );
     expect(result).toBe('#808080');
   });
 
@@ -64,7 +78,9 @@ describe('AnimationEngine.evaluateTrack', () => {
   });
 
   it('sorts unsorted keyframes before evaluating', () => {
-    expect(AnimationEngine.evaluateTrack(track([kf('b', 2, 20), kf('a', 0, 0)]), 1)).toBeCloseTo(10);
+    expect(AnimationEngine.evaluateTrack(track([kf('b', 2, 20), kf('a', 0, 0)]), 1)).toBeCloseTo(
+      10
+    );
   });
 
   it('selects the correct segment among 3 keyframes', () => {
@@ -91,7 +107,12 @@ describe('AnimationEngine.evaluate', () => {
   });
 
   it('skips tracks with no keyframes', () => {
-    const clip: AnimationClip = { id: 'c', name: 'C', duration: 5, tracks: [track([], 'position.x', 'n1')] };
+    const clip: AnimationClip = {
+      id: 'c',
+      name: 'C',
+      duration: 5,
+      tracks: [track([], 'position.x', 'n1')],
+    };
     expect(AnimationEngine.evaluate(clip, 0).size).toBe(0);
   });
 });
@@ -128,14 +149,22 @@ describe('AnimationEngine keyframe/track mutations', () => {
   it('getOrCreateTrack returns existing track without cloning clip', () => {
     const existing = track([], 'position.x', 'n1');
     const clip: AnimationClip = { id: 'c', name: 'C', duration: 5, tracks: [existing] };
-    const { clip: outClip, track: outTrack } = AnimationEngine.getOrCreateTrack(clip, 'n1', 'position.x');
+    const { clip: outClip, track: outTrack } = AnimationEngine.getOrCreateTrack(
+      clip,
+      'n1',
+      'position.x'
+    );
     expect(outClip).toBe(clip);
     expect(outTrack).toBe(existing);
   });
 
   it('getOrCreateTrack creates a new track when missing', () => {
     const clip: AnimationClip = { id: 'c', name: 'C', duration: 5, tracks: [] };
-    const { clip: outClip, track: outTrack } = AnimationEngine.getOrCreateTrack(clip, 'n1', 'rotation.y');
+    const { clip: outClip, track: outTrack } = AnimationEngine.getOrCreateTrack(
+      clip,
+      'n1',
+      'rotation.y'
+    );
     expect(outClip).not.toBe(clip);
     expect(outClip.tracks).toHaveLength(1);
     expect(outTrack.nodeId).toBe('n1');
@@ -157,7 +186,12 @@ describe('AnimationEngine keyframe/track mutations', () => {
   });
 
   it('removeTrack drops the matching track', () => {
-    const clip: AnimationClip = { id: 'c', name: 'C', duration: 5, tracks: [track([], 'position.x')] };
+    const clip: AnimationClip = {
+      id: 'c',
+      name: 'C',
+      duration: 5,
+      tracks: [track([], 'position.x')],
+    };
     expect(AnimationEngine.removeTrack(clip, 't1').tracks).toHaveLength(0);
   });
 

@@ -50,7 +50,12 @@ function collectFormFiles(tree: DirectoryTree): string[] {
   return (tree.children ?? []).flatMap(collectFormFiles);
 }
 
-const FormFilePicker: React.FC<FormFilePickerProps> = ({ open, selectedPath, onClose, onSelect }) => {
+const FormFilePicker: React.FC<FormFilePickerProps> = ({
+  open,
+  selectedPath,
+  onClose,
+  onSelect,
+}) => {
   const { listDirectory } = useEditorFiles() ?? {};
   const [files, setFiles] = useState<string[]>([]);
   const [filter, setFilter] = useState('');
@@ -68,32 +73,43 @@ const FormFilePicker: React.FC<FormFilePickerProps> = ({ open, selectedPath, onC
   }, [open, listDirectory]);
 
   const filtered = filter.trim()
-    ? files.filter(f => f.toLowerCase().includes(filter.toLowerCase()))
+    ? files.filter((f) => f.toLowerCase().includes(filter.toLowerCase()))
     : files;
 
   const handleCreate = () => {
     const p = newPath.trim().replace(/\.form\.json$/, '') + '.form.json';
-    if (p && p !== '.form.json') { onSelect(p); onClose(); }
+    if (p && p !== '.form.json') {
+      onSelect(p);
+      onClose();
+    }
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <DynamicFormIcon color="primary" />
-        <Typography variant="h6" sx={{ flex: 1 }}>Select form</Typography>
-        <IconButton size="small" onClick={onClose}><CloseIcon /></IconButton>
+        <Typography variant="h6" sx={{ flex: 1 }}>
+          Select form
+        </Typography>
+        <IconButton size="small" onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
 
       <DialogContent dividers sx={{ p: 0 }}>
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
           <TextField
-            fullWidth size="small" autoFocus
+            fullWidth
+            size="small"
+            autoFocus
             placeholder="Search..."
             value={filter}
-            onChange={e => setFilter(e.target.value)}
+            onChange={(e) => setFilter(e.target.value)}
             InputProps={{
               startAdornment: (
-                <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
               ),
             }}
           />
@@ -109,10 +125,20 @@ const FormFilePicker: React.FC<FormFilePickerProps> = ({ open, selectedPath, onC
           </Box>
         ) : (
           <List sx={{ maxHeight: 260, overflow: 'auto' }}>
-            {filtered.map(f => (
-              <ListItemButton key={f} selected={f === selectedPath} onClick={() => { onSelect(f); onClose(); }}>
+            {filtered.map((f) => (
+              <ListItemButton
+                key={f}
+                selected={f === selectedPath}
+                onClick={() => {
+                  onSelect(f);
+                  onClose();
+                }}
+              >
                 <ListItemIcon sx={{ minWidth: 36 }}>
-                  <DynamicFormIcon fontSize="small" color={f === selectedPath ? 'primary' : 'action'} />
+                  <DynamicFormIcon
+                    fontSize="small"
+                    color={f === selectedPath ? 'primary' : 'action'}
+                  />
                 </ListItemIcon>
                 <ListItemText primary={f.split('/').pop()} secondary={f} />
               </ListItemButton>
@@ -122,11 +148,12 @@ const FormFilePicker: React.FC<FormFilePickerProps> = ({ open, selectedPath, onC
 
         <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', display: 'flex', gap: 1 }}>
           <TextField
-            size="small" fullWidth
+            size="small"
+            fullWidth
             placeholder="Or type new path, e.g. forms/my-form"
             value={newPath}
-            onChange={e => setNewPath(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleCreate()}
+            onChange={(e) => setNewPath(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           />
           <Button variant="outlined" size="small" onClick={handleCreate} disabled={!newPath.trim()}>
             Create
@@ -171,7 +198,9 @@ const FormEngineNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
     }
   }, [formPath, readFile]);
 
-  useEffect(() => { loadForm(); }, [loadForm]);
+  useEffect(() => {
+    loadForm();
+  }, [loadForm]);
 
   const handleSelect = (path: string) => {
     updateAttributes({ formPath: path });
@@ -183,7 +212,9 @@ const FormEngineNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
       <NodeViewWrapper>
         <Paper
           sx={{
-            p: 3, textAlign: 'center', cursor: 'pointer',
+            p: 3,
+            textAlign: 'center',
+            cursor: 'pointer',
             border: selected ? '2px solid' : '1px dashed',
             borderColor: selected ? 'primary.main' : 'grey.400',
             '&:hover': { borderColor: 'primary.light', bgcolor: 'action.hover' },
@@ -193,7 +224,11 @@ const FormEngineNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
           <DynamicFormIcon sx={{ fontSize: 40, color: 'action.active', mb: 1 }} />
           <Typography color="text.secondary">Click to select a form</Typography>
         </Paper>
-        <FormFilePicker open={dialogOpen} onClose={() => setDialogOpen(false)} onSelect={handleSelect} />
+        <FormFilePicker
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          onSelect={handleSelect}
+        />
       </NodeViewWrapper>
     );
   }
@@ -212,11 +247,20 @@ const FormEngineNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
         }}
       >
         {hovered && (
-          <Box sx={{
-            position: 'absolute', top: 4, right: 4, zIndex: 10,
-            display: 'flex', gap: 0.5,
-            bgcolor: 'background.paper', borderRadius: 1, p: 0.25, boxShadow: 1,
-          }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 4,
+              right: 4,
+              zIndex: 10,
+              display: 'flex',
+              gap: 0.5,
+              bgcolor: 'background.paper',
+              borderRadius: 1,
+              p: 0.25,
+              boxShadow: 1,
+            }}
+          >
             <Tooltip title="Change form">
               <IconButton size="small" onClick={() => setDialogOpen(true)}>
                 <EditIcon fontSize="small" />
@@ -225,7 +269,9 @@ const FormEngineNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
             <Tooltip title="Open in designer">
               <IconButton
                 size="small"
-                onClick={() => window.open(`/designer/form/${formPath.replace(/\.form\.json$/, '')}`, '_blank')}
+                onClick={() =>
+                  window.open(`/designer/form/${formPath.replace(/\.form\.json$/, '')}`, '_blank')
+                }
               >
                 <OpenInNewIcon fontSize="small" />
               </IconButton>
@@ -233,7 +279,18 @@ const FormEngineNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
           </Box>
         )}
 
-        <Box sx={{ px: 1.5, py: 0.5, bgcolor: 'action.hover', borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box
+          sx={{
+            px: 1.5,
+            py: 0.5,
+            bgcolor: 'action.hover',
+            borderBottom: 1,
+            borderColor: 'divider',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
           <DynamicFormIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
           <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
             {formPath}
@@ -247,14 +304,11 @@ const FormEngineNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, s
             </Box>
           )}
           {error && (
-            <Typography color="error" variant="body2" sx={{ p: 1 }}>{error}</Typography>
+            <Typography color="error" variant="body2" sx={{ p: 1 }}>
+              {error}
+            </Typography>
           )}
-          {formJson && !loading && (
-            <FormViewer
-              view={view}
-              getForm={getFormJson}
-            />
-          )}
+          {formJson && !loading && <FormViewer view={view} getForm={getFormJson} />}
         </Box>
       </Paper>
 
@@ -283,13 +337,15 @@ export const FormEngineEmbed = Node.create({
   },
 
   parseHTML() {
-    return [{
-      tag: 'div[data-type="form-engine-embed"]',
-      getAttrs: (node) => {
-        if (typeof node === 'string') return false;
-        return { formPath: (node as HTMLElement).getAttribute('data-form-path') || '' };
+    return [
+      {
+        tag: 'div[data-type="form-engine-embed"]',
+        getAttrs: (node) => {
+          if (typeof node === 'string') return false;
+          return { formPath: (node as HTMLElement).getAttribute('data-form-path') || '' };
+        },
       },
-    }];
+    ];
   },
 
   renderHTML({ node }) {
@@ -302,9 +358,11 @@ export const FormEngineEmbed = Node.create({
 
   addCommands() {
     return {
-      insertFormEngine: (formPath: string = '') => ({ commands }) => {
-        return commands.insertContent({ type: this.name, attrs: { formPath } });
-      },
+      insertFormEngine:
+        (formPath: string = '') =>
+        ({ commands }) => {
+          return commands.insertContent({ type: this.name, attrs: { formPath } });
+        },
     };
   },
 });

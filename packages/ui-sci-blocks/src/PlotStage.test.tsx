@@ -15,10 +15,24 @@ import { PlotStage } from './PlotStage';
 /** jsdom nie ma ani kontekstu 2D, ani obserwatora rozmiaru. */
 beforeAll(() => {
   HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
-    setTransform: vi.fn(), fillRect: vi.fn(), clearRect: vi.fn(), beginPath: vi.fn(),
-    moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(), fill: vi.fn(), fillText: vi.fn(),
-    save: vi.fn(), restore: vi.fn(), setLineDash: vi.fn(),
-    fillStyle: '', strokeStyle: '', lineWidth: 1, font: '', textAlign: '', textBaseline: '',
+    setTransform: vi.fn(),
+    fillRect: vi.fn(),
+    clearRect: vi.fn(),
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    stroke: vi.fn(),
+    fill: vi.fn(),
+    fillText: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    setLineDash: vi.fn(),
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+    font: '',
+    textAlign: '',
+    textBaseline: '',
   })) as never;
 
   globalThis.ResizeObserver = class {
@@ -40,12 +54,26 @@ beforeAll(() => {
 function plotno(viewport: Viewport = DEFAULT_VIEWPORT) {
   const onViewportChange = vi.fn();
   const { container } = render(
-    <PlotStage viewport={viewport} onViewportChange={onViewportChange} settings={DEFAULT_SETTINGS} />,
+    <PlotStage
+      viewport={viewport}
+      onViewportChange={onViewportChange}
+      settings={DEFAULT_SETTINGS}
+    />
   );
   const canvas = container.querySelector('canvas') as HTMLCanvasElement;
   canvas.setPointerCapture = vi.fn();
   // jsdom zwraca same zera; bez rozmiaru przeliczenia dzielą przez zero.
-  canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 400, right: 400, bottom: 400, x: 0, y: 0, toJSON: () => ({}) });
+  canvas.getBoundingClientRect = () => ({
+    left: 0,
+    top: 0,
+    width: 400,
+    height: 400,
+    right: 400,
+    bottom: 400,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+  });
   return { canvas, onViewportChange };
 }
 
@@ -120,7 +148,7 @@ describe('skalowanie kołem', () => {
     expect(next.xMax - next.xMin).toBeLessThan(DEFAULT_VIEWPORT.xMax - DEFAULT_VIEWPORT.xMin);
   });
 
-    it('z Shiftem skaluje samą oś y', () => {
+  it('z Shiftem skaluje samą oś y', () => {
     const { canvas, onViewportChange } = plotno();
     fireEvent.wheel(canvas, { deltaY: 100, clientX: 200, clientY: 200, shiftKey: true });
 
@@ -151,7 +179,7 @@ describe('rysowanie', () => {
         onViewportChange={vi.fn()}
         settings={DEFAULT_SETTINGS}
         onDraw={onDraw}
-      />,
+      />
     );
     // Bez rozmiaru z ResizeObservera płótno nie rysuje niczego — atrapa
     // obserwatora nie melduje wymiarów, więc sprawdzamy samo wpięcie.

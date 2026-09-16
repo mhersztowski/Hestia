@@ -5,7 +5,10 @@ import { dataUrlZObrazu, type Rysownik } from './textureData';
 function atrapa(wynik: string | null = 'data:image/png;base64,AAAA') {
   const wywolania: Array<{ w: number; h: number; format: string }> = [];
   const rysownik: Rysownik = {
-    narysuj: (_z, w, h, format) => { wywolania.push({ w, h, format }); return wynik; },
+    narysuj: (_z, w, h, format) => {
+      wywolania.push({ w, h, format });
+      return wynik;
+    },
   };
   return { rysownik, wywolania };
 }

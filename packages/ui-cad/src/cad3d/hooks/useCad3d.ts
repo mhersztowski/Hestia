@@ -1,7 +1,36 @@
 import { useState, useCallback, useRef } from 'react';
 import { Project } from '../../cad2d/barrel';
-import type { FaceRef, Feature, FeatureTree, SketchFeature, SketchPlane, Vec3 } from '../model/types';
-import { defaultChamfer, defaultDatumCs, defaultDatumLine, defaultDatumPlane, defaultDatumPoint, defaultExtrude, defaultFillet, defaultGroove, defaultHelix, defaultHole, defaultLinearPattern, defaultLoft, defaultLoftCut, defaultMirror, defaultPocket, defaultPolarPattern, defaultRevolve, defaultShell, defaultSketch, defaultSweep, defaultSweepCut } from '../model/types';
+import type {
+  FaceRef,
+  Feature,
+  FeatureTree,
+  SketchFeature,
+  SketchPlane,
+  Vec3,
+} from '../model/types';
+import {
+  defaultChamfer,
+  defaultDatumCs,
+  defaultDatumLine,
+  defaultDatumPlane,
+  defaultDatumPoint,
+  defaultExtrude,
+  defaultFillet,
+  defaultGroove,
+  defaultHelix,
+  defaultHole,
+  defaultLinearPattern,
+  defaultLoft,
+  defaultLoftCut,
+  defaultMirror,
+  defaultPocket,
+  defaultPolarPattern,
+  defaultRevolve,
+  defaultShell,
+  defaultSketch,
+  defaultSweep,
+  defaultSweepCut,
+} from '../model/types';
 
 const STORAGE_KEY = 'cad3d-feature-tree';
 
@@ -10,7 +39,11 @@ const STORAGE_KEY = 'cad3d-feature-tree';
 // no faceRef, types that have since changed, defaults that have moved. Every
 // reload now starts clean, and the old key is deleted to clear what is there.
 function load(): FeatureTree {
-  try { localStorage.removeItem(STORAGE_KEY); } catch { /* SSR / disabled storage */ }
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* SSR / disabled storage */
+  }
   return { version: 1 as const, features: [] };
 }
 
@@ -27,7 +60,12 @@ export interface Cad3dState {
   getTreeJson: () => string;
   /** Replaces the tree with one from JSON (opening a file) and rebuilds the sketch projects. */
   replaceTree: (json: string) => void;
-  addSketch: (plane?: SketchPlane, offset?: number, planeMatrix?: number[], faceRef?: FaceRef) => void;
+  addSketch: (
+    plane?: SketchPlane,
+    offset?: number,
+    planeMatrix?: number[],
+    faceRef?: FaceRef
+  ) => void;
   startEditSketch: (id: string) => void;
   exitSketch: () => void;
   getSketchProject: (id: string) => Project;
@@ -75,9 +113,8 @@ export function useCad3d(): Cad3dState {
 
   const getSketchProject = useCallback((id: string): Project => {
     if (!sketchProjectsRef.current.has(id)) {
-      const sketch = treeRef.current.features.find(
-        f => f.id === id && f.type === 'sketch'
-      ) as SketchFeature | undefined;
+      const sketch = treeRef.current.features.find((f) => f.id === id && f.type === 'sketch') as
+        SketchFeature | undefined;
 
       let p: Project;
       if (sketch?.projectData) {
@@ -94,23 +131,29 @@ export function useCad3d(): Cad3dState {
     return sketchProjectsRef.current.get(id)!;
   }, []);
 
-  const addSketch = useCallback((plane: SketchPlane = 'XY', offset = 0, planeMatrix?: number[], faceRef?: FaceRef) => {
-    const f = defaultSketch(plane, offset, planeMatrix, faceRef);
-    sketchProjectsRef.current.set(f.id, new Project());
-    setTree(prev => {
-      const next = { ...prev, features: [...prev.features, f] };
-      save(next);
-      return next;
-    });
-    setSelectedId(f.id);
-    setEditingSketchId(f.id);
-  }, []);
+  const addSketch = useCallback(
+    (plane: SketchPlane = 'XY', offset = 0, planeMatrix?: number[], faceRef?: FaceRef) => {
+      const f = defaultSketch(plane, offset, planeMatrix, faceRef);
+      sketchProjectsRef.current.set(f.id, new Project());
+      setTree((prev) => {
+        const next = { ...prev, features: [...prev.features, f] };
+        save(next);
+        return next;
+      });
+      setSelectedId(f.id);
+      setEditingSketchId(f.id);
+    },
+    []
+  );
 
-  const startEditSketch = useCallback((id: string) => {
-    getSketchProject(id); // ensure loaded into memory
-    setEditingSketchId(id);
-    setSelectedId(id);
-  }, [getSketchProject]);
+  const startEditSketch = useCallback(
+    (id: string) => {
+      getSketchProject(id); // ensure loaded into memory
+      setEditingSketchId(id);
+      setSelectedId(id);
+    },
+    [getSketchProject]
+  );
 
   const exitSketch = useCallback(() => {
     const id = editingSketchId;
@@ -118,11 +161,11 @@ export function useCad3d(): Cad3dState {
     const p = sketchProjectsRef.current.get(id);
     if (p) {
       const projectData = JSON.stringify(p.toJSON());
-      setTree(prev => {
+      setTree((prev) => {
         const next = {
           ...prev,
-          features: prev.features.map(f =>
-            f.id === id ? { ...(f as SketchFeature), projectData } as Feature : f
+          features: prev.features.map((f) =>
+            f.id === id ? ({ ...(f as SketchFeature), projectData } as Feature) : f
           ),
         };
         save(next);
@@ -136,139 +179,229 @@ export function useCad3d(): Cad3dState {
 
   const addExtrude = useCallback((sketchId: string | null, entityIds: string[]) => {
     const f = defaultExtrude(sketchId, entityIds);
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addPocket = useCallback((sketchId: string | null, entityIds: string[]) => {
     const f = defaultPocket(sketchId, entityIds);
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addHole = useCallback((sketchId: string | null) => {
     const f = defaultHole(sketchId);
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addGroove = useCallback((sketchId: string | null, entityIds: string[]) => {
     const f = defaultGroove(sketchId, entityIds);
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addMirror = useCallback(() => {
     const f = defaultMirror();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addShell = useCallback(() => {
     const f = defaultShell();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addFillet = useCallback(() => {
     const f = defaultFillet();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addChamfer = useCallback(() => {
     const f = defaultChamfer();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addLinearPattern = useCallback(() => {
     const f = defaultLinearPattern();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addPolarPattern = useCallback(() => {
     const f = defaultPolarPattern();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addLoft = useCallback(() => {
     const f = defaultLoft();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addLoftCut = useCallback(() => {
     const f = defaultLoftCut();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addSweep = useCallback(() => {
     const f = defaultSweep();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addSweepCut = useCallback(() => {
     const f = defaultSweepCut();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addHelix = useCallback(() => {
     const f = defaultHelix();
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addRevolve = useCallback((sketchId: string | null, entityIds: string[]) => {
     const f = defaultRevolve(sketchId, entityIds);
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
   }, []);
 
   const addDatum = useCallback((f: Feature): string => {
-    setTree(prev => { const next = { ...prev, features: [...prev.features, f] }; save(next); return next; });
+    setTree((prev) => {
+      const next = { ...prev, features: [...prev.features, f] };
+      save(next);
+      return next;
+    });
     setSelectedId(f.id);
     return f.id;
   }, []);
-  const addDatumPoint = useCallback((position?: Vec3) => addDatum(defaultDatumPoint(position)), [addDatum]);
-  const addDatumLine = useCallback((position?: Vec3, direction?: Vec3, length?: number) =>
-    addDatum(defaultDatumLine(position, direction, length)), [addDatum]);
-  const addDatumPlane = useCallback((position?: Vec3, normal?: Vec3, size?: number): string =>
-    addDatum(defaultDatumPlane(position, normal, size)), [addDatum]);
-  const addDatumCs = useCallback((position?: Vec3, rotation?: Vec3, size?: number) =>
-    addDatum(defaultDatumCs(position, rotation, size)), [addDatum]);
+  const addDatumPoint = useCallback(
+    (position?: Vec3) => addDatum(defaultDatumPoint(position)),
+    [addDatum]
+  );
+  const addDatumLine = useCallback(
+    (position?: Vec3, direction?: Vec3, length?: number) =>
+      addDatum(defaultDatumLine(position, direction, length)),
+    [addDatum]
+  );
+  const addDatumPlane = useCallback(
+    (position?: Vec3, normal?: Vec3, size?: number): string =>
+      addDatum(defaultDatumPlane(position, normal, size)),
+    [addDatum]
+  );
+  const addDatumCs = useCallback(
+    (position?: Vec3, rotation?: Vec3, size?: number) =>
+      addDatum(defaultDatumCs(position, rotation, size)),
+    [addDatum]
+  );
 
   const removeFeature = useCallback((id: string) => {
     sketchProjectsRef.current.delete(id);
-    setTree(prev => { const next = { ...prev, features: prev.features.filter(f => f.id !== id) }; save(next); return next; });
-    setSelectedId(prev => (prev === id ? null : prev));
-    setEditingSketchId(prev => (prev === id ? null : prev));
+    setTree((prev) => {
+      const next = { ...prev, features: prev.features.filter((f) => f.id !== id) };
+      save(next);
+      return next;
+    });
+    setSelectedId((prev) => (prev === id ? null : prev));
+    setEditingSketchId((prev) => (prev === id ? null : prev));
   }, []);
 
   const updateFeature = useCallback((id: string, patch: Partial<Feature>) => {
-    setTree(prev => {
-      const next = { ...prev, features: prev.features.map(f => (f.id === id ? { ...f, ...patch } as Feature : f)) };
+    setTree((prev) => {
+      const next = {
+        ...prev,
+        features: prev.features.map((f) => (f.id === id ? ({ ...f, ...patch } as Feature) : f)),
+      };
       save(next);
       return next;
     });
   }, []);
 
   const toggleFeature = useCallback((id: string) => {
-    setTree(prev => {
-      const next = { ...prev, features: prev.features.map(f => (f.id === id ? { ...f, enabled: !f.enabled } : f)) };
+    setTree((prev) => {
+      const next = {
+        ...prev,
+        features: prev.features.map((f) => (f.id === id ? { ...f, enabled: !f.enabled } : f)),
+      };
       save(next);
       return next;
     });
   }, []);
 
   const moveFeature = useCallback((id: string, direction: 'up' | 'down') => {
-    setTree(prev => {
-      const idx = prev.features.findIndex(f => f.id === id);
+    setTree((prev) => {
+      const idx = prev.features.findIndex((f) => f.id === id);
       if (idx === -1) return prev;
       const newIdx = direction === 'up' ? idx - 1 : idx + 1;
       if (newIdx < 0 || newIdx >= prev.features.length) return prev;
@@ -280,7 +413,9 @@ export function useCad3d(): Cad3dState {
     });
   }, []);
 
-  const selectFeature = useCallback((id: string | null) => { setSelectedId(id); }, []);
+  const selectFeature = useCallback((id: string | null) => {
+    setSelectedId(id);
+  }, []);
 
   const mergeFeatures = useCallback((json: string) => {
     try {
@@ -289,12 +424,12 @@ export function useCad3d(): Cad3dState {
       for (const f of data.features) {
         idMap.set(f.id, crypto.randomUUID());
       }
-      const remapped = data.features.map(f => {
+      const remapped = data.features.map((f) => {
         const base = { ...f, id: idMap.get(f.id)! } as Feature & { sketchId?: string | null };
         if (base.sketchId) base.sketchId = idMap.get(base.sketchId) ?? base.sketchId;
         return base as Feature;
       });
-      setTree(prev => {
+      setTree((prev) => {
         const next = { ...prev, features: [...prev.features, ...remapped] };
         save(next);
         return next;
@@ -351,12 +486,41 @@ export function useCad3d(): Cad3dState {
   }, []);
 
   return {
-    tree, selectedId, editingSketchId,
-    mergeFeatures, getTreeJson, replaceTree,
-    addSketch, startEditSketch, exitSketch, getSketchProject,
-    addExtrude, addPocket, addHole, addGroove, addMirror, addRevolve, addShell, addFillet, addChamfer, addLinearPattern, addPolarPattern, addLoft, addLoftCut, addSweep, addSweepCut, addHelix,
-    addDatumPoint, addDatumLine, addDatumPlane, addDatumCs,
-    removeFeature, updateFeature, toggleFeature, moveFeature,
-    selectFeature, clearTree,
+    tree,
+    selectedId,
+    editingSketchId,
+    mergeFeatures,
+    getTreeJson,
+    replaceTree,
+    addSketch,
+    startEditSketch,
+    exitSketch,
+    getSketchProject,
+    addExtrude,
+    addPocket,
+    addHole,
+    addGroove,
+    addMirror,
+    addRevolve,
+    addShell,
+    addFillet,
+    addChamfer,
+    addLinearPattern,
+    addPolarPattern,
+    addLoft,
+    addLoftCut,
+    addSweep,
+    addSweepCut,
+    addHelix,
+    addDatumPoint,
+    addDatumLine,
+    addDatumPlane,
+    addDatumCs,
+    removeFeature,
+    updateFeature,
+    toggleFeature,
+    moveFeature,
+    selectFeature,
+    clearTree,
   };
 }

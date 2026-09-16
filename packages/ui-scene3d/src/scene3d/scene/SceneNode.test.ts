@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Matrix4, Vector3, Euler, Quaternion } from 'three';
+import { Matrix4, Vector3, Quaternion } from 'three';
 import { SceneNode } from './SceneNode';
 
 describe('SceneNode', () => {
@@ -178,7 +178,7 @@ describe('SceneNode', () => {
       const mat = new Matrix4().compose(
         new Vector3(3, 4, 5),
         new Quaternion(),
-        new Vector3(1, 1, 1),
+        new Vector3(1, 1, 1)
       );
       node.setLocalMatrix(mat);
 
@@ -196,7 +196,7 @@ describe('SceneNode', () => {
       const desiredWorld = new Matrix4().compose(
         new Vector3(15, 0, 0),
         new Quaternion(),
-        new Vector3(1, 1, 1),
+        new Vector3(1, 1, 1)
       );
       child.setWorldMatrix(desiredWorld);
 

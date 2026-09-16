@@ -15,7 +15,9 @@ export function cadProjectToSceneGraph(project: Project): SceneGraph {
   const scene = new SceneGraph();
 
   scene.addNode(new LightNode({ name: 'Ambient', lightType: 'ambient', intensity: 0.4 }));
-  scene.addNode(new LightNode({ name: 'Sun', lightType: 'directional', position: [10, 20, 10], intensity: 0.8 }));
+  scene.addNode(
+    new LightNode({ name: 'Sun', lightType: 'directional', position: [10, 20, 10], intensity: 0.8 })
+  );
 
   for (const entity of project.entityRegistry.getAll()) {
     if (!entity.visible) continue;
@@ -27,21 +29,36 @@ export function cadProjectToSceneGraph(project: Project): SceneGraph {
 
     switch (entity.type) {
       case 'circle': {
-        scene.addNode(new MeshNode({
-          name: `Circle (r=${entity.radius.toFixed(1)})`,
-          position: [entity.cx, h / 2, entity.cy],
-          geometry: { type: 'cylinder', params: { radiusTop: entity.radius, radiusBottom: entity.radius, height: h, radialSegments: 64 } },
-          material: { color, opacity: 1, wireframe: false },
-        }));
+        scene.addNode(
+          new MeshNode({
+            name: `Circle (r=${entity.radius.toFixed(1)})`,
+            position: [entity.cx, h / 2, entity.cy],
+            geometry: {
+              type: 'cylinder',
+              params: {
+                radiusTop: entity.radius,
+                radiusBottom: entity.radius,
+                height: h,
+                radialSegments: 64,
+              },
+            },
+            material: { color, opacity: 1, wireframe: false },
+          })
+        );
         break;
       }
       case 'rect': {
-        scene.addNode(new MeshNode({
-          name: `Rect (${entity.width.toFixed(1)}×${entity.height.toFixed(1)})`,
-          position: [entity.x + entity.width / 2, h / 2, entity.y + entity.height / 2],
-          geometry: { type: 'box', params: { width: entity.width, height: h, depth: entity.height } },
-          material: { color, opacity: 1, wireframe: false },
-        }));
+        scene.addNode(
+          new MeshNode({
+            name: `Rect (${entity.width.toFixed(1)}×${entity.height.toFixed(1)})`,
+            position: [entity.x + entity.width / 2, h / 2, entity.y + entity.height / 2],
+            geometry: {
+              type: 'box',
+              params: { width: entity.width, height: h, depth: entity.height },
+            },
+            material: { color, opacity: 1, wireframe: false },
+          })
+        );
         break;
       }
       case 'line': {
@@ -49,13 +66,15 @@ export function cadProjectToSceneGraph(project: Project): SceneGraph {
         const dz = entity.y2 - entity.y1;
         const length = Math.sqrt(dx * dx + dz * dz);
         if (length < 0.001) break;
-        scene.addNode(new MeshNode({
-          name: `Line (${length.toFixed(1)})`,
-          position: [(entity.x1 + entity.x2) / 2, h / 2, (entity.y1 + entity.y2) / 2],
-          rotation: [0, -Math.atan2(dz, dx), 0],
-          geometry: { type: 'box', params: { width: length, height: h, depth: 0.1 } },
-          material: { color, opacity: 1, wireframe: false },
-        }));
+        scene.addNode(
+          new MeshNode({
+            name: `Line (${length.toFixed(1)})`,
+            position: [(entity.x1 + entity.x2) / 2, h / 2, (entity.y1 + entity.y2) / 2],
+            rotation: [0, -Math.atan2(dz, dx), 0],
+            geometry: { type: 'box', params: { width: length, height: h, depth: 0.1 } },
+            material: { color, opacity: 1, wireframe: false },
+          })
+        );
         break;
       }
       case 'polyline': {
@@ -66,23 +85,35 @@ export function cadProjectToSceneGraph(project: Project): SceneGraph {
           const dz = b.y - a.y;
           const length = Math.sqrt(dx * dx + dz * dz);
           if (length < 0.001) continue;
-          scene.addNode(new MeshNode({
-            name: `Polyline seg ${i + 1}`,
-            position: [(a.x + b.x) / 2, h / 2, (a.y + b.y) / 2],
-            rotation: [0, -Math.atan2(dz, dx), 0],
-            geometry: { type: 'box', params: { width: length, height: h, depth: 0.1 } },
-            material: { color, opacity: 1, wireframe: false },
-          }));
+          scene.addNode(
+            new MeshNode({
+              name: `Polyline seg ${i + 1}`,
+              position: [(a.x + b.x) / 2, h / 2, (a.y + b.y) / 2],
+              rotation: [0, -Math.atan2(dz, dx), 0],
+              geometry: { type: 'box', params: { width: length, height: h, depth: 0.1 } },
+              material: { color, opacity: 1, wireframe: false },
+            })
+          );
         }
         break;
       }
       case 'arc': {
-        scene.addNode(new MeshNode({
-          name: `Arc (r=${entity.radius.toFixed(1)})`,
-          position: [entity.cx, h / 2, entity.cy],
-          geometry: { type: 'cylinder', params: { radiusTop: entity.radius, radiusBottom: entity.radius, height: h, radialSegments: 32 } },
-          material: { color, opacity: 0.4, wireframe: true },
-        }));
+        scene.addNode(
+          new MeshNode({
+            name: `Arc (r=${entity.radius.toFixed(1)})`,
+            position: [entity.cx, h / 2, entity.cy],
+            geometry: {
+              type: 'cylinder',
+              params: {
+                radiusTop: entity.radius,
+                radiusBottom: entity.radius,
+                height: h,
+                radialSegments: 32,
+              },
+            },
+            material: { color, opacity: 0.4, wireframe: true },
+          })
+        );
         break;
       }
     }

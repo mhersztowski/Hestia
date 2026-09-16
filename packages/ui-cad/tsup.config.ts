@@ -16,9 +16,14 @@ export default defineConfig({
   // built by one copy are foreign to another. `opencascade.js` loads its own
   // WASM at run time and has to stay where that lookup expects it.
   external: [
-    'react', 'react-dom', 'react/jsx-runtime',
-    '@mui/material', /^@mui\/material\/.*/, /^@mui\/icons-material(\/.*)?$/,
-    '@emotion/react', '@emotion/styled',
+    'react',
+    'react-dom',
+    'react/jsx-runtime',
+    '@mui/material',
+    /^@mui\/material\/.*/,
+    /^@mui\/icons-material(\/.*)?$/,
+    '@emotion/react',
+    '@emotion/styled',
     /^three(\/.*)?$/,
     'opencascade.js',
     // One copy of the toolbar package, shared with the host's own menus.

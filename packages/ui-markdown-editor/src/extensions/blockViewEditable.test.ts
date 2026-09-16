@@ -16,22 +16,16 @@ import { describe, it, expect } from 'vitest';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 
-const TRESC = [
-  'T = 2\\pi\\sqrt{\\frac{L}{g}}',
-  '@vars T: s, L: m, g: m/s^2',
-].join('\n');
+const TRESC = ['T = 2\\pi\\sqrt{\\frac{L}{g}}', '@vars T: s, L: m, g: m/s^2'].join('\n');
 
 /** Zawartość bloku kodu odczytana tak, jak robi to renderer. */
 function trescBloku(editor: Editor): string {
   let wynik = '';
   editor.state.doc.descendants((node) => {
     if (node.type.name === 'codeBlock') {
-      wynik = editor.state.doc.textBetween(
-        node.nodeSize > 2 ? 1 : 0,
-        editor.state.doc.content.size,
-        '\n',
-        '\n',
-      ).trim();
+      wynik = editor.state.doc
+        .textBetween(node.nodeSize > 2 ? 1 : 0, editor.state.doc.content.size, '\n', '\n')
+        .trim();
       return false;
     }
     return true;
@@ -47,11 +41,13 @@ describe('blok z widokiem w dokumencie', () => {
       extensions: [StarterKit],
       content: {
         type: 'doc',
-        content: [{
-          type: 'codeBlock',
-          attrs: { language: 'formula:okres' },
-          content: [{ type: 'text', text: TRESC }],
-        }],
+        content: [
+          {
+            type: 'codeBlock',
+            attrs: { language: 'formula:okres' },
+            content: [{ type: 'text', text: TRESC }],
+          },
+        ],
       },
     });
 
@@ -66,23 +62,32 @@ describe('blok z widokiem w dokumencie', () => {
       extensions: [StarterKit],
       content: {
         type: 'doc',
-        content: [{
-          type: 'codeBlock',
-          attrs: { language: 'formula:okres' },
-          content: [{ type: 'text', text: TRESC }],
-        }],
+        content: [
+          {
+            type: 'codeBlock',
+            attrs: { language: 'formula:okres' },
+            content: [{ type: 'text', text: TRESC }],
+          },
+        ],
       },
     });
 
     let pozycja = -1;
     editor.state.doc.descendants((node, pos) => {
-      if (node.type.name === 'codeBlock') { pozycja = pos; return false; }
+      if (node.type.name === 'codeBlock') {
+        pozycja = pos;
+        return false;
+      }
       return true;
     });
 
     const wezel = editor.state.doc.nodeAt(pozycja)!;
     editor.view.dispatch(
-      editor.state.tr.replaceWith(pozycja + 1, pozycja + wezel.nodeSize - 1, editor.schema.text('E = m \\cdot c^2')),
+      editor.state.tr.replaceWith(
+        pozycja + 1,
+        pozycja + wezel.nodeSize - 1,
+        editor.schema.text('E = m \\cdot c^2')
+      )
     );
 
     const po = editor.state.doc.nodeAt(pozycja)!;

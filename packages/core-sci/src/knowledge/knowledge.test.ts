@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
-  buildIndex, readDocument, parseFrontMatter, learningGraph,
-  allExercises, exercisesFor, documentsByTag,
+  buildIndex,
+  readDocument,
+  parseFrontMatter,
+  learningGraph,
+  allExercises,
+  exercisesFor,
+  documentsByTag,
 } from './index';
 
 const WAHADLO = [
@@ -93,10 +98,12 @@ describe('indeks całej bazy', () => {
   });
 
   it('wywód do wzoru spoza bazy jest błędem', () => {
-    const zWiszacym = buildIndex([{
-      path: 'x.md',
-      markdown: '```formula:a\nA = 1\n@derivedFrom nieistnieje\n```',
-    }]);
+    const zWiszacym = buildIndex([
+      {
+        path: 'x.md',
+        markdown: '```formula:a\nA = 1\n@derivedFrom nieistnieje\n```',
+      },
+    ]);
     expect(zWiszacym.issues.some((i) => i.message.includes('nieistnieje'))).toBe(true);
   });
 
@@ -106,10 +113,12 @@ describe('indeks całej bazy', () => {
   });
 
   it('zadanie odwołujące się do nieistniejącego wzoru jest zgłaszane', () => {
-    const zle = buildIndex([{
-      path: 'x.md',
-      markdown: '```exercise:z\nTreść.\n@answer T\n@uses nieistnieje\n```',
-    }]);
+    const zle = buildIndex([
+      {
+        path: 'x.md',
+        markdown: '```exercise:z\nTreść.\n@answer T\n@uses nieistnieje\n```',
+      },
+    ]);
     expect(zle.issues.some((i) => i.message.includes('nieistnieje'))).toBe(true);
   });
 
@@ -142,21 +151,29 @@ describe('graf wiedzy', () => {
 
   it('prerekwizyt daje krawędź między dokumentami', () => {
     expect(edges).toContainEqual({
-      from: 'mechanika/wahadlo.md', to: 'mechanika/rezonans.md', kind: 'requires',
+      from: 'mechanika/wahadlo.md',
+      to: 'mechanika/rezonans.md',
+      kind: 'requires',
     });
   });
 
   it('wywód wzoru z innego dokumentu też daje krawędź', () => {
     expect(edges).toContainEqual({
-      from: 'mechanika/wahadlo.md', to: 'mechanika/rezonans.md', kind: 'derivedFrom',
+      from: 'mechanika/wahadlo.md',
+      to: 'mechanika/rezonans.md',
+      kind: 'derivedFrom',
     });
   });
 
   it('wywód wewnątrz jednego dokumentu nie tworzy pętli', () => {
-    const jeden = buildIndex([{
-      path: 'x.md',
-      markdown: ['```formula:a\nA = 1\n```', '```formula:b\nB = A\n@derivedFrom a\n```'].join('\n'),
-    }]);
+    const jeden = buildIndex([
+      {
+        path: 'x.md',
+        markdown: ['```formula:a\nA = 1\n```', '```formula:b\nB = A\n@derivedFrom a\n```'].join(
+          '\n'
+        ),
+      },
+    ]);
     expect(learningGraph(jeden)).toEqual([]);
   });
 });

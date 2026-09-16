@@ -6,7 +6,13 @@
  * alarm przy poprawnym kodzie uczy ignorowania ostrzeżeń.
  */
 import { describe, it, expect } from 'vitest';
-import { typesCompatible, normalizeType, unwrapPromise, checkCallArgs, formatIssues } from './argTypeCheck';
+import {
+  typesCompatible,
+  normalizeType,
+  unwrapPromise,
+  checkCallArgs,
+  formatIssues,
+} from './argTypeCheck';
 
 describe('normalizeType / unwrapPromise', () => {
   it('sprowadza zapis do postaci porównywalnej', () => {
@@ -83,13 +89,20 @@ describe('checkCallArgs', () => {
 
   it('wskazuje indeks, nazwę i oba typy', () => {
     const [issue] = checkCallArgs('Api.fetch', names, types, ['string', 'string']);
-    expect(issue).toMatchObject({ index: 1, paramName: 'retries', expected: 'number', actual: 'string' });
+    expect(issue).toMatchObject({
+      index: 1,
+      paramName: 'retries',
+      expected: 'number',
+      actual: 'string',
+    });
     expect(issue.message).toContain('argument 2');
   });
 
   it('pomija argumenty o nieznanym typie', () => {
     expect(checkCallArgs('Api.fetch', names, types, [undefined, undefined])).toEqual([]);
-    expect(checkCallArgs('Api.fetch', names, [undefined, undefined], ['number', 'string'])).toEqual([]);
+    expect(checkCallArgs('Api.fetch', names, [undefined, undefined], ['number', 'string'])).toEqual(
+      []
+    );
   });
 
   it('zbiera wiele problemów naraz', () => {
@@ -103,7 +116,12 @@ describe('formatIssues', () => {
   });
 
   it('składa czytelną chmurkę z licznikiem', () => {
-    const issues = checkCallArgs('Api.fetch', ['id', 'n'], ['string', 'number'], ['number', 'boolean']);
+    const issues = checkCallArgs(
+      'Api.fetch',
+      ['id', 'n'],
+      ['string', 'number'],
+      ['number', 'boolean']
+    );
     const text = formatIssues(issues);
     expect(text).toContain('Niezgodne typy argumentów (2)');
     expect(text.split('\n')).toHaveLength(3);

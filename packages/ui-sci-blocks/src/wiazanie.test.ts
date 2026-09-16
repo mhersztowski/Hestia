@@ -85,8 +85,11 @@ describe('zZaleznosciami', () => {
   it('idzie przez cały łańcuch zależności', () => {
     // Zawężenie do jednego bloku byłoby regresją: graf bez wzoru pośredniego
     // albo się nie skompiluje, albo weźmie brakującą wielkość za parametr.
-    expect(zZaleznosciami(WZORY, 'zasieg').map((f) => f.id))
-      .toEqual(['energia', 'predkosc', 'zasieg']);
+    expect(zZaleznosciami(WZORY, 'zasieg').map((f) => f.id)).toEqual([
+      'energia',
+      'predkosc',
+      'zasieg',
+    ]);
   });
 
   it('pomija wzory niezwiązane', () => {
@@ -94,11 +97,16 @@ describe('zZaleznosciami', () => {
   });
 
   it('nieistniejąca zależność nie wywraca domknięcia', () => {
-    expect(zZaleznosciami([{ id: 'a', derivedFrom: ['nie-ma'] }], 'a').map((f) => f.id)).toEqual(['a']);
+    expect(zZaleznosciami([{ id: 'a', derivedFrom: ['nie-ma'] }], 'a').map((f) => f.id)).toEqual([
+      'a',
+    ]);
   });
 
   it('cykl w zależnościach się nie zapętla', () => {
-    const cykl = [{ id: 'a', derivedFrom: ['b'] }, { id: 'b', derivedFrom: ['a'] }];
+    const cykl = [
+      { id: 'a', derivedFrom: ['b'] },
+      { id: 'b', derivedFrom: ['a'] },
+    ];
     expect(zZaleznosciami(cykl, 'a').map((f) => f.id)).toEqual(['a', 'b']);
   });
 });

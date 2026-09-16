@@ -19,9 +19,13 @@
  * używają prostego podzbioru.
  */
 import {
-  edgeId, emptyDiagram,
-  type DiagramDocument, type DiagramDirection, type DiagramNode,
-  type EdgeLineStyle, type NodeShape,
+  edgeId,
+  emptyDiagram,
+  type DiagramDocument,
+  type DiagramDirection,
+  type DiagramNode,
+  type EdgeLineStyle,
+  type NodeShape,
 } from '../../model/diagram';
 import type { DiagramFormat, ParseIssue, ParseResult } from '../../model/format';
 
@@ -56,23 +60,39 @@ const BARE_NODE = new RegExp(`^\\s*(${ID})\\s*;?\\s*$`);
 
 /** Kształty Graphviza, które mają odpowiednik w modelu. */
 const SHAPES: Record<string, NodeShape> = {
-  box: 'rectangle', rect: 'rectangle', rectangle: 'rectangle', square: 'rectangle', plaintext: 'rectangle',
-  ellipse: 'stadium', oval: 'stadium',
-  circle: 'circle', doublecircle: 'doubleCircle', point: 'circle',
-  diamond: 'rhombus', mdiamond: 'rhombus',
+  box: 'rectangle',
+  rect: 'rectangle',
+  rectangle: 'rectangle',
+  square: 'rectangle',
+  plaintext: 'rectangle',
+  ellipse: 'stadium',
+  oval: 'stadium',
+  circle: 'circle',
+  doublecircle: 'doubleCircle',
+  point: 'circle',
+  diamond: 'rhombus',
+  mdiamond: 'rhombus',
   hexagon: 'hexagon',
   cylinder: 'cylinder',
   parallelogram: 'parallelogram',
   trapezium: 'trapezoid',
   note: 'asymmetric',
-  box3d: 'subroutine', component: 'subroutine',
+  box3d: 'subroutine',
+  component: 'subroutine',
 };
 
 /** Odwrotność `SHAPES` — pierwsze trafienie wygrywa, bo kilka nazw znaczy to samo. */
 const SHAPE_NAMES: Partial<Record<NodeShape, string>> = {
-  rectangle: 'box', stadium: 'ellipse', circle: 'circle', doubleCircle: 'doublecircle',
-  rhombus: 'diamond', hexagon: 'hexagon', cylinder: 'cylinder',
-  parallelogram: 'parallelogram', trapezoid: 'trapezium', asymmetric: 'note',
+  rectangle: 'box',
+  stadium: 'ellipse',
+  circle: 'circle',
+  doubleCircle: 'doublecircle',
+  rhombus: 'diamond',
+  hexagon: 'hexagon',
+  cylinder: 'cylinder',
+  parallelogram: 'parallelogram',
+  trapezoid: 'trapezium',
+  asymmetric: 'note',
   subroutine: 'box3d',
 };
 
@@ -118,10 +138,25 @@ export function parseAttrs(raw: string | undefined): Record<string, string> {
 
   for (let i = 0; i < body.length; i += 1) {
     const char = body[i];
-    if (char === '\\' && quoted) { value += char + (body[i + 1] ?? ''); i += 1; continue; }
-    if (char === '"') { quoted = !quoted; (afterEquals ? (value += char) : (key += char)); continue; }
-    if (!quoted && char === '=') { afterEquals = true; continue; }
-    if (!quoted && (char === ',' || char === ';')) { flush(); continue; }
+    if (char === '\\' && quoted) {
+      value += char + (body[i + 1] ?? '');
+      i += 1;
+      continue;
+    }
+    if (char === '"') {
+      quoted = !quoted;
+      if (afterEquals) value += char;
+      else key += char;
+      continue;
+    }
+    if (!quoted && char === '=') {
+      afterEquals = true;
+      continue;
+    }
+    if (!quoted && (char === ',' || char === ';')) {
+      flush();
+      continue;
+    }
     if (afterEquals) value += char;
     else key += char;
   }
@@ -155,8 +190,16 @@ export function splitStatements(text: string): string[] {
   for (let i = 0; i < text.length; i += 1) {
     const char = text[i];
 
-    if (char === '\\' && quoted) { current += char + (text[i + 1] ?? ''); i += 1; continue; }
-    if (char === '"') { quoted = !quoted; current += char; continue; }
+    if (char === '\\' && quoted) {
+      current += char + (text[i + 1] ?? '');
+      i += 1;
+      continue;
+    }
+    if (char === '"') {
+      quoted = !quoted;
+      current += char;
+      continue;
+    }
 
     if (!quoted && (char === '{' || char === ';')) {
       current += char;
@@ -224,21 +267,32 @@ export function parseDot(text: string): ParseResult {
     // Komentarze DOT-a: `//`, `#` oraz jednolinijkowe `/* */`.
     if (trimmed.startsWith('//') || trimmed.startsWith('#') || /^\/\*.*\*\/$/.test(trimmed)) return;
 
-    if (!seenHeader && (HEADER.test(line) || DETECT.test(line))) { seenHeader = true; return; }
+    if (!seenHeader && (HEADER.test(line) || DETECT.test(line))) {
+      seenHeader = true;
+      return;
+    }
 
     const rankdir = RANKDIR.exec(trimmed);
-    if (rankdir) { doc.direction = rankdir[1].toUpperCase() as DiagramDirection; return; }
+    if (rankdir) {
+      doc.direction = rankdir[1].toUpperCase() as DiagramDirection;
+      return;
+    }
 
     const subgraph = SUBGRAPH.exec(trimmed);
     if (subgraph) {
       const nazwa = unquote(subgraph[1]);
       // Podgraf bez przedrostka `cluster` nie rysuje ramki — dla Graphviza to
       // wyłącznie grupowanie ustawień, więc grupą go nie robimy.
-      if (!/^cluster/i.test(nazwa)) { doc.unknown.push({ index, text: line }); stack.push(''); return; }
+      if (!/^cluster/i.test(nazwa)) {
+        doc.unknown.push({ index, text: line });
+        stack.push('');
+        return;
+      }
       groupCounter += 1;
       const id = nazwa || `cluster_${groupCounter}`;
       doc.groups.push({
-        id, label: '',
+        id,
+        label: '',
         ...(stack.length && stack[stack.length - 1] ? { parentId: stack[stack.length - 1] } : {}),
       });
       stack.push(id);
@@ -264,7 +318,10 @@ export function parseDot(text: string): ParseResult {
       return;
     }
 
-    if (SCOPE_DEFAULTS.test(trimmed)) { doc.unknown.push({ index, text: line }); return; }
+    if (SCOPE_DEFAULTS.test(trimmed)) {
+      doc.unknown.push({ index, text: line });
+      return;
+    }
 
     const edge = EDGE.exec(trimmed);
     if (edge) {
@@ -293,7 +350,10 @@ export function parseDot(text: string): ParseResult {
     }
 
     const bare = BARE_NODE.exec(trimmed);
-    if (bare) { ensureNode(unquote(bare[1])); return; }
+    if (bare) {
+      ensureNode(unquote(bare[1]));
+      return;
+    }
 
     doc.unknown.push({ index, text: line });
   });

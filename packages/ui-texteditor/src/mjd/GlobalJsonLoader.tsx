@@ -28,7 +28,9 @@ export function GlobalJsonLoader({ provider, path, height }: GlobalJsonLoaderPro
   const pendingRef = useRef<unknown>(undefined);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ severity: 'success' | 'error'; message: string } | null>(null);
+  const [toast, setToast] = useState<{ severity: 'success' | 'error'; message: string } | null>(
+    null
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -40,16 +42,25 @@ export function GlobalJsonLoader({ provider, path, height }: GlobalJsonLoaderPro
           const bytes = await provider.readFile(path);
           const txt = decodeText(bytes).trim();
           const json = txt ? JSON.parse(txt) : {};
-          data = (json && typeof json === 'object' && !Array.isArray(json)) ? (json as Record<string, unknown>) : {};
+          data =
+            json && typeof json === 'object' && !Array.isArray(json)
+              ? (json as Record<string, unknown>)
+              : {};
         } catch {
-          data = {};   // new / empty file — start blank
+          data = {}; // new / empty file — start blank
         }
         if (!cancelled) setState({ status: 'ready', data });
       } catch (err) {
-        if (!cancelled) setState({ status: 'error', message: err instanceof Error ? err.message : 'Failed to load file' });
+        if (!cancelled)
+          setState({
+            status: 'error',
+            message: err instanceof Error ? err.message : 'Failed to load file',
+          });
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [provider, path]);
 
   const handleChange = useCallback((data: Record<string, unknown>) => {
@@ -62,7 +73,10 @@ export function GlobalJsonLoader({ provider, path, height }: GlobalJsonLoaderPro
     if (!provider.writeFile || pendingRef.current === undefined) return;
     setSaving(true);
     try {
-      await provider.writeFile(path, encodeText(JSON.stringify(pendingRef.current, null, 2)), { create: true, overwrite: true });
+      await provider.writeFile(path, encodeText(JSON.stringify(pendingRef.current, null, 2)), {
+        create: true,
+        overwrite: true,
+      });
       setDirty(false);
       setToast({ severity: 'success', message: 'Saved' });
     } catch (e) {
@@ -74,19 +88,37 @@ export function GlobalJsonLoader({ provider, path, height }: GlobalJsonLoaderPro
 
   // Generate JSON Schema + .d.ts from the current definitions into sibling
   // subfolders (json-schema/<Name>.schema.json and d.ts/<Name>.d.ts).
-  const handleGenerate = useCallback(async (name: string, value: Record<string, unknown>) => {
-    if (!provider.writeFile) { setToast({ severity: 'error', message: 'Filesystem is read-only' }); return; }
-    const dir = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
-    const schemaPath = `${dir}/json-schema/${name}.schema.json`;
-    const dtsPath = `${dir}/d.ts/${name}.d.ts`;
-    try {
-      await provider.writeFile(schemaPath, encodeText(generateJsonSchema(value, name)), { create: true, overwrite: true });
-      await provider.writeFile(dtsPath, encodeText(generateDts(value)), { create: true, overwrite: true });
-      setToast({ severity: 'success', message: `Generated json-schema/${name}.schema.json + d.ts/${name}.d.ts` });
-    } catch (e) {
-      setToast({ severity: 'error', message: e instanceof Error ? e.message : 'Generate failed' });
-    }
-  }, [provider, path]);
+  const handleGenerate = useCallback(
+    async (name: string, value: Record<string, unknown>) => {
+      if (!provider.writeFile) {
+        setToast({ severity: 'error', message: 'Filesystem is read-only' });
+        return;
+      }
+      const dir = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
+      const schemaPath = `${dir}/json-schema/${name}.schema.json`;
+      const dtsPath = `${dir}/d.ts/${name}.d.ts`;
+      try {
+        await provider.writeFile(schemaPath, encodeText(generateJsonSchema(value, name)), {
+          create: true,
+          overwrite: true,
+        });
+        await provider.writeFile(dtsPath, encodeText(generateDts(value)), {
+          create: true,
+          overwrite: true,
+        });
+        setToast({
+          severity: 'success',
+          message: `Generated json-schema/${name}.schema.json + d.ts/${name}.d.ts`,
+        });
+      } catch (e) {
+        setToast({
+          severity: 'error',
+          message: e instanceof Error ? e.message : 'Generate failed',
+        });
+      }
+    },
+    [provider, path]
+  );
 
   const defaultName = (path.split('/').pop() || '').replace(/\.myschema\.json$/i, '') || 'schema';
 
@@ -105,7 +137,11 @@ export function GlobalJsonLoader({ provider, path, height }: GlobalJsonLoaderPro
       if (depth > 8 || budget <= 0) return;
       budget--;
       let entries;
-      try { entries = await provider.readDirectory(dir); } catch { return; }
+      try {
+        entries = await provider.readDirectory(dir);
+      } catch {
+        return;
+      }
       for (const e of entries) {
         const full = `${dir}/${e.name}`;
         if (e.type === FileType.Directory) {
@@ -133,28 +169,65 @@ export function GlobalJsonLoader({ provider, path, height }: GlobalJsonLoaderPro
       const acc: ImportedType[] = [];
       for (const f of usingKey ? usingKey.split('\n') : []) {
         try {
-          const doc = JSON.parse(decodeText(await provider.readFile(f))) as { classes?: object; enums?: object };
+          const doc = JSON.parse(decodeText(await provider.readFile(f))) as {
+            classes?: object;
+            enums?: object;
+          };
           const base = f.split('/').pop() || f;
-          for (const n of Object.keys(doc?.classes ?? {})) acc.push({ name: n, file: base, kind: 'class' });
-          for (const n of Object.keys(doc?.enums ?? {})) acc.push({ name: n, file: base, kind: 'enum' });
-        } catch { /* missing / invalid import — skip */ }
+          for (const n of Object.keys(doc?.classes ?? {}))
+            acc.push({ name: n, file: base, kind: 'class' });
+          for (const n of Object.keys(doc?.enums ?? {}))
+            acc.push({ name: n, file: base, kind: 'enum' });
+        } catch {
+          /* missing / invalid import — skip */
+        }
       }
       if (!cancelled) setImported(acc);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [usingKey, provider]);
 
   if (state.status === 'loading') {
-    return <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}><CircularProgress size={24} /></Box>;
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
+        <CircularProgress size={24} />
+      </Box>
+    );
   }
   if (state.status === 'error') {
-    return <Box sx={{ p: 2 }}><Alert severity="error">{state.message}</Alert></Box>;
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="error">{state.message}</Alert>
+      </Box>
+    );
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', ...(height ? { height } : { flex: 1, minHeight: 0 }) }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.75, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
-        <Typography variant="caption" sx={{ flexGrow: 1, color: dirty ? 'warning.main' : 'text.secondary' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        ...(height ? { height } : { flex: 1, minHeight: 0 }),
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          px: 1.5,
+          py: 0.75,
+          borderBottom: 1,
+          borderColor: 'divider',
+          flexShrink: 0,
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{ flexGrow: 1, color: dirty ? 'warning.main' : 'text.secondary' }}
+        >
           {dirty ? 'Unsaved changes' : 'All changes saved'}
         </Typography>
         <Button
@@ -184,7 +257,11 @@ export function GlobalJsonLoader({ provider, path, height }: GlobalJsonLoaderPro
         onClose={() => setToast(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        {toast ? <Alert severity={toast.severity} onClose={() => setToast(null)}>{toast.message}</Alert> : undefined}
+        {toast ? (
+          <Alert severity={toast.severity} onClose={() => setToast(null)}>
+            {toast.message}
+          </Alert>
+        ) : undefined}
       </Snackbar>
     </Box>
   );

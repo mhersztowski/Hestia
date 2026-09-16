@@ -50,8 +50,9 @@ describe('MemoryFS', () => {
     it('should throw FileExists when overwrite is false', async () => {
       const fs = createFs();
       await fs.writeFile!('/f.txt', encodeText('v1'));
-      await expect(fs.writeFile!('/f.txt', encodeText('v2'), { overwrite: false }))
-        .rejects.toMatchObject({ code: VfsErrorCode.FileExists });
+      await expect(
+        fs.writeFile!('/f.txt', encodeText('v2'), { overwrite: false })
+      ).rejects.toMatchObject({ code: VfsErrorCode.FileExists });
     });
 
     it('should overwrite with overwrite: true', async () => {
@@ -73,10 +74,12 @@ describe('MemoryFS', () => {
       await fs.writeFile!('/a.txt', encodeText(''));
       await fs.mkdir!('/dir');
       const entries = await fs.readDirectory('/');
-      expect(entries).toEqual(expect.arrayContaining([
-        { name: 'a.txt', type: FileType.File },
-        { name: 'dir', type: FileType.Directory },
-      ]));
+      expect(entries).toEqual(
+        expect.arrayContaining([
+          { name: 'a.txt', type: FileType.File },
+          { name: 'dir', type: FileType.Directory },
+        ])
+      );
     });
 
     it('should only return direct children', async () => {
@@ -169,9 +172,7 @@ describe('MemoryFS', () => {
       fs.onDidChangeFile(listener);
 
       await fs.writeFile!('/f.txt', encodeText(''));
-      expect(listener).toHaveBeenCalledWith([
-        { type: FileChangeType.Created, path: '/f.txt' },
-      ]);
+      expect(listener).toHaveBeenCalledWith([{ type: FileChangeType.Created, path: '/f.txt' }]);
     });
 
     it('should fire Changed event on overwrite', async () => {
@@ -181,9 +182,7 @@ describe('MemoryFS', () => {
       fs.onDidChangeFile(listener);
 
       await fs.writeFile!('/f.txt', encodeText('v2'), { overwrite: true });
-      expect(listener).toHaveBeenCalledWith([
-        { type: FileChangeType.Changed, path: '/f.txt' },
-      ]);
+      expect(listener).toHaveBeenCalledWith([{ type: FileChangeType.Changed, path: '/f.txt' }]);
     });
 
     it('should fire Deleted event', async () => {
@@ -193,9 +192,7 @@ describe('MemoryFS', () => {
       fs.onDidChangeFile(listener);
 
       await fs.delete!('/f.txt');
-      expect(listener).toHaveBeenCalledWith([
-        { type: FileChangeType.Deleted, path: '/f.txt' },
-      ]);
+      expect(listener).toHaveBeenCalledWith([{ type: FileChangeType.Deleted, path: '/f.txt' }]);
     });
 
     it('should stop receiving events after dispose', async () => {

@@ -12,16 +12,28 @@ import { PythonProject } from './PythonProject';
 
 const FALLBACK_DEPS: ProjectDeps = { baseUrl: '', userName: '' };
 
-export function createProject(context: VfsProjectContext, deps: ProjectDeps = FALLBACK_DEPS): Project | null {
+export function createProject(
+  context: VfsProjectContext,
+  deps: ProjectDeps = FALLBACK_DEPS
+): Project | null {
   switch (context.platform) {
-    case 'Arduino':  return new ArduinoProject(context, deps);
-    case 'uPython':  return new UPythonProject(context, deps);
-    case 'pygame':   return new PygameProject(context, deps);
-    case 'PicoSdk':  return new PicoSdkProject(context, deps);
-    case 'Notes':    return new NotesProject(context, deps);
-    case 'Editor':   return new EditorProject(context, deps);
-    case 'NodeJs':   return new NodeJsProject(context, deps);
-    case 'Python':   return new PythonProject(context, deps);
-    default:         return null;
+    case 'Arduino':
+      return new ArduinoProject(context, deps);
+    case 'uPython':
+      return new UPythonProject(context, deps);
+    case 'pygame':
+      return new PygameProject(context, deps);
+    case 'PicoSdk':
+      return new PicoSdkProject(context, deps);
+    case 'Notes':
+      return new NotesProject(context, deps);
+    case 'Editor':
+      return new EditorProject(context, deps);
+    case 'NodeJs':
+      return new NodeJsProject(context, deps);
+    case 'Python':
+      return new PythonProject(context, deps);
+    default:
+      return null;
   }
 }

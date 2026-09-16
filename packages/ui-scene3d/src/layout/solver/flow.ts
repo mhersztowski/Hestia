@@ -58,20 +58,26 @@ export function solveFlow(doc: LayoutDoc): LayoutResult {
     const nadwyzka = dostepna - zajete;
 
     if (nadwyzka < 0 && sumaRozciagow === 0) {
-      issues.push(`Zawartość „${parent?.id ?? 'obszaru'}" nie mieści się o ${Math.round(-nadwyzka)} px.`);
+      issues.push(
+        `Zawartość „${parent?.id ?? 'obszaru'}" nie mieści się o ${Math.round(-nadwyzka)} px.`
+      );
     }
 
     let kursor = ramka[osGlowna(dir)] + pad;
     dzieci.forEach((dziecko, i) => {
-      const dodatek = sumaRozciagow > 0 && nadwyzka > 0 ? (nadwyzka * rozciagi[i]) / sumaRozciagow : 0;
+      const dodatek =
+        sumaRozciagow > 0 && nadwyzka > 0 ? (nadwyzka * rozciagi[i]) / sumaRozciagow : 0;
       const rozmiar = bazowe[i] + dodatek;
       const wlasnyPoprzek = values[dziecko.id][poprzeczna];
 
       const rozmiarPoprzek = kontener.align === 'stretch' ? dostepnaPoprzek : wlasnyPoprzek;
       const wolnePoprzek = dostepnaPoprzek - rozmiarPoprzek;
-      const przesunieciePoprzek = kontener.align === 'center' ? wolnePoprzek / 2
-        : kontener.align === 'end' ? wolnePoprzek
-          : 0;
+      const przesunieciePoprzek =
+        kontener.align === 'center'
+          ? wolnePoprzek / 2
+          : kontener.align === 'end'
+            ? wolnePoprzek
+            : 0;
 
       const rect: Rect = { x: 0, y: 0, w: 0, h: 0 };
       rect[osGlowna(dir)] = kursor;

@@ -53,10 +53,20 @@ describe('drawPage', () => {
     const ctx = mockCtx();
     const page: NotePage = {
       id: 'p',
-      elements: [{
-        id: 's', kind: 'stroke', tool: 'marker', color: '#f00', width: 3,
-        points: [{ x: 0, y: 0, p: 0.5 }, { x: 5, y: 5, p: 0.5 }, { x: 10, y: 0, p: 0.5 }],
-      }],
+      elements: [
+        {
+          id: 's',
+          kind: 'stroke',
+          tool: 'marker',
+          color: '#f00',
+          width: 3,
+          points: [
+            { x: 0, y: 0, p: 0.5 },
+            { x: 5, y: 5, p: 0.5 },
+            { x: 10, y: 0, p: 0.5 },
+          ],
+        },
+      ],
     };
     drawPage(ctx, page, new Map(), () => {});
     expect((ctx as any).stroke).toHaveBeenCalledTimes(1);
@@ -68,10 +78,20 @@ describe('drawPage', () => {
     const ctx = mockCtx();
     const page: NotePage = {
       id: 'p',
-      elements: [{
-        id: 's', kind: 'stroke', tool: 'pencil', color: '#0f0', width: 2,
-        points: [{ x: 0, y: 0, p: 1 }, { x: 1, y: 1, p: 1 }, { x: 2, y: 2, p: 1 }],
-      }],
+      elements: [
+        {
+          id: 's',
+          kind: 'stroke',
+          tool: 'pencil',
+          color: '#0f0',
+          width: 2,
+          points: [
+            { x: 0, y: 0, p: 1 },
+            { x: 1, y: 1, p: 1 },
+            { x: 2, y: 2, p: 1 },
+          ],
+        },
+      ],
     };
     drawPage(ctx, page, new Map(), () => {});
     // 3 points => 2 segments => 2 strokes
@@ -82,7 +102,16 @@ describe('drawPage', () => {
     const ctx = mockCtx();
     const page: NotePage = {
       id: 'p',
-      elements: [{ id: 's', kind: 'stroke', tool: 'pencil', color: '#0f0', width: 2, points: [{ x: 0, y: 0, p: 1 }] }],
+      elements: [
+        {
+          id: 's',
+          kind: 'stroke',
+          tool: 'pencil',
+          color: '#0f0',
+          width: 2,
+          points: [{ x: 0, y: 0, p: 1 }],
+        },
+      ],
     };
     drawPage(ctx, page, new Map(), () => {});
     expect((ctx as any).stroke).not.toHaveBeenCalled();

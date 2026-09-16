@@ -3,7 +3,11 @@ import { compileExpression, evaluateOnce } from './expression';
 
 describe('kompilacja wyrażeń', () => {
   it('liczy poprawnie i szybko', () => {
-    const { evaluate, issues } = compileExpression('-\\frac{g}{L}\\sin(\\theta)', ['g', 'L', 'theta']);
+    const { evaluate, issues } = compileExpression('-\\frac{g}{L}\\sin(\\theta)', [
+      'g',
+      'L',
+      'theta',
+    ]);
     expect(issues).toEqual([]);
     expect(evaluate({ g: 9.81, L: 1, theta: 0.2 })).toBeCloseTo(-9.81 * Math.sin(0.2), 12);
   });
@@ -32,7 +36,11 @@ describe('ciche pomyłki LaTeX-a', () => {
     // poprawnie, raz kończy błędem „Unknown operator L". Kontraktem nie jest
     // więc konkretny komunikat, tylko brak trzeciej możliwości: cichego
     // złego wyniku.
-    const { evaluate, issues } = compileExpression('\\frac{1}{2} m L^2 \\omega^2', ['m', 'L', 'omega']);
+    const { evaluate, issues } = compileExpression('\\frac{1}{2} m L^2 \\omega^2', [
+      'm',
+      'L',
+      'omega',
+    ]);
     const value = evaluate({ m: 2, L: 3, omega: 4 });
     const oczekiwane = 0.5 * 2 * 9 * 16;
 
@@ -42,7 +50,8 @@ describe('ciche pomyłki LaTeX-a', () => {
 
   it('ten sam wzór z jawnym mnożeniem przechodzi', () => {
     const { evaluate, issues } = compileExpression(
-      '\\frac{1}{2} \\cdot m \\cdot L^2 \\cdot \\omega^2', ['m', 'L', 'omega'],
+      '\\frac{1}{2} \\cdot m \\cdot L^2 \\cdot \\omega^2',
+      ['m', 'L', 'omega']
     );
     expect(issues).toEqual([]);
     expect(evaluate({ m: 2, L: 3, omega: 4 })).toBeCloseTo(0.5 * 2 * 9 * 16, 9);

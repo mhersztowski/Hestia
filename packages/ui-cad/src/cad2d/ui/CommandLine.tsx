@@ -20,7 +20,7 @@ type ParseResult =
   | { kind: 'tool'; name: ToolName }
   | { kind: 'absolute'; x: number; y: number }
   | { kind: 'relative'; dx: number; dy: number }
-  | { kind: 'polar'; dist: number; angle: number }  // angle in degrees
+  | { kind: 'polar'; dist: number; angle: number } // angle in degrees
   | { kind: 'number'; value: number }
   | { kind: 'unknown' };
 
@@ -57,7 +57,8 @@ function parseInput(raw: string): ParseResult {
   if (input.startsWith('@')) {
     const parts = input.slice(1).split(',');
     if (parts.length === 2) {
-      const dx = parseFloat(parts[0]), dy = parseFloat(parts[1]);
+      const dx = parseFloat(parts[0]),
+        dy = parseFloat(parts[1]);
       if (!isNaN(dx) && !isNaN(dy)) return { kind: 'relative', dx, dy };
     }
   }
@@ -66,7 +67,8 @@ function parseInput(raw: string): ParseResult {
   if (input.includes('<')) {
     const parts = input.split('<');
     if (parts.length === 2) {
-      const dist = parseFloat(parts[0]), angleDeg = parseFloat(parts[1]);
+      const dist = parseFloat(parts[0]),
+        angleDeg = parseFloat(parts[1]);
       if (!isNaN(dist) && !isNaN(angleDeg)) return { kind: 'polar', dist, angle: angleDeg };
     }
   }
@@ -75,7 +77,8 @@ function parseInput(raw: string): ParseResult {
   if (input.includes(',')) {
     const parts = input.split(',');
     if (parts.length === 2) {
-      const x = parseFloat(parts[0]), y = parseFloat(parts[1]);
+      const x = parseFloat(parts[0]),
+        y = parseFloat(parts[1]);
       if (!isNaN(x) && !isNaN(y)) return { kind: 'absolute', x, y };
     }
   }
@@ -138,7 +141,7 @@ export function CommandLine({ activeTool, onToolChange, onCoordinate, onAngle, l
     const raw = value.trim();
     if (!raw) return;
 
-    setHistory(h => [raw, ...h.slice(0, 49)]);
+    setHistory((h) => [raw, ...h.slice(0, 49)]);
     histIdxRef.current = -1;
     setValue('');
     setError('');
@@ -163,7 +166,10 @@ export function CommandLine({ activeTool, onToolChange, onCoordinate, onAngle, l
       case 'polar': {
         const base = lastPoint ?? { x: 0, y: 0 };
         const rad = (result.angle * Math.PI) / 180;
-        onCoordinate({ x: base.x + result.dist * Math.cos(rad), y: base.y + result.dist * Math.sin(rad) });
+        onCoordinate({
+          x: base.x + result.dist * Math.cos(rad),
+          y: base.y + result.dist * Math.sin(rad),
+        });
         break;
       }
 
@@ -177,53 +183,68 @@ export function CommandLine({ activeTool, onToolChange, onCoordinate, onAngle, l
     }
   }, [value, lastPoint, onToolChange, onCoordinate, onAngle]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      submit();
-    } else if (e.key === 'Escape') {
-      setValue('');
-      setError('');
-      inputRef.current?.blur();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      const next = Math.min(histIdxRef.current + 1, history.length - 1);
-      histIdxRef.current = next;
-      setValue(history[next] ?? '');
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      const next = Math.max(histIdxRef.current - 1, -1);
-      histIdxRef.current = next;
-      setValue(next === -1 ? '' : (history[next] ?? ''));
-    }
-  }, [submit, history]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submit();
+      } else if (e.key === 'Escape') {
+        setValue('');
+        setError('');
+        inputRef.current?.blur();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const next = Math.min(histIdxRef.current + 1, history.length - 1);
+        histIdxRef.current = next;
+        setValue(history[next] ?? '');
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = Math.max(histIdxRef.current - 1, -1);
+        histIdxRef.current = next;
+        setValue(next === -1 ? '' : (history[next] ?? ''));
+      }
+    },
+    [submit, history]
+  );
 
   return (
-    <Box sx={{
-      height: 28,
-      display: 'flex',
-      alignItems: 'center',
-      px: 1.5,
-      gap: 1.5,
-      bgcolor: '#1a1a1a',
-      borderTop: '1px solid rgba(255,255,255,0.08)',
-    }}>
+    <Box
+      sx={{
+        height: 28,
+        display: 'flex',
+        alignItems: 'center',
+        px: 1.5,
+        gap: 1.5,
+        bgcolor: '#1a1a1a',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
       {/* Prompt */}
-      <Typography variant="caption" sx={{ color: 'text.secondary', whiteSpace: 'nowrap', flexShrink: 0, fontSize: 11 }}>
+      <Typography
+        variant="caption"
+        sx={{ color: 'text.secondary', whiteSpace: 'nowrap', flexShrink: 0, fontSize: 11 }}
+      >
         {TOOL_PROMPTS[activeTool]}
       </Typography>
 
       {/* Input */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 'auto', flexShrink: 0 }}>
         {error && (
-          <Typography variant="caption" sx={{ color: 'error.main', fontSize: 11 }}>{error}</Typography>
+          <Typography variant="caption" sx={{ color: 'error.main', fontSize: 11 }}>
+            {error}
+          </Typography>
         )}
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>▶</Typography>
+        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>
+          ▶
+        </Typography>
         <Box
           component="input"
           ref={inputRef}
           value={value}
-          onChange={e => { setValue(e.target.value); setError(''); }}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setError('');
+          }}
           onKeyDown={handleKeyDown}
           placeholder="type command or coordinates…"
           sx={{

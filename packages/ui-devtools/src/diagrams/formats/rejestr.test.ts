@@ -62,7 +62,9 @@ describe('każdy format zapisuje to, co przeczytał', () => {
 
 describe('przenoszenie diagramu klas między formatami', () => {
   /** Ten sam diagram klas zapisany w trzech składniach. */
-  const MERMAID = ['classDiagram', '  class Zwierze', '  class Pies', '  Zwierze <|-- Pies'].join('\n');
+  const MERMAID = ['classDiagram', '  class Zwierze', '  class Pies', '  Zwierze <|-- Pies'].join(
+    '\n'
+  );
 
   it('Mermaid → PlantUML → Mermaid zachowuje klasy i dziedziczenie', () => {
     const mermaid = diagramFormats.get('mermaid')!;
@@ -82,11 +84,16 @@ describe('przenoszenie diagramu klas między formatami', () => {
     const plantuml = diagramFormats.get('plantuml')!;
     const umlproj = diagramFormats.get('umlproj')!;
 
-    const doc = plantuml.parse('@startuml\nclass Zwierze\nclass Pies\nZwierze <|-- Pies\n@enduml').document;
+    const doc = plantuml.parse(
+      '@startuml\nclass Zwierze\nclass Pies\nZwierze <|-- Pies\n@enduml'
+    ).document;
     const projekt = JSON.parse(umlproj.serialize(doc));
 
     const nazwy = new Map<string, string>(
-      projekt.diagrams[0].nodes.map((n: { id: string; data: { name: string } }) => [n.id, n.data.name]),
+      projekt.diagrams[0].nodes.map((n: { id: string; data: { name: string } }) => [
+        n.id,
+        n.data.name,
+      ])
     );
     const edge = projekt.diagrams[0].edges[0];
     // W projekcie UML dziedziczenie idzie od podklasy do nadklasy.
@@ -104,7 +111,8 @@ describe('graf przenosi się z DOT-a do Mermaida', () => {
     const dot = diagramFormats.get('dot')!;
     const mermaid = diagramFormats.get('mermaid')!;
 
-    const źródło = 'digraph {\n  rankdir=LR;\n  A [label="Start", shape=diamond];\n  A -> B [label="tak"];\n}';
+    const źródło =
+      'digraph {\n  rankdir=LR;\n  A [label="Start", shape=diamond];\n  A -> B [label="tak"];\n}';
     const wMermaidzie = mermaid.serialize(dot.parse(źródło).document);
     const wrocil = mermaid.parse(wMermaidzie).document;
 

@@ -7,9 +7,19 @@
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import {
-  DEFAULT_UML_SERVER, normalizeBaseUrl, defaultUmlSource, readUmlSource, writeUmlSource,
-  umlSourceReady, umlEndpoint, describeUmlSource, loginForToken,
-  filterUmlEntries, base64ToUtf8, sessionUserName, sessionToken,
+  DEFAULT_UML_SERVER,
+  normalizeBaseUrl,
+  defaultUmlSource,
+  readUmlSource,
+  writeUmlSource,
+  umlSourceReady,
+  umlEndpoint,
+  describeUmlSource,
+  loginForToken,
+  filterUmlEntries,
+  base64ToUtf8,
+  sessionUserName,
+  sessionToken,
 } from './umlSource';
 
 /** Zapisuje sesję hosta w takim kształcie, w jakim trzyma ją AuthContext. */
@@ -20,7 +30,9 @@ function setSession(name: string, token = 'host-token'): void {
 describe('normalizeBaseUrl', () => {
   it('dokłada https i ucina końcowy slash', () => {
     expect(normalizeBaseUrl('mycastle.hersztowski.org')).toBe('https://mycastle.hersztowski.org');
-    expect(normalizeBaseUrl('https://mycastle.hersztowski.org/')).toBe('https://mycastle.hersztowski.org');
+    expect(normalizeBaseUrl('https://mycastle.hersztowski.org/')).toBe(
+      'https://mycastle.hersztowski.org'
+    );
     expect(normalizeBaseUrl('  https://x.org//  ')).toBe('https://x.org');
   });
 
@@ -49,9 +61,17 @@ describe('konfiguracja w localStorage', () => {
   });
 
   it('round-trip zapisu i odczytu, z normalizacją adresu', () => {
-    writeUmlSource({ mode: 'remote', baseUrl: 'mycastle.hersztowski.org/', userName: 'marcin', token: 'abc' });
+    writeUmlSource({
+      mode: 'remote',
+      baseUrl: 'mycastle.hersztowski.org/',
+      userName: 'marcin',
+      token: 'abc',
+    });
     expect(readUmlSource()).toEqual({
-      mode: 'remote', baseUrl: 'https://mycastle.hersztowski.org', userName: 'marcin', token: 'abc',
+      mode: 'remote',
+      baseUrl: 'https://mycastle.hersztowski.org',
+      userName: 'marcin',
+      token: 'abc',
     });
   });
 
@@ -93,7 +113,12 @@ describe('umlSourceReady', () => {
   });
 
   it('zdalny wymaga adresu, użytkownika i tokena', () => {
-    const base = { mode: 'remote' as const, baseUrl: DEFAULT_UML_SERVER, userName: 'marcin', token: 't' };
+    const base = {
+      mode: 'remote' as const,
+      baseUrl: DEFAULT_UML_SERVER,
+      userName: 'marcin',
+      token: 't',
+    };
     expect(umlSourceReady(base)).toBe(true);
     expect(umlSourceReady({ ...base, token: '' })).toBe(false);
     expect(umlSourceReady({ ...base, userName: '' })).toBe(false);
@@ -104,13 +129,18 @@ describe('umlSourceReady', () => {
 describe('umlEndpoint', () => {
   beforeEach(() => localStorage.clear());
 
-  const remote = { mode: 'remote' as const, baseUrl: DEFAULT_UML_SERVER, userName: 'marcin', token: 't' };
+  const remote = {
+    mode: 'remote' as const,
+    baseUrl: DEFAULT_UML_SERVER,
+    userName: 'marcin',
+    token: 't',
+  };
 
   it('zdalny adres celuje w katalog uml wybranego użytkownika, z Bearerem z konfiguracji', () => {
     const { url, headers } = umlEndpoint(remote, 'readdir');
     expect(url).toBe(
-      'https://mycastle.hersztowski.org/api/users/marcin/vfs/readdir'
-      + '?path=%2Fdata%2FMinis%2FUsers%2Fmarcin%2Fdrive%2Fuml',
+      'https://mycastle.hersztowski.org/api/users/marcin/vfs/readdir' +
+        '?path=%2Fdata%2FMinis%2FUsers%2Fmarcin%2Fdrive%2Fuml'
     );
     expect(headers).toEqual({ Authorization: 'Bearer t' });
   });
@@ -122,18 +152,25 @@ describe('umlEndpoint', () => {
 
   it('czytanie pliku dokłada nazwę projektu do ścieżki', () => {
     const { url } = umlEndpoint(remote, 'readFile', 'silnik.umlproj.json');
-    expect(decodeURIComponent(url.split('path=')[1])).toBe('/data/Minis/Users/marcin/drive/uml/silnik.umlproj.json');
+    expect(decodeURIComponent(url.split('path=')[1])).toBe(
+      '/data/Minis/Users/marcin/drive/uml/silnik.umlproj.json'
+    );
   });
 
   it('nazwa użytkownika ze znakiem specjalnym jest zakodowana w ścieżce URL', () => {
-    const { url } = umlEndpoint({ ...remote, baseUrl: 'https://x.org', userName: 'a b' }, 'readdir');
+    const { url } = umlEndpoint(
+      { ...remote, baseUrl: 'https://x.org', userName: 'a b' },
+      'readdir'
+    );
     expect(url).toContain('/api/users/a%20b/vfs/readdir');
   });
 
   it('tryb lokalny bierze użytkownika i token z sesji, a URL jest relatywny', () => {
     setSession('marcin', 'jwt-host');
     const { url, headers } = umlEndpoint(defaultUmlSource(), 'readdir');
-    expect(url).toBe('/api/users/marcin/vfs/readdir?path=%2Fdata%2FMinis%2FUsers%2Fmarcin%2Fdrive%2Fuml');
+    expect(url).toBe(
+      '/api/users/marcin/vfs/readdir?path=%2Fdata%2FMinis%2FUsers%2Fmarcin%2Fdrive%2Fuml'
+    );
     expect(headers).toEqual({ Authorization: 'Bearer jwt-host' });
   });
 
@@ -149,24 +186,35 @@ describe('describeUmlSource', () => {
   beforeEach(() => localStorage.clear());
 
   it('opisuje źródło tak, jak trafia do UI', () => {
-    expect(describeUmlSource(defaultUmlSource())).toBe('ten serwer (brak zalogowanego użytkownika)');
+    expect(describeUmlSource(defaultUmlSource())).toBe(
+      'ten serwer (brak zalogowanego użytkownika)'
+    );
     setSession('marcin');
     expect(describeUmlSource(defaultUmlSource())).toBe('ten serwer, użytkownik marcin');
-    expect(describeUmlSource({ mode: 'remote', baseUrl: 'https://x.org', userName: 'marcin', token: 't' }))
-      .toBe('marcin @ https://x.org');
-    expect(describeUmlSource({ mode: 'remote', baseUrl: 'https://x.org', userName: '', token: '' }))
-      .toBe('https://x.org (brak poświadczeń)');
+    expect(
+      describeUmlSource({
+        mode: 'remote',
+        baseUrl: 'https://x.org',
+        userName: 'marcin',
+        token: 't',
+      })
+    ).toBe('marcin @ https://x.org');
+    expect(
+      describeUmlSource({ mode: 'remote', baseUrl: 'https://x.org', userName: '', token: '' })
+    ).toBe('https://x.org (brak poświadczeń)');
   });
 });
 
 describe('filterUmlEntries', () => {
   it('zostawia same projekty UML, katalogi i inne pliki odpada', () => {
-    expect(filterUmlEntries([
-      { name: 'stary', type: 2 },
-      { name: 'b.umlproj.json', type: 1 },
-      { name: 'notatka.md', type: 1 },
-      { name: 'a.umlproj.json', type: 1 },
-    ])).toEqual(['a.umlproj.json', 'b.umlproj.json']);
+    expect(
+      filterUmlEntries([
+        { name: 'stary', type: 2 },
+        { name: 'b.umlproj.json', type: 1 },
+        { name: 'notatka.md', type: 1 },
+        { name: 'a.umlproj.json', type: 1 },
+      ])
+    ).toEqual(['a.umlproj.json', 'b.umlproj.json']);
   });
 
   it('brak wpisów to pusta lista, nie wyjątek', () => {
@@ -184,7 +232,10 @@ describe('base64ToUtf8', () => {
 
 describe('loginForToken', () => {
   const fetchMock = vi.fn();
-  beforeEach(() => { fetchMock.mockReset(); vi.stubGlobal('fetch', fetchMock); });
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
   afterEach(() => vi.unstubAllGlobals());
 
   it('wysyła nazwę i hasło na /api/auth/login i zwraca token', async () => {
@@ -199,8 +250,14 @@ describe('loginForToken', () => {
   });
 
   it('błędne dane to czytelny wyjątek, nie cichy null', async () => {
-    fetchMock.mockResolvedValue({ ok: false, status: 401, json: async () => ({ error: 'Invalid credentials' }) });
-    await expect(loginForToken('https://x.org', 'marcin', 'zle')).rejects.toThrow('Invalid credentials');
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: 'Invalid credentials' }),
+    });
+    await expect(loginForToken('https://x.org', 'marcin', 'zle')).rejects.toThrow(
+      'Invalid credentials'
+    );
   });
 
   it('serwer bez tokena w odpowiedzi też jest błędem', async () => {

@@ -56,9 +56,9 @@ export class CopyTool implements Tool {
     const dy = dest.y - this.basePoint!.y;
     const ids = ctx.project.selectionManager.getSelected();
     const inputs = ids
-      .map(id => ctx.project.entityRegistry.get(id))
+      .map((id) => ctx.project.entityRegistry.get(id))
       .filter((e): e is Entity => e !== undefined)
-      .map(e => cloneEntityAsInput(e, dx, dy));
+      .map((e) => cloneEntityAsInput(e, dx, dy));
     const newEntities = ctx.project.batchAdd(inputs, 'Copy entities');
     // Select the copies
     ctx.project.selectionManager.clear();

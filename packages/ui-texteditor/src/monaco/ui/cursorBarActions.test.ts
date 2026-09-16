@@ -10,14 +10,24 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  collapseForMove, normalizePastedText, withTimeout, positionAfterInsert, type SimpleSelection,
+  collapseForMove,
+  normalizePastedText,
+  withTimeout,
+  positionAfterInsert,
+  type SimpleSelection,
 } from './cursorBarActions';
 
 const sel = (
-  startLineNumber: number, startColumn: number, endLineNumber: number, endColumn: number,
-  reversed = false,
+  startLineNumber: number,
+  startColumn: number,
+  endLineNumber: number,
+  endColumn: number,
+  reversed = false
 ): SimpleSelection => ({
-  startLineNumber, startColumn, endLineNumber, endColumn,
+  startLineNumber,
+  startColumn,
+  endLineNumber,
+  endColumn,
   positionLineNumber: reversed ? startLineNumber : endLineNumber,
   positionColumn: reversed ? startColumn : endColumn,
 });
@@ -35,29 +45,39 @@ describe('collapseForMove — strzałki zwijają zaznaczenie do właściwego ko�
 
   it('w lewo stawia karetkę na początku zaznaczenia i nie przesuwa dalej', () => {
     expect(collapseForMove('cursorLeft', selection)).toEqual({
-      collapseTo: { lineNumber: 2, column: 4 }, runCommand: false,
+      collapseTo: { lineNumber: 2, column: 4 },
+      runCommand: false,
     });
   });
 
   it('w prawo stawia karetkę na końcu zaznaczenia', () => {
     expect(collapseForMove('cursorRight', selection)).toEqual({
-      collapseTo: { lineNumber: 2, column: 9 }, runCommand: false,
+      collapseTo: { lineNumber: 2, column: 9 },
+      runCommand: false,
     });
   });
 
   it('w górę i w dół zwija, a potem wykonuje ruch o linię', () => {
     expect(collapseForMove('cursorUp', selection)).toEqual({
-      collapseTo: { lineNumber: 2, column: 4 }, runCommand: true,
+      collapseTo: { lineNumber: 2, column: 4 },
+      runCommand: true,
     });
     expect(collapseForMove('cursorDown', selection)).toEqual({
-      collapseTo: { lineNumber: 2, column: 9 }, runCommand: true,
+      collapseTo: { lineNumber: 2, column: 9 },
+      runCommand: true,
     });
   });
 
   it('kierunek zaznaczania nie ma znaczenia — liczy się jego początek i koniec', () => {
     const reversed = sel(2, 4, 2, 9, true);
-    expect(collapseForMove('cursorLeft', reversed).collapseTo).toEqual({ lineNumber: 2, column: 4 });
-    expect(collapseForMove('cursorRight', reversed).collapseTo).toEqual({ lineNumber: 2, column: 9 });
+    expect(collapseForMove('cursorLeft', reversed).collapseTo).toEqual({
+      lineNumber: 2,
+      column: 4,
+    });
+    expect(collapseForMove('cursorRight', reversed).collapseTo).toEqual({
+      lineNumber: 2,
+      column: 9,
+    });
   });
 
   it('zaznaczenie wielolinijkowe zwija się do swojej krawędzi, nie do karetki', () => {
@@ -72,16 +92,21 @@ describe('collapseForMove — skoki po linii i pliku', () => {
 
   it('Home/End zwijają i wykonują skok — inaczej trafiłyby na linię przeciwnego końca', () => {
     expect(collapseForMove('cursorHome', selection)).toEqual({
-      collapseTo: { lineNumber: 2, column: 4 }, runCommand: true,
+      collapseTo: { lineNumber: 2, column: 4 },
+      runCommand: true,
     });
     expect(collapseForMove('cursorEnd', selection)).toEqual({
-      collapseTo: { lineNumber: 3, column: 9 }, runCommand: true,
+      collapseTo: { lineNumber: 3, column: 9 },
+      runCommand: true,
     });
   });
 
   it('skoki na początek i koniec pliku nie potrzebują zwijania', () => {
     expect(collapseForMove('cursorTop', selection)).toEqual({ collapseTo: null, runCommand: true });
-    expect(collapseForMove('cursorBottom', selection)).toEqual({ collapseTo: null, runCommand: true });
+    expect(collapseForMove('cursorBottom', selection)).toEqual({
+      collapseTo: null,
+      runCommand: true,
+    });
   });
 });
 

@@ -52,7 +52,7 @@ describe('podział na fragmenty', () => {
     const po = tekst('1', '2', '3', 'ZMIENIONE', '5', '6', '7', '8', '9');
     const hunki = toHunks(diffLines(przed, po), 2);
     expect(hunki).toHaveLength(1);
-    expect(hunki[0].lines.filter((l) => l.op === ' ')).toHaveLength(4);   // po 2 z każdej strony
+    expect(hunki[0].lines.filter((l) => l.op === ' ')).toHaveLength(4); // po 2 z każdej strony
   });
 
   it('odległe zmiany dają osobne fragmenty', () => {
@@ -104,7 +104,9 @@ describe('łatka dla gita', () => {
     const [naglowek] = naglowki(patch);
     const [, staryZakres, nowyZakres] = /@@ -(\d+,\d+) \+(\d+,\d+) @@/.exec(naglowek)!;
 
-    const wierszeLatki = patch.split('\n').filter((w) => /^[ +-]/.test(w) && !w.startsWith('---') && !w.startsWith('+++'));
+    const wierszeLatki = patch
+      .split('\n')
+      .filter((w) => /^[ +-]/.test(w) && !w.startsWith('---') && !w.startsWith('+++'));
     const stare = wierszeLatki.filter((w) => w[0] !== '+').length;
     const nowe = wierszeLatki.filter((w) => w[0] !== '-').length;
     expect(staryZakres.split(',')[1]).toBe(String(stare));
@@ -124,7 +126,10 @@ describe('łatka dla gita', () => {
   it('brak znaku końca linii dostaje adnotację', () => {
     // Bez niej git dopisze go po cichu i plik zmieni się bardziej, niż chciano.
     const patch = formatPatch('a.ts', toHunks(diffLines('a', 'b')), {
-      oldEndsWithNewline: false, newEndsWithNewline: false, totalOldLines: 1, totalNewLines: 1,
+      oldEndsWithNewline: false,
+      newEndsWithNewline: false,
+      totalOldLines: 1,
+      totalNewLines: 1,
     });
     expect(patch).toContain('\\ No newline at end of file');
   });
@@ -133,7 +138,10 @@ describe('łatka dla gita', () => {
   // pliku: prawie każdy kończy się nową linią, a teksty w testach zwykle nie.
   it('końcowy znak nowej linii nie dokłada pustego wiersza', () => {
     const patch = formatPatch('a.ts', toHunks(diffLines('1\n2\n3\n', '1\nX\n3\n'), 3), {
-      oldEndsWithNewline: true, newEndsWithNewline: true, totalOldLines: 3, totalNewLines: 3,
+      oldEndsWithNewline: true,
+      newEndsWithNewline: true,
+      totalOldLines: 3,
+      totalNewLines: 3,
     });
     expect(patch).toContain('@@ -1,3 +1,3 @@');
     expect(patch).not.toContain('No newline');
@@ -156,7 +164,9 @@ describe('odwrócenie fragmentu', () => {
     const odwrocony = reverseHunk(h);
     expect(odwrocony.oldStart).toBe(h.newStart);
     expect(odwrocony.newStart).toBe(h.oldStart);
-    expect(odwrocony.lines.map((l) => l.op)).toEqual(h.lines.map((l) => (l.op === '+' ? '-' : l.op === '-' ? '+' : ' ')));
+    expect(odwrocony.lines.map((l) => l.op)).toEqual(
+      h.lines.map((l) => (l.op === '+' ? '-' : l.op === '-' ? '+' : ' '))
+    );
   });
 
   it('podwójne odwrócenie wraca do punktu wyjścia', () => {

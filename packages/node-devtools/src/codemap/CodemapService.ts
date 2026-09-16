@@ -21,7 +21,18 @@ import { diffDiagrams, summarizeChanges } from './uml/diffModel.js';
 import { diagramToModel } from './uml/umlToModel.js';
 import { UmlDiagram } from './uml/umlTypes.js';
 
-const IGNORE_DIRS = new Set(['node_modules', '.git', 'dist', 'build', '.next', '__pycache__', 'venv', '.venv', 'libraries', 'wasm-output']);
+const IGNORE_DIRS = new Set([
+  'node_modules',
+  '.git',
+  'dist',
+  'build',
+  '.next',
+  '__pycache__',
+  'venv',
+  '.venv',
+  'libraries',
+  'wasm-output',
+]);
 
 export interface ScanOptions {
   /** Make stored file paths relative to this dir (default: the scanned dir). */
@@ -40,17 +51,32 @@ export class CodemapService {
     const walk = async (cur: string): Promise<void> => {
       if (out.length >= max) return;
       let entries: import('node:fs').Dirent[];
-      try { entries = await fs.readdir(cur, { withFileTypes: true }); } catch { return; }
+      try {
+        entries = await fs.readdir(cur, { withFileTypes: true });
+      } catch {
+        return;
+      }
       for (const e of entries) {
         if (out.length >= max) break;
         const abs = path.join(cur, e.name);
-        if (e.isDirectory()) { if (!IGNORE_DIRS.has(e.name) && !e.name.startsWith('.')) await walk(abs); continue; }
+        if (e.isDirectory()) {
+          if (!IGNORE_DIRS.has(e.name) && !e.name.startsWith('.')) await walk(abs);
+          continue;
+        }
         if (!exts.has(path.extname(e.name).toLowerCase())) continue;
         const lang = detectLanguage(e.name);
         if (!lang) continue;
         let content: string;
-        try { content = await fs.readFile(abs, 'utf8'); } catch { continue; }
-        out.push({ file: path.relative(base, abs).split(path.sep).join('/'), content, language: lang });
+        try {
+          content = await fs.readFile(abs, 'utf8');
+        } catch {
+          continue;
+        }
+        out.push({
+          file: path.relative(base, abs).split(path.sep).join('/'),
+          content,
+          language: lang,
+        });
       }
     };
     await walk(dir);
@@ -77,8 +103,16 @@ export class CodemapService {
       const lang = detectLanguage(path.basename(abs));
       if (!lang) continue;
       let content: string;
-      try { content = await fs.readFile(abs, 'utf8'); } catch { continue; }
-      out.push({ file: path.relative(base, abs).split(path.sep).join('/'), content, language: lang });
+      try {
+        content = await fs.readFile(abs, 'utf8');
+      } catch {
+        continue;
+      }
+      out.push({
+        file: path.relative(base, abs).split(path.sep).join('/'),
+        content,
+        language: lang,
+      });
     }
     return out;
   }
@@ -90,16 +124,24 @@ export class CodemapService {
 
   /** Create a brand-new codemap from a chosen set of files. */
   async createFromFiles(
-    files: string[], baseDir: string, name: string, opts: ScanOptions = {},
+    files: string[],
+    baseDir: string,
+    name: string,
+    opts: ScanOptions = {}
   ): Promise<Codemap> {
     const model = await this.parseFiles(files, baseDir, opts);
-    const linked = opts.relativeTo ? path.relative(opts.relativeTo, baseDir).split(path.sep).join('/') : baseDir;
+    const linked = opts.relativeTo
+      ? path.relative(opts.relativeTo, baseDir).split(path.sep).join('/')
+      : baseDir;
     return createCodemap(model, name, linked);
   }
 
   /** Re-parse a chosen set of files and update an existing codemap. */
   async updateFromFiles(
-    codemap: Codemap, files: string[], baseDir: string, opts: ScanOptions = {},
+    codemap: Codemap,
+    files: string[],
+    baseDir: string,
+    opts: ScanOptions = {}
   ): Promise<SyncResult> {
     return this.applyModel(codemap, await this.parseFiles(files, baseDir, opts));
   }
@@ -112,7 +154,11 @@ export class CodemapService {
   /** Create a brand-new codemap from a source directory. */
   async createFromDir(dir: string, name: string, opts: ScanOptions = {}): Promise<Codemap> {
     const model = await this.parseDirectory(dir, opts);
-    return createCodemap(model, name, opts.relativeTo ? path.relative(opts.relativeTo, dir).split(path.sep).join('/') : dir);
+    return createCodemap(
+      model,
+      name,
+      opts.relativeTo ? path.relative(opts.relativeTo, dir).split(path.sep).join('/') : dir
+    );
   }
 
   /**
@@ -155,18 +201,33 @@ export class CodemapService {
 
   /** Reconstruct a model from the codemap's UML and emit source skeletons. */
   toSourceFiles(codemap: Codemap, language: Language, diagramId?: string): GeneratedFile[] {
-    const diagram = (diagramId ? codemap.diagrams.find((d) => d.id === diagramId) : codemap.diagrams[0]);
+    const diagram = diagramId
+      ? codemap.diagrams.find((d) => d.id === diagramId)
+      : codemap.diagrams[0];
     if (!diagram) return [];
     return generateCode(diagramToModel(diagram, language), language);
   }
 
   /** Write generated files to disk. Existing files are skipped unless overwrite. */
-  async writeSourceFiles(files: GeneratedFile[], targetDir: string, overwrite = false): Promise<{ written: string[]; skipped: string[] }> {
-    const written: string[] = []; const skipped: string[] = [];
+  async writeSourceFiles(
+    files: GeneratedFile[],
+    targetDir: string,
+    overwrite = false
+  ): Promise<{ written: string[]; skipped: string[] }> {
+    const written: string[] = [];
+    const skipped: string[] = [];
     await fs.mkdir(targetDir, { recursive: true });
     for (const f of files) {
       const abs = path.join(targetDir, f.file);
-      if (!overwrite) { try { await fs.access(abs); skipped.push(f.file); continue; } catch { /* not present → write */ } }
+      if (!overwrite) {
+        try {
+          await fs.access(abs);
+          skipped.push(f.file);
+          continue;
+        } catch {
+          /* not present → write */
+        }
+      }
       await fs.mkdir(path.dirname(abs), { recursive: true });
       await fs.writeFile(abs, f.content, 'utf8');
       written.push(f.file);
@@ -175,10 +236,14 @@ export class CodemapService {
   }
 
   private pickTargetDiagram(codemap: Codemap, generatedIds: Set<string>): UmlDiagram | null {
-    let best: UmlDiagram | null = null; let bestScore = 0;
+    let best: UmlDiagram | null = null;
+    let bestScore = 0;
     for (const d of codemap.diagrams) {
       const score = d.nodes.reduce((a, n) => a + (generatedIds.has(n.id) ? 1 : 0), 0);
-      if (score > bestScore) { bestScore = score; best = d; }
+      if (score > bestScore) {
+        bestScore = score;
+        best = d;
+      }
     }
     return best;
   }

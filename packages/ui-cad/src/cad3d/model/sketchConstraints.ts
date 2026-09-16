@@ -27,21 +27,21 @@ export type ConstraintType =
   | 'perpendicular'
   | 'tangent'
   | 'equal'
-  | 'symmetric'             // two points mirrored about an axis or a line
+  | 'symmetric' // two points mirrored about an axis or a line
   // Dimensions — constraints with a value
-  | 'distance'              // the distance between two points == value
-  | 'horizontal_distance'   // |xa - xb| == value
-  | 'vertical_distance'     // |ya - yb| == value
-  | 'radius'                // circle.radius == value
-  | 'diameter'              // circle.radius * 2 == value
-  | 'angle'                 // the angle between two lines == value (deg)
-  | 'fixed';                // punkt zablokowany na pozycji
+  | 'distance' // the distance between two points == value
+  | 'horizontal_distance' // |xa - xb| == value
+  | 'vertical_distance' // |ya - yb| == value
+  | 'radius' // circle.radius == value
+  | 'diameter' // circle.radius * 2 == value
+  | 'angle' // the angle between two lines == value (deg)
+  | 'fixed'; // punkt zablokowany na pozycji
 
 export interface SketchConstraint {
   id: string;
   type: ConstraintType;
   /** What it refers to — entities or points. The format depends on the type.
- *  For coincident: two point refs (`entityId.point`, e.g. `line1.p1`, `circle2.center`)
+   *  For coincident: two point refs (`entityId.point`, e.g. `line1.p1`, `circle2.center`)
    *  Dla horizontal/vertical: 1 line ref (`entityId`)
    *  Dla parallel/perpendicular/equal: 2 line refs
    *  Dla distance/angle: 2 refs + `value`
@@ -79,19 +79,23 @@ function parseRef(ref: string): { entityId: string; part?: string } {
  * Zwraca [x, y] punktu z entity wg `part`.
  * Throws when the entity or the part does not exist.
  */
-function getPoint(entities: SketchEntity[], ref: string): { x: number; y: number; entityIdx: number; xKey: string; yKey: string } {
+function getPoint(
+  entities: SketchEntity[],
+  ref: string
+): { x: number; y: number; entityIdx: number; xKey: string; yKey: string } {
   const { entityId, part } = parseRef(ref);
-  const idx = entities.findIndex(e => e.id === entityId);
+  const idx = entities.findIndex((e) => e.id === entityId);
   if (idx < 0) throw new Error(`Entity ${entityId} not found`);
   const e = entities[idx];
 
   if (e.type === 'line') {
     if (part === 'p1' || !part) return { x: e.x1, y: e.y1, entityIdx: idx, xKey: 'x1', yKey: 'y1' };
-    if (part === 'p2')          return { x: e.x2, y: e.y2, entityIdx: idx, xKey: 'x2', yKey: 'y2' };
+    if (part === 'p2') return { x: e.x2, y: e.y2, entityIdx: idx, xKey: 'x2', yKey: 'y2' };
   } else if (e.type === 'circle') {
-    if (part === 'center' || !part) return { x: e.cx, y: e.cy, entityIdx: idx, xKey: 'cx', yKey: 'cy' };
+    if (part === 'center' || !part)
+      return { x: e.cx, y: e.cy, entityIdx: idx, xKey: 'cx', yKey: 'cy' };
   } else if (e.type === 'rect') {
-    if (part === 'p1')          return { x: e.x, y: e.y, entityIdx: idx, xKey: 'x', yKey: 'y' };
+    if (part === 'p1') return { x: e.x, y: e.y, entityIdx: idx, xKey: 'x', yKey: 'y' };
     // A rect has four corners, but the solver works mostly from p1 (its position)
   } else if (e.type === 'point') {
     return { x: e.x, y: e.y, entityIdx: idx, xKey: 'x', yKey: 'y' };
@@ -102,12 +106,16 @@ function getPoint(entities: SketchEntity[], ref: string): { x: number; y: number
 /**
  * The vector [dx, dy] of a line entity.
  */
-function getLineVec(entities: SketchEntity[], ref: string): { dx: number; dy: number; p1: { x: number; y: number }; p2: { x: number; y: number } } {
+function getLineVec(
+  entities: SketchEntity[],
+  ref: string
+): { dx: number; dy: number; p1: { x: number; y: number }; p2: { x: number; y: number } } {
   const { entityId } = parseRef(ref);
-  const e = entities.find(x => x.id === entityId);
+  const e = entities.find((x) => x.id === entityId);
   if (!e || e.type !== 'line') throw new Error(`${entityId} is not a line`);
   return {
-    dx: e.x2 - e.x1, dy: e.y2 - e.y1,
+    dx: e.x2 - e.x1,
+    dy: e.y2 - e.y1,
     p1: { x: e.x1, y: e.y1 },
     p2: { x: e.x2, y: e.y2 },
   };
@@ -171,7 +179,8 @@ function residuals(constraint: SketchConstraint, entities: SketchEntity[]): numb
         // The distance between two points == value
         const a = getPoint(entities, constraint.refs[0]);
         const b = getPoint(entities, constraint.refs[1]);
-        const dx = a.x - b.x, dy = a.y - b.y;
+        const dx = a.x - b.x,
+          dy = a.y - b.y;
         const d = Math.sqrt(dx * dx + dy * dy);
         return [d - (constraint.value ?? 0)];
       }
@@ -191,13 +200,13 @@ function residuals(constraint: SketchConstraint, entities: SketchEntity[]): numb
       case 'radius': {
         // Find the circle among the entities and check its radius
         const { entityId } = parseRef(constraint.refs[0]);
-        const e = entities.find(x => x.id === entityId);
+        const e = entities.find((x) => x.id === entityId);
         if (!e || e.type !== 'circle') return [];
         return [e.radius - (constraint.value ?? 0)];
       }
       case 'diameter': {
         const { entityId } = parseRef(constraint.refs[0]);
-        const e = entities.find(x => x.id === entityId);
+        const e = entities.find((x) => x.id === entityId);
         if (!e || e.type !== 'circle') return [];
         return [e.radius * 2 - (constraint.value ?? 0)];
       }
@@ -210,7 +219,7 @@ function residuals(constraint: SketchConstraint, entities: SketchEntity[]): numb
         let diff = angB - angA;
         while (diff > Math.PI) diff -= 2 * Math.PI;
         while (diff < -Math.PI) diff += 2 * Math.PI;
-        return [diff - ((constraint.value ?? 0) * Math.PI / 180)];
+        return [diff - ((constraint.value ?? 0) * Math.PI) / 180];
       }
       case 'fixed':
       case 'tangent':
@@ -239,7 +248,7 @@ export function solveConstraints(
   constraints: SketchConstraint[],
   fixedRefs: string[] = [],
   maxIter = 30,
-  tol = 1e-6,
+  tol = 1e-6
 ): { entities: SketchEntity[]; converged: boolean; iterations: number; residual: number } {
   if (constraints.length === 0) {
     return { entities: [...entities], converged: true, iterations: 0, residual: 0 };
@@ -247,7 +256,7 @@ export function solveConstraints(
 
   // Build the map: entityId → its parameters (x1, y1, x2, y2, …)
   const paramKeys: Array<{ entityIdx: number; key: string }> = [];
-  const workEntities: SketchEntity[] = entities.map(e => ({ ...e } as SketchEntity));
+  const workEntities: SketchEntity[] = entities.map((e) => ({ ...e }) as SketchEntity);
   for (let i = 0; i < workEntities.length; i++) {
     const e = workEntities[i];
     if (e.type === 'line') {
@@ -282,12 +291,16 @@ export function solveConstraints(
       const pt = getPoint(workEntities, ref);
       // Find the indices in paramKeys
       for (let i = 0; i < nParams; i++) {
-        if (paramKeys[i].entityIdx === pt.entityIdx &&
-            (paramKeys[i].key === pt.xKey || paramKeys[i].key === pt.yKey)) {
+        if (
+          paramKeys[i].entityIdx === pt.entityIdx &&
+          (paramKeys[i].key === pt.xKey || paramKeys[i].key === pt.yKey)
+        ) {
           lockedParams.add(i);
         }
       }
-    } catch { /* skip invalid ref */ }
+    } catch {
+      /* skip invalid ref */
+    }
   }
 
   // Function do read/write param value
@@ -316,14 +329,20 @@ export function solveConstraints(
   // Newton-Raphson: each iteration computes the Jacobian J and solves
   // J * dx = -r (przez normal equations J^T J dx = -J^T r).
   let converged = false;
-  let iter = 0;
+  let iter: number;
   let finalRes = Infinity;
 
   for (iter = 0; iter < maxIter; iter++) {
     const r = evalResiduals();
-    if (r.length === 0) { converged = true; break; }
+    if (r.length === 0) {
+      converged = true;
+      break;
+    }
     finalRes = Math.sqrt(r.reduce((s, x) => s + x * x, 0));
-    if (finalRes < tol) { converged = true; break; }
+    if (finalRes < tol) {
+      converged = true;
+      break;
+    }
 
     const nRes = r.length;
     // Policz Jacobian numerycznie (dR/dparam via finite difference)
@@ -360,7 +379,10 @@ export function solveConstraints(
     for (let i = 0; i < nParams; i++) A[i][i] += lambda;
     // Fixed params: force dx=0 (zero row + zero col + 1 na diagonal)
     for (const p of lockedParams) {
-      for (let j = 0; j < nParams; j++) { A[p][j] = 0; A[j][p] = 0; }
+      for (let j = 0; j < nParams; j++) {
+        A[p][j] = 0;
+        A[j][p] = 0;
+      }
       A[p][p] = 1;
       b[p] = 0;
     }
@@ -381,7 +403,7 @@ export function solveConstraints(
 function solveGauss(A: number[][], b: number[]): number[] | null {
   const n = b.length;
   // Copy, rather than mutate what was passed in
-  const M: number[][] = A.map(row => [...row, 0]);
+  const M: number[][] = A.map((row) => [...row, 0]);
   for (let i = 0; i < n; i++) M[i][n] = b[i];
 
   for (let i = 0; i < n; i++) {

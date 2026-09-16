@@ -74,7 +74,9 @@ describe('odczyt', () => {
   });
 
   it('czyta styl linii', () => {
-    const { document: doc } = dotFormat.parse('digraph { A -> B [style=dashed]; B -> C [style=bold]; }');
+    const { document: doc } = dotFormat.parse(
+      'digraph { A -> B [style=dashed]; B -> C [style=bold]; }'
+    );
     expect(doc.edges[0].lineStyle).toBe('dotted');
     expect(doc.edges[1].lineStyle).toBe('thick');
   });
@@ -120,7 +122,9 @@ describe('odczyt', () => {
 
   it('nierozpoznane linie zachowuje zamiast je kasować', () => {
     // Ta sama zasada, co w Mermaidzie: czego nie rozumiemy, oddajemy nietknięte.
-    const { document: doc } = dotFormat.parse('digraph {\n  node [fontname="Arial"];\n  A -> B;\n}');
+    const { document: doc } = dotFormat.parse(
+      'digraph {\n  node [fontname="Arial"];\n  A -> B;\n}'
+    );
     expect(doc.unknown.some((u) => u.text.includes('fontname'))).toBe(true);
   });
 });

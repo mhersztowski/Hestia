@@ -14,7 +14,11 @@
  * Znaczenie stron dla każdego rodzaju opisuje {@link RELATION_MEANING}.
  */
 import type {
-  ClassRelationKind, DiagramDocument, DiagramEdge, EdgeArrowType, EdgeLineStyle,
+  ClassRelationKind,
+  DiagramDocument,
+  DiagramEdge,
+  EdgeArrowType,
+  EdgeLineStyle,
 } from './diagram';
 
 /** Jak dany rodzaj relacji wygląda i po której stronie stoi jego zakończenie. */
@@ -49,7 +53,10 @@ export const RELATION_LOOK: Record<ClassRelationKind, RelationLook> = {
  * dla kompozycji przy `from` (`class from { to pole; }`) — dlatego samo „kto
  * jest źródłem" nie wystarcza i rodzaj relacji trzeba znać wprost.
  */
-export const RELATION_MEANING: Record<ClassRelationKind, { label: string; from: string; to: string }> = {
+export const RELATION_MEANING: Record<
+  ClassRelationKind,
+  { label: string; from: string; to: string }
+> = {
   inheritance: { label: 'dziedziczenie', from: 'nadklasa', to: 'podklasa' },
   realization: { label: 'implementacja', from: 'interfejs', to: 'klasa implementująca' },
   composition: { label: 'kompozycja', from: 'całość', to: 'część (nie istnieje bez całości)' },
@@ -61,7 +68,13 @@ export const RELATION_MEANING: Record<ClassRelationKind, { label: string; from: 
 
 /** Kolejność w interfejsie — od najczęstszych. */
 export const CLASS_RELATION_KINDS: ClassRelationKind[] = [
-  'inheritance', 'realization', 'composition', 'aggregation', 'association', 'dependency', 'link',
+  'inheritance',
+  'realization',
+  'composition',
+  'aggregation',
+  'association',
+  'dependency',
+  'link',
 ];
 
 /**
@@ -73,7 +86,10 @@ export const CLASS_RELATION_KINDS: ClassRelationKind[] = [
  */
 export function relationOf(edge: DiagramEdge): ClassRelationKind {
   if (edge.relation) return edge.relation;
-  const end = edge.arrow !== 'none' ? edge.arrow : (edge.meta?.startArrow as EdgeArrowType | undefined) ?? 'none';
+  const end =
+    edge.arrow !== 'none'
+      ? edge.arrow
+      : ((edge.meta?.startArrow as EdgeArrowType | undefined) ?? 'none');
   const dotted = edge.lineStyle === 'dotted';
   if (end === 'triangle') return dotted ? 'realization' : 'inheritance';
   if (end === 'diamondFilled') return 'composition';
@@ -113,7 +129,7 @@ export function setEdgeRelation(
   doc: DiagramDocument,
   id: string,
   kind: ClassRelationKind,
-  from?: Side,
+  from?: Side
 ): DiagramDocument {
   return {
     ...doc,
@@ -192,4 +208,3 @@ export function classRelations(doc: DiagramDocument): ClassRelationView[] {
     };
   });
 }
-

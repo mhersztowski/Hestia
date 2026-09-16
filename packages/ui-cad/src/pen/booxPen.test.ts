@@ -19,7 +19,7 @@ function bridge(overrides: Partial<BooxPenBridge> = {}): BooxPenBridge {
 }
 
 describe('wykrywanie mostka', () => {
-  const win = () => ({} as Window & { __booxPen?: BooxPenBridge });
+  const win = () => ({}) as Window & { __booxPen?: BooxPenBridge };
 
   it('without the native shell there is no bridge', () => {
     expect(getBooxPen(win())).toBeNull();
@@ -43,21 +43,24 @@ describe('wykrywanie mostka', () => {
 
 describe('areaMessage — the drawing area in device pixels', () => {
   it('converts a CSS rectangle by the screen density', () => {
-    const msg = areaMessage(
-      { left: 20, top: 100, width: 400, height: 300 },
-      2,
-      { strokeWidth: 2.5, color: '#1976d2' },
-    );
+    const msg = areaMessage({ left: 20, top: 100, width: 400, height: 300 }, 2, {
+      strokeWidth: 2.5,
+      color: '#1976d2',
+    });
     expect(msg).toMatchObject({
       type: 'boox:area',
-      left: 40, top: 200, width: 800, height: 600,
+      left: 40,
+      top: 200,
+      width: 800,
+      height: 600,
       strokeWidth: 5,
     });
   });
 
   it('rounds to whole pixels — the EPD driver knows no fractions', () => {
     const msg = areaMessage({ left: 10.4, top: 10.6, width: 100.5, height: 100.5 }, 1.5, {
-      strokeWidth: 1, color: '#000',
+      strokeWidth: 1,
+      color: '#000',
     });
     expect(Number.isInteger(msg.left)).toBe(true);
     expect(Number.isInteger(msg.top)).toBe(true);
@@ -67,7 +70,8 @@ describe('areaMessage — the drawing area in device pixels', () => {
 
   it('the width never drops to zero — a zero-width pen draws nothing', () => {
     const msg = areaMessage({ left: 0, top: 0, width: 10, height: 10 }, 1, {
-      strokeWidth: 0.05, color: '#000',
+      strokeWidth: 0.05,
+      color: '#000',
     });
     expect(msg.strokeWidth).toBeGreaterThanOrEqual(1);
   });
@@ -160,7 +164,9 @@ describe('fractionOutside — detecting a shifted coordinate frame', () => {
 
 describe('describeHost — which of the four states we are in', () => {
   const win = (ua: string, pen?: BooxPenBridge) =>
-    ({ navigator: { userAgent: ua }, __booxPen: pen } as unknown as Window & { __booxPen?: BooxPenBridge });
+    ({ navigator: { userAgent: ua }, __booxPen: pen }) as unknown as Window & {
+      __booxPen?: BooxPenBridge;
+    };
 
   const APP_UA = 'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 MyCastleMobile/1.0';
   const BROWSER_UA = 'Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/120';
@@ -177,7 +183,10 @@ describe('describeHost — which of the four states we are in', () => {
   });
 
   it('the shell on a device the driver does not support', () => {
-    const b = bridge({ available: false, info: 'nie rozpoznano czytnika Onyx — manufacturer=samsung' });
+    const b = bridge({
+      available: false,
+      info: 'nie rozpoznano czytnika Onyx — manufacturer=samsung',
+    });
     expect(describeHost(win(APP_UA, b))).toEqual({
       kind: 'unsupported',
       info: 'nie rozpoznano czytnika Onyx — manufacturer=samsung',

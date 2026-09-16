@@ -6,9 +6,7 @@
  * edytorze, który zaoferuje ten sam kontrakt.
  */
 import { createElement, type ComponentType, type ReactNode } from 'react';
-import {
-  parseFormulaBlock, EXERCISE_DIRECTIVES, FORMULA_DIRECTIVES,
-} from '@hestia/core-sci';
+import { parseFormulaBlock, EXERCISE_DIRECTIVES, FORMULA_DIRECTIVES } from '@hestia/core-sci';
 import { BlockShell } from './BlockShell';
 import { ExerciseBlock } from './ExerciseBlock';
 import { FieldBlock } from './FieldBlock';
@@ -136,7 +134,11 @@ function FormulaRenderer({ code, language, children, onChange }: HostBlockRender
     // Zapis włącza wizualną edycję matematyki. W trybie czytania (`ReaderView`,
     // eksport statyczny) nie ma go wcale i wzory pozostają nieklikalne.
     view: createElement(FormulaBlockView, {
-      id, code, bare: true, onChange, recognizeInk: rozpoznawaniePisma,
+      id,
+      code,
+      bare: true,
+      onChange,
+      recognizeInk: rozpoznawaniePisma,
     }),
   });
 }
@@ -160,7 +162,10 @@ function ExerciseRenderer({ code, language, documentBlocks, children }: HostBloc
     children,
     directives: EXERCISE_DIRECTIVES,
     view: createElement(ExerciseBlock, {
-      id, code, formulas: formulasOf(documentBlocks), bare: true,
+      id,
+      code,
+      formulas: formulasOf(documentBlocks),
+      bare: true,
       recognizeInk: rozpoznawaniePisma,
     }),
   });
@@ -174,7 +179,11 @@ function ExerciseRenderer({ code, language, documentBlocks, children }: HostBloc
  * w miejscu uruchomienia.
  */
 function FieldRenderer({
-  code, language, documentBlocks, children, onBlockChange,
+  code,
+  language,
+  documentBlocks,
+  children,
+  onBlockChange,
 }: HostBlockRendererProps) {
   const id = language.split(':')[1] ?? 'pole';
   const bloki = documentBlocks?.() ?? [];
@@ -187,16 +196,20 @@ function FieldRenderer({
     children,
     view: wzor
       ? createElement(FieldBlock, {
-        id,
-        code: wzor.code,
-        setup: parseFieldSetup(code),
-        bare: true,
-        // Rysunek jest warunkiem początkowym, więc wraca do bloku ze wzorem —
-        // host musi umieć zapisać **inny** blok niż ten, który renderuje.
-        onFormulaChange: onBlockChange && ((next: string) => onBlockChange(`formula:${id}`, next)),
-      })
-      : createElement('div', { style: { fontSize: 12, color: '#b91c1c' } },
-        opiszBrakWzoru('pola', id, '@pde', idyWzorow(bloki))),
+          id,
+          code: wzor.code,
+          setup: parseFieldSetup(code),
+          bare: true,
+          // Rysunek jest warunkiem początkowym, więc wraca do bloku ze wzorem —
+          // host musi umieć zapisać **inny** blok niż ten, który renderuje.
+          onFormulaChange:
+            onBlockChange && ((next: string) => onBlockChange(`formula:${id}`, next)),
+        })
+      : createElement(
+          'div',
+          { style: { fontSize: 12, color: '#b91c1c' } },
+          opiszBrakWzoru('pola', id, '@pde', idyWzorow(bloki))
+        ),
   });
 }
 
@@ -222,9 +235,17 @@ function LinAlgRenderer({ code, language, documentBlocks, children }: HostBlockR
     id,
     children,
     view: wzor
-      ? createElement(LinAlgBlock, { id, code: wzor.code, setup: parseStageSetup(code), bare: true })
-      : createElement('div', { style: { fontSize: 12, color: '#b91c1c' } },
-        opiszBrakWzoru('algebry', id, '@linalg', idyWzorow(bloki))),
+      ? createElement(LinAlgBlock, {
+          id,
+          code: wzor.code,
+          setup: parseStageSetup(code),
+          bare: true,
+        })
+      : createElement(
+          'div',
+          { style: { fontSize: 12, color: '#b91c1c' } },
+          opiszBrakWzoru('algebry', id, '@linalg', idyWzorow(bloki))
+        ),
   });
 }
 
@@ -310,7 +331,13 @@ function ProcedureRenderer({ code, language, children }: HostBlockRendererProps)
   });
 }
 
-function ScriptRenderer({ code, language, onChange, children, workerFactory }: HostBlockRendererProps) {
+function ScriptRenderer({
+  code,
+  language,
+  onChange,
+  children,
+  workerFactory,
+}: HostBlockRendererProps) {
   const id = SIMSCRIPT_LANG.exec(language)?.[1];
   return createElement(BlockShell, {
     kind: 'model w skrypcie',
@@ -321,7 +348,14 @@ function ScriptRenderer({ code, language, onChange, children, workerFactory }: H
   });
 }
 
-function SimRenderer({ code, language, onChange, documentBlocks, children, workerFactory }: HostBlockRendererProps) {
+function SimRenderer({
+  code,
+  language,
+  onChange,
+  documentBlocks,
+  children,
+  workerFactory,
+}: HostBlockRendererProps) {
   /*
    * `sim:okres` zawęża do wzoru o tej nazwie — ta sama konwencja, co w `field`
    * i `linalg`. Samo `sim` widzi wszystkie wzory dokumentu, bo tak działało od
@@ -336,9 +370,7 @@ function SimRenderer({ code, language, onChange, documentBlocks, children, worke
     children,
     view: createElement(SimBlock, {
       code,
-      formulas: id
-        ? zZaleznosciami(formulasOf(documentBlocks), id)
-        : formulasOf(documentBlocks),
+      formulas: id ? zZaleznosciami(formulasOf(documentBlocks), id) : formulasOf(documentBlocks),
       onChange,
       bare: true,
       workerFactory,
@@ -387,9 +419,7 @@ function CompareRenderer({ code, language, documentBlocks, children }: HostBlock
     children,
     view: createElement(CompareBlock, {
       code,
-      formulas: id
-        ? zZaleznosciami(formulasOf(documentBlocks), id)
-        : formulasOf(documentBlocks),
+      formulas: id ? zZaleznosciami(formulasOf(documentBlocks), id) : formulasOf(documentBlocks),
       bare: true,
       blockId: id,
     }),
@@ -397,22 +427,54 @@ function CompareRenderer({ code, language, documentBlocks, children }: HostBlock
 }
 
 export function registerSciBlocks(
-  register: (renderer: HostBlockRenderer) => () => void,
+  register: (renderer: HostBlockRenderer) => () => void
 ): () => void {
   const off = [
-    register({ name: 'sci-formula', matches: (l) => FORMULA_LANG.test(l), Component: FormulaRenderer }),
+    register({
+      name: 'sci-formula',
+      matches: (l) => FORMULA_LANG.test(l),
+      Component: FormulaRenderer,
+    }),
     register({ name: 'sci-sim', matches: (l) => SIM_LANG.test(l), Component: SimRenderer }),
-    register({ name: 'sci-exercise', matches: (l) => EXERCISE_LANG.test(l), Component: ExerciseRenderer }),
-    register({ name: 'sci-simscript', matches: (l) => SIMSCRIPT_LANG.test(l), Component: ScriptRenderer }),
+    register({
+      name: 'sci-exercise',
+      matches: (l) => EXERCISE_LANG.test(l),
+      Component: ExerciseRenderer,
+    }),
+    register({
+      name: 'sci-simscript',
+      matches: (l) => SIMSCRIPT_LANG.test(l),
+      Component: ScriptRenderer,
+    }),
     register({ name: 'sci-field', matches: (l) => FIELD_LANG.test(l), Component: FieldRenderer }),
-    register({ name: 'sci-linalg', matches: (l) => LINALG_LANG.test(l), Component: LinAlgRenderer }),
-    register({ name: 'sci-procedure', matches: (l) => PROCEDURE_LANG.test(l), Component: ProcedureRenderer }),
-    register({ name: 'sci-figure', matches: (l) => FIGURE_LANG.test(l), Component: FigureRenderer }),
+    register({
+      name: 'sci-linalg',
+      matches: (l) => LINALG_LANG.test(l),
+      Component: LinAlgRenderer,
+    }),
+    register({
+      name: 'sci-procedure',
+      matches: (l) => PROCEDURE_LANG.test(l),
+      Component: ProcedureRenderer,
+    }),
+    register({
+      name: 'sci-figure',
+      matches: (l) => FIGURE_LANG.test(l),
+      Component: FigureRenderer,
+    }),
     register({ name: 'sci-table', matches: (l) => TABLE_LANG.test(l), Component: TableRenderer }),
-    register({ name: 'sci-callout', matches: (l) => CALLOUT_LANG.test(l), Component: CalloutRenderer }),
+    register({
+      name: 'sci-callout',
+      matches: (l) => CALLOUT_LANG.test(l),
+      Component: CalloutRenderer,
+    }),
     register({ name: 'sci-law', matches: (l) => LAW_LANG.test(l), Component: LawRenderer }),
     register({ name: 'sci-plot', matches: (l) => PLOT_LANG.test(l), Component: PlotRenderer }),
-    register({ name: 'sci-compare', matches: (l) => COMPARE_LANG.test(l), Component: CompareRenderer }),
+    register({
+      name: 'sci-compare',
+      matches: (l) => COMPARE_LANG.test(l),
+      Component: CompareRenderer,
+    }),
   ];
   return () => off.forEach((fn) => fn());
 }

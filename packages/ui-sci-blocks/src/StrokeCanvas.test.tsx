@@ -16,31 +16,48 @@ import { StrokeCanvas } from './StrokeCanvas';
 function zbieracz() {
   let stan: Stroke[] = [];
   return {
-    onChange: (update: (poprzednie: Stroke[]) => Stroke[]) => { stan = update(stan); },
-    get strokes() { return stan; },
+    onChange: (update: (poprzednie: Stroke[]) => Stroke[]) => {
+      stan = update(stan);
+    },
+    get strokes() {
+      return stan;
+    },
   };
 }
 
 function plotno(onChange: (u: (p: Stroke[]) => Stroke[]) => void) {
   const { container } = render(
-    <StrokeCanvas width={200} height={200} domainX={[0, 1]} domainY={[0, 1]} onChange={onChange} />,
+    <StrokeCanvas width={200} height={200} domainX={[0, 1]} domainY={[0, 1]} onChange={onChange} />
   );
   const element = container.firstElementChild as HTMLElement;
   // jsdom nie zna przechwytywania wskaźnika, a komponent go używa.
   element.setPointerCapture = vi.fn();
   element.releasePointerCapture = vi.fn();
   element.getBoundingClientRect = () => ({
-    left: 0, top: 0, width: 200, height: 200, right: 200, bottom: 200, x: 0, y: 0, toJSON: () => {},
+    left: 0,
+    top: 0,
+    width: 200,
+    height: 200,
+    right: 200,
+    bottom: 200,
+    x: 0,
+    y: 0,
+    toJSON: () => {},
   });
   return element;
 }
 
 /** Zdarzenie pióra w ułamkach płótna. */
 function pioro(element: HTMLElement, typ: string, ux: number, uy: number, pressure = 0.8) {
-  const event = new Event(typ, { bubbles: true, cancelable: true }) as Event & Record<string, unknown>;
+  const event = new Event(typ, { bubbles: true, cancelable: true }) as Event &
+    Record<string, unknown>;
   Object.assign(event, {
-    pointerId: 1, pointerType: 'pen', pressure, buttons: 1,
-    clientX: ux * 200, clientY: uy * 200,
+    pointerId: 1,
+    pointerType: 'pen',
+    pressure,
+    buttons: 1,
+    clientX: ux * 200,
+    clientY: uy * 200,
   });
   element.dispatchEvent(event);
 }

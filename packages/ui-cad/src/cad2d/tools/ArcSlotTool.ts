@@ -17,9 +17,9 @@ export class ArcSlotTool implements Tool {
   name = 'arcSlot' as const;
   private state: State = 'idle';
   private center: Point2D | null = null;
-  private rc = 0;         // the radius of the arc's axis
-  private a1 = 0;         // the start angle
-  private a2 = 0;         // the end angle
+  private rc = 0; // the radius of the arc's axis
+  private a1 = 0; // the start angle
+  private a2 = 0; // the end angle
   private cursor: Point2D = { x: 0, y: 0 };
   private lockW: number | null = null;
 
@@ -49,7 +49,8 @@ export class ArcSlotTool implements Tool {
   /** The closed outline of an arc slot. */
   private outline(w: number): Point2D[] {
     const sweep = norm(this.a2 - this.a1) || 0.0001;
-    const rOut = this.rc + w, rIn = Math.max(0.001, this.rc - w);
+    const rOut = this.rc + w,
+      rIn = Math.max(0.001, this.rc - w);
     const pts: Point2D[] = [];
     // 1. The outer arc, a1 → a2
     pts.push(...this.arcPts(this.a1, sweep, rOut));
@@ -75,11 +76,24 @@ export class ArcSlotTool implements Tool {
     if (this.state === 'center') return { type: 'line', points: [this.center, this.cursor] };
     if (this.state === 'start') {
       const sweep = norm(this.ang() - this.a1) || 0.0001;
-      return { type: 'arc', points: [this.center], radius: this.rc, startAngle: this.a1, endAngle: this.a1 + sweep };
+      return {
+        type: 'arc',
+        points: [this.center],
+        radius: this.rc,
+        startAngle: this.a1,
+        endAngle: this.a1 + sweep,
+      };
     }
     if (this.state === 'width') {
       const w = this.effWidth();
-      if (w < 0.01) return { type: 'arc', points: [this.center], radius: this.rc, startAngle: this.a1, endAngle: this.a2 };
+      if (w < 0.01)
+        return {
+          type: 'arc',
+          points: [this.center],
+          radius: this.rc,
+          startAngle: this.a1,
+          endAngle: this.a2,
+        };
       const o = this.outline(w);
       return { type: 'polyline', points: [...o, o[0]] };
     }
@@ -90,53 +104,97 @@ export class ArcSlotTool implements Tool {
     if (this.state !== 'width' || !this.center) return [];
     const w = this.effWidth();
     if (w < 0.01) return [];
-    return [{
-      id: 'width', worldX: this.cursor.x, worldY: this.cursor.y, text: `W: ${w.toFixed(2)}`,
-      offsetX: 22, offsetY: -12, variant: 'primary',
-      editable: true, onEdit: (v: number) => { this.lockW = v; },
-    }];
+    return [
+      {
+        id: 'width',
+        worldX: this.cursor.x,
+        worldY: this.cursor.y,
+        text: `W: ${w.toFixed(2)}`,
+        offsetX: 22,
+        offsetY: -12,
+        variant: 'primary',
+        editable: true,
+        onEdit: (v: number) => {
+          this.lockW = v;
+        },
+      },
+    ];
   }
 
   onPointerDown(point: Point2D, ctx: ToolContext): void {
     this.cursor = point;
-    if (this.state === 'idle') { this.center = point; this.state = 'center'; }
-    else if (this.state === 'center') {
+    if (this.state === 'idle') {
+      this.center = point;
+      this.state = 'center';
+    } else if (this.state === 'center') {
       this.rc = Math.hypot(point.x - this.center!.x, point.y - this.center!.y);
-      if (this.rc < 0.1) { this.center = null; this.state = 'idle'; return; }
-      this.a1 = this.ang(); this.state = 'start';
+      if (this.rc < 0.1) {
+        this.center = null;
+        this.state = 'idle';
+        return;
+      }
+      this.a1 = this.ang();
+      this.state = 'start';
     } else if (this.state === 'start') {
-      this.a2 = this.ang(); this.state = 'width';
+      this.a2 = this.ang();
+      this.state = 'width';
     } else if (this.state === 'width') {
       this.commit(ctx);
     }
   }
 
   commitDraft(ctx: ToolContext): boolean {
-    if (this.state === 'start') { this.a2 = this.ang(); this.state = 'width'; return true; }
-    if (this.state === 'width' && this.effWidth() >= 0.01) { this.commit(ctx); return true; }
+    if (this.state === 'start') {
+      this.a2 = this.ang();
+      this.state = 'width';
+      return true;
+    }
+    if (this.state === 'width' && this.effWidth() >= 0.01) {
+      this.commit(ctx);
+      return true;
+    }
     return false;
   }
 
   private commit(ctx: ToolContext): void {
     const w = this.effWidth();
-    if (!this.center || w < 0.01) { this.reset(); return; }
-    const sPt = this.pt(this.a1, this.rc), ePt = this.pt(this.a2, this.rc);
+    if (!this.center || w < 0.01) {
+      this.reset();
+      return;
+    }
+    const sPt = this.pt(this.a1, this.rc),
+      ePt = this.pt(this.a2, this.rc);
     ctx.project.addEntity({
-      type: 'polyline', points: this.outline(w), closed: true,
+      type: 'polyline',
+      points: this.outline(w),
+      closed: true,
       construction: { kind: 'arcSlot', ctrl: [{ ...this.center }, sPt, ePt], radius: w },
       layerId: ctx.project.layerSystem.getActiveId(),
-      color: 'bylayer', lineType: 'bylayer', lineWidth: 'bylayer',
-      visible: true, locked: false, extrudeHeight: 0,
+      color: 'bylayer',
+      lineType: 'bylayer',
+      lineWidth: 'bylayer',
+      visible: true,
+      locked: false,
+      extrudeHeight: 0,
     });
     this.reset();
   }
 
-  onPointerMove(point: Point2D, _ctx: ToolContext): void { this.cursor = point; }
+  onPointerMove(point: Point2D, _ctx: ToolContext): void {
+    this.cursor = point;
+  }
   onPointerUp(_point: Point2D, _ctx: ToolContext): void {}
-  onKeyDown(key: string, _ctx: ToolContext): void { if (key === 'Escape') this.reset(); }
+  onKeyDown(key: string, _ctx: ToolContext): void {
+    if (key === 'Escape') this.reset();
+  }
 
   reset(): void {
-    this.state = 'idle'; this.center = null; this.rc = 0; this.a1 = 0; this.a2 = 0;
-    this.cursor = { x: 0, y: 0 }; this.lockW = null;
+    this.state = 'idle';
+    this.center = null;
+    this.rc = 0;
+    this.a1 = 0;
+    this.a2 = 0;
+    this.cursor = { x: 0, y: 0 };
+    this.lockW = null;
   }
 }

@@ -100,16 +100,17 @@ export function recordAttempt(progress: Progress, id: string, attempt: Attempt):
   }
 
   const streak = (poprzedni?.streak ?? 0) + 1;
-  const baza = poprzedni && poprzedni.streak > 0
-    ? Math.max(poprzedni.dueAt - poprzedni.lastAt, PIERWSZY)
-    : PIERWSZY;
+  const baza =
+    poprzedni && poprzedni.streak > 0
+      ? Math.max(poprzedni.dueAt - poprzedni.lastAt, PIERWSZY)
+      : PIERWSZY;
 
   // Drugie poprawne rozwiązanie wypycha zadanie poza bieżącą sesję: samo
   // mnożenie dziesięciu minut trzymałoby je w tym samym dniu jeszcze przez
   // kilka powtórzeń, a to już nie sprawdza pamięci, tylko świeży ślad.
   const odstep = Math.min(
     Math.max(baza * MNOZNIK[attempt.quality], streak >= 2 ? DZIEN : 0),
-    MAKSYMALNY,
+    MAKSYMALNY
   );
 
   return {

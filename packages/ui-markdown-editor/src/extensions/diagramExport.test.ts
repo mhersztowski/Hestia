@@ -12,8 +12,9 @@
 import { describe, it, expect } from 'vitest';
 import { prepareSvgForExport, diagramFileName, svgSize } from './diagramExport';
 
-const SVG = '<svg id="m1" width="100%" style="max-width: 320px;" viewBox="0 0 320 180">'
-  + '<g><rect width="10" height="10"/></g></svg>';
+const SVG =
+  '<svg id="m1" width="100%" style="max-width: 320px;" viewBox="0 0 320 180">' +
+  '<g><rect width="10" height="10"/></g></svg>';
 
 describe('prepareSvgForExport', () => {
   it('dokłada przestrzeń nazw, gdy jej nie ma', () => {
@@ -71,7 +72,9 @@ describe('svgSize', () => {
 
 describe('diagramFileName', () => {
   it('bierze tytuł z front mattera', () => {
-    const kod = ['---', 'title: Przepływ zamówienia', '---', 'flowchart TB', '  A --> B'].join('\n');
+    const kod = ['---', 'title: Przepływ zamówienia', '---', 'flowchart TB', '  A --> B'].join(
+      '\n'
+    );
     expect(diagramFileName(kod, 'svg')).toBe('przeplyw-zamowienia.svg');
   });
 
@@ -114,7 +117,13 @@ describe('downloadSvg', () => {
     const poprzedniURL = globalAny.URL;
     const poprzedniDocument = globalAny.document;
 
-    globalAny.URL = { createObjectURL: (b: Blob) => { utworzone.push(b); return 'blob:x'; }, revokeObjectURL: () => {} };
+    globalAny.URL = {
+      createObjectURL: (b: Blob) => {
+        utworzone.push(b);
+        return 'blob:x';
+      },
+      revokeObjectURL: () => {},
+    };
     globalAny.document = {
       createElement: () => {
         const link = { href: '', download: '', click: () => kliknięte.push(link) };

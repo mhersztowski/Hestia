@@ -26,7 +26,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CSSProperties } from 'react';
-import { parseFormulaBlock, parseTermBlock, symbolName, type ReferenceKind } from '@hestia/core-sci';
+import {
+  parseFormulaBlock,
+  parseTermBlock,
+  symbolName,
+  type ReferenceKind,
+} from '@hestia/core-sci';
 import { FigureBlock } from './FigureBlock';
 import { TableBlock } from './TableBlock';
 import { CalloutBlock } from './CalloutBlock';
@@ -143,10 +148,7 @@ export function ReferenceLink({ id, label, target, onNavigate }: ReferenceLinkPr
       const oknoH = window.innerHeight;
 
       // Poziomo: startujemy przy lewej krawędzi odsyłacza i wpychamy w ekran.
-      const left = Math.max(
-        MARGINES,
-        Math.min(link.left, oknoW - szer - MARGINES),
-      );
+      const left = Math.max(MARGINES, Math.min(link.left, oknoW - szer - MARGINES));
 
       // Pionowo: nad odsyłaczem, jeśli jest tam miejsce; inaczej pod nim.
       // Gdy nie ma go po żadnej stronie, wybieramy stronę większą i przycinamy
@@ -161,18 +163,19 @@ export function ReferenceLink({ id, label, target, onNavigate }: ReferenceLinkPr
         ? Math.max(MARGINES, link.top - MARGINES - wysokosc)
         : Math.min(link.bottom + MARGINES, oknoH - MARGINES - wysokosc);
 
-      setPozycja((p) => (
+      setPozycja((p) =>
         p && p.left === left && p.top === top && p.maxHeight === dostepna
           ? p
           : { left, top, maxHeight: dostepna }
-      ));
+      );
     };
 
     ustaw();
 
     // Rysunek w podglądzie doładowuje się **po** otwarciu i zmienia wysokość
     // dymka — bez ponownego pomiaru korekta dotyczyłaby nieaktualnego kształtu.
-    const obserwator = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(ustaw);
+    const obserwator =
+      typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(ustaw);
     if (el) obserwator?.observe(el);
 
     window.addEventListener('scroll', ustaw, true);
@@ -192,7 +195,10 @@ export function ReferenceLink({ id, label, target, onNavigate }: ReferenceLinkPr
     anulujZamkniecie();
     zamkniecie.current = setTimeout(() => setPodglad(false), ZWLOKA_ZAMKNIECIA);
   };
-  const pokaz = () => { anulujZamkniecie(); setPodglad(true); };
+  const pokaz = () => {
+    anulujZamkniecie();
+    setPodglad(true);
+  };
 
   // Odmontowanie w trakcie odliczania zostawiłoby timer wołający setState.
   useEffect(() => anulujZamkniecie, []);
@@ -211,7 +217,9 @@ export function ReferenceLink({ id, label, target, onNavigate }: ReferenceLinkPr
     const pozaDymkiem = (e: Event) => {
       if (!kotwica.current?.contains(e.target as Node)) setPodglad(false);
     };
-    const naEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') setPodglad(false); };
+    const naEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPodglad(false);
+    };
 
     document.addEventListener('pointerdown', pozaDymkiem);
     document.addEventListener('keydown', naEscape);
@@ -229,17 +237,16 @@ export function ReferenceLink({ id, label, target, onNavigate }: ReferenceLinkPr
     );
   }
 
-  const haslo = target.kind === 'term' && target.code
-    ? parseTermBlock(id, target.code)
-    : undefined;
+  const haslo = target.kind === 'term' && target.code ? parseTermBlock(id, target.code) : undefined;
   const rysunek = target.kind === 'figure' ? target.code : undefined;
   const tablica = target.kind === 'table' ? target.code : undefined;
   const notka = target.kind === 'callout' ? target.code : undefined;
   const prawo = target.kind === 'law' ? target.code : undefined;
   const paragraf = target.kind === 'section';
-  const blok = !haslo && !rysunek && !tablica && !paragraf && target.code
-    ? parseFormulaBlock(id, target.code)
-    : undefined;
+  const blok =
+    !haslo && !rysunek && !tablica && !paragraf && target.code
+      ? parseFormulaBlock(id, target.code)
+      : undefined;
   const maPodglad = Boolean(haslo || blok || rysunek || tablica || paragraf);
 
   // Podpis domyślny to nazwa wielkości albo hasła, nie identyfikator: w zdaniu
@@ -267,83 +274,108 @@ export function ReferenceLink({ id, label, target, onNavigate }: ReferenceLinkPr
       onClick={klik}
       role={onNavigate ? 'link' : undefined}
       tabIndex={onNavigate ? 0 : undefined}
-      onKeyDown={(e) => { if (e.key === 'Enter') onNavigate?.(id); }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onNavigate?.(id);
+      }}
     >
       {tekst}
-      {podglad && maPodglad && typeof document !== 'undefined' && createPortal(
-        <span
-          ref={dymekEl}
-          role="dialog"
-          style={{
-            ...STYL_DYMKA,
-            // Pierwsza klatka: dymek musi się wyrenderować, żeby dało się go
-            // zmierzyć. Rysujemy go wtedy niewidocznie, zamiast mignąć w złym
-            // miejscu i przeskoczyć.
-            visibility: pozycja ? 'visible' : 'hidden',
-            left: pozycja ? `${pozycja.left}px` : 0,
-            top: pozycja ? `${pozycja.top}px` : 0,
-            maxHeight: pozycja ? `${pozycja.maxHeight}px` : undefined,
-          }}
-          onMouseEnter={mysz ? anulujZamkniecie : undefined}
-          onMouseLeave={mysz ? odlozZamkniecie : undefined}
-        >
-          {rysunek && <FigureBlock id={id} code={rysunek} compact />}
-          {tablica && <TableBlock id={id} code={tablica} compact />}
-          {notka && <CalloutBlock id={id} code={notka} compact />}
-          {prawo && <LawBlock id={id} code={prawo} compact />}
-          {paragraf && (
-            <span style={{ fontSize: 12, fontWeight: 600, display: 'block' }}>
-              {target.documentTitle ?? id}
-            </span>
-          )}
-          {haslo ? (
-            <>
-              <span style={{ fontSize: 12, fontWeight: 600, display: 'block' }}>{haslo.term}</span>
-              <span style={{ fontSize: 12, lineHeight: 1.5, display: 'block', marginTop: 3 }}>
-                {haslo.definition}
+      {podglad &&
+        maPodglad &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <span
+            ref={dymekEl}
+            role="dialog"
+            style={{
+              ...STYL_DYMKA,
+              // Pierwsza klatka: dymek musi się wyrenderować, żeby dało się go
+              // zmierzyć. Rysujemy go wtedy niewidocznie, zamiast mignąć w złym
+              // miejscu i przeskoczyć.
+              visibility: pozycja ? 'visible' : 'hidden',
+              left: pozycja ? `${pozycja.left}px` : 0,
+              top: pozycja ? `${pozycja.top}px` : 0,
+              maxHeight: pozycja ? `${pozycja.maxHeight}px` : undefined,
+            }}
+            onMouseEnter={mysz ? anulujZamkniecie : undefined}
+            onMouseLeave={mysz ? odlozZamkniecie : undefined}
+          >
+            {rysunek && <FigureBlock id={id} code={rysunek} compact />}
+            {tablica && <TableBlock id={id} code={tablica} compact />}
+            {notka && <CalloutBlock id={id} code={notka} compact />}
+            {prawo && <LawBlock id={id} code={prawo} compact />}
+            {paragraf && (
+              <span style={{ fontSize: 12, fontWeight: 600, display: 'block' }}>
+                {target.documentTitle ?? id}
               </span>
-              {haslo.source && (
-                <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', marginTop: 4 }}>
-                  {haslo.source}
+            )}
+            {haslo ? (
+              <>
+                <span style={{ fontSize: 12, fontWeight: 600, display: 'block' }}>
+                  {haslo.term}
                 </span>
-              )}
-            </>
-          ) : blok ? (
-            <>
-              <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', marginBottom: 2 }}>
-                {id}
-                {!target.sameDocument && target.documentTitle && ` · ${target.documentTitle}`}
-              </span>
-              {/*
+                <span style={{ fontSize: 12, lineHeight: 1.5, display: 'block', marginTop: 3 }}>
+                  {haslo.definition}
+                </span>
+                {haslo.source && (
+                  <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', marginTop: 4 }}>
+                    {haslo.source}
+                  </span>
+                )}
+              </>
+            ) : blok ? (
+              <>
+                <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', marginBottom: 2 }}>
+                  {id}
+                  {!target.sameDocument && target.documentTitle && ` · ${target.documentTitle}`}
+                </span>
+                {/*
                 Równanie, które nie jest przypisaniem (`@relation`), nie ma
                 lewej strony — składanie go jako „cel = wyrażenie" dawało samo
                 „=". Takich wzorów w podręczniku jest pełno: równanie ruchu,
                 warunki, tożsamości. Dla nich pokazujemy zapis autora w całości.
               */}
-              <MathView
-                latex={blok!.kind === 'relation' && blok!.latex
-                  ? blok!.latex
-                  : `${blok!.targetLatex ?? symbolToLatex(blok!.target ?? '')} = ${
-                    blok!.chain?.join(' = ') ?? blok!.expression ?? ''}`}
-                block={false}
-              />
-            </>
-          ) : null}
+                <MathView
+                  latex={
+                    blok!.kind === 'relation' && blok!.latex
+                      ? blok!.latex
+                      : `${blok!.targetLatex ?? symbolToLatex(blok!.target ?? '')} = ${
+                          blok!.chain?.join(' = ') ?? blok!.expression ?? ''
+                        }`
+                  }
+                  block={false}
+                />
+              </>
+            ) : null}
 
-          {onNavigate && (
-            <button
-              type="button"
-              style={przycisk}
-              onClick={(e) => { e.stopPropagation(); onNavigate(id); }}
-            >
-              {paragraf ? 'przejdź do paragrafu'
-                : `otwórz ${haslo ? 'hasło' : rysunek ? 'rysunek'
-                  : tablica ? 'tablicę' : notka ? 'notkę' : prawo ? 'prawo' : 'wzór'}`}
-            </button>
-          )}
-        </span>,
-        document.body,
-      )}
+            {onNavigate && (
+              <button
+                type="button"
+                style={przycisk}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNavigate(id);
+                }}
+              >
+                {paragraf
+                  ? 'przejdź do paragrafu'
+                  : `otwórz ${
+                      haslo
+                        ? 'hasło'
+                        : rysunek
+                          ? 'rysunek'
+                          : tablica
+                            ? 'tablicę'
+                            : notka
+                              ? 'notkę'
+                              : prawo
+                                ? 'prawo'
+                                : 'wzór'
+                    }`}
+              </button>
+            )}
+          </span>,
+          document.body
+        )}
     </span>
   );
 }

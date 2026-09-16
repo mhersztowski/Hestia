@@ -35,11 +35,14 @@ describe('parseFigureBlock', () => {
   });
 
   it('podpis w kilku wierszach skleja się w jeden', () => {
-    const r = parseFigureBlock('x', [
-      '![R](data:image/png;base64,A=)',
-      '@caption **Rys. 15-2.** Całkowita energia mechaniczna',
-      '  dla ruchu z rys. 15-1.',
-    ].join('\n'));
+    const r = parseFigureBlock(
+      'x',
+      [
+        '![R](data:image/png;base64,A=)',
+        '@caption **Rys. 15-2.** Całkowita energia mechaniczna',
+        '  dla ruchu z rys. 15-1.',
+      ].join('\n')
+    );
     expect(r.caption).toBe('**Rys. 15-2.** Całkowita energia mechaniczna dla ruchu z rys. 15-1.');
   });
 
@@ -67,7 +70,7 @@ describe('parseTableBlock', () => {
   it('czyta podpis i wiersze', () => {
     const t = parseTableBlock('rh1-15-tab1', TABLICA);
     expect(t.caption).toBe('**Tablica 15-1.** Okresy drgań.');
-    expect(t.rows).toHaveLength(2);              // nagłówek + jeden wiersz danych
+    expect(t.rows).toHaveLength(2); // nagłówek + jeden wiersz danych
     expect(t.rows[0]).toEqual(['ciało', 'okres']);
     expect(t.rows[1]).toEqual(['wahadło', '2 s']);
   });

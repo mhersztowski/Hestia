@@ -50,7 +50,11 @@ export class MqttFS implements FileSystemProvider {
   private readonly timeoutMs: number;
   private readonly pending = new Map<
     string,
-    { resolve: (data: unknown) => void; reject: (err: Error) => void; timer: ReturnType<typeof setTimeout> }
+    {
+      resolve: (data: unknown) => void;
+      reject: (err: Error) => void;
+      timer: ReturnType<typeof setTimeout>;
+    }
   >();
 
   constructor(private readonly options: MqttFSOptions) {
@@ -70,28 +74,23 @@ export class MqttFS implements FileSystemProvider {
       entry.resolve(response.data);
     } else {
       const err = response.error;
-      entry.reject(
-        new VfsError(
-          (err?.code as VfsErrorCode) ?? VfsErrorCode.Unknown,
-          err?.message,
-        ),
-      );
+      entry.reject(new VfsError((err?.code as VfsErrorCode) ?? VfsErrorCode.Unknown, err?.message));
     }
   }
 
   // --- FileSystemProvider ---
 
   async stat(path: string): Promise<FileStat> {
-    return await this.request('stat', path) as FileStat;
+    return (await this.request('stat', path)) as FileStat;
   }
 
   async readDirectory(path: string): Promise<DirectoryEntry[]> {
-    const data = await this.request('readdir', path) as { entries: DirectoryEntry[] };
+    const data = (await this.request('readdir', path)) as { entries: DirectoryEntry[] };
     return data.entries;
   }
 
   async readFile(path: string): Promise<Uint8Array> {
-    const data = await this.request('readfile', path) as { data: string };
+    const data = (await this.request('readfile', path)) as { data: string };
     return base64ToUint8Array(data.data);
   }
 

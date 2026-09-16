@@ -12,14 +12,25 @@ import { NodeShapeBackground } from './NodeShapeBackground';
 import type { NodeShape } from '../model/diagram';
 
 const SHAPES: NodeShape[] = [
-  'rectangle', 'rounded', 'stadium', 'subroutine', 'cylinder', 'circle', 'doubleCircle',
-  'rhombus', 'hexagon', 'parallelogram', 'parallelogramAlt', 'trapezoid', 'trapezoidAlt',
+  'rectangle',
+  'rounded',
+  'stadium',
+  'subroutine',
+  'cylinder',
+  'circle',
+  'doubleCircle',
+  'rhombus',
+  'hexagon',
+  'parallelogram',
+  'parallelogramAlt',
+  'trapezoid',
+  'trapezoidAlt',
   'asymmetric',
 ];
 
 const markup = (shape: NodeShape, width: number, height: number) =>
   renderToStaticMarkup(
-    <NodeShapeBackground shape={shape} width={width} height={height} fill="#fff" stroke="#000" />,
+    <NodeShapeBackground shape={shape} width={width} height={height} fill="#fff" stroke="#000" />
   );
 
 /** Ujemne wartości w atrybutach rozmiaru i promienia — te przeglądarka odrzuca. */

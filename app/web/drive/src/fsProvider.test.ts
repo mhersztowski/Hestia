@@ -10,10 +10,16 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { platformProvider } from './fsProvider';
 
 function answerWith(body: unknown, status = 200) {
-  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  })));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      async () =>
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { 'Content-Type': 'application/json' },
+        })
+    )
+  );
 }
 
 const base64 = (text: string) => btoa(String.fromCharCode(...new TextEncoder().encode(text)));
@@ -44,7 +50,12 @@ describe('reading a file for the editor', () => {
 
 describe('listing a directory for the editor', () => {
   it('tells a directory from a file', async () => {
-    answerWith({ entries: [{ name: 'src', type: 2 }, { name: 'index.ts', type: 1 }] });
+    answerWith({
+      entries: [
+        { name: 'src', type: 2 },
+        { name: 'index.ts', type: 1 },
+      ],
+    });
 
     expect(await platformProvider().readDirectory('/')).toEqual([
       { name: 'src', type: 2 },

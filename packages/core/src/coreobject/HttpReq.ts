@@ -1,5 +1,5 @@
 import { Signal } from './Signal';
-import { TreeNode } from './TreeNode';
+import { CoreObject } from './CoreObject';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -16,7 +16,7 @@ export interface HttpResponse {
 }
 
 /**
- * HTTP request node (fetch-based, browser + TreeNode.js 18+).
+ * HTTP request node (fetch-based, browser + Node.js 18+).
  *
  * Configure `url`, `method`, `headers`, optional `body`, then call
  * `send()` or one of the shorthand methods (`get()`, `post()`, …).
@@ -36,7 +36,7 @@ export interface HttpResponse {
  *   // POST with JSON body
  *   const res = await req.post({ key: 'value' });
  */
-export class HttpReq extends TreeNode {
+export class HttpReq extends CoreObject {
   /** Emitted when the response status is 200–299. */
   readonly success = new Signal<[response: HttpResponse]>();
   /** Emitted on network errors or non-2xx responses. */
@@ -52,7 +52,7 @@ export class HttpReq extends TreeNode {
 
   #abortCtrl: AbortController | null = null;
 
-  constructor(url: string, parent?: TreeNode) {
+  constructor(url: string, parent?: CoreObject) {
     super(parent, 'HttpReq');
     this.url = url;
   }
@@ -69,20 +69,15 @@ export class HttpReq extends TreeNode {
 
     const timer = setTimeout(
       () => ctrl.abort(new Error(`HttpReq: timeout after ${this.timeoutMs}ms`)),
-      this.timeoutMs,
+      this.timeoutMs
     );
 
     const bodyStr =
-      body === undefined
-        ? undefined
-        : typeof body === 'string'
-        ? body
-        : JSON.stringify(body);
+      body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body);
 
     const mergedHeaders: Record<string, string> = { ...this.headers };
     if (bodyStr !== undefined && !mergedHeaders['Content-Type']) {
-      mergedHeaders['Content-Type'] =
-        typeof body === 'string' ? 'text/plain' : 'application/json';
+      mergedHeaders['Content-Type'] = typeof body === 'string' ? 'text/plain' : 'application/json';
     }
 
     try {

@@ -8,7 +8,9 @@ import { ELEC_EXT, readFileAt } from '../vfs';
 import { SchematicView } from '../electronics/SchematicView';
 import type { ElectronicsSchema } from '../electronics/types';
 
-interface Props { vfsPath: string }
+interface Props {
+  vfsPath: string;
+}
 
 export function ElectronicsViewerPage({ vfsPath }: Props) {
   const [schema, setSchema] = useState<ElectronicsSchema | null>(null);
@@ -28,15 +30,30 @@ export function ElectronicsViewerPage({ vfsPath }: Props) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [vfsPath]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, bgcolor: '#1a1a1a', color: '#fff' }}>
-      <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', minHeight: 0 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+        bgcolor: '#1a1a1a',
+        color: '#fff',
+      }}
+    >
+      <Box
+        sx={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', minHeight: 0 }}
+      >
         {error ? (
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography sx={{ color: 'error.main', fontSize: 14 }}>Failed to load: {error}</Typography>
+            <Typography sx={{ color: 'error.main', fontSize: 14 }}>
+              Failed to load: {error}
+            </Typography>
           </Box>
         ) : !schema ? (
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

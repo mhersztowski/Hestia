@@ -8,12 +8,22 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  CALLOUT_VARIANTS, isCalloutVariant, parseCalloutMarker, calloutToMarkdown, extractCallouts,
+  CALLOUT_VARIANTS,
+  isCalloutVariant,
+  parseCalloutMarker,
+  calloutToMarkdown,
+  extractCallouts,
 } from './callout';
 
 describe('CALLOUT_VARIANTS', () => {
   it('pokrywa zestaw alertów GitHuba', () => {
-    expect(Object.keys(CALLOUT_VARIANTS)).toEqual(['note', 'tip', 'important', 'warning', 'caution']);
+    expect(Object.keys(CALLOUT_VARIANTS)).toEqual([
+      'note',
+      'tip',
+      'important',
+      'warning',
+      'caution',
+    ]);
   });
 
   it('każdy wariant ma etykietę, kolor i emoji do podglądu', () => {
@@ -69,7 +79,7 @@ describe('calloutToMarkdown', () => {
   it('zachowuje wcięcia list i bloków kodu', () => {
     const body = '- jeden\n  - zagnieżdżony\n\n```js\nconst x = 1;\n```';
     expect(calloutToMarkdown('important', body)).toBe(
-      '> [!IMPORTANT]\n> - jeden\n>   - zagnieżdżony\n>\n> ```js\n> const x = 1;\n> ```',
+      '> [!IMPORTANT]\n> - jeden\n>   - zagnieżdżony\n>\n> ```js\n> const x = 1;\n> ```'
     );
   });
 });

@@ -164,10 +164,12 @@ export class GitHubFS implements FileSystemProvider {
     // Invalidate cache for this path and parent
     this.invalidatePath(apiPath);
 
-    this.emitter.fire([{
-      type: existingSha ? FileChangeType.Changed : FileChangeType.Created,
-      path: p,
-    }]);
+    this.emitter.fire([
+      {
+        type: existingSha ? FileChangeType.Changed : FileChangeType.Created,
+        path: p,
+      },
+    ]);
   }
 
   /**
@@ -217,7 +219,10 @@ export class GitHubFS implements FileSystemProvider {
     }
   }
 
-  private async deleteDirectoryRecursive(_apiPath: string, items: GitHubContentItem[]): Promise<void> {
+  private async deleteDirectoryRecursive(
+    _apiPath: string,
+    items: GitHubContentItem[]
+  ): Promise<void> {
     for (const item of items) {
       if (item.type === 'dir') {
         const subData = await this.fetchContents(item.path);
@@ -303,4 +308,3 @@ export class GitHubFS implements FileSystemProvider {
     this.cache.set(key, { data, expiry: Date.now() + this.cacheTtlMs });
   }
 }
-

@@ -44,7 +44,7 @@ export function idyWzorow(bloki: BlokDokumentu[]): string[] {
 export function znajdzWzor(
   bloki: BlokDokumentu[],
   id: string | undefined,
-  wymaga?: RegExp,
+  wymaga?: RegExp
 ): BlokDokumentu | undefined {
   if (!id) return undefined;
   return bloki.find((b) => idWzoru(b.language) === id && (!wymaga || wymaga.test(b.code)));
@@ -52,7 +52,10 @@ export function znajdzWzor(
 
 /** Odległość edycyjna — na tyle, ile trzeba, żeby wyłapać literówkę. */
 function odleglosc(a: string, b: string): number {
-  const d: number[][] = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  const d: number[][] = Array.from({ length: a.length + 1 }, (_, i) => [
+    i,
+    ...Array(b.length).fill(0),
+  ]);
   for (let j = 0; j <= b.length; j += 1) d[0][j] = j;
 
   for (let i = 1; i <= a.length; i += 1) {
@@ -60,7 +63,7 @@ function odleglosc(a: string, b: string): number {
       d[i][j] = Math.min(
         d[i - 1][j] + 1,
         d[i][j - 1] + 1,
-        d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+        d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
       );
     }
   }
@@ -83,7 +86,7 @@ export function opiszBrakWzoru(
   rodzaj: string,
   id: string,
   dyrektywa: string,
-  dostepne: string[] = [],
+  dostepne: string[] = []
 ): string {
   const czesci = [
     `Nie ma wzoru ${rodzaj} „${id}" w tym dokumencie.`,
@@ -109,7 +112,7 @@ export function opiszBrakWzoru(
  */
 export function zZaleznosciami<T extends { id: string; derivedFrom?: string[] }>(
   wszystkie: T[],
-  id: string,
+  id: string
 ): T[] {
   const poId = new Map(wszystkie.map((f) => [f.id, f]));
   const wybrane = new Set<string>();

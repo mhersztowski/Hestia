@@ -5,9 +5,13 @@ import { ReaderView } from './ReaderView';
 import { readDocument } from './test/documents';
 
 const DOK = '4-4-ruch-po-okregu.md';
-const pliki = [DOK, '4-1-przemieszczenie.md', '4-2-stale-przyspieszenie.md',
-  '3-6-przyspieszenie.md', 'Slownik.md']
-  .map((p) => ({ path: p, markdown: readDocument(p) }));
+const pliki = [
+  DOK,
+  '4-1-przemieszczenie.md',
+  '4-2-stale-przyspieszenie.md',
+  '3-6-przyspieszenie.md',
+  'Slownik.md',
+].map((p) => ({ path: p, markdown: readDocument(p) }));
 const index = buildIndex(pliki);
 const bodies = Object.fromEntries(pliki.map((f) => [f.path, f.markdown]));
 const cel = (id: string) =>
@@ -15,12 +19,13 @@ const cel = (id: string) =>
 const resolveRef = (id: string) => {
   const c = cel(id);
   if (!c.found || !c.path) return undefined;
-  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(bodies[c.path] ?? '');
+  const m = new RegExp(`^ {0,3}\`\`\`${c.kind}:${id}\\n([\\s\\S]*?)\`\`\``, 'm').exec(
+    bodies[c.path] ?? ''
+  );
   return { code: m?.[1], kind: c.kind, sameDocument: c.sameDocument };
 };
-const widok = () => render(
-  <ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />,
-);
+const widok = () =>
+  render(<ReaderView markdown={bodies[DOK]} path={DOK} resolveRef={resolveRef} />);
 /** Dokument jest zawijany na 80 kolumn — porównujemy po zwinięciu białych znaków. */
 const tekst = () => (widok().container.textContent ?? '').replace(/\s+/g, ' ');
 const wyklad = () => bodies[DOK].split('## Uwagi redakcyjne')[0];
@@ -37,8 +42,13 @@ describe('4-4 w czytniku', () => {
   it('siedem wzorów numerowanych i ani jednego obliczalnego', () => {
     const d = index.documents.find((x) => x.path === DOK);
     expect(d?.formulas.map((f) => f.id)).toEqual([
-      'rh1-4-eq9', 'rh1-4-eq10a', 'rh1-4-eq10b',
-      'rh1-4-eq11', 'rh1-4-eq12', 'rh1-4-eq13', 'rh1-4-eq14',
+      'rh1-4-eq9',
+      'rh1-4-eq10a',
+      'rh1-4-eq10b',
+      'rh1-4-eq11',
+      'rh1-4-eq12',
+      'rh1-4-eq13',
+      'rh1-4-eq14',
     ]);
     expect(d?.formulas.every((f) => f.kind === 'relation')).toBe(true);
     expect(d!.formulas.flatMap((f) => f.issues)).toEqual([]);
@@ -48,8 +58,12 @@ describe('4-4 w czytniku', () => {
 
   it('cztery rysunki, w tym dwa panelowe', () => {
     const d = index.documents.find((x) => x.path === DOK);
-    expect(d?.figures.map((f) => f.id))
-      .toEqual(['rh1-4-rys5', 'rh1-4-rys6', 'rh1-4-rys7', 'rh1-4-rys8']);
+    expect(d?.figures.map((f) => f.id)).toEqual([
+      'rh1-4-rys5',
+      'rh1-4-rys6',
+      'rh1-4-rys7',
+      'rh1-4-rys8',
+    ]);
     expect(widok().container.querySelectorAll('img')).toHaveLength(4);
     expect(resolveRef('rh1-4-rys5')?.code).toContain('@panels a, b, c');
     expect(resolveRef('rh1-4-rys8')?.code).toContain('@panels a, b');
@@ -67,7 +81,9 @@ describe('4-4 w czytniku', () => {
     }
     // Druga nazwa z tego samego zdania zostaje kursywą, nie drugim linkiem.
     expect(wyklad()).toContain('lub\n*dośrodkowym*');
-    expect(resolveRef('rh1-poj-przyspieszenie-dosrodkowe')?.code).toContain('@aka przyspieszeniem radialnym, dośrodkowym');
+    expect(resolveRef('rh1-poj-przyspieszenie-dosrodkowe')?.code).toContain(
+      '@aka przyspieszeniem radialnym, dośrodkowym'
+    );
   });
 
   /**
@@ -101,7 +117,9 @@ describe('4-4 w czytniku', () => {
 
   it('ma notkę o Sputniku, zaczepioną w haśle ze skorowidza', () => {
     const d = index.documents.find((x) => x.path === DOK);
-    expect(d?.callouts.map((c) => [c.id, c.kind])).toEqual([['rh1-nota-pierwszy-satelita', 'device']]);
+    expect(d?.callouts.map((c) => [c.id, c.kind])).toEqual([
+      ['rh1-nota-pierwszy-satelita', 'device'],
+    ]);
     expect(resolveRef('rh1-nota-pierwszy-satelita')?.code).toContain('@source 4-4, s. 77');
   });
 

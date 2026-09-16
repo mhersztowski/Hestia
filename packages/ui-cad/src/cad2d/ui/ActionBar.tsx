@@ -23,7 +23,13 @@ import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
-    Toolbar as CoreToolbar, custom, item, separator, splitToggle, toggle, type ToolbarNode,
+  Toolbar as CoreToolbar,
+  custom,
+  item,
+  separator,
+  splitToggle,
+  toggle,
+  type ToolbarNode,
 } from '@hestia/ui-core';
 import { freecadIconUrl } from '../assets/freecadIcons';
 import type { Project } from '../core';
@@ -46,26 +52,40 @@ interface Props {
 }
 
 const TRANSFORM_TOOLS: { name: ToolName; label: string; icon: React.ReactNode }[] = [
-  { name: 'move',   label: 'Move (M) — select first',    icon: <OpenWithIcon fontSize="small" /> },
-  { name: 'copy',   label: 'Copy (CO) — select first',   icon: <ContentCopyIcon fontSize="small" /> },
-  { name: 'rotate', label: 'Rotate (RO) — select first', icon: <RotateRightIcon fontSize="small" /> },
+  { name: 'move', label: 'Move (M) — select first', icon: <OpenWithIcon fontSize="small" /> },
+  { name: 'copy', label: 'Copy (CO) — select first', icon: <ContentCopyIcon fontSize="small" /> },
+  {
+    name: 'rotate',
+    label: 'Rotate (RO) — select first',
+    icon: <RotateRightIcon fontSize="small" />,
+  },
 ];
 
 const EDIT_TOOLS: { name: ToolName; label: string; icon: React.ReactNode }[] = [
-  { name: 'offset',    label: 'Offset (O)',     icon: <LinearScaleIcon fontSize="small" /> },
-  { name: 'trim',      label: 'Trim (TR)',      icon: <ContentCutIcon fontSize="small" /> },
-  { name: 'fillet',    label: 'Fillet (F)',     icon: <RoundedCornerIcon fontSize="small" /> },
+  { name: 'offset', label: 'Offset (O)', icon: <LinearScaleIcon fontSize="small" /> },
+  { name: 'trim', label: 'Trim (TR)', icon: <ContentCutIcon fontSize="small" /> },
+  { name: 'fillet', label: 'Fillet (F)', icon: <RoundedCornerIcon fontSize="small" /> },
 ];
 
 /** A FreeCAD icon by name, with a MUI icon to fall back on when the files are not served. */
 function fcIcon(name: string, fallback: React.ReactNode, size = 18): React.ReactNode {
   const url = freecadIconUrl(name);
-  return url
-    ? <img src={url} width={size} height={size} alt="" style={{ display: 'block' }} />
-    : fallback;
+  return url ? (
+    <img src={url} width={size} height={size} alt="" style={{ display: 'block' }} />
+  ) : (
+    fallback
+  );
 }
 
-export function ActionBar({ activeTool, onToolChange, project, start, children, dimensionOptions, onDimensionOption }: Props) {
+export function ActionBar({
+  activeTool,
+  onToolChange,
+  project,
+  start,
+  children,
+  dimensionOptions,
+  onDimensionOption,
+}: Props) {
   const desc = project.historyManager.getDescription();
   const canUndo = project.historyManager.canUndo();
   const canRedo = project.historyManager.canRedo();
@@ -74,20 +94,37 @@ export function ActionBar({ activeTool, onToolChange, project, start, children, 
   const nodes: ToolbarNode[] = useMemo(() => {
     const tool = (t: { name: ToolName; label: string; icon: React.ReactNode }) =>
       toggle(t.name, t.label, activeTool === t.name, {
-        group: 'tool', icon: t.icon, title: t.label,
+        group: 'tool',
+        icon: t.icon,
+        title: t.label,
         onChange: () => onToolChange(t.name),
       });
 
     const dimensionIcon = fcIcon('c_dimension', <StraightenIcon fontSize="small" />);
     const dimension = dimensionOptions?.length
-      ? splitToggle('dimension', 'Dimension', activeTool === 'dimension',
-        dimensionOptions.map((o) => item(`dim:${o.key}`, o.label, {
-          icon: fcIcon(o.icon, null),
-          shortcut: o.sc,
-          onSelect: () => onDimensionOption?.(o.key),
-        })),
-        { group: 'tool', icon: dimensionIcon, title: 'Dimension (D) — universal', onChange: () => onToolChange('dimension') })
-      : tool({ name: 'dimension', label: 'Dimension (DI)', icon: <StraightenIcon fontSize="small" /> });
+      ? splitToggle(
+          'dimension',
+          'Dimension',
+          activeTool === 'dimension',
+          dimensionOptions.map((o) =>
+            item(`dim:${o.key}`, o.label, {
+              icon: fcIcon(o.icon, null),
+              shortcut: o.sc,
+              onSelect: () => onDimensionOption?.(o.key),
+            })
+          ),
+          {
+            group: 'tool',
+            icon: dimensionIcon,
+            title: 'Dimension (D) — universal',
+            onChange: () => onToolChange('dimension'),
+          }
+        )
+      : tool({
+          name: 'dimension',
+          label: 'Dimension (DI)',
+          icon: <StraightenIcon fontSize="small" />,
+        });
 
     return [
       ...(start ? [custom('hostStart', start), separator('s0')] : []),
@@ -119,7 +156,20 @@ export function ActionBar({ activeTool, onToolChange, project, start, children, 
       // The host's own controls, still inside the bar so they scroll with it.
       ...(children ? [separator('s3'), custom('host', children)] : []),
     ];
-  }, [activeTool, canRedo, canUndo, children, desc.redoLabel, desc.undoLabel, dimensionOptions, onDimensionOption, onToolChange, project, selectionCount, start]);
+  }, [
+    activeTool,
+    canRedo,
+    canUndo,
+    children,
+    desc.redoLabel,
+    desc.undoLabel,
+    dimensionOptions,
+    onDimensionOption,
+    onToolChange,
+    project,
+    selectionCount,
+    start,
+  ]);
 
   return (
     <CoreToolbar
@@ -127,11 +177,15 @@ export function ActionBar({ activeTool, onToolChange, project, start, children, 
       display="icon"
       aria-label="actions"
       sx={{
-        px: 1, minHeight: 38, flexShrink: 0,
+        px: 1,
+        minHeight: 38,
+        flexShrink: 0,
         bgcolor: 'background.paper',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}
-      renderCustom={(node) => <Box sx={{ display: 'flex', alignItems: 'center' }}>{node.render as React.ReactNode}</Box>}
+      renderCustom={(node) => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>{node.render as React.ReactNode}</Box>
+      )}
     />
   );
 }

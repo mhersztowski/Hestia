@@ -3,7 +3,8 @@ import type { SceneNodeData } from '../scene/SceneNode';
 import type { GeoNodeGraph } from '../geometry-nodes/types';
 import { DEFAULT_GEO_NODE_GRAPH } from '../geometry-nodes/types';
 
-export type GeometryType = 'box' | 'sphere' | 'cylinder' | 'plane' | 'cone' | 'torus' | 'custom' | 'procedural' | 'nodes';
+export type GeometryType =
+  'box' | 'sphere' | 'cylinder' | 'plane' | 'cone' | 'torus' | 'custom' | 'procedural' | 'nodes';
 
 export const DEFAULT_PROCEDURAL_CODE = `// Return a THREE.BufferGeometry
 const geo = new THREE.SphereGeometry(1, 32, 16);
@@ -212,7 +213,12 @@ export class MeshNode extends SceneNode {
 
     const mat = data?.material;
     this.material = mat
-      ? { ...DEFAULT_MATERIAL, ...mat, type: mat.type ?? 'MeshStandardMaterial', id: mat.id ?? crypto.randomUUID() }
+      ? {
+          ...DEFAULT_MATERIAL,
+          ...mat,
+          type: mat.type ?? 'MeshStandardMaterial',
+          id: mat.id ?? crypto.randomUUID(),
+        }
       : { ...DEFAULT_MATERIAL, id: crypto.randomUUID() };
   }
 
@@ -231,7 +237,10 @@ export class MeshNode extends SceneNode {
     this.material = { ...this.material, opacity, transparent };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mat = (this._threeObject as any)?.material;
-    if (mat) { mat.opacity = opacity; mat.transparent = transparent; }
+    if (mat) {
+      mat.opacity = opacity;
+      mat.transparent = transparent;
+    }
     this.notifyChange();
   }
 
@@ -251,7 +260,10 @@ export class MeshNode extends SceneNode {
   override setProperty(property: string, value: unknown): boolean {
     if (property.startsWith('geometry.params.')) {
       const key = property.slice('geometry.params.'.length);
-      this.geometry = { ...this.geometry, params: { ...(this.geometry.params ?? {}), [key]: value as number } };
+      this.geometry = {
+        ...this.geometry,
+        params: { ...(this.geometry.params ?? {}), [key]: value as number },
+      };
       this.notifyChange();
       return true;
     }
@@ -269,8 +281,12 @@ export class MeshNode extends SceneNode {
         this.geometry = {
           id: crypto.randomUUID(),
           type: value as GeometryType,
-          ...(value === 'procedural' ? { code: this.geometry.code ?? DEFAULT_PROCEDURAL_CODE } : {}),
-          ...(value === 'nodes' ? { nodesGraph: this.geometry.nodesGraph ?? DEFAULT_GEO_NODE_GRAPH } : {}),
+          ...(value === 'procedural'
+            ? { code: this.geometry.code ?? DEFAULT_PROCEDURAL_CODE }
+            : {}),
+          ...(value === 'nodes'
+            ? { nodesGraph: this.geometry.nodesGraph ?? DEFAULT_GEO_NODE_GRAPH }
+            : {}),
         };
         this.notifyChange();
         return true;
@@ -303,10 +319,13 @@ export class MeshNode extends SceneNode {
           const mat = (this._threeObject as any)?.material;
           if (mat) {
             if (key === 'roughness' && mat.roughness !== undefined) mat.roughness = value as number;
-            else if (key === 'metalness' && mat.metalness !== undefined) mat.metalness = value as number;
+            else if (key === 'metalness' && mat.metalness !== undefined)
+              mat.metalness = value as number;
             else if (key === 'emissive' && mat.emissive?.set) mat.emissive.set(value as string);
-            else if (key === 'emissiveIntensity' && mat.emissiveIntensity !== undefined) mat.emissiveIntensity = value as number;
-            else if (key === 'shininess' && mat.shininess !== undefined) mat.shininess = value as number;
+            else if (key === 'emissiveIntensity' && mat.emissiveIntensity !== undefined)
+              mat.emissiveIntensity = value as number;
+            else if (key === 'shininess' && mat.shininess !== undefined)
+              mat.shininess = value as number;
           }
           this.material = { ...this.material, [key]: value };
           this.notifyChange();

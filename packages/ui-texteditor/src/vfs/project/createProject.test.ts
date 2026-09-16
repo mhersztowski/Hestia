@@ -43,7 +43,11 @@ describe('ArduinoProject metadata', () => {
   it('exposes the expected action ids', () => {
     const p = new ArduinoProject(ctx('Arduino'), { baseUrl: '', userName: '' });
     expect(p.getActions().map((a) => a.id)).toEqual([
-      'compile', 'flash', 'compile-flash', 'clean', 'board-config',
+      'compile',
+      'flash',
+      'compile-flash',
+      'clean',
+      'board-config',
     ]);
     const boardConfig = p.getActions().find((a) => a.id === 'board-config');
     expect(boardConfig?.hasDialog).toBe(true);
@@ -58,7 +62,10 @@ describe('ArduinoProject metadata', () => {
 
 describe('Project.deriveSketchName (via ArduinoProject)', () => {
   const mk = (projectJsonPath: string) =>
-    new ArduinoProject(ctx('Arduino', projectJsonPath), { baseUrl: '', userName: '' }) as unknown as {
+    new ArduinoProject(ctx('Arduino', projectJsonPath), {
+      baseUrl: '',
+      userName: '',
+    }) as unknown as {
       deriveSketchName(p: string | null): string | null;
     };
 
@@ -71,7 +78,9 @@ describe('Project.deriveSketchName (via ArduinoProject)', () => {
   });
 
   it('extracts the sketch name after a "sketches/" segment', () => {
-    expect(mk('/proj/project.json').deriveSketchName('/proj/sketches/basic/main.ino')).toBe('basic');
+    expect(mk('/proj/project.json').deriveSketchName('/proj/sketches/basic/main.ino')).toBe(
+      'basic'
+    );
   });
 
   it('falls back to the first directory level for flat layouts', () => {
